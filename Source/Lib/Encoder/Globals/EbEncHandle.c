@@ -2897,7 +2897,7 @@ void copy_api_from_app(
         scs_ptr->static_config.intra_period_length = compute_default_intra_period(scs_ptr);
     else if (scs_ptr->static_config.intra_period_length == -1 && (use_input_stat(scs_ptr) || use_output_stat(scs_ptr) || scs_ptr->lap_enabled))
     {
-        scs_ptr->static_config.intra_period_length = (scs_ptr->frame_rate >> 16)* MAX_NUM_SEC_INTRA;
+        scs_ptr->static_config.intra_period_length = MIN(254, ((scs_ptr->frame_rate >> 16)* MAX_NUM_SEC_INTRA));
         SVT_LOG("SVT [Warning]: force Intra period to be %d for perf/quality tradeoff\n", scs_ptr->static_config.intra_period_length);
     }
 
