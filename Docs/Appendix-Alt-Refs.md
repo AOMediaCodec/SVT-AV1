@@ -18,11 +18,11 @@ each mini-GOP (e.g. source frame position 16 in a mini-GOP in a 5-layer
 hierarchical prediction structure). In addition, filtering of the
 key-frames and intra-only frames is also supported.
 
-The number of pictures to use for filtering, also referred to as the
+The number of pictures to be used for filtering, also referred to as the
 temporal window, is internally decided by past_altref_nframes and
 future_altref_nframes. These two altref nframes are decided by enc_mode
-and noise level. The bigger enc_mode (faster), the less altref nframes.
-The more noise, the less altref nframes.
+and noise level. Lower altref_nframes is used for higher enc_mode (faster)
+and higher noise level.
 
 
 The diagram in Fig. 1 illustrates the use of 5 adjacent pictures
@@ -330,24 +330,24 @@ In contrast, the temporally filtered key-frame will have ```showable_frame```
 ## 5. Overlay picture
 According to current SVT-AV1 implementation, if high level control
 ```enable_overlays = 1```, Overlay picture will be used to associate with
-ALTREF picture at ```temporal_layer_index == 0```.
+ALTREF picture with ```temporal_layer_index == 0```.
 
-In resource_coordination, each picture (except the first picture) will associate
-an additional potential Overlay picture.
+In resource_coordination, each picture (except the first picture) will be associated
+with an additional potential Overlay picture.
 
-In picture_analysis, the processing on potential Overlay picture is skipped
-because Overlay picture will share the same results from associated ALTREF
-picture.
+In picture_analysis function, the processing for potential Overlay picture is
+skipped because Overlay picture shares the same results as the associated
+ALTREF picture.
 
-In picture_decision, the Overlay picture will not be used to update the
+In picture_decision function, the Overlay picture will not be used to update the
 picture_decision_reorder_queue. When GOP is decided, the position of ALTREF
 and Overlay pictures is clear, then the additional potential Overlay picture of
 non-ALTREF will be released, and the Overlay picture of ALTREF will be initiated.
 
 Overlay picture will not be used as reference, and Overlay picture will only
-reference the associated ALTREF picture by the same picture number.
+reference the associated ALTREF picture with the same picture number.
 
-In set_frame_display_params(), ```frm_hdr->show_frame = EB_TRUE``` and
+In set_frame_display_params function, ```frm_hdr->show_frame = EB_TRUE``` and
 ```pcs_ptr->has_show_existing = EB_FALSE``` for Overlay picture, so that the
 associate ALTREF picture will not be displayed, and the reconstructed Overlay
 picture will be displayed instead.
