@@ -13,10 +13,11 @@ useful for source pictures that contain a high level of noise since the
 temporal filtering process will produce reference pictures with reduced
 noise level.
 
-Temporal filtering is currently applied to the base layer picture of
-each mini-GOP (e.g. source frame position 16 in a mini-GOP in a 5-layer
-hierarchical prediction structure). In addition, filtering of the
-key-frames and intra-only frames is also supported.
+Temporal filtering is currently applied to the base layer picture and
+can also be applied to layer 1 pictures of each mini-GOP (e.g. source
+frame position 16 in a mini-GOP in a 5-layer hierarchical prediction
+structure). In addition, filtering of the key-frames and intra-only
+frames is also supported.
 
 The number of pictures to be used for filtering, also referred to as the
 temporal window, is internally decided by past_altref_nframes and
@@ -46,7 +47,7 @@ For instance, if the ```miniGOPsize``` is set to 16 pictures, and
 ```future_altref_nframes``` is 3, a ```LAD``` of 19 frames would be required.
 
 When applying temporal filtering to ALTREF pictures, an Overlay picture
-is usually necessary. This Overlay picture corresponds to the same original
+might be necessary. This Overlay picture corresponds to the same original
 source picture but only use the temporally filtered version of the source
 picture as a reference to reconstruct the original picture.
 
@@ -107,7 +108,7 @@ to build the final filtered picture.
 #### Step 4: Block-based motion estimation and compensation
 
 For each block and each adjacent picture, hierarchical block-based
-motion estimation (unilateral prediction) is performed. A similar
+motion estimation (unidirectional prediction) is performed. A similar
 version of the open-loop Hierarchical Motion Estimation (HME), performed
 in subsequent steps in the encoding process, is applied. The ME motion
 estimation produces ¼-pel precision motion-vectors on blocks from 64x64
