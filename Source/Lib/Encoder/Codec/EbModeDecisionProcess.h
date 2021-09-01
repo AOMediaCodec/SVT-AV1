@@ -90,9 +90,9 @@ typedef struct MdBlkStruct {
     uint8_t                compound_idx;
     InterInterCompoundData interinter_comp;
     // txb
-    uint8_t u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint16_t u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint16_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint16_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
 } MdBlkStruct;
 
 struct ModeDecisionCandidate;
