@@ -2936,7 +2936,14 @@ void copy_api_from_app(
     // Get Default Intra Period if not specified
     if (scs_ptr->static_config.intra_period_length == -2)
         scs_ptr->static_config.intra_period_length = compute_default_intra_period(scs_ptr);
-    else if (scs_ptr->static_config.intra_period_length == -1 && (use_input_stat(scs_ptr) || use_output_stat(scs_ptr) || scs_ptr->lap_enabled))
+
+	else if (scs_ptr->static_config.rate_control_mode != 0 && scs_ptr->static_config.intra_period_length == -1) {
+		scs_ptr->static_config.intra_period_length = compute_default_intra_period(scs_ptr);
+		SVT_WARN("rate control != 0 and keyint = -1 is unsupported.  Hardcoding to keyint = %u\n", scs_ptr->static_config.intra_period_length);
+		
+	}
+
+	else if (scs_ptr->static_config.intra_period_length == -1 && (use_input_stat(scs_ptr) || use_output_stat(scs_ptr) || scs_ptr->lap_enabled))
     {
         scs_ptr->static_config.intra_period_length = (scs_ptr->frame_rate >> 16)* MAX_NUM_SEC_INTRA;
         SVT_LOG("SVT [Warning]: force Intra period to be %d for perf/quality tradeoff\n", scs_ptr->static_config.intra_period_length);
@@ -3575,6 +3582,11 @@ static EbErrorType verify_settings(
     if (config->rate_control_mode == 1 || config->rate_control_mode == 2) {
         SVT_WARN("The VBR and CVBR rate control modes are a work-in-progress projects, and are only available for demos, experimental and further development uses and should not be used for benchmarking until fully implemented.\n");
     }
+
+	if (config->film_grain_denoise_strength > 0 && config->enc_mode > 3) {
+		SVT_LOG("Error instance %u: Film Grain is disabled for enc modes greater than 3 as it produces a significant compute overhead.\n", channel_number + 1);
+        return_error = EB_ErrorBadParameter;
+	}
 
     return return_error;
 }
