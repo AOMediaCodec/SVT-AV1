@@ -2636,6 +2636,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     // scs_ptr->static_config.hierarchical_levels = (scs_ptr->static_config.rate_control_mode > 1) ? 3 : scs_ptr->static_config.hierarchical_levels;
     if (use_output_stat(scs_ptr))
         scs_ptr->static_config.hierarchical_levels = 0;
+
     // Configure the padding
     scs_ptr->left_padding = BLOCK_SIZE_64 + 4;
     scs_ptr->top_padding = BLOCK_SIZE_64 + 4;
@@ -3593,6 +3594,11 @@ static EbErrorType verify_settings(
 		SVT_LOG("Error instance %u: Film Grain is disabled for enc modes greater than 3 as it produces a significant compute overhead.\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
 	}
+
+    if (config->hierarchical_levels < 3 || config->hierarchical_levels > 4) {
+        SVT_LOG("Error: Only hierarchical levels 3 and 4 currently supported");
+        return_error = EB_ErrorBadParameter;
+    }
 
     return return_error;
 }
