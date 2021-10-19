@@ -2702,6 +2702,12 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
         scs_ptr->static_config.enable_hbd_mode_decision = 0;
 
 
+
+	// Add a warning when scene change is on, that the feature is not optimal and may produce detections
+	if (scs_ptr->static_config.scene_change_detection == 1)
+		SVT_LOG("Warning: Scene Change is not optimal and may produce detections\n");
+
+
     scs_ptr->mrp_init_level = scs_ptr->static_config.enc_mode <= ENC_M4 ? 1 : scs_ptr->static_config.enc_mode <= ENC_M6 ? 3 : 4;
 }
 
