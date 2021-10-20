@@ -3577,8 +3577,7 @@ static EbErrorType verify_settings(
 
 	/*  */
 	if (config->film_grain_denoise_strength > 0 && config->enc_mode > 3) {
-		SVT_LOG("Error instance %u: Film Grain is disabled for enc modes greater than 3 as it produces a significant compute overhead.\n", channel_number + 1);
-        return_error = EB_ErrorBadParameter;
+		SVT_WARN("Film Grain support is a work-in-progress.  It is recommended to not use Film Grain for presets greater than 3 as it produces a significant compute overhead.\n", channel_number + 1);
 	}
 
     if (config->hierarchical_levels < 3 || config->hierarchical_levels > 4) {
