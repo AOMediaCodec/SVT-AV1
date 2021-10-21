@@ -1,4 +1,4 @@
-// clang-format off
+﻿// clang-format off
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -3576,18 +3576,18 @@ static EbErrorType verify_settings(
     }
 
     if (config->film_grain_denoise_strength > 0 && config->enc_mode > 3) {
-		SVT_WARN("Film Grain support is a work-in-progress.  It is recommended to not use Film Grain for presets greater than 3 as it produces a significant compute overhead.\n");
-	}
+        SVT_WARN("It is recommended to not use Film Grain for presets greater than 3 as it produces a significant compute overhead. This combination should only be used for debug purposes.\n");
+    }
 
     if (config->hierarchical_levels < 3 || config->hierarchical_levels > 4) {
         SVT_LOG("Error: Only hierarchical levels 3 and 4 currently supported");
         return_error = EB_ErrorBadParameter;
     }
 
-	if (config->rate_control_mode != 0 && config->intra_period_length == -1) {
-		SVT_LOG("Error instance %u: rate control != 0 and keyint = -1 is unsupported.\n", channel_number + 1);
-		return_error = EB_ErrorBadParameter;
-	}
+    if (config->rate_control_mode != 0 && config->intra_period_length == -1) {
+        SVT_LOG("Error instance %u: keyint = -1 is not supported for modes other than CRF rate control encoding modes.\n", channel_number + 1);
+        return_error = EB_ErrorBadParameter;
+    }
 
     return return_error;
 }
