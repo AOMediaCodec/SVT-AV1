@@ -2702,9 +2702,9 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     if (scs_ptr->static_config.encoder_bit_depth < 10)
         scs_ptr->static_config.enable_hbd_mode_decision = 0;
 
-	// Add a warning when scene change is on, that the feature is not optimal and may produce detections
-	if (scs_ptr->static_config.scene_change_detection == 1)
-		SVT_WARN("Scene Change is not optimal and may produce detections\n");
+    // Throws a warning when scene change is on, as the feature is not optimal and may produce false detections
+    if (scs_ptr->static_config.scene_change_detection == 1)
+        SVT_WARN("Scene Change is not optimal and may produce false detections\n");
 
     scs_ptr->mrp_init_level = scs_ptr->static_config.enc_mode <= ENC_M4 ? 1 : scs_ptr->static_config.enc_mode <= ENC_M6 ? 3 : 4;
 }
@@ -3575,8 +3575,7 @@ static EbErrorType verify_settings(
         SVT_WARN("The VBR and CVBR rate control modes are a work-in-progress projects, and are only available for demos, experimental and further development uses and should not be used for benchmarking until fully implemented.\n");
     }
 
-	/*  */
-	if (config->film_grain_denoise_strength > 0 && config->enc_mode > 3) {
+    if (config->film_grain_denoise_strength > 0 && config->enc_mode > 3) {
 		SVT_WARN("Film Grain support is a work-in-progress.  It is recommended to not use Film Grain for presets greater than 3 as it produces a significant compute overhead.\n");
 	}
 
