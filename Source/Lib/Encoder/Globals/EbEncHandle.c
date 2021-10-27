@@ -2636,7 +2636,6 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     // scs_ptr->static_config.hierarchical_levels = (scs_ptr->static_config.rate_control_mode > 1) ? 3 : scs_ptr->static_config.hierarchical_levels;
     if (use_output_stat(scs_ptr))
         scs_ptr->static_config.hierarchical_levels = 0;
-
     // Configure the padding
     scs_ptr->left_padding = BLOCK_SIZE_64 + 4;
     scs_ptr->top_padding = BLOCK_SIZE_64 + 4;
@@ -2704,7 +2703,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
 
     // Throws a warning when scene change is on, as the feature is not optimal and may produce false detections
     if (scs_ptr->static_config.scene_change_detection == 1)
-        SVT_WARN("Scene Change is not optimal and may produce false detections\n");
+        SVT_WARN("Scene Change is not optimal and may produce suboptimal keyframe placements\n");
 
     scs_ptr->mrp_init_level = scs_ptr->static_config.enc_mode <= ENC_M4 ? 1 : scs_ptr->static_config.enc_mode <= ENC_M6 ? 3 : 4;
 }
@@ -3580,7 +3579,7 @@ static EbErrorType verify_settings(
     }
 
     if (config->hierarchical_levels < 3 || config->hierarchical_levels > 4) {
-        SVT_LOG("Error: Only hierarchical levels 3 and 4 currently supported");
+        SVT_LOG("Error instance %u: Only hierarchical levels 3 and 4 currently supported\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
 
