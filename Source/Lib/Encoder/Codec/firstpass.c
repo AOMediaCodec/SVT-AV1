@@ -187,7 +187,8 @@ void svt_av1_end_first_pass(PictureParentControlSet *pcs_ptr) {
 
     if (twopass->stats_buf_ctx->total_stats) {
         // add the total to the end of the file
-        output_stats(scs_ptr, twopass->stats_buf_ctx->total_stats, pcs_ptr->picture_number + 1);
+        FIRSTPASS_STATS total_stats = *twopass->stats_buf_ctx->total_stats;
+        output_stats(scs_ptr, &total_stats, pcs_ptr->picture_number + 1);
     }
 }
 static double raw_motion_error_stdev(int *raw_motion_err_list, int raw_motion_err_counts) {
@@ -345,7 +346,7 @@ static void update_firstpass_stats(PictureParentControlSet *pcs_ptr, const FRAME
     // We will store the stats inside the persistent twopass struct (and NOT the
     // local variable 'fps'), and then cpi->output_pkt_list will point to it.
     *this_frame_stats = fps;
-    output_stats(scs_ptr, this_frame_stats, pcs_ptr->picture_number);
+    output_stats(scs_ptr, &fps, pcs_ptr->picture_number);
     if (twopass->stats_buf_ctx->total_stats != NULL) {
         svt_av1_accumulate_stats(twopass->stats_buf_ctx->total_stats, &fps);
     }
