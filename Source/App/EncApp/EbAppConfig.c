@@ -944,8 +944,8 @@ ConfigEntry config_entry_intra_refresh[] = {
      set_scene_change_detection},
     {SINGLE_INPUT,
      LOOKAHEAD_NEW_TOKEN,
-     "The lookahead is the total number of frames in future used by the encoder, including"
-     " frames to form a minigop, temporal filtering and rate control. [0 - 120]",
+     "Number of frames in the future to look ahead, includes minigop, tf, and rate control. Only "
+     "applicable to VBR [-1: auto, 0-120]",
      set_look_ahead_distance},
 
     // Termination
