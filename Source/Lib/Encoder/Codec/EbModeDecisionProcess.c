@@ -188,7 +188,7 @@ EbErrorType mode_decision_context_ctor(ModeDecisionContext *context_ptr, EbColor
     context_ptr->is_md_rate_estimation_ptr_owner = EB_TRUE;
 
     EB_MALLOC_ARRAY(context_ptr->md_local_blk_unit, block_max_count_sb);
-    EB_MALLOC_ARRAY(context_ptr->md_blk_arr_nsq, block_max_count_sb);
+    EB_CALLOC_ARRAY(context_ptr->md_blk_arr_nsq, block_max_count_sb);
     EB_MALLOC_ARRAY(context_ptr->md_ep_pipe_sb, block_max_count_sb);
     // Fast Candidate Array
     uint16_t max_can_count = get_max_can_count(enc_mode) + 84; //chroma search;
