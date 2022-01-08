@@ -608,6 +608,22 @@ EB_API const char *svt_av1_get_version(void);
  */
 EB_API void svt_av1_print_version(void);
 
+/**
+ * @brief Allocates an EbSvtAv1EncConfiguration struct with a size that matches the internally compiled size.
+ *
+ * Primarily for use by applications that might not be recompiled everytime SVT-AV1 is updated.
+ *
+ * @return EB_API* uninitalized pointer.
+ */
+EB_API EbSvtAv1EncConfiguration *svt_av1_enc_config_alloc(void);
+
+/**
+ * @brief frees an EbSvtAv1EncConfiguration struct that was allocated by svt_av1_enc_config_alloc().
+ *
+ * @param config EbSvtAv1EncConfiguration struct to free.
+ */
+EB_API void svt_av1_enc_config_free(EbSvtAv1EncConfiguration *config);
+
 /* STEP 1: Call the library to construct a Component Handle.
      *
      * Parameter:

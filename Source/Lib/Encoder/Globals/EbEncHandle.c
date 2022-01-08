@@ -5312,6 +5312,14 @@ EB_API void svt_av1_print_version(void) {
     SVT_INFO("-------------------------------------------\n");
 }
 
+EB_API EbSvtAv1EncConfiguration *svt_av1_enc_config_alloc(void) {
+    return malloc(sizeof(EbSvtAv1EncConfiguration));
+}
+
+EB_API void svt_av1_enc_config_free(EbSvtAv1EncConfiguration *config) {
+    free(config);
+}
+
 /**********************************
 * Encoder Handle Initialization
 **********************************/
