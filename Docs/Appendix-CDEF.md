@@ -228,7 +228,7 @@ block. Filtering is to be applied according to the identified direction
 for the 8x8 block. For a given sample to be filtered in the block, the
 position of the neighboring samples to be considered in the filtering
 operation are given by the array `cdef_directions` according to the
-identified direction. The array is given by
+identified direction.
 
 The primary and secondary filter coefficients are given in Section 1.
 
