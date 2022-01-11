@@ -526,6 +526,8 @@ EbErrorType signal_derivation_me_kernel_oq(SequenceControlSet *       scs_ptr,
         context_ptr->me_context_ptr->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
     else
         context_ptr->me_context_ptr->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
+
+    context_ptr->me_context_ptr->bypass_frame_ipp = 0;
     return return_error;
 };
 void open_loop_first_pass(struct PictureParentControlSet *ppcs_ptr,
@@ -617,6 +619,7 @@ EbErrorType tf_signal_derivation_me_kernel_oq(PictureParentControlSet *  pcs_ptr
     context_ptr->me_context_ptr->stat_factor             = 100;
     context_ptr->me_context_ptr->reduce_hme_l0_sr_th_min = 0;
     context_ptr->me_context_ptr->reduce_hme_l0_sr_th_max = 0;
+    context_ptr->me_context_ptr->bypass_frame_ipp = 0;
     return return_error;
 };
 

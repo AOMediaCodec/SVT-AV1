@@ -711,6 +711,12 @@ EbErrorType first_pass_signal_derivation_me_kernel(SequenceControlSet *       sc
     context_ptr->me_context_ptr->prune_me_candidates_th = 0; // No impact on tf
     context_ptr->me_context_ptr->use_best_unipred_cand_only = 0; // No impact on tf
     set_prehme_ctrls(context_ptr->me_context_ptr, 0);
+    if (pcs_ptr->scs_ptr->static_config.enc_mode < ENC_M8)
+        context_ptr->me_context_ptr->bypass_frame_ipp = 0;
+    else if (pcs_ptr->scs_ptr->static_config.pass == ENC_SINGLE_PASS)
+        context_ptr->me_context_ptr->bypass_frame_ipp = 1;
+    else
+        context_ptr->me_context_ptr->bypass_frame_ipp = 0;
     return return_error;
 };
 
@@ -1314,8 +1320,12 @@ void open_loop_first_pass(PictureParentControlSet *  ppcs_ptr,
     me_context_ptr->me_context_ptr->min_frame_size = MIN(ppcs_ptr->aligned_height,
                                                          ppcs_ptr->aligned_width);
     // Perform the me for the first pass for each segment
-    if (!ppcs_ptr->scs_ptr->ipp_pass_ctrls.skip_frame_first_pass)
+    if (!ppcs_ptr->scs_ptr->ipp_pass_ctrls.skip_frame_first_pass) {
         me_context_ptr->me_context_ptr->skip_frame = 0;
+        if (me_context_ptr->me_context_ptr->bypass_frame_ipp)
+            if (ppcs_ptr->picture_number > 3 && ppcs_ptr->picture_number % 4 > 0)
+                me_context_ptr->me_context_ptr->skip_frame = 1;
+    }
     else {
         if ((ppcs_ptr->scs_ptr->ipp_pass_ctrls.skip_frame_first_pass == 1) &&
             (ppcs_ptr->picture_number % 8 > 0))
