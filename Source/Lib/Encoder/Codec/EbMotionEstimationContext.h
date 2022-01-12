@@ -480,7 +480,6 @@ typedef struct MeContext {
     uint8_t      bypass_blk_step;
     uint32_t     block_width;
     uint32_t     block_height;
-    uint8_t      bypass_frame_ipp;
 } MeContext;
 
 typedef uint64_t (*EB_ME_DISTORTION_FUNC)(uint8_t *src, uint32_t src_stride, uint8_t *ref,
