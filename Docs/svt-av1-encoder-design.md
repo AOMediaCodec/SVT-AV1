@@ -777,4 +777,4 @@ The following appendices highlight the design and implementation of features in 
 
 ## Notes
 
-The information in this document was compiled at <mark>v0.8.3</mark> may not reflect the latest status of the encoder design. For the most up-to-date settings and implementation, it's recommended to visit the section of the code implementing the feature / section in question.
+The information in this document was compiled at <mark>v0.9.0</mark> may not reflect the latest status of the encoder design. For the most up-to-date settings and implementation, it's recommended to visit the section of the code implementing the feature / section in question.

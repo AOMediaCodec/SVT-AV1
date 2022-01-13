@@ -165,6 +165,10 @@ The ```interpolation_search_level``` is set at the Mode Decision Configuration P
 
 Each of the vertical filter type and horizontal filter type are signaled independently in the bitstream.
 
+## Notes
+
+The feature settings that are described in this document were compiled at v0.9.0 of the code and may not reflect the current status of the code. The description in this document represents an example showing  how features would interact with the SVT architecture. For the most up-to-date settings, it's recommended to review the section of the code implementing this feature.
+
 ## References
 
 [1] Ching-Han Chiang, Jingning Han, Stan Vitvitskyy, Debargha Mukherjee, and Yaowu Xu, “Adaptive interpolation filter scheme in AV1,” International Conference on Image Processing, 2017.

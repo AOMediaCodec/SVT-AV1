@@ -85,3 +85,7 @@ The IPP pass algorithm can be configured in different ways to achieve its best q
 | reduce_me_search      | Sequence                     | 0: OFF, 1: Reduce HME and ME search area size |
 
 Note that in the multi-pass encoding mode, the encode pipeline of the IPP pass has been modified to involve only the necessary encoder kernels, such motion estimation kernel, and all unnecessary kernels such as Rate Control, Mode Decision, Encode-decode, Deblocking, CDEF, Restoration, Entropy Coder… are bypassed.
+
+## Notes
+
+The feature settings that are described in this document were compiled at v0.9.0 of the code and may not reflect the current status of the code. The description in this document represents an example showing  how features would interact with the SVT architecture. For the most up-to-date settings, it's recommended to review the section of the code implementing this feature.
