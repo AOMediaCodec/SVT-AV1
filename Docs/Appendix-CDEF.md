@@ -126,7 +126,7 @@ Control flags associated with CDEF are listed in Table 1 below.
 
 | **Flag**                        | **Level**      | **Description**                                                                                                            |
 | ------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| -cdef-level                     | Configuration  | Command line option: 0: OFF, 1-5: ON with steps 64,16,8,4,1, -1: Auto mode (determined in code)                            |
+| --enable-cdef                     | Configuration  | CDEF filter control (0:OFF , 1: ON (Default))                           |
 | cdef\_level                     | Sequence       | Indicates whether to use CDEF for the whole sequence.                                                                      |
 | cdef\_level                     | Picture        | Indicates the level of complexity of the CDEF strength search as a function of the encoder mode (enc\_mode).               |
 
