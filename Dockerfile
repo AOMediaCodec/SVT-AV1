@@ -1,11 +1,12 @@
-FROM buildpack-deps:focal as BUILDER
+FROM alpine as BUILDER
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
+RUN apk add \
+    build-base \
     cmake \
     yasm \
-    && rm -rf /var/lib/apt/lists/*
+    git
 
 ENV LDFLAGS "-static -static-libgcc"
 
