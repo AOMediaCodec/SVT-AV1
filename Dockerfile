@@ -19,4 +19,5 @@ FROM alpine as RELEASE
 
 COPY --from=BUILDER /app/SVT-AV1/Bin/Release/SvtAv1EncApp /app/
 
-ENTRYPOINT /app/SvtAv1EncApp
+ENTRYPOINT ["/app/SvtAv1EncApp"]
+CMD [ "--help" ]
