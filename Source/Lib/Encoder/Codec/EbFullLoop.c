@@ -1786,11 +1786,12 @@ void full_loop_chroma_light_pd1(PictureControlSet *pcs_ptr, ModeDecisionContext 
     const TxSize tx_size_uv = context_ptr->blk_geom->txsize_uv[0][0];
 
     EB_TRANS_COEFF_SHAPE pf_shape = context_ptr->pf_ctrls.pf_shape;
-    if (context_ptr->use_tx_shortcuts_mds3 && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CB)) {
+    // If Cb component not detected as complex, can use TX shortcuts
+    if (context_ptr->use_tx_shortcuts_mds3 && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CR)) {
         pf_shape = N4_SHAPE;
     } else {
         uint8_t use_pfn4_cond = 0;
-        if (context_ptr->lpd1_tx_ctrls.use_uv_shortcuts_on_y_coeffs && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CB)) {
+        if (context_ptr->lpd1_tx_ctrls.use_uv_shortcuts_on_y_coeffs && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CR)) {
             const uint16_t th = ((context_ptr->blk_geom->tx_width_uv[0][0] >> 4) *
                                  (context_ptr->blk_geom->tx_height_uv[0][0] >> 4));
             use_pfn4_cond     = (candidate_buffer->candidate_ptr->count_non_zero_coeffs < th) ||
@@ -1882,12 +1883,13 @@ void full_loop_chroma_light_pd1(PictureControlSet *pcs_ptr, ModeDecisionContext 
     }
 
     pf_shape = context_ptr->pf_ctrls.pf_shape;
-    if (context_ptr->use_tx_shortcuts_mds3 && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CR)) {
+    // If Cr component not detected as complex, can use TX shortcuts
+    if (context_ptr->use_tx_shortcuts_mds3 && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CB)) {
         pf_shape = N4_SHAPE;
     }
     else {
         uint8_t use_pfn4_cond = 0;
-        if (context_ptr->lpd1_tx_ctrls.use_uv_shortcuts_on_y_coeffs && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CR)) {
+        if (context_ptr->lpd1_tx_ctrls.use_uv_shortcuts_on_y_coeffs && (context_ptr->chroma_complexity == COMPONENT_LUMA || context_ptr->chroma_complexity == COMPONENT_CHROMA_CB)) {
             const uint16_t th = ((context_ptr->blk_geom->tx_width_uv[0][0] >> 4) *
                 (context_ptr->blk_geom->tx_height_uv[0][0] >> 4));
             use_pfn4_cond = (candidate_buffer->candidate_ptr->count_non_zero_coeffs < th) ||
