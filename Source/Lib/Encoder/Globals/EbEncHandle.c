@@ -3292,7 +3292,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
             SVT_WARN("The input q vlaue is ignored in vbr mode %d", scs_ptr->static_config.qp);
         }
         const uint8_t tbr_bands[6] = { 1,2,4,6,8,10 };
-        const uint64_t src_samples = scs_ptr->seq_header.max_frame_width*scs_ptr->seq_header.max_frame_height;
+        const uint64_t src_samples = (uint64_t)(scs_ptr->seq_header.max_frame_width*scs_ptr->seq_header.max_frame_height);
         const uint64_t target_bit_rate = scs_ptr->static_config.target_bit_rate / src_samples;
         if (target_bit_rate < tbr_bands[0])
             scs_ptr->static_config.qp = 50;
