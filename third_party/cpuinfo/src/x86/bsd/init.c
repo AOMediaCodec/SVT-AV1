@@ -8,8 +8,6 @@
 #include <cpuinfo/internal-api.h>
 #include <cpuinfo/log.h>
 
-
-
 void cpuinfo_x86_bsd_init(void) {
     struct cpuinfo_x86_processor x86_processor;
     memset(&x86_processor, 0, sizeof(x86_processor));

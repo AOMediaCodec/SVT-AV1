@@ -424,10 +424,6 @@ typedef struct InterpolationSearchCtrls {
         level; // Specifies the MD Stage where the interpolation filter search will take place (IFS_MDS0, IFS_MDS1, IFS_MDS2, or IFS_MDS3 for respectively MD Stage 0, MD Stage 1, MD Stage 2, and MD Stage 3)
     uint8_t
         quarter_pel_only; // Specifies whether the interpolation filter search will use 1/8-Pel precision or 1/4-Pel precision (0: 1/8-Pel precision, 1: 1/4-Pel precision)
-#if !CLN_REMOVE_UNUSED_RES
-    uint8_t
-        modulate_filter_per_resolution; // Specifies whether certain combination(s) will be skipped depending on the input resolution or not (0: NO, 1: only (regular, regular) and (sharp, sharp) if 480p and below, and only (regular, regular) and (smooth, smooth) otherwise
-#endif
     uint8_t
         early_skip; // Specifies whether an early interpolation filter search exit could take place based on the cost of signaling a switchable filter type (0: OFF, 1: ON)
     uint8_t
@@ -508,7 +504,8 @@ typedef struct IntraCtrls {
 typedef struct TxShortcutCtrls {
     uint8_t bypass_tx_when_zcoeff; // Skip TX at MDS3 if the MDS1 TX gave 0 coeffs
     uint8_t apply_pf_on_coeffs; // Apply pf based on the number of coeffs
-    uint8_t chroma_detector_level; // Use a detector to protect chroma from aggressive actions based on luma info: 0: OFF, 1: saftest, 2, 3: medium
+    uint8_t
+        chroma_detector_level; // Use a detector to protect chroma from aggressive actions based on luma info: 0: OFF, 1: saftest, 2, 3: medium
     uint32_t
         use_mds3_shortcuts_th; // if (best_mds0_distortion/QP < TH) use shortcuts for candidates at MDS3; 0: OFF, higher: more aggressive
     uint8_t
@@ -756,21 +753,21 @@ typedef struct ModeDecisionContext {
     uint8_t *    above_txfm_context;
     uint8_t *    left_txfm_context;
     // square cost weighting for deciding if a/b shapes could be skipped
-    uint32_t       sq_weight;
-    uint32_t       max_part0_to_part1_dev;
-    IntraCtrls     intra_ctrls;
-    MdRateEstCtrls rate_est_ctrls;
-    uint8_t        shut_fast_rate; // use coeff rate and slipt flag rate only (no MVP derivation)
-    uint8_t        md_staging_fast_coeff_est_level; // Control fast_coeff_est_level per mds
-    uint8_t        md_staging_subres_step; // Control subres_step per mds
-    uint8_t              md_pic_obmc_level;
-    uint8_t              md_inter_intra_level;
-    uint8_t              md_filter_intra_level;
-    uint8_t              md_allow_intrabc;
-    uint8_t              md_palette_level;
-    uint8_t              dist_based_ref_pruning;
-    DepthRemovalCtrls    depth_removal_ctrls;
-    DepthCtrls           depth_ctrls; // control which depths can be considered in PD1
+    uint32_t          sq_weight;
+    uint32_t          max_part0_to_part1_dev;
+    IntraCtrls        intra_ctrls;
+    MdRateEstCtrls    rate_est_ctrls;
+    uint8_t           shut_fast_rate; // use coeff rate and slipt flag rate only (no MVP derivation)
+    uint8_t           md_staging_fast_coeff_est_level; // Control fast_coeff_est_level per mds
+    uint8_t           md_staging_subres_step; // Control subres_step per mds
+    uint8_t           md_pic_obmc_level;
+    uint8_t           md_inter_intra_level;
+    uint8_t           md_filter_intra_level;
+    uint8_t           md_allow_intrabc;
+    uint8_t           md_palette_level;
+    uint8_t           dist_based_ref_pruning;
+    DepthRemovalCtrls depth_removal_ctrls;
+    DepthCtrls        depth_ctrls; // control which depths can be considered in PD1
     DepthRefinementCtrls depth_refinement_ctrls;
     int64_t              parent_to_current_deviation;
     int64_t              child_to_current_deviation;
@@ -868,16 +865,13 @@ typedef struct ModeDecisionContext {
     uint8_t
                 approx_inter_rate; // use approximate rate for inter cost (set at pic-level b/c some pic-level initializations will be removed)
     uint8_t     enable_psad; // Enable pSad
-#if ADD_VQ_MODE
     uint32_t    inter_depth_bias;
-#else
-    uint32_t    pd0_inter_depth_bias;
-#endif
     uint8_t     bipred_available;
     uint8_t     is_intra_bordered;
     uint8_t     updated_enable_pme;
     Lpd1TxCtrls lpd1_tx_ctrls;
-    uint8_t chroma_complexity; // Indicates which chroma components (if any) are complex, relative to luma. Chroma TX shortcuts based on luma should not be used when chroma is complex.
+    uint8_t
+        chroma_complexity; // Indicates which chroma components (if any) are complex, relative to luma. Chroma TX shortcuts based on luma should not be used when chroma is complex.
     uint8_t
         lpd1_skip_inter_tx_level; // Signal to skip INTER TX in LPD1; should only be used by M13 as this causes blocking artifacts.
     // 0: OFF, 1: Skip INTER TX if neighs have 0 coeffs, 2: skip all INTER TX
@@ -916,15 +910,12 @@ static const uint8_t quantizer_to_qindex[] = {
 static const int percents[2][FIXED_QP_OFFSET_COUNT] = {
     {75, 70, 60, 20, 15, 0}, {76, 60, 30, 15, 8, 4} // libaom offsets
 };
-#if ADD_VQ_MODE
-static const uint64_t uni_psy_bias[] =
-{
+static const uint64_t uni_psy_bias[] = {
     50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,
     60,  60,  60,  60,  60,  60,  60,  60,  70,  70,  70,  70,  70,  70,  70,  70,
     80,  80,  80,  80,  80,  80,  80,  80,  90,  90,  90,  90,  90,  90,  90,  90,
-   100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
 };
-#endif
 
 extern void reset_mode_decision(SequenceControlSet *scs_ptr, ModeDecisionContext *context_ptr,
                                 PictureControlSet *pcs_ptr, uint16_t tile_row_idx,

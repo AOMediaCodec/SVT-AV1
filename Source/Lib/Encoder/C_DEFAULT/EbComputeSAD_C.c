@@ -64,9 +64,7 @@ void svt_sad_loop_kernel_c(
     uint32_t  block_width, // input parameter, block width (N)
     uint64_t *best_sad, int16_t *x_search_center, int16_t *y_search_center,
     uint32_t src_stride_raw, // input parameter, source stride (no line skipping)
-    uint8_t skip_search_line,
-    int16_t search_area_width, int16_t search_area_height) {
-
+    uint8_t skip_search_line, int16_t search_area_width, int16_t search_area_height) {
     (void)skip_search_line;
     int16_t x_search_index;
     int16_t y_search_index;

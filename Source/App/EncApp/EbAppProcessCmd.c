@@ -158,7 +158,7 @@ static void release_memory_mapped_file(EbConfig *config, uint8_t is_16bit,
                                        EbBufferHeaderType *header_ptr) {
     const uint32_t input_padded_width  = config->input_padded_width;
     const uint32_t input_padded_height = config->input_padded_height;
-    uint64_t luma_read_size = (uint64_t)input_padded_width * input_padded_height
+    uint64_t       luma_read_size      = (uint64_t)input_padded_width * input_padded_height
         << (config->config.compressed_ten_bit_format ? 0 : is_16bit);
     const uint8_t  color_format = config->config.encoder_color_format;
     EbSvtIOFormat *input_ptr    = (EbSvtIOFormat *)header_ptr->p_buffer;
@@ -179,8 +179,8 @@ static void release_memory_mapped_file(EbConfig *config, uint8_t is_16bit,
 void read_input_frames(EbConfig *config, uint8_t is_16bit, EbBufferHeaderType *header_ptr) {
     const uint32_t input_padded_width  = config->input_padded_width;
     const uint32_t input_padded_height = config->input_padded_height;
-    FILE *         input_file = config->input_file;
-    EbSvtIOFormat *input_ptr  = (EbSvtIOFormat *)header_ptr->p_buffer;
+    FILE *         input_file          = config->input_file;
+    EbSvtIOFormat *input_ptr           = (EbSvtIOFormat *)header_ptr->p_buffer;
 
     const uint8_t color_format  = config->config.encoder_color_format;
     const uint8_t subsampling_x = (color_format == EB_YUV444 ? 1 : 2) - 1;
@@ -210,7 +210,7 @@ void read_input_frames(EbConfig *config, uint8_t is_16bit, EbBufferHeaderType *h
             uint64_t luma_read_size = (uint64_t)input_padded_width * input_padded_height
                 << is_16bit;
             uint32_t chroma_read_size = ((uint32_t)luma_read_size >> (3 - color_format));
-            uint8_t *eb_input_ptr = input_ptr->luma;
+            uint8_t *eb_input_ptr     = input_ptr->luma;
             if (!config->y4m_input && config->processed_frame_count == 0 &&
                 (config->input_file == stdin || config->input_file_is_fifo)) {
                 /* 9 bytes were already buffered during the the YUV4MPEG2 header probe */
@@ -282,7 +282,7 @@ void read_input_frames(EbConfig *config, uint8_t is_16bit, EbBufferHeaderType *h
             const uint32_t chroma_read_size      = luma_read_size >> (3 - color_format);
             const uint32_t nbit_luma_read_size   = (input_padded_width / 4) * input_padded_height;
             const uint32_t nbit_chroma_read_size = nbit_luma_read_size >> (3 - color_format);
-            read_size = luma_read_size + nbit_luma_read_size +
+            read_size                            = luma_read_size + nbit_luma_read_size +
                 2 * (chroma_read_size + nbit_chroma_read_size);
             // Fill the buffer with a complete frame
             header_ptr->n_filled_len = 0;
@@ -535,9 +535,9 @@ void process_input_buffer(EncChannel *channel) {
 
     AppExitConditionType return_value = APP_ExitConditionNone;
 
-    const uint8_t color_format = config->config.encoder_color_format;
-    const int64_t input_padded_width = config->input_padded_width;
-    const int64_t input_padded_height = config->input_padded_height;
+    const uint8_t color_format         = config->config.encoder_color_format;
+    const int64_t input_padded_width   = config->input_padded_width;
+    const int64_t input_padded_height  = config->input_padded_height;
     const int64_t frames_to_be_encoded = config->frames_to_be_encoded;
     int64_t       total_bytes_to_process_count;
     int64_t       remaining_byte_count;
@@ -871,7 +871,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                     }
                 }
                 if (config->config.pass == ENC_SECOND_PASS) {
-
                     if (config->output_stat_file && config->config.rc_stats_buffer.buf) {
                         fwrite(config->config.rc_stats_buffer.buf,
                                1,

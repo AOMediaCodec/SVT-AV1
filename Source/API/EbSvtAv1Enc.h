@@ -106,7 +106,7 @@ typedef enum {
 */
 typedef enum SvtAv1IntraRefreshType {
     SVT_AV1_FWDKF_REFRESH = 1,
-    SVT_AV1_KF_REFRESH = 2,
+    SVT_AV1_KF_REFRESH    = 2,
 } SvtAv1IntraRefreshType;
 
 typedef enum {
@@ -124,7 +124,6 @@ typedef struct SvtAv1FixedBuf {
     void *   buf; /**< Pointer to the data. Does NOT own the data! */
     uint64_t sz; /**< Length of the buffer, in chars */
 } SvtAv1FixedBuf; /**< alias for struct aom_fixed_buf */
-
 
 // Will contain the EbEncApi which will live in the EncHandle class
 // Only modifiable during config-time.
@@ -534,14 +533,12 @@ typedef struct EbSvtAv1EncConfiguration {
     EbBool enable_tf;
 
     EbBool enable_overlays;
-#if ADD_VQ_MODE
     /**
      * @brief Tune for a particular metric; 0: VQ, 1: PSNR
      *
      * Default is 1.
      */
     uint8_t tune;
-#endif
     // super-resolution parameters
     uint8_t superres_mode;
     uint8_t superres_denom;
@@ -609,7 +606,6 @@ typedef struct EbSvtAv1EncConfiguration {
     * values are from set using svt_aom_parse_content_light_level()
     */
     struct EbContentLightLevel content_light_level;
-#if OPT_DECODER
     /* Decoder speed optimization level
     * 0: No decoder speed optimization
     * 1: Low-level decoder speed optimization (fast decode)
@@ -617,7 +613,6 @@ typedef struct EbSvtAv1EncConfiguration {
     * 3: High-level decoder speed optimization (fastest decode)
     */
     uint8_t fast_decode;
-#endif
 } EbSvtAv1EncConfiguration;
 
 /**
@@ -662,10 +657,7 @@ EB_API EbErrorType svt_av1_enc_set_parameter(
      * @ *name                          Null terminated string containing the parameter name
      * @ *value                         Null terminated string containing the parameter value */
 EB_API EbErrorType svt_av1_enc_parse_parameter(
-    EbSvtAv1EncConfiguration *
-        pComponentParameterStructure,
-    const char *name,
-    const char *value);
+    EbSvtAv1EncConfiguration *pComponentParameterStructure, const char *name, const char *value);
 
 /* STEP 3: Initialize encoder and allocates memory to necessary buffers.
      *

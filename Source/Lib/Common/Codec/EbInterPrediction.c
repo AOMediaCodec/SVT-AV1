@@ -1367,8 +1367,8 @@ void highbd_convolve_2d_for_intrabc(const uint16_t *src, int src_stride, uint16_
 */
 void svt_inter_predictor_light_pd0(const uint8_t *src, int32_t src_stride, uint8_t *dst,
                                    int32_t dst_stride, int32_t w, int32_t h,
-                                   SubpelParams* subpel_params, ConvolveParams *conv_params) {
-    const int32_t      is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
+                                   SubpelParams *subpel_params, ConvolveParams *conv_params) {
+    const int32_t is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
     if (is_scaled) {
         InterpFilterParams filter_params_x, filter_params_y;
         av1_get_convolve_filter_params(av1_make_interp_filters(EIGHTTAP_REGULAR, EIGHTTAP_REGULAR),
@@ -1389,24 +1389,23 @@ void svt_inter_predictor_light_pd0(const uint8_t *src, int32_t src_stride, uint8
                                   subpel_params->subpel_y,
                                   subpel_params->ys,
                                   conv_params);
-    }
-    else {
+    } else {
         UNUSED(subpel_params);
         convolve[0][0][conv_params->is_compound](
             src, src_stride, dst, dst_stride, w, h, 0, 0, 0, 0, conv_params);
     }
 }
 void svt_highbd_inter_predictor_light_pd0(uint8_t *src, uint8_t *src_ptr_2b, int32_t src_stride,
-                                          uint16_t *dst, int32_t dst_stride,
-                                          int32_t w, int32_t h, SubpelParams* subpel_params,
-                                          ConvolveParams *conv_params, int32_t bd) {
-    const int32_t      is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
+                                          uint16_t *dst, int32_t dst_stride, int32_t w, int32_t h,
+                                          SubpelParams *subpel_params, ConvolveParams *conv_params,
+                                          int32_t bd) {
+    const int32_t is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
     // for super-res, the reference frame block might be 2x than predictor in maximum
     // should pack enough buffer for scaled reference
     DECLARE_ALIGNED(16, uint16_t, src16[PACKED_BUFFER_SIZE * 2]);
     int32_t src_stride16;
     // pack the reference into temp 16bit buffer
-    uint8_t offset = INTERPOLATION_OFFSET;
+    uint8_t  offset      = INTERPOLATION_OFFSET;
     uint32_t width_scale = 1;
     if (is_scaled)
         width_scale = 2; // super-res scale maximum 2x in width for reference
@@ -1416,17 +1415,16 @@ void svt_highbd_inter_predictor_light_pd0(uint8_t *src, uint8_t *src_ptr_2b, int
     if (src_stride16 % 8)
         src_stride16 = ALIGN_POWER_OF_TWO(src_stride16, 3);
 
-    pack_block(
-        src - offset - (offset * src_stride),
-        src_stride,
-        src_ptr_2b - offset - (offset * src_stride),
-        src_stride,
-        src16,
-        src_stride16,
-        w * width_scale + (offset << 1),
-        h + (offset << 1));
-    uint16_t* src_10b = src16 + offset + (offset * src_stride16);
-    uint16_t* dst16 = (uint16_t*)dst;
+    pack_block(src - offset - (offset * src_stride),
+               src_stride,
+               src_ptr_2b - offset - (offset * src_stride),
+               src_stride,
+               src16,
+               src_stride16,
+               w * width_scale + (offset << 1),
+               h + (offset << 1));
+    uint16_t *src_10b = src16 + offset + (offset * src_stride16);
+    uint16_t *dst16   = (uint16_t *)dst;
 
     if (is_scaled) {
         InterpFilterParams filter_params_x, filter_params_y;
@@ -1449,29 +1447,18 @@ void svt_highbd_inter_predictor_light_pd0(uint8_t *src, uint8_t *src_ptr_2b, int
                                          subpel_params->ys,
                                          conv_params,
                                          bd);
-    }
-    else {
+    } else {
         UNUSED(subpel_params);
-        convolveHbd[0][0][conv_params->is_compound](src_10b,
-                                                    src_stride16,
-                                                    dst16,
-                                                    dst_stride,
-                                                    w,
-                                                    h,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    conv_params,
-                                                    bd);
+        convolveHbd[0][0][conv_params->is_compound](
+            src_10b, src_stride16, dst16, dst_stride, w, h, 0, 0, 0, 0, conv_params, bd);
     }
 }
 void svt_inter_predictor_light_pd1(uint8_t *src, uint8_t *src_2b, int32_t src_stride, uint8_t *dst,
                                    int32_t dst_stride, int32_t w, int32_t h,
                                    InterpFilterParams *filter_x, InterpFilterParams *filter_y,
-                                   SubpelParams* subpel_params, ConvolveParams *conv_params,
+                                   SubpelParams *subpel_params, ConvolveParams *conv_params,
                                    int32_t bd) {
-    const int32_t      is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
+    const int32_t is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
 
     if (bd > EB_8BIT) {
         // for super-res, the reference frame block might be 2x than predictor in maximum
@@ -1479,7 +1466,7 @@ void svt_inter_predictor_light_pd1(uint8_t *src, uint8_t *src_2b, int32_t src_st
         DECLARE_ALIGNED(16, uint16_t, src16[PACKED_BUFFER_SIZE * 2]);
         int32_t src_stride16;
         // pack the reference into temp 16bit buffer
-        uint8_t offset = INTERPOLATION_OFFSET;
+        uint8_t  offset      = INTERPOLATION_OFFSET;
         uint32_t width_scale = 1;
         if (is_scaled)
             width_scale = 2; // super-res scale maximum 2x in width for reference
@@ -1489,73 +1476,77 @@ void svt_inter_predictor_light_pd1(uint8_t *src, uint8_t *src_2b, int32_t src_st
         if (src_stride16 % 8)
             src_stride16 = ALIGN_POWER_OF_TWO(src_stride16, 3);
 
-        pack_block(
-            src - offset - (offset * src_stride),
-            src_stride,
-            src_2b - offset - (offset * src_stride),
-            src_stride,
-            src16,
-            src_stride16,
-            w * width_scale + (offset << 1),
-            h + (offset << 1));
+        pack_block(src - offset - (offset * src_stride),
+                   src_stride,
+                   src_2b - offset - (offset * src_stride),
+                   src_stride,
+                   src16,
+                   src_stride16,
+                   w * width_scale + (offset << 1),
+                   h + (offset << 1));
         uint16_t *src_10b = src16 + offset + (offset * src_stride16);
-        uint16_t* dst16 = (uint16_t*)dst;
+        uint16_t *dst16   = (uint16_t *)dst;
 
         if (is_scaled) {
             svt_av1_highbd_convolve_2d_scale(src_10b,
-                src_stride16,
-                dst16,
-                dst_stride,
-                w,
-                h,
-                filter_x,
-                filter_y,
-                subpel_params->subpel_x,
-                subpel_params->xs,
-                subpel_params->subpel_y,
-                subpel_params->ys,
-                conv_params,
-                bd);
-        }
-        else {
+                                             src_stride16,
+                                             dst16,
+                                             dst_stride,
+                                             w,
+                                             h,
+                                             filter_x,
+                                             filter_y,
+                                             subpel_params->subpel_x,
+                                             subpel_params->xs,
+                                             subpel_params->subpel_y,
+                                             subpel_params->ys,
+                                             conv_params,
+                                             bd);
+        } else {
             SubpelParams sp = *subpel_params;
             revert_scale_extra_bits(&sp);
-            convolveHbd[sp.subpel_x != 0][sp.subpel_y != 0][conv_params->is_compound](
-                src_10b,
-                src_stride16,
-                dst16,
-                dst_stride,
-                w,
-                h,
-                filter_x,
-                filter_y,
-                sp.subpel_x,
-                sp.subpel_y,
-                conv_params,
-                bd);
+            convolveHbd[sp.subpel_x != 0][sp.subpel_y != 0][conv_params->is_compound](src_10b,
+                                                                                      src_stride16,
+                                                                                      dst16,
+                                                                                      dst_stride,
+                                                                                      w,
+                                                                                      h,
+                                                                                      filter_x,
+                                                                                      filter_y,
+                                                                                      sp.subpel_x,
+                                                                                      sp.subpel_y,
+                                                                                      conv_params,
+                                                                                      bd);
         }
-    }
-    else {
+    } else {
         if (is_scaled) {
             svt_av1_convolve_2d_scale(src,
-                src_stride,
-                dst,
-                dst_stride,
-                w,
-                h,
-                filter_x,
-                filter_y,
-                subpel_params->subpel_x,
-                subpel_params->xs,
-                subpel_params->subpel_y,
-                subpel_params->ys,
-                conv_params);
-        }
-        else {
+                                      src_stride,
+                                      dst,
+                                      dst_stride,
+                                      w,
+                                      h,
+                                      filter_x,
+                                      filter_y,
+                                      subpel_params->subpel_x,
+                                      subpel_params->xs,
+                                      subpel_params->subpel_y,
+                                      subpel_params->ys,
+                                      conv_params);
+        } else {
             SubpelParams sp = *subpel_params;
             revert_scale_extra_bits(&sp);
-            convolve[sp.subpel_x != 0][sp.subpel_y != 0][conv_params->is_compound](
-                src, src_stride, dst, dst_stride, w, h, filter_x, filter_y, sp.subpel_x, sp.subpel_y, conv_params);
+            convolve[sp.subpel_x != 0][sp.subpel_y != 0][conv_params->is_compound](src,
+                                                                                   src_stride,
+                                                                                   dst,
+                                                                                   dst_stride,
+                                                                                   w,
+                                                                                   h,
+                                                                                   filter_x,
+                                                                                   filter_y,
+                                                                                   sp.subpel_x,
+                                                                                   sp.subpel_y,
+                                                                                   conv_params);
         }
     }
 }

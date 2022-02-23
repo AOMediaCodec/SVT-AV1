@@ -229,7 +229,6 @@ void svt_compressed_packmsb_avx2_intrin(uint8_t *in8_bit_buffer, uint32_t in8_st
                                         uint8_t *inn_bit_buffer, uint32_t inn_stride,
                                         uint16_t *out16_bit_buffer, uint32_t out_stride,
                                         uint32_t width, uint32_t height) {
-
     if (width == 32) {
         compressed_packmsb_32x2h(in8_bit_buffer,
                                  in8_stride,

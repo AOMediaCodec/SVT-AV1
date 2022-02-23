@@ -11,12 +11,10 @@
 #include <windows.h>
 
 #ifdef __GNUC__
-  #define CPUINFO_ALLOCA __builtin_alloca
+#define CPUINFO_ALLOCA __builtin_alloca
 #else
-  #define CPUINFO_ALLOCA _alloca
+#define CPUINFO_ALLOCA _alloca
 #endif
-
-
 
 BOOL CALLBACK cpuinfo_x86_windows_init(PINIT_ONCE init_once, PVOID parameter, PVOID* context) {
     struct cpuinfo_x86_processor x86_processor;

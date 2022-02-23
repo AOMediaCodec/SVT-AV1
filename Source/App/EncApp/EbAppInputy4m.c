@@ -207,7 +207,7 @@ int32_t read_y4m_header(EbConfig *cfg) {
     cfg->config.frame_rate_denominator = fr_d;
     cfg->config.frame_rate             = fr_n / fr_d;
     cfg->config.encoder_bit_depth      = bitdepth;
-    cfg->mmap.y4m_seq_hdr = ftell(cfg->input_file);
+    cfg->mmap.y4m_seq_hdr              = ftell(cfg->input_file);
 
     /* TODO: when implemented, need to set input bit depth
         (instead of the encoder bit depth) and chroma format */

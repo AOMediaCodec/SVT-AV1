@@ -192,7 +192,7 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *reference_object,
     // set all supplemental downscaled reference picture pointers to NULL
     for (uint8_t down_idx = 0; down_idx < NUM_SCALES; down_idx++) {
         reference_object->downscaled_reference_picture[down_idx] = NULL;
-        reference_object->downscaled_picture_number[down_idx] = (uint64_t)~0;
+        reference_object->downscaled_picture_number[down_idx]    = (uint64_t)~0;
         EB_CREATE_MUTEX(reference_object->resize_mutex[down_idx]);
     }
 
@@ -200,9 +200,12 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *reference_object,
     reference_object->mi_cols = mi_cols;
     EB_MALLOC_ARRAY(reference_object->sb_intra, picture_buffer_desc_init_data_ptr->sb_total_count);
     EB_MALLOC_ARRAY(reference_object->sb_skip, picture_buffer_desc_init_data_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(reference_object->sb_64x64_mvp, picture_buffer_desc_init_data_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(reference_object->sb_me_64x64_dist, picture_buffer_desc_init_data_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(reference_object->sb_me_8x8_cost_var, picture_buffer_desc_init_data_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(reference_object->sb_64x64_mvp,
+                    picture_buffer_desc_init_data_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(reference_object->sb_me_64x64_dist,
+                    picture_buffer_desc_init_data_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(reference_object->sb_me_8x8_cost_var,
+                    picture_buffer_desc_init_data_ptr->sb_total_count);
     return EB_ErrorNone;
 }
 

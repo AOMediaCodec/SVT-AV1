@@ -417,8 +417,7 @@ void svt_sad_loop_kernel_avx2_intrin(
     uint32_t  block_width, // input parameter, block width (N)
     uint64_t *best_sad, int16_t *x_search_center, int16_t *y_search_center,
     uint32_t src_stride_raw, // input parameter, source stride (no line skipping)
-    uint8_t skip_search_line,
-    int16_t search_area_width, int16_t search_area_height) {
+    uint8_t skip_search_line, int16_t search_area_width, int16_t search_area_height) {
     int16_t        x_best = *x_search_center, y_best = *y_search_center;
     uint32_t       low_sum   = 0xffffff;
     uint32_t       tem_sum_1 = 0;
@@ -4535,8 +4534,7 @@ void svt_aom_sad128x128x4d_avx2(const uint8_t *src, int src_stride, const uint8_
 }
 
 void svt_ext_all_sad_calculation_8x8_16x16_avx2(uint8_t *src, uint32_t src_stride, uint8_t *ref,
-                                                uint32_t ref_stride, uint32_t mv,
-                                                uint8_t out_8x8,
+                                                uint32_t ref_stride, uint32_t mv, uint8_t out_8x8,
                                                 uint32_t *p_best_sad_8x8,
                                                 uint32_t *p_best_sad_16x16, uint32_t *p_best_mv8x8,
                                                 uint32_t *p_best_mv16x16,
@@ -4634,7 +4632,7 @@ void svt_ext_all_sad_calculation_8x8_16x16_avx2(uint8_t *src, uint32_t src_strid
 
             const __m128i mvs = _mm_set1_epi32(mv);
             if (out_8x8) {
-                __m128i best_mv8x8 = _mm_loadu_si128((__m128i *)(p_best_mv8x8 + start_8x8_pos));
+                __m128i best_mv8x8  = _mm_loadu_si128((__m128i *)(p_best_mv8x8 + start_8x8_pos));
                 const __m128i mv8x8 = _mm_add_epi16(mvs, pos8x8);
                 best_mv8x8          = _mm_blendv_epi8(best_mv8x8, mv8x8, mask);
                 _mm_storeu_si128((__m128i *)(p_best_mv8x8 + start_8x8_pos), best_mv8x8);

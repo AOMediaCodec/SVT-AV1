@@ -50,17 +50,17 @@ EbErrorType psnr_calculations(PictureControlSet *pcs_ptr, SequenceControlSet *sc
                               EbBool free_memory);
 EbErrorType ssim_calculations(PictureControlSet *pcs_ptr, SequenceControlSet *scs_ptr,
                               EbBool free_memory);
-void pad_ref_and_set_flags(PictureControlSet *pcs_ptr, SequenceControlSet *scs_ptr);
-void generate_padding(EbByte src_pic, uint32_t src_stride, uint32_t original_src_width,
-                      uint32_t original_src_height, uint32_t padding_width,
-                      uint32_t padding_height);
-void restoration_seg_search(int32_t *rst_tmpbuf, Yv12BufferConfig *org_fts,
-                            const Yv12BufferConfig *src, Yv12BufferConfig *trial_frame_rst,
-                            PictureControlSet *pcs_ptr, uint32_t segment_index);
-void rest_finish_search(PictureControlSet *pcs_ptr);
-void svt_av1_upscale_normative_rows(const Av1Common *cm, const uint8_t *src, int src_stride,
-                                    uint8_t *dst, int dst_stride, int rows, int sub_x, int bd,
-                                    EbBool is_16bit_pipeline);
+void        pad_ref_and_set_flags(PictureControlSet *pcs_ptr, SequenceControlSet *scs_ptr);
+void        generate_padding(EbByte src_pic, uint32_t src_stride, uint32_t original_src_width,
+                             uint32_t original_src_height, uint32_t padding_width,
+                             uint32_t padding_height);
+void        restoration_seg_search(int32_t *rst_tmpbuf, Yv12BufferConfig *org_fts,
+                                   const Yv12BufferConfig *src, Yv12BufferConfig *trial_frame_rst,
+                                   PictureControlSet *pcs_ptr, uint32_t segment_index);
+void        rest_finish_search(PictureControlSet *pcs_ptr);
+void        svt_av1_upscale_normative_rows(const Av1Common *cm, const uint8_t *src, int src_stride,
+                                           uint8_t *dst, int dst_stride, int rows, int sub_x, int bd,
+                                           EbBool is_16bit_pipeline);
 #if DEBUG_UPSCALING
 void save_YUV_to_file(char *filename, EbByte buffer_y, EbByte buffer_u, EbByte buffer_v,
                       uint16_t width, uint16_t height, uint16_t stride_y, uint16_t stride_u,
@@ -80,21 +80,17 @@ static void rest_context_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj);
 }
 uint8_t get_enable_restoration(EbEncMode enc_mode, int8_t config_enable_restoration,
-#if OPT_DECODER
                                uint8_t input_resolution, uint8_t fast_decode);
-#else
-                               uint8_t input_resolution);
-#endif
 /******************************************************
  * Rest Context Constructor
  ******************************************************/
-EbErrorType rest_context_ctor(EbThreadContext *thread_context_ptr,
+EbErrorType rest_context_ctor(EbThreadContext *  thread_context_ptr,
                               const EbEncHandle *enc_handle_ptr, EbPtr object_init_data_ptr,
                               int index, int demux_index) {
-    const SequenceControlSet *      scs_ptr      = enc_handle_ptr->scs_instance_array[0]->scs_ptr;
-    const EbSvtAv1EncConfiguration *config       = &scs_ptr->static_config;
-    EbColorFormat                   color_format = config->encoder_color_format;
-    EbPictureBufferDescInitData *init_data_ptr = (EbPictureBufferDescInitData *)
+    const SequenceControlSet *      scs_ptr       = enc_handle_ptr->scs_instance_array[0]->scs_ptr;
+    const EbSvtAv1EncConfiguration *config        = &scs_ptr->static_config;
+    EbColorFormat                   color_format  = config->encoder_color_format;
+    EbPictureBufferDescInitData *   init_data_ptr = (EbPictureBufferDescInitData *)
         object_init_data_ptr;
     RestContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
@@ -112,12 +108,8 @@ EbErrorType rest_context_ctor(EbThreadContext *thread_context_ptr,
     EbBool is_16bit = scs_ptr->is_16bit_pipeline;
     if (get_enable_restoration(init_data_ptr->enc_mode,
                                config->enable_restoration_filtering,
-#if OPT_DECODER
                                scs_ptr->input_resolution,
                                scs_ptr->static_config.fast_decode)) {
-#else
-                               scs_ptr->input_resolution)) {
-#endif
         EbPictureBufferDescInitData init_data;
 
         init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
@@ -652,8 +644,7 @@ void *rest_kernel(void *input_ptr) {
                                                                                       : EB_FALSE;
 
             // Pad the reference picture and set ref POC
-            if (scs_ptr->static_config.pass != ENC_FIRST_PASS)
-            {
+            if (scs_ptr->static_config.pass != ENC_FIRST_PASS) {
                 if (pcs_ptr->parent_pcs_ptr->is_used_as_reference_flag == EB_TRUE)
                     pad_ref_and_set_flags(pcs_ptr, scs_ptr);
                 else {
@@ -761,7 +752,7 @@ void *rest_kernel(void *input_ptr) {
                                          &rest_results_wrapper_ptr);
                     rest_results_ptr = (struct RestResults *)rest_results_wrapper_ptr->object_ptr;
                     rest_results_ptr->pcs_wrapper_ptr = cdef_results_ptr->pcs_wrapper_ptr;
-                    rest_results_ptr->tile_index             = tile_idx;
+                    rest_results_ptr->tile_index      = tile_idx;
                     // Post Rest Results
                     svt_post_full_object(rest_results_wrapper_ptr);
                 }

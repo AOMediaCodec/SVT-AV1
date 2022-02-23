@@ -53,7 +53,7 @@ typedef struct EbObjectWrapper {
     //   only in the implemenation of a single-linked Fifo.
     struct EbObjectWrapper *next_ptr;
 #if SRM_REPORT
-    uint64_t  pic_number;
+    uint64_t pic_number;
 #endif
 } EbObjectWrapper;
 
@@ -113,8 +113,8 @@ typedef struct EbMuxingQueue {
     uint32_t          process_total_count;
     EbFifo **         process_fifo_ptr_array;
 #if SRM_REPORT
-    uint32_t         curr_count; //run time fullness
-    uint8_t          log;//if set monitor out the queue size
+    uint32_t curr_count; //run time fullness
+    uint8_t  log; //if set monitor out the queue size
 #endif
 } EbMuxingQueue;
 

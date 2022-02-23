@@ -167,10 +167,10 @@ void clean_pictures_in_ref_queue(EncodeContext *ctx) {
                 int new_dep_cnt = (int)ref_entry_ptr->dependent_count + queue[q_idx]->dep_cnt_diff;
                 if (new_dep_cnt < 0)
                     SVT_ERROR(" PicMgr: Negative dep count\n");
-                    //printf(" search %I64i  ====Pic-MGR-Dep-Cnt-reduce found: %I64i  %i --> %i\n",
-                    //    queue[q_idx]->pic_num, ref_entry_ptr->picture_number, ref_entry_ptr->dependent_count, new_dep_cnt);
+                //printf(" search %I64i  ====Pic-MGR-Dep-Cnt-reduce found: %I64i  %i --> %i\n",
+                //    queue[q_idx]->pic_num, ref_entry_ptr->picture_number, ref_entry_ptr->dependent_count, new_dep_cnt);
                 ref_entry_ptr->dependent_count = new_dep_cnt;
-                queue[q_idx]->is_done = 1;
+                queue[q_idx]->is_done          = 1;
             }
         }
 
@@ -831,7 +831,7 @@ void *picture_manager_kernel(void *input_ptr) {
 
                         child_pcs_ptr->parent_pcs_ptr->total_num_bits = 0;
                         child_pcs_ptr->parent_pcs_ptr->picture_qp     = entry_pcs_ptr->picture_qp;
-                        child_pcs_ptr->enc_mode       = entry_pcs_ptr->enc_mode;
+                        child_pcs_ptr->enc_mode                       = entry_pcs_ptr->enc_mode;
                         child_pcs_ptr->sb_total_count = entry_pcs_ptr->sb_total_count;
 
                         child_pcs_ptr->enc_dec_coded_sb_count = 0;
@@ -900,8 +900,8 @@ void *picture_manager_kernel(void *input_ptr) {
                                              child_pcs_ptr->input_frame16bit);
                         }
 
-//                        child_pcs_ptr->parent_pcs_ptr->av1_cm->pcs_ptr = child_pcs_ptr;
-// Palette
+                        //                        child_pcs_ptr->parent_pcs_ptr->av1_cm->pcs_ptr = child_pcs_ptr;
+                        // Palette
                         rtime_alloc_palette_tokens(scs_ptr, child_pcs_ptr);
                         TOKENEXTRA * pre_tok  = child_pcs_ptr->tile_tok[0][0];
                         unsigned int tile_tok = 0;

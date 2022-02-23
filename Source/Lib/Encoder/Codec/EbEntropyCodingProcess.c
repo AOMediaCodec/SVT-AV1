@@ -277,11 +277,13 @@ void *entropy_coding_kernel(void *input_ptr) {
             scs_ptr->seq_header.sb_size_log2;
 
         uint16_t tile_width_in_sb = (cm->tiles_info.tile_col_start_mi[tile_col + 1] -
-            cm->tiles_info.tile_col_start_mi[tile_col]) >> scs_ptr->seq_header.sb_size_log2;
+                                     cm->tiles_info.tile_col_start_mi[tile_col]) >>
+            scs_ptr->seq_header.sb_size_log2;
         uint16_t tile_height_in_sb = (cm->tiles_info.tile_row_start_mi[tile_row + 1] -
-            cm->tiles_info.tile_row_start_mi[tile_row]) >> scs_ptr->seq_header.sb_size_log2;
+                                      cm->tiles_info.tile_row_start_mi[tile_row]) >>
+            scs_ptr->seq_header.sb_size_log2;
 
-        EbBool   frame_entropy_done = EB_FALSE;
+        EbBool frame_entropy_done = EB_FALSE;
 
         svt_block_on_mutex(pcs_ptr->entropy_coding_pic_mutex);
         if (pcs_ptr->entropy_coding_pic_reset_flag) {
@@ -293,12 +295,15 @@ void *entropy_coding_kernel(void *input_ptr) {
 
 #if TURN_OFF_EC_FIRST_PASS
         if (scs_ptr->static_config.pass != ENC_FIRST_PASS &&
-            !(!pcs_ptr->parent_pcs_ptr->is_used_as_reference_flag && scs_ptr->rc_stat_gen_pass_mode && !pcs_ptr->parent_pcs_ptr->first_frame_in_minigop)) {
+            !(!pcs_ptr->parent_pcs_ptr->is_used_as_reference_flag &&
+              scs_ptr->rc_stat_gen_pass_mode && !pcs_ptr->parent_pcs_ptr->first_frame_in_minigop)) {
 #endif
             for (uint32_t y_sb_index = 0; y_sb_index < tile_height_in_sb; ++y_sb_index) {
                 for (uint32_t x_sb_index = 0; x_sb_index < tile_width_in_sb; ++x_sb_index) {
-                    uint16_t    sb_index = (uint16_t)((x_sb_index + tile_sb_start_x) + (y_sb_index + tile_sb_start_y) * pic_width_in_sb);
-                    SuperBlock *sb_ptr = pcs_ptr->sb_ptr_array[sb_index];
+                    uint16_t    sb_index = (uint16_t)((x_sb_index + tile_sb_start_x) +
+                                                   (y_sb_index + tile_sb_start_y) *
+                                                       pic_width_in_sb);
+                    SuperBlock *sb_ptr   = pcs_ptr->sb_ptr_array[sb_index];
 
                     context_ptr->sb_origin_x = (x_sb_index + tile_sb_start_x) << sb_size_log2;
                     context_ptr->sb_origin_y = (y_sb_index + tile_sb_start_y) << sb_size_log2;
@@ -307,13 +312,14 @@ void *entropy_coding_kernel(void *input_ptr) {
                         context_ptr->tok = pcs_ptr->tile_tok[tile_row][tile_col];
                     }
 
-                    EbPictureBufferDesc *coeff_picture_ptr = pcs_ptr->parent_pcs_ptr->enc_dec_ptr->quantized_coeff[sb_index];
+                    EbPictureBufferDesc *coeff_picture_ptr =
+                        pcs_ptr->parent_pcs_ptr->enc_dec_ptr->quantized_coeff[sb_index];
                     write_sb(context_ptr,
-                        sb_ptr,
-                        pcs_ptr,
-                        tile_idx,
-                        pcs_ptr->entropy_coding_info[tile_idx]->entropy_coder_ptr,
-                        coeff_picture_ptr);
+                             sb_ptr,
+                             pcs_ptr,
+                             tile_idx,
+                             pcs_ptr->entropy_coding_info[tile_idx]->entropy_coder_ptr,
+                             coeff_picture_ptr);
                 }
             }
 #if TURN_OFF_EC_FIRST_PASS
@@ -336,13 +342,15 @@ void *entropy_coding_kernel(void *input_ptr) {
         if (pic_ready) {
             if (pcs_ptr->parent_pcs_ptr->superres_total_recode_loop == 0) {
                 // Release the List 0 Reference Pictures
-                for (uint32_t ref_idx = 0; ref_idx < pcs_ptr->parent_pcs_ptr->ref_list0_count; ++ref_idx) {
+                for (uint32_t ref_idx = 0; ref_idx < pcs_ptr->parent_pcs_ptr->ref_list0_count;
+                     ++ref_idx) {
                     if (pcs_ptr->ref_pic_ptr_array[0][ref_idx] != NULL) {
                         svt_release_object(pcs_ptr->ref_pic_ptr_array[0][ref_idx]);
                     }
                 }
                 // Release the List 1 Reference Pictures
-                for (uint32_t ref_idx = 0; ref_idx < pcs_ptr->parent_pcs_ptr->ref_list1_count; ++ref_idx) {
+                for (uint32_t ref_idx = 0; ref_idx < pcs_ptr->parent_pcs_ptr->ref_list1_count;
+                     ++ref_idx) {
                     if (pcs_ptr->ref_pic_ptr_array[1][ref_idx] != NULL) {
                         svt_release_object(pcs_ptr->ref_pic_ptr_array[1][ref_idx]);
                     }
@@ -357,8 +365,10 @@ void *entropy_coding_kernel(void *input_ptr) {
 
         if (frame_entropy_done) {
             // Get Empty Entropy Coding Results
-            svt_get_empty_object(context_ptr->entropy_coding_output_fifo_ptr, &entropy_coding_results_wrapper_ptr);
-            entropy_coding_results_ptr = (EntropyCodingResults *)entropy_coding_results_wrapper_ptr->object_ptr;
+            svt_get_empty_object(context_ptr->entropy_coding_output_fifo_ptr,
+                                 &entropy_coding_results_wrapper_ptr);
+            entropy_coding_results_ptr = (EntropyCodingResults *)
+                                             entropy_coding_results_wrapper_ptr->object_ptr;
             entropy_coding_results_ptr->pcs_wrapper_ptr = rest_results_ptr->pcs_wrapper_ptr;
 
             // Post EntropyCoding Results

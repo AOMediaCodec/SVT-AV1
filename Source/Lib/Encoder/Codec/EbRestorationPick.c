@@ -1099,9 +1099,9 @@ static int64_t finer_tile_search_wiener_seg(const RestSearchCtxt *       rsc,
                                             const RestorationTileLimits *limits,
                                             const Av1PixelRect *tile, RestorationUnitInfo *rui,
                                             int32_t wiener_win) {
-    const Av1Common *const cm = rsc->cm;
-    const int32_t plane_off = (WIENER_WIN - wiener_win) >> 1;
-    int64_t       err       = try_restoration_unit_seg(rsc, limits, tile, rui);
+    const Av1Common *const cm        = rsc->cm;
+    const int32_t          plane_off = (WIENER_WIN - wiener_win) >> 1;
+    int64_t                err       = try_restoration_unit_seg(rsc, limits, tile, rui);
 #if USE_WIENER_REFINEMENT_SEARCH
     WienerInfo *plane_wiener = &rui->wiener_info;
 
@@ -1361,12 +1361,12 @@ static void search_sgrproj_finish(const RestorationTileLimits *limits, const Av1
 /*Get the best Wiender filter parameters and SSE.*/
 static void search_wiener_seg(const RestorationTileLimits *limits, const Av1PixelRect *tile_rect,
                               int32_t rest_unit_idx, void *priv) {
-    RestSearchCtxt *       rsc  = (RestSearchCtxt *)priv;
-    RestUnitSearchInfo *   rusi = &rsc->rusi[rest_unit_idx];
-    const Av1Common *const cm   = rsc->cm;
-    int32_t wn_luma = cm->wn_filter_ctrls.filter_tap_lvl == 1 ? WIENER_WIN
-        : cm->wn_filter_ctrls.filter_tap_lvl == 2             ? WIENER_WIN_CHROMA
-                                                              : WIENER_WIN_3TAP;
+    RestSearchCtxt *       rsc     = (RestSearchCtxt *)priv;
+    RestUnitSearchInfo *   rusi    = &rsc->rusi[rest_unit_idx];
+    const Av1Common *const cm      = rsc->cm;
+    int32_t                wn_luma = cm->wn_filter_ctrls.filter_tap_lvl == 1 ? WIENER_WIN
+                       : cm->wn_filter_ctrls.filter_tap_lvl == 2             ? WIENER_WIN_CHROMA
+                                                                             : WIENER_WIN_3TAP;
 
     const int32_t wiener_win = (rsc->plane == AOM_PLANE_Y) ? wn_luma
                                                            : MIN(wn_luma, WIENER_WIN_CHROMA);
@@ -1449,16 +1449,16 @@ static void search_wiener_finish(const RestorationTileLimits *limits, const Av1P
                                  int32_t rest_unit_idx, void *priv) {
     (void)limits;
     (void)tile_rect;
-    RestSearchCtxt *       rsc  = (RestSearchCtxt *)priv;
-    RestUnitSearchInfo *   rusi = &rsc->rusi[rest_unit_idx];
-    const Av1Common *const cm   = rsc->cm;
-    int32_t       wn_luma    = cm->wn_filter_ctrls.filter_tap_lvl == 1 ? WIENER_WIN
-                 : cm->wn_filter_ctrls.filter_tap_lvl == 2             ? WIENER_WIN_CHROMA
-                                                                       : WIENER_WIN_3TAP;
-    const int32_t wiener_win = (rsc->plane == AOM_PLANE_Y) ? wn_luma
-                                                           : MIN(wn_luma, WIENER_WIN_CHROMA);
-    const Macroblock *const x         = rsc->x;
-    const int64_t           bits_none = x->wiener_restore_cost[0];
+    RestSearchCtxt *        rsc        = (RestSearchCtxt *)priv;
+    RestUnitSearchInfo *    rusi       = &rsc->rusi[rest_unit_idx];
+    const Av1Common *const  cm         = rsc->cm;
+    int32_t                 wn_luma    = cm->wn_filter_ctrls.filter_tap_lvl == 1 ? WIENER_WIN
+                           : cm->wn_filter_ctrls.filter_tap_lvl == 2             ? WIENER_WIN_CHROMA
+                                                                                 : WIENER_WIN_3TAP;
+    const int32_t           wiener_win = (rsc->plane == AOM_PLANE_Y) ? wn_luma
+                                                                     : MIN(wn_luma, WIENER_WIN_CHROMA);
+    const Macroblock *const x          = rsc->x;
+    const int64_t           bits_none  = x->wiener_restore_cost[0];
 
     RestorationUnitInfo rui;
     memset(&rui, 0, sizeof(rui));
@@ -1608,13 +1608,13 @@ void restoration_seg_search(int32_t *rst_tmpbuf, Yv12BufferConfig *org_fts,
    decide which filter should be used for each filter block.
 */
 void rest_finish_search(PictureControlSet *pcs_ptr) {
-    Macroblock *             x         = pcs_ptr->parent_pcs_ptr->av1x;
-    Av1Common *const         cm        = pcs_ptr->parent_pcs_ptr->av1_cm;
-    PictureParentControlSet *p_pcs_ptr = pcs_ptr->parent_pcs_ptr;
-    RestorationType force_restore_type_d = (cm->wn_filter_ctrls.enabled)
-        ? ((cm->sg_filter_mode) ? RESTORE_TYPES : RESTORE_WIENER)
-        : ((cm->sg_filter_mode) ? RESTORE_SGRPROJ : RESTORE_NONE);
-    int32_t ntiles[2];
+    Macroblock *             x                    = pcs_ptr->parent_pcs_ptr->av1x;
+    Av1Common *const         cm                   = pcs_ptr->parent_pcs_ptr->av1_cm;
+    PictureParentControlSet *p_pcs_ptr            = pcs_ptr->parent_pcs_ptr;
+    RestorationType          force_restore_type_d = (cm->wn_filter_ctrls.enabled)
+                 ? ((cm->sg_filter_mode) ? RESTORE_TYPES : RESTORE_WIENER)
+                 : ((cm->sg_filter_mode) ? RESTORE_SGRPROJ : RESTORE_NONE);
+    int32_t                  ntiles[2];
     for (int32_t is_uv = 0; is_uv < 2; ++is_uv) ntiles[is_uv] = rest_tiles_in_plane(cm, is_uv);
 
     assert(ntiles[1] <= ntiles[0]);

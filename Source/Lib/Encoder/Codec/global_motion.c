@@ -134,9 +134,8 @@ static void force_wmtype(EbWarpedMotionParams *wm, TransformationType wmtype) {
 
 int64_t svt_av1_refine_integerized_param(EbWarpedMotionParams *wm, TransformationType wmtype,
                                          int use_hbd, int bd, uint8_t *ref, uint8_t *ref_2b,
-                                         int r_width,
-                                         int r_height, int r_stride, uint8_t *dst, int d_width,
-                                         int d_height, int d_stride, int n_refinements,
+                                         int r_width, int r_height, int r_stride, uint8_t *dst,
+                                         int d_width, int d_height, int d_stride, int n_refinements,
                                          int64_t best_frame_error) {
     static const int max_trans_model_params[TRANS_TYPES] = {0, 2, 4, 6};
     const int        border                              = ERRORADV_BORDER;

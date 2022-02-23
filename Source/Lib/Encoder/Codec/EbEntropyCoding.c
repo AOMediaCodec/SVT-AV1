@@ -134,12 +134,12 @@ static void set_bitstream_level_tier(SequenceControlSet *scs_ptr) {
         bl.major = scs_ptr->static_config.level / 10 % 10;
         bl.minor = scs_ptr->static_config.level % 10;
     } else if (does_level_match(scs_ptr->seq_header.max_frame_width,
-                         scs_ptr->seq_header.max_frame_height,
-                         (scs_ptr->frame_rate >> 16),
-                         512,
-                         288,
-                         30.0,
-                         4)) {
+                                scs_ptr->seq_header.max_frame_height,
+                                (scs_ptr->frame_rate >> 16),
+                                512,
+                                288,
+                                30.0,
+                                4)) {
         bl.major = 2;
         bl.minor = 0;
     } else if (does_level_match(scs_ptr->seq_header.max_frame_width,
@@ -1553,7 +1553,7 @@ EbErrorType entropy_tile_info_ctor(EntropyTileInfo *eti, uint32_t buf_size) {
     EbErrorType return_error = EB_ErrorNone;
     eti->dctor               = entropy_tile_info_dctor;
     EB_NEW(eti->entropy_coder_ptr, entropy_coder_ctor, buf_size);
-    eti->entropy_coding_tile_done   = EB_FALSE;
+    eti->entropy_coding_tile_done = EB_FALSE;
     return return_error;
 }
 
@@ -2770,7 +2770,7 @@ static void write_tile_info_max_tile(const PictureParentControlSet *const pcs_pt
         while (ones--) svt_aom_wb_write_bit(wb, 1);
         if (cm->log2_tile_cols < cm->tiles_info.max_log2_tile_cols)
             svt_aom_wb_write_bit(wb, 0);
-            // rows
+        // rows
         cm->tiles_info.min_log2_tile_rows = AOMMAX(
             cm->tiles_info.min_log2_tiles - cm->log2_tile_cols, 0);
         ones = cm->log2_tile_rows - cm->tiles_info.min_log2_tile_rows;
@@ -4565,9 +4565,9 @@ void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr
                                 COLOR_MAP_TYPE type, int allow_update_cdf);
 void av1_get_block_dimensions(BlockSize bsize, int plane, const MacroBlockD *xd, int *width,
                               int *height, int *rows_within_bounds, int *cols_within_bounds);
-int svt_get_palette_cache_y(const MacroBlockD *const xd, uint16_t *cache);
-int svt_av1_index_color_cache(const uint16_t *color_cache, int n_cache, const uint16_t *colors,
-                              int n_colors, uint8_t *cache_color_found, int *out_cache_colors);
+int  svt_get_palette_cache_y(const MacroBlockD *const xd, uint16_t *cache);
+int  svt_av1_index_color_cache(const uint16_t *color_cache, int n_cache, const uint16_t *colors,
+                               int n_colors, uint8_t *cache_color_found, int *out_cache_colors);
 
 int av1_get_palette_mode_ctx(const MacroBlockD *xd) {
     const MbModeInfo *const above_mi = xd->above_mbmi;
@@ -4645,7 +4645,7 @@ static AOM_INLINE void write_palette_colors_y(const MacroBlockD *const     xd,
                                               const PaletteModeInfo *const pmi, int bit_depth,
                                               AomWriter *w, const int palette_size) {
     const int n = palette_size;
-    uint16_t color_cache[2 * PALETTE_MAX_SIZE];
+    uint16_t  color_cache[2 * PALETTE_MAX_SIZE];
     const int n_cache = svt_get_palette_cache_y(xd, color_cache);
     int       out_cache_colors[PALETTE_MAX_SIZE];
     uint8_t   cache_color_found[2 * PALETTE_MAX_SIZE];
@@ -4678,11 +4678,11 @@ static void write_palette_mode_info(PictureParentControlSet *ppcs, FRAME_CONTEXT
     const uint32_t intra_luma_mode   = blk_ptr->pred_mode;
     uint32_t       intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
 
-    const PaletteModeInfo *const pmi = &blk_ptr->palette_info->pmi;
-    const int bsize_ctx = av1_get_palette_bsize_ctx(bsize);
+    const PaletteModeInfo *const pmi       = &blk_ptr->palette_info->pmi;
+    const int                    bsize_ctx = av1_get_palette_bsize_ctx(bsize);
     assert(bsize_ctx >= 0);
     if (intra_luma_mode == DC_PRED) {
-        const int n = blk_ptr->palette_size[0];
+        const int n                  = blk_ptr->palette_size[0];
         const int palette_y_mode_ctx = av1_get_palette_mode_ctx(blk_ptr->av1xd);
         aom_write_symbol(w, n > 0, ec_ctx->palette_y_mode_cdf[bsize_ctx][palette_y_mode_ctx], 2);
         if (n > 0) {
@@ -5041,10 +5041,10 @@ void code_tx_size(PictureControlSet *pcsPtr, uint32_t blk_origin_x, uint32_t blk
     const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;
     xd->above_txfm_context       = &txfm_context_array->top_array[txfm_context_above_index];
     xd->left_txfm_context        = &txfm_context_array->left_array[txfm_context_left_index];
-    TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
+    TxSize tx_size               = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                       blk_ptr->pred_mode == INTRA_MODE_4x4)
-        ? 0
-        : blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
+                      ? 0
+                      : blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
     av1_code_tx_size(ec_ctx, w, xd, mbmi, tx_size, tx_mode, bsize, skip);
 }
 
@@ -5439,7 +5439,6 @@ EbErrorType write_modes_b(PictureControlSet *pcs_ptr, EntropyCodingContext *cont
                 }
             }
             if (blk_ptr->use_intrabc == 0) {
-
                 assert(blk_ptr->palette_size[1] == 0);
                 TOKENEXTRA *tok = context_ptr->tok;
                 for (int plane = 0; plane < 2; ++plane) {

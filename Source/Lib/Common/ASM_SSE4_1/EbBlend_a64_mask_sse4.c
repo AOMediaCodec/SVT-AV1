@@ -1718,11 +1718,11 @@ static INLINE void highbd_blend_a64_d16_mask_subw1_subh1_w16_sse4_1(
 }
 
 void svt_aom_highbd_blend_a64_d16_mask_sse4_1(uint8_t *dst8, uint32_t dst_stride,
-                                          const CONV_BUF_TYPE *src0, uint32_t src0_stride,
-                                          const CONV_BUF_TYPE *src1, uint32_t src1_stride,
-                                          const uint8_t *mask, uint32_t mask_stride, int w, int h,
-                                          int subw, int subh, ConvolveParams *conv_params,
-                                          const int bd) {
+                                              const CONV_BUF_TYPE *src0, uint32_t src0_stride,
+                                              const CONV_BUF_TYPE *src1, uint32_t src1_stride,
+                                              const uint8_t *mask, uint32_t mask_stride, int w,
+                                              int h, int subw, int subh,
+                                              ConvolveParams *conv_params, const int bd) {
     uint16_t *    dst        = (uint16_t *)(dst8);
     const int     round_bits = 2 * FILTER_BITS - conv_params->round_0 - conv_params->round_1;
     const int32_t round_offset =
@@ -2002,10 +2002,11 @@ static INLINE void lowbd_blend_a64_d16_mask_subw0_subh1_w16_sse4_1(
 }
 
 void svt_aom_lowbd_blend_a64_d16_mask_sse4_1(uint8_t *dst, uint32_t dst_stride,
-                                         const CONV_BUF_TYPE *src0, uint32_t src0_stride,
-                                         const CONV_BUF_TYPE *src1, uint32_t src1_stride,
-                                         const uint8_t *mask, uint32_t mask_stride, int w, int h,
-                                         int subw, int subh, ConvolveParams *conv_params) {
+                                             const CONV_BUF_TYPE *src0, uint32_t src0_stride,
+                                             const CONV_BUF_TYPE *src1, uint32_t src1_stride,
+                                             const uint8_t *mask, uint32_t mask_stride, int w,
+                                             int h, int subw, int subh,
+                                             ConvolveParams *conv_params) {
     const int bd         = 8;
     const int round_bits = 2 * FILTER_BITS - conv_params->round_0 - conv_params->round_1;
 

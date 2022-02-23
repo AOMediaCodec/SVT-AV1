@@ -1968,8 +1968,7 @@ void svt_sad_loop_kernel_avx512_intrin(
     uint32_t  width, // input parameter, block width (N)
     uint64_t *best_sad, int16_t *x_search_center, int16_t *y_search_center,
     uint32_t src_stride_raw, // input parameter, source stride (no line skipping)
-    uint8_t skip_search_line,
-    int16_t search_area_width, int16_t search_area_height) {
+    uint8_t skip_search_line, int16_t search_area_width, int16_t search_area_height) {
     const uint32_t height2 = height >> 1;
     const uint8_t *s, *r;
     int32_t        best_x = *x_search_center, best_y = *y_search_center;

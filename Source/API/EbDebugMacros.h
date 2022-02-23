@@ -9,7 +9,6 @@
 * PATENTS file, you can obtain it at https://www.aomedia.org/license/patent-license.
 */
 
-
 /*
 * This file contains only debug macros that are used during the development
 * and are supposed to be cleaned up every tag cycle
@@ -24,7 +23,6 @@
 * - all macros must have a coherent comment explaining what the MACRO is doing
 * - #if 0 / #if 1 are not to be used
 */
-
 
 #ifndef EbDebugMacros_h
 #define EbDebugMacros_h

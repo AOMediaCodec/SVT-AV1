@@ -92,9 +92,9 @@ static EbErrorType allocate_frame_buffer(EbConfig *config, uint8_t *p_buffer) {
 
     // Determine
     EbSvtIOFormat *input_ptr = (EbSvtIOFormat *)p_buffer;
-    input_ptr->y_stride  = config->input_padded_width;
-    input_ptr->cr_stride = config->input_padded_width >> subsampling_x;
-    input_ptr->cb_stride = config->input_padded_width >> subsampling_x;
+    input_ptr->y_stride      = config->input_padded_width;
+    input_ptr->cr_stride     = config->input_padded_width >> subsampling_x;
+    input_ptr->cb_stride     = config->input_padded_width >> subsampling_x;
 
     if (luma_8bit_size) {
         EB_APP_MALLOC(
@@ -210,9 +210,9 @@ EbErrorType allocate_output_recon_buffers(EbConfig *config, EbAppContext *callba
 }
 
 EbErrorType preload_frames_info_ram(EbConfig *config) {
-    EbErrorType return_error = EB_ErrorNone;
-    int32_t input_padded_width  = config->input_padded_width;
-    int32_t input_padded_height = config->input_padded_height;
+    EbErrorType         return_error        = EB_ErrorNone;
+    int32_t             input_padded_width  = config->input_padded_width;
+    int32_t             input_padded_height = config->input_padded_height;
     size_t              read_size;
     const EbColorFormat color_format =
         (EbColorFormat)config->config.encoder_color_format; // Chroma subsampling

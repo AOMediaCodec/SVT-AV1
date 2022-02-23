@@ -422,12 +422,12 @@ void svt_make_inter_predictor(PartitionInfo *part_info, int32_t ref, void *src, 
                               int32_t pre_x, int32_t pre_y, int32_t bw, int32_t bh,
                               ConvolveParams *conv_params, int32_t plane, int32_t do_warp,
                               EbBool is_16bit) {
-    const BlockModeInfo *mi = part_info->mi;
-    const int32_t is_intrabc = is_intrabc_block_dec(mi);
-    const int32_t ss_x      = plane ? part_info->subsampling_x : 0;
-    const int32_t ss_y      = plane ? part_info->subsampling_y : 0;
-    int32_t       bit_depth = ref_buf->ps_pic_buf->bit_depth;
-    int32_t       highbd    = bit_depth > EB_8BIT || is_16bit;
+    const BlockModeInfo *mi         = part_info->mi;
+    const int32_t        is_intrabc = is_intrabc_block_dec(mi);
+    const int32_t        ss_x       = plane ? part_info->subsampling_x : 0;
+    const int32_t        ss_y       = plane ? part_info->subsampling_y : 0;
+    int32_t              bit_depth  = ref_buf->ps_pic_buf->bit_depth;
+    int32_t              highbd     = bit_depth > EB_8BIT || is_16bit;
 
     /*ScaleFactor*/
     const struct ScaleFactors *const sf = is_intrabc ? part_info->sf_identity
@@ -816,7 +816,7 @@ void svtav1_predict_inter_block_plane(DecModCtxt *dec_mod_ctx, EbDecHandle *dec_
     const FrameHeader *  cur_frm_hdr = dec_mod_ctx->frame_header;
     SeqHeader *          seq_header  = dec_mod_ctx->seq_header;
     int32_t              is_compound = has_second_ref(mi);
-    const int32_t is_intrabc = is_intrabc_block_dec(mi);
+    const int32_t        is_intrabc  = is_intrabc_block_dec(mi);
     //temporary buffer for joint compound, move this to context if stack does not hold.
     DECLARE_ALIGNED(32, uint16_t, tmp_dst[128 * 128]);
 
