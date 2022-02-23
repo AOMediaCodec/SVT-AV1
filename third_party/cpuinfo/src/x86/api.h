@@ -6,7 +6,6 @@
 #include <cpuinfo.h>
 #include <cpuinfo/common.h>
 
-
 struct cpuid_regs {
     uint32_t eax;
     uint32_t ebx;
@@ -26,12 +25,12 @@ struct cpuinfo_x86_cache {
 
 struct cpuinfo_x86_caches {
     struct cpuinfo_trace_cache trace;
-    struct cpuinfo_x86_cache l1i;
-    struct cpuinfo_x86_cache l1d;
-    struct cpuinfo_x86_cache l2;
-    struct cpuinfo_x86_cache l3;
-    struct cpuinfo_x86_cache l4;
-    uint32_t prefetch_size;
+    struct cpuinfo_x86_cache   l1i;
+    struct cpuinfo_x86_cache   l1d;
+    struct cpuinfo_x86_cache   l2;
+    struct cpuinfo_x86_cache   l3;
+    struct cpuinfo_x86_cache   l4;
+    uint32_t                   prefetch_size;
 };
 
 struct cpuinfo_x86_model_info {
@@ -55,9 +54,9 @@ struct cpuinfo_x86_topology {
 };
 
 struct cpuinfo_x86_processor {
-    uint32_t cpuid;
+    uint32_t            cpuid;
     enum cpuinfo_vendor vendor;
-    enum cpuinfo_uarch uarch;
+    enum cpuinfo_uarch  uarch;
 #ifdef __linux__
     int linux_id;
 #endif
@@ -78,14 +77,14 @@ struct cpuinfo_x86_processor {
         struct cpuinfo_tlb stlb2_1GB;
     } tlb;
     struct cpuinfo_x86_topology topology;
-    char brand_string[CPUINFO_PACKAGE_NAME_MAX];
+    char                        brand_string[CPUINFO_PACKAGE_NAME_MAX];
 };
 
 CPUINFO_INTERNAL void cpuinfo_x86_init_processor(struct cpuinfo_x86_processor* processor);
 
-CPUINFO_INTERNAL enum cpuinfo_vendor cpuinfo_x86_decode_vendor(uint32_t ebx, uint32_t ecx, uint32_t edx);
+CPUINFO_INTERNAL enum cpuinfo_vendor cpuinfo_x86_decode_vendor(uint32_t ebx, uint32_t ecx,
+                                                               uint32_t edx);
 
 CPUINFO_INTERNAL struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
     const struct cpuid_regs basic_info, const struct cpuid_regs extended_info,
-    uint32_t max_base_index, uint32_t max_extended_index,
-    enum cpuinfo_vendor vendor);
+    uint32_t max_base_index, uint32_t max_extended_index, enum cpuinfo_vendor vendor);

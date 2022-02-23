@@ -897,7 +897,7 @@ int svt_av1_obmc_full_pixel_search(ModeDecisionContext *context_ptr, IntraBcCont
     const int32_t *mask         = context_ptr->mask_buf;
     const int      search_range = 8;
     *dst_mv                     = *mvp_full;
-    x->approx_inter_rate = context_ptr->approx_inter_rate;
+    x->approx_inter_rate        = context_ptr->approx_inter_rate;
     clamp_mv(dst_mv,
              x->mv_limits.col_min,
              x->mv_limits.col_max,
@@ -1161,10 +1161,10 @@ int svt_av1_find_best_obmc_sub_pixel_tree_up(ModeDecisionContext *context_ptr, I
     const MV *                     search_step = search_step_table;
     int                            best_idx    = -1;
     unsigned int                   cost_array[5];
-    const int                      w = block_size_wide[context_ptr->blk_geom->bsize];
-    const int                      h = block_size_high[context_ptr->blk_geom->bsize];
-    const uint8_t lp = context_ptr->approx_inter_rate;
-    int minc, maxc, minr, maxr;
+    const int                      w  = block_size_wide[context_ptr->blk_geom->bsize];
+    const int                      h  = block_size_high[context_ptr->blk_geom->bsize];
+    const uint8_t                  lp = context_ptr->approx_inter_rate;
+    int                            minc, maxc, minr, maxr;
 
     set_subpel_mv_search_range(&x->mv_limits, &minc, &maxc, &minr, &maxr, ref_mv);
 

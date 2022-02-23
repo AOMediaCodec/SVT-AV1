@@ -220,10 +220,10 @@ static AOM_FORCE_INLINE __m256 exp_256_ps(__m256 _x) {
 static void apply_temporal_filter_planewise(struct MeContext *context_ptr, const uint8_t *frame1,
                                             const unsigned int stride, const uint8_t *frame2,
                                             const unsigned int stride2, const int block_width,
-                                            const int block_height,
-                                            unsigned int *accumulator, uint16_t *count,
-                                            uint16_t *luma_sq_error, uint16_t *chroma_sq_error,
-                                            int plane, int ss_x_shift, int ss_y_shift) {
+                                            const int block_height, unsigned int *accumulator,
+                                            uint16_t *count, uint16_t *luma_sq_error,
+                                            uint16_t *chroma_sq_error, int plane, int ss_x_shift,
+                                            int ss_y_shift) {
     assert(TF_PLANEWISE_FILTER_WINDOW_LENGTH == 5);
     assert(((block_width == 32) && (block_height == 32)) ||
            ((block_width == 16) && (block_height == 16)));
@@ -282,7 +282,7 @@ static void apply_temporal_filter_planewise(struct MeContext *context_ptr, const
         }
     }
 
-    int32_t idx_32x32 = context_ptr->tf_block_col + context_ptr->tf_block_row * 2;
+    int32_t  idx_32x32      = context_ptr->tf_block_col + context_ptr->tf_block_row * 2;
     uint32_t num_ref_pixels = TF_PLANEWISE_FILTER_WINDOW_LENGTH * TF_PLANEWISE_FILTER_WINDOW_LENGTH;
 
     if (plane != PLANE_TYPE_Y) {
@@ -571,7 +571,7 @@ static void apply_temporal_filter_planewise(struct MeContext *context_ptr, const
 
             //count[i * stride2 + j] += adjusted_weight;
             __m128i count_array = _mm_loadu_si128((__m128i *)(count + i * stride2 + j));
-            count_array = _mm_add_epi16(count_array, adjusted_weight_int16);
+            count_array         = _mm_add_epi16(count_array, adjusted_weight_int16);
             _mm_storeu_si128((__m128i *)(count + i * stride2 + j), count_array);
 
             //accumulator[i * stride2 + j] += adjusted_weight * frame2[i * stride2 + j];
@@ -592,9 +592,8 @@ void svt_av1_apply_temporal_filter_planewise_avx2(
     struct MeContext *context_ptr, const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre,
     int y_pre_stride, const uint8_t *u_src, const uint8_t *v_src, int uv_src_stride,
     const uint8_t *u_pre, const uint8_t *v_pre, int uv_pre_stride, unsigned int block_width,
-    unsigned int block_height, int ss_x, int ss_y,
-    uint32_t *y_accum, uint16_t *y_count, uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum,
-    uint16_t *v_count) {
+    unsigned int block_height, int ss_x, int ss_y, uint32_t *y_accum, uint16_t *y_count,
+    uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum, uint16_t *v_count) {
     // Loop variables
     assert(block_width <= BW && "block width too large");
     assert(block_height <= BH && "block height too large");
@@ -803,9 +802,9 @@ static void apply_temporal_filter_planewise_hbd(struct MeContext *context_ptr,
         }
     }
 
-    int32_t idx_32x32 = context_ptr->tf_block_col + context_ptr->tf_block_row * 2;
+    int32_t  idx_32x32      = context_ptr->tf_block_col + context_ptr->tf_block_row * 2;
     uint32_t num_ref_pixels = TF_PLANEWISE_FILTER_WINDOW_LENGTH * TF_PLANEWISE_FILTER_WINDOW_LENGTH;
-    int shift_factor = ((encoder_bit_depth - 8) * 2);
+    int      shift_factor   = ((encoder_bit_depth - 8) * 2);
 
     if (plane != PLANE_TYPE_Y) {
         num_ref_pixels += (1 << ss_y_shift) * (1 << ss_x_shift);
@@ -1100,7 +1099,7 @@ static void apply_temporal_filter_planewise_hbd(struct MeContext *context_ptr,
 
             //count[i * stride2 + j] += adjusted_weight;
             __m128i count_array = _mm_loadu_si128((__m128i *)(count + i * stride2 + j));
-            count_array = _mm_add_epi16(count_array, adjusted_weight_int16);
+            count_array         = _mm_add_epi16(count_array, adjusted_weight_int16);
 
             _mm_storeu_si128((__m128i *)(count + i * stride2 + j), count_array);
 
@@ -1121,9 +1120,9 @@ void svt_av1_apply_temporal_filter_planewise_hbd_avx2(
     struct MeContext *context_ptr, const uint16_t *y_src, int y_src_stride, const uint16_t *y_pre,
     int y_pre_stride, const uint16_t *u_src, const uint16_t *v_src, int uv_src_stride,
     const uint16_t *u_pre, const uint16_t *v_pre, int uv_pre_stride, unsigned int block_width,
-    unsigned int block_height, int ss_x, int ss_y,
-    uint32_t *y_accum, uint16_t *y_count, uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum,
-    uint16_t *v_count, uint32_t encoder_bit_depth) {
+    unsigned int block_height, int ss_x, int ss_y, uint32_t *y_accum, uint16_t *y_count,
+    uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum, uint16_t *v_count,
+    uint32_t encoder_bit_depth) {
     // Loop variables
     assert(block_width <= BW && "block width too large");
     assert(block_height <= BH && "block height too large");
@@ -1191,9 +1190,8 @@ uint32_t calculate_squared_errors_sum_avx2(const uint8_t *s, int s_stride, const
 }
 
 uint32_t calculate_squared_errors_sum_highbd_avx2(const uint16_t *s, int s_stride,
-                                                  const uint16_t *p, int p_stride,
-                                                  unsigned int w, unsigned int h,
-                                                  int shift_factor) {
+                                                  const uint16_t *p, int p_stride, unsigned int w,
+                                                  unsigned int h, int shift_factor) {
     assert(w % 16 == 0 && "block width must be multiple of 16");
     unsigned int i, j;
 
@@ -1252,7 +1250,7 @@ void svt_av1_apply_temporal_filter_planewise_fast_avx2(struct MeContext *context
         adjusted_weight = (expf_tab_fp16[scaled_diff_fp4] * TF_WEIGHT_SCALE) >> 16;
     } else {
         double scaled_diff = AOMMIN(avg_err / context_ptr->tf_decay_factor[0], 7);
-        adjusted_weight = (int)(expf_tab[(int)(scaled_diff * 10)] * TF_WEIGHT_SCALE);
+        adjusted_weight    = (int)(expf_tab[(int)(scaled_diff * 10)] * TF_WEIGHT_SCALE);
     }
     const __m128i adjusted_weight_int16 = _mm_set1_epi16((int16_t)(adjusted_weight));
     const __m256i adjusted_weight_int32 = _mm256_set1_epi32((int32_t)(adjusted_weight));
@@ -1264,7 +1262,7 @@ void svt_av1_apply_temporal_filter_planewise_fast_avx2(struct MeContext *context
 
                 //y_count[k] += adjusted_weight;
                 __m128i count_array = _mm_loadu_si128((__m128i *)(y_count + k));
-                count_array = _mm_add_epi16(count_array, adjusted_weight_int16);
+                count_array         = _mm_add_epi16(count_array, adjusted_weight_int16);
                 _mm_storeu_si128((__m128i *)(y_count + k), count_array);
 
                 //y_accum[k] += adjusted_weight * pixel_value;
@@ -1283,9 +1281,8 @@ void svt_av1_apply_temporal_filter_planewise_fast_avx2(struct MeContext *context
 
 void svt_av1_apply_temporal_filter_planewise_fast_hbd_avx2(
     struct MeContext *context_ptr, const uint16_t *y_src, int y_src_stride, const uint16_t *y_pre,
-    int y_pre_stride, unsigned int block_width,
-    unsigned int block_height, uint32_t *y_accum, uint16_t *y_count, uint32_t encoder_bit_depth)
-{
+    int y_pre_stride, unsigned int block_width, unsigned int block_height, uint32_t *y_accum,
+    uint16_t *y_count, uint32_t encoder_bit_depth) {
     int shift_factor = ((encoder_bit_depth - 8) * 2);
     //to add chroma if need be
     uint32_t avg_err =
@@ -1301,7 +1298,7 @@ void svt_av1_apply_temporal_filter_planewise_fast_hbd_avx2(
         adjusted_weight = (expf_tab_fp16[scaled_diff_fp4] * TF_WEIGHT_SCALE) >> 16;
     } else {
         double scaled_diff = AOMMIN(avg_err / context_ptr->tf_decay_factor[0], 7);
-        adjusted_weight = (int)(expf_tab[(int)(scaled_diff * 10)] * TF_WEIGHT_SCALE);
+        adjusted_weight    = (int)(expf_tab[(int)(scaled_diff * 10)] * TF_WEIGHT_SCALE);
     }
     if (adjusted_weight) {
         unsigned int  i, j, k;
@@ -1314,7 +1311,7 @@ void svt_av1_apply_temporal_filter_planewise_fast_hbd_avx2(
 
                 //y_count[k] += adjusted_weight;
                 __m128i count_array = _mm_loadu_si128((__m128i *)(y_count + k));
-                count_array = _mm_add_epi16(count_array, adjusted_weight_int16);
+                count_array         = _mm_add_epi16(count_array, adjusted_weight_int16);
                 _mm_storeu_si128((__m128i *)(y_count + k), count_array);
 
                 //y_accum[k] += adjusted_weight * pixel_value;

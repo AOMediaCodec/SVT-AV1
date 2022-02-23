@@ -74,7 +74,6 @@ static void picture_analysis_context_dctor(EbPtr p) {
 ************************************************/
 EbErrorType picture_analysis_context_ctor(EbThreadContext *  thread_context_ptr,
                                           const EbEncHandle *enc_handle_ptr, int index) {
-
     PictureAnalysisContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
     thread_context_ptr->priv  = context_ptr;
@@ -2081,11 +2080,8 @@ void sub_sample_chroma_generate_pixel_intensity_histogram_bins(
         for (region_in_picture_height_index = 0; region_in_picture_height_index <
              scs_ptr->picture_analysis_number_of_regions_per_height;
              region_in_picture_height_index++) { // loop over vertical regions
-#if ADD_VQ_MODE
-            if (scs_ptr->static_config.scene_change_detection || scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
-#else
-            if (scs_ptr->static_config.scene_change_detection) {
-#endif
+            if (scs_ptr->static_config.scene_change_detection ||
+                scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
                 // Initialize bins to 1
                 svt_initialize_buffer_32bits(
                     pcs_ptr->picture_histogram[region_in_picture_width_index]
@@ -2099,7 +2095,6 @@ void sub_sample_chroma_generate_pixel_intensity_histogram_bins(
                     64,
                     0,
                     1);
-
             }
 
             region_width_offset = (region_in_picture_width_index ==
@@ -2236,11 +2231,8 @@ void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentCont
     uint64_t sum_avg_intensity_ttl_regions_cr   = 0;
 
     // Histogram bins
-#if ADD_VQ_MODE
-    if (scs_ptr->static_config.scene_change_detection || scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
-#else
-    if (scs_ptr->static_config.scene_change_detection) {
-#endif
+    if (scs_ptr->static_config.scene_change_detection ||
+        scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
         // Use 1/16 Luma for Histogram generation
         // 1/16 input ready
         sub_sample_luma_generate_pixel_intensity_histogram_bins(
@@ -2249,15 +2241,16 @@ void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentCont
         // Use 1/4 Chroma for Histogram generation
         // 1/4 input not ready => perform operation on the fly
         sub_sample_chroma_generate_pixel_intensity_histogram_bins(scs_ptr,
-            pcs_ptr,
-            input_picture_ptr,
-            &sum_avg_intensity_ttl_regions_cb,
-            &sum_avg_intensity_ttl_regions_cr,
-            4);
+                                                                  pcs_ptr,
+                                                                  input_picture_ptr,
+                                                                  &sum_avg_intensity_ttl_regions_cb,
+                                                                  &sum_avg_intensity_ttl_regions_cr,
+                                                                  4);
     }
 
     if (scs_ptr->calculate_variance)
-        compute_picture_spatial_statistics(scs_ptr, pcs_ptr, input_padded_picture_ptr, sb_total_count);
+        compute_picture_spatial_statistics(
+            scs_ptr, pcs_ptr, input_padded_picture_ptr, sb_total_count);
     else
         pcs_ptr->pic_avg_variance = 0;
 
@@ -2860,14 +2853,13 @@ void *picture_analysis_kernel(void *input_ptr) {
         scs_ptr        = (SequenceControlSet *)pcs_ptr->scs_wrapper_ptr->object_ptr;
 
         // Mariana : save enhanced picture ptr, move this from here
-        pcs_ptr->enhanced_unscaled_picture_ptr = pcs_ptr->enhanced_picture_ptr;
-        pcs_ptr->enhanced_unscaled_picture_ptr->is_16bit_pipeline =
-            scs_ptr->is_16bit_pipeline;
+        pcs_ptr->enhanced_unscaled_picture_ptr                    = pcs_ptr->enhanced_picture_ptr;
+        pcs_ptr->enhanced_unscaled_picture_ptr->is_16bit_pipeline = scs_ptr->is_16bit_pipeline;
 
         // There is no need to do processing for overlay picture. Overlay and AltRef share the same results.
         if (!pcs_ptr->is_overlay) {
             input_picture_ptr = pcs_ptr->enhanced_picture_ptr;
-            int copy_frame = 1;
+            int copy_frame    = 1;
             if (pcs_ptr->scs_ptr->ipp_pass_ctrls.skip_frame_first_pass == 1)
                 copy_frame = (((pcs_ptr->picture_number % 8) == 0) ||
                               ((pcs_ptr->picture_number % 8) == 6) ||
@@ -2877,7 +2869,7 @@ void *picture_analysis_kernel(void *input_ptr) {
                               ((pcs_ptr->picture_number % 8) == 0) ||
                               ((pcs_ptr->picture_number % 8) == 6) ||
                               ((pcs_ptr->picture_number % 8) == 7));
-                // Bypass copy for the unecessary picture in IPPP pass
+            // Bypass copy for the unecessary picture in IPPP pass
             if (scs_ptr->static_config.pass != ENC_FIRST_PASS || copy_frame) {
                 // Padding for input pictures
                 pad_input_pictures(scs_ptr, input_picture_ptr);
@@ -2908,20 +2900,20 @@ void *picture_analysis_kernel(void *input_ptr) {
                 input_padded_picture_ptr    = (EbPictureBufferDesc *)
                                                pa_ref_obj_->input_padded_picture_ptr;
 
-                    // 1/4 & 1/16 input picture downsampling through filtering
-                    if (scs_ptr->down_sampling_method_me_search == ME_FILTERED_DOWNSAMPLED) {
-                        downsample_filtering_input_picture(
-                            pcs_ptr,
-                            input_padded_picture_ptr,
-                            (EbPictureBufferDesc *)pa_ref_obj_->quarter_downsampled_picture_ptr,
-                            (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
-                    } else {
-                        downsample_decimation_input_picture(
-                            pcs_ptr,
-                            input_padded_picture_ptr,
-                            (EbPictureBufferDesc *)pa_ref_obj_->quarter_downsampled_picture_ptr,
-                            (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
-                    }
+                // 1/4 & 1/16 input picture downsampling through filtering
+                if (scs_ptr->down_sampling_method_me_search == ME_FILTERED_DOWNSAMPLED) {
+                    downsample_filtering_input_picture(
+                        pcs_ptr,
+                        input_padded_picture_ptr,
+                        (EbPictureBufferDesc *)pa_ref_obj_->quarter_downsampled_picture_ptr,
+                        (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
+                } else {
+                    downsample_decimation_input_picture(
+                        pcs_ptr,
+                        input_padded_picture_ptr,
+                        (EbPictureBufferDesc *)pa_ref_obj_->quarter_downsampled_picture_ptr,
+                        (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
+                }
 
                 pcs_ptr->ds_pics.quarter_picture_ptr = pa_ref_obj_->quarter_downsampled_picture_ptr;
                 pcs_ptr->ds_pics.sixteenth_picture_ptr =
@@ -2939,7 +2931,7 @@ void *picture_analysis_kernel(void *input_ptr) {
 
             // If running multi-threaded mode, perform SC detection in picture_analysis_kernel, else in picture_decision_kernel
             if (scs_ptr->static_config.logical_processors != 1) {
-                    if ((scs_ptr->static_config.pass != ENC_FIRST_PASS || copy_frame) == 0) {
+                if ((scs_ptr->static_config.pass != ENC_FIRST_PASS || copy_frame) == 0) {
                     pcs_ptr->sc_class0 = pcs_ptr->sc_class1 = pcs_ptr->sc_class2 = 0;
                 } else if (scs_ptr->static_config.screen_content_mode == 2) { // auto detect
                     // SC Detection is OFF for 4K and higher

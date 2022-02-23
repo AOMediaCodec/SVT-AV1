@@ -509,9 +509,8 @@ static AOM_FORCE_INLINE MV first_level_check_fast(
 static AOM_FORCE_INLINE void second_level_check_fast(
     MacroBlockD *xd, const struct AV1Common *const cm, const MV this_mv, const MV diag_step,
     MV *best_mv, int hstep, const SubpelMvLimits *mv_limits,
-    const SUBPEL_SEARCH_VAR_PARAMS *var_params,
-    const MV_COST_PARAMS *mv_cost_params, unsigned int *besterr,
-    unsigned int *sse1, int *distortion, int is_scaled) {
+    const SUBPEL_SEARCH_VAR_PARAMS *var_params, const MV_COST_PARAMS *mv_cost_params,
+    unsigned int *besterr, unsigned int *sse1, int *distortion, int is_scaled) {
     assert(diag_step.row == hstep || diag_step.row == -hstep);
     assert(diag_step.col == hstep || diag_step.col == -hstep);
     const int tr    = this_mv.row;
@@ -688,13 +687,13 @@ static const uint8_t eb_av1_var_offs[MAX_SB_SIZE] = {
     128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128};
 int svt_av1_find_best_sub_pixel_tree_pruned(MacroBlockD *xd, const struct AV1Common *const cm,
                                             const SUBPEL_MOTION_SEARCH_PARAMS *ms_params,
-                                            MV start_mv, MV *bestmv,
-                                            int *distortion, unsigned int *sse1, int qp,
-                                            BlockSize bsize, uint8_t early_neigh_check_exit) {
+                                            MV start_mv, MV *bestmv, int *distortion,
+                                            unsigned int *sse1, int qp, BlockSize bsize,
+                                            uint8_t early_neigh_check_exit) {
     (void)cm;
-    const int allow_hp       = ms_params->allow_hp;
-    const int forced_stop    = ms_params->forced_stop;
-    const int iters_per_step = ms_params->iters_per_step;
+    const int                       allow_hp       = ms_params->allow_hp;
+    const int                       forced_stop    = ms_params->forced_stop;
+    const int                       iters_per_step = ms_params->iters_per_step;
     const SubpelMvLimits *          mv_limits      = &ms_params->mv_limits;
     const MV_COST_PARAMS *          mv_cost_params = &ms_params->mv_cost_params;
     const SUBPEL_SEARCH_VAR_PARAMS *var_params     = &ms_params->var_params;
@@ -704,7 +703,7 @@ int svt_av1_find_best_sub_pixel_tree_pruned(MacroBlockD *xd, const struct AV1Com
     *bestmv = start_mv;
 
     const int is_scaled = 0;
-    besterr = svt_upsampled_setup_center_error(
+    besterr             = svt_upsampled_setup_center_error(
         bestmv, var_params, mv_cost_params, (unsigned int *)distortion);
     if (early_neigh_check_exit)
         return besterr;
@@ -786,7 +785,7 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
 
     *bestmv             = start_mv;
     const int is_scaled = 0;
-    besterr = svt_upsampled_setup_center_error(
+    besterr             = svt_upsampled_setup_center_error(
         bestmv, var_params, mv_cost_params, (unsigned int *)distortion);
     if (early_neigh_check_exit)
         return besterr;

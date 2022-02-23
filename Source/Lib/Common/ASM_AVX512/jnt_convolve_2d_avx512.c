@@ -489,7 +489,7 @@ static void jnt_convolve_2d_ver_2tap_avx512(const int16_t *const im_block, const
     const int32_t  round_1     = COMPOUND_ROUND1_BITS;
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - round_0; // 19
     const int32_t  round_bits  = 2 * FILTER_BITS - round_0 - round_1; // 4
-    const int32_t offset_avg = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
+    const int32_t  offset_avg  = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
         (1 << offset_bits) - (1 << (offset_bits - 1));
     const int32_t offset_no_avg = (1 << (round_1 - 1)) + (1 << offset_bits) +
         (1 << (offset_bits - 1));
@@ -976,7 +976,7 @@ static void jnt_convolve_2d_ver_2tap_half_avx512(const int16_t *const im_block, 
     const int32_t  round_1     = COMPOUND_ROUND1_BITS;
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - round_0; // 19
     const int32_t  round_bits  = 2 * FILTER_BITS - round_0 - round_1; // 4
-    const int32_t offset_avg = (1 << (round_1 - COMPOUND_ROUND1_BITS)) +
+    const int32_t  offset_avg  = (1 << (round_1 - COMPOUND_ROUND1_BITS)) +
         (1 << (round_bits + round_1 - COMPOUND_ROUND1_BITS + 1)) -
         (1 << (offset_bits - COMPOUND_ROUND1_BITS + 1)) -
         (1 << (offset_bits - COMPOUND_ROUND1_BITS));
@@ -1456,7 +1456,7 @@ static void jnt_convolve_2d_ver_6tap_avx512(const int16_t *const im_block, const
     const int32_t  round_1     = COMPOUND_ROUND1_BITS;
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - round_0; // 19
     const int32_t  round_bits  = 2 * FILTER_BITS - round_0 - round_1; // 4
-    const int32_t offset_avg = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
+    const int32_t  offset_avg  = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
         (1 << offset_bits) - (1 << (offset_bits - 1));
     const int32_t offset_no_avg = (1 << (round_1 - 1)) + (1 << offset_bits) +
         (1 << (offset_bits - 1));
@@ -1869,7 +1869,7 @@ static void jnt_convolve_2d_ver_8tap_avx512(const int16_t *const im_block, const
     const int32_t  round_1     = COMPOUND_ROUND1_BITS;
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - round_0; // 19
     const int32_t  round_bits  = 2 * FILTER_BITS - round_0 - round_1; // 4
-    const int32_t offset_avg = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
+    const int32_t  offset_avg  = (1 << (round_1 - 1)) + (1 << (round_bits + round_1)) -
         (1 << offset_bits) - (1 << (offset_bits - 1));
     const int32_t offset_no_avg = (1 << (round_1 - 1)) + (1 << offset_bits) +
         (1 << (offset_bits - 1));

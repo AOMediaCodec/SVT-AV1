@@ -6,55 +6,56 @@
 #include <cpuinfo.h>
 
 #ifdef __GNUC__
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #if CPUINFO_ARCH_X86
-    #ifdef _MSC_VER
-        #pragma pack(push, 2)
-    #endif
-    struct fxsave_region {
-        uint16_t fpu_control_word;
-        uint16_t fpu_status_word;
-        uint16_t fpu_tag_word;
-        uint16_t fpu_opcode;
-        uint32_t fpu_instruction_pointer_offset;
-        uint32_t fpu_instruction_pointer_selector;
-        uint32_t fpu_operand_pointer_offset;
-        uint32_t fpu_operand_pointer_selector;
-        uint32_t mxcsr_state;
-        uint32_t mxcsr_mask;
-        uint64_t fpu_registers[8 * 2];
-        uint64_t xmm_registers[8 * 2];
-        uint64_t padding[28];
-    }
-    #ifndef _MSC_VER
-        __attribute__((__aligned__(16), __packed__))
-    #endif
-    ; /* end of fxsave_region structure */
-    #ifdef _MSC_VER
-        #pragma pack(pop, 2)
-    #endif
+#ifdef _MSC_VER
+#pragma pack(push, 2)
+#endif
+struct fxsave_region {
+    uint16_t fpu_control_word;
+    uint16_t fpu_status_word;
+    uint16_t fpu_tag_word;
+    uint16_t fpu_opcode;
+    uint32_t fpu_instruction_pointer_offset;
+    uint32_t fpu_instruction_pointer_selector;
+    uint32_t fpu_operand_pointer_offset;
+    uint32_t fpu_operand_pointer_selector;
+    uint32_t mxcsr_state;
+    uint32_t mxcsr_mask;
+    uint64_t fpu_registers[8 * 2];
+    uint64_t xmm_registers[8 * 2];
+    uint64_t padding[28];
+}
+#ifndef _MSC_VER
+__attribute__((__aligned__(16), __packed__))
+#endif
+; /* end of fxsave_region structure */
+#ifdef _MSC_VER
+#pragma pack(pop, 2)
+#endif
 #endif
 
+struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(const struct cpuid_regs basic_info,
+                                              const struct cpuid_regs extended_info,
+                                              uint32_t max_base_index, uint32_t max_extended_index,
+                                              enum cpuinfo_vendor vendor) {
+    struct cpuinfo_x86_isa isa = {0};
 
-struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
-    const struct cpuid_regs basic_info, const struct cpuid_regs extended_info,
-    uint32_t max_base_index, uint32_t max_extended_index,
-    enum cpuinfo_vendor vendor)
-{
-    struct cpuinfo_x86_isa isa = { 0 };
+    const struct cpuid_regs structured_feature_info0 = (max_base_index >= 7)
+        ? cpuidex(7, 0)
+        : (struct cpuid_regs){0, 0, 0, 0};
+    const struct cpuid_regs structured_feature_info1 = (max_base_index >= 7)
+        ? cpuidex(7, 1)
+        : (struct cpuid_regs){0, 0, 0, 0};
 
-    const struct cpuid_regs structured_feature_info0 =
-        (max_base_index >= 7) ? cpuidex(7, 0) : (struct cpuid_regs) { 0, 0, 0, 0};
-    const struct cpuid_regs structured_feature_info1 =
-        (max_base_index >= 7) ? cpuidex(7, 1) : (struct cpuid_regs) { 0, 0, 0, 0};
-
-    const uint32_t processor_capacity_info_index = UINT32_C(0x80000008);
-    const struct cpuid_regs processor_capacity_info =
-        (max_extended_index >= processor_capacity_info_index) ?
-            cpuid(processor_capacity_info_index) : (struct cpuid_regs) { 0, 0, 0, 0 };
+    const uint32_t          processor_capacity_info_index = UINT32_C(0x80000008);
+    const struct cpuid_regs processor_capacity_info       = (max_extended_index >=
+                                                       processor_capacity_info_index)
+              ? cpuid(processor_capacity_info_index)
+              : (struct cpuid_regs){0, 0, 0, 0};
 
     bool avx_regs = false, avx512_regs = false, mpx_regs = false;
     /*
@@ -67,7 +68,7 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
         uint64_t xcr0_valid_bits = 0;
         if (max_base_index >= 0xD) {
             const struct cpuid_regs regs = cpuidex(0xD, 0);
-            xcr0_valid_bits = ((uint64_t) regs.edx << 32) | regs.eax;
+            xcr0_valid_bits              = ((uint64_t)regs.edx << 32) | regs.eax;
         }
 
         const uint64_t xfeature_enabled_mask = xgetbv(0);
@@ -173,14 +174,10 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
      */
     switch (vendor) {
 #if CPUINFO_ARCH_X86
-        case cpuinfo_vendor_cyrix:
-        case cpuinfo_vendor_nsc:
-            isa.emmx = !!(extended_info.edx & UINT32_C(0x01000000));
-            break;
+    case cpuinfo_vendor_cyrix:
+    case cpuinfo_vendor_nsc: isa.emmx = !!(extended_info.edx & UINT32_C(0x01000000)); break;
 #endif
-        default:
-            isa.fxsave = !!((basic_info.edx | extended_info.edx) & UINT32_C(0x01000000));
-            break;
+    default: isa.fxsave = !!((basic_info.edx | extended_info.edx) & UINT32_C(0x01000000)); break;
     }
 
     /*
@@ -209,7 +206,8 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
      * - Intel, AMD: edx[bit 25] in basic info (SSE feature flag).
      * - Pre-SSE AMD: edx[bit 22] in extended info (zero bit on Intel CPUs).
      */
-    isa.mmx_plus = !!((basic_info.edx & UINT32_C(0x02000000)) | (extended_info.edx & UINT32_C(0x00400000)));
+    isa.mmx_plus = !!((basic_info.edx & UINT32_C(0x02000000)) |
+                      (extended_info.edx & UINT32_C(0x00400000)));
 #endif
 
     /*
@@ -241,23 +239,24 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
      * - AMD: edx[bit 29] of extended info (x86-64 support). Does not imply PREFETCH support on non-AMD CPUs!!!
      */
     switch (vendor) {
-        case cpuinfo_vendor_intel:
-            /*
+    case cpuinfo_vendor_intel:
+        /*
              * Instruction is not documented in the manual,
              * and the 3dnow! prefetch CPUID bit indicates PREFETCHW instruction.
              */
-            break;
-        case cpuinfo_vendor_amd:
-        case cpuinfo_vendor_hygon:
-            isa.prefetch = !!((extended_info.ecx & UINT32_C(0x00000100)) | (extended_info.edx & UINT32_C(0xE0000000)));
-            break;
-        default:
-            /*
+        break;
+    case cpuinfo_vendor_amd:
+    case cpuinfo_vendor_hygon:
+        isa.prefetch = !!((extended_info.ecx & UINT32_C(0x00000100)) |
+                          (extended_info.edx & UINT32_C(0xE0000000)));
+        break;
+    default:
+        /*
              * Conservatively assume, that 3dnow!/3dnow!+ support implies PREFETCH support, but
              * 3dnow! prefetch CPUID bit follows Intel spec (PREFETCHW, but not PREFETCH).
              */
-            isa.prefetch = !!(extended_info.edx & UINT32_C(0xC0000000));
-            break;
+        isa.prefetch = !!(extended_info.edx & UINT32_C(0xC0000000));
+        break;
     }
 
     /*
@@ -269,14 +268,16 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
      * - AMD: edx[bit 29] of extended info (x86-64 support). Does not imply PREFETCHW support on non-AMD CPUs!!!
      */
     switch (vendor) {
-        case cpuinfo_vendor_amd:
-        case cpuinfo_vendor_hygon:
-            isa.prefetchw = !!((extended_info.ecx & UINT32_C(0x00000100)) | (extended_info.edx & UINT32_C(0xE0000000)));
-            break;
-        default:
-            /* Assume, that 3dnow!/3dnow!+ support implies PREFETCHW support, not implications from x86-64 support */
-            isa.prefetchw = !!((extended_info.ecx & UINT32_C(0x00000100)) | (extended_info.edx & UINT32_C(0xC0000000)));
-            break;
+    case cpuinfo_vendor_amd:
+    case cpuinfo_vendor_hygon:
+        isa.prefetchw = !!((extended_info.ecx & UINT32_C(0x00000100)) |
+                           (extended_info.edx & UINT32_C(0xE0000000)));
+        break;
+    default:
+        /* Assume, that 3dnow!/3dnow!+ support implies PREFETCHW support, not implications from x86-64 support */
+        isa.prefetchw = !!((extended_info.ecx & UINT32_C(0x00000100)) |
+                           (extended_info.edx & UINT32_C(0xC0000000)));
+        break;
     }
 
     /*
@@ -315,12 +316,12 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
     } else {
         /* Detect DAZ support from masked MXCSR bits */
         if (isa.sse && isa.fxsave) {
-            struct fxsave_region region = { 0 };
-            #ifdef _MSC_VER
-                _fxsave(&region);
-            #else
-                __asm__ __volatile__ ("fxsave %[region];" : [region] "+m" (region));
-            #endif
+            struct fxsave_region region = {0};
+#ifdef _MSC_VER
+            _fxsave(&region);
+#else
+            __asm__ __volatile__("fxsave %[region];" : [region] "+m"(region));
+#endif
 
             /*
              * Denormals-as-zero (DAZ) flag:
@@ -336,7 +337,6 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
      * - Intel, AMD: ecx[bit 9] in basic info.
      */
     isa.ssse3 = !!(basic_info.ecx & UINT32_C(0x0000200));
-
 
     /*
      * SSE4.1 instructions:
@@ -658,9 +658,9 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
     isa.sha = !!(structured_feature_info0.ebx & UINT32_C(0x20000000));
 
     if (vendor == cpuinfo_vendor_via) {
-        const struct cpuid_regs padlock_meta_info = cpuid(UINT32_C(0xC0000000));
-        const uint32_t max_padlock_index = padlock_meta_info.eax;
-        const uint32_t padlock_info_index = UINT32_C(0xC0000001);
+        const struct cpuid_regs padlock_meta_info  = cpuid(UINT32_C(0xC0000000));
+        const uint32_t          max_padlock_index  = padlock_meta_info.eax;
+        const uint32_t          padlock_info_index = UINT32_C(0xC0000001);
         if (max_padlock_index >= padlock_info_index) {
             const struct cpuid_regs padlock_info = cpuid(padlock_info_index);
 
@@ -728,5 +728,5 @@ struct cpuinfo_x86_isa cpuinfo_x86_detect_isa(
 }
 
 #ifdef __GNUC__
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif

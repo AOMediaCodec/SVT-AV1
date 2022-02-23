@@ -2272,11 +2272,11 @@ int32_t svt_aom_wiener_denoise_2d(const uint8_t *const data[3], uint8_t *denoise
                               (plane_d != NULL) && (block != NULL) && (block_d != NULL) &&
                               (window_full != NULL) && (window_chroma != NULL) && (result != NULL));
     for (int32_t c = init_success ? 0 : 3; c < 3; ++c) {
-        const float *window_function = c == 0 ? window_full : window_chroma;
-        AomFlatBlockFinder *   block_finder = &block_finder_full;
-        const int32_t          chroma_sub_h = c > 0 ? chroma_sub[1] : 0;
-        const int32_t          chroma_sub_w = c > 0 ? chroma_sub[0] : 0;
-        struct aom_noise_tx_t *tx           = (c > 0 && chroma_sub[0] > 0) ? tx_chroma : tx_full;
+        const float *          window_function = c == 0 ? window_full : window_chroma;
+        AomFlatBlockFinder *   block_finder    = &block_finder_full;
+        const int32_t          chroma_sub_h    = c > 0 ? chroma_sub[1] : 0;
+        const int32_t          chroma_sub_w    = c > 0 ? chroma_sub[0] : 0;
+        struct aom_noise_tx_t *tx              = (c > 0 && chroma_sub[0] > 0) ? tx_chroma : tx_full;
         if (!data[c] || !denoised[c])
             continue;
         if (c > 0 && chroma_sub[0] != 0)

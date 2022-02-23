@@ -843,7 +843,8 @@ typedef EbErrorType (*Av1ResizePlane)(const uint8_t *const input, int height, in
  */
 static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
                                     int bd, const int num_planes, const uint32_t ss_x,
-                                    const uint32_t ss_y, uint8_t is_packed, uint32_t buffer_enable_mask) {
+                                    const uint32_t ss_y, uint8_t is_packed,
+                                    uint32_t buffer_enable_mask) {
     uint16_t *src_buffer_highbd[MAX_MB_PLANE];
     uint16_t *dst_buffer_highbd[MAX_MB_PLANE];
 
@@ -901,7 +902,8 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
                 : av1_highbd_resize_plane;
             switch (plane) {
             case 0:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && src_buffer_highbd[0] && dst_buffer_highbd[0])
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && src_buffer_highbd[0] &&
+                    dst_buffer_highbd[0])
                     resize_plane_func(
                         src_buffer_highbd[0] + src->origin_y * src->stride_y + src->origin_x,
                         src->height,
@@ -914,7 +916,8 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
                         bd);
                 break;
             case 1:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cb_FLAG) && src_buffer_highbd[1] && dst_buffer_highbd[1])
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cb_FLAG) && src_buffer_highbd[1] &&
+                    dst_buffer_highbd[1])
                     resize_plane_func(
                         src_buffer_highbd[1] + (src->origin_y >> ss_y) * src->stride_cb +
                             (src->origin_x >> ss_x),
@@ -929,7 +932,8 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
                         bd);
                 break;
             case 2:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cr_FLAG) && src_buffer_highbd[2] && dst_buffer_highbd[2])
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cr_FLAG) && src_buffer_highbd[2] &&
+                    dst_buffer_highbd[2])
                     resize_plane_func(
                         src_buffer_highbd[2] + (src->origin_y >> ss_y) * src->stride_cr +
                             (src->origin_x >> ss_x),
@@ -951,7 +955,8 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
                 : av1_resize_plane;
             switch (plane) {
             case 0:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && src->buffer_y && dst->buffer_y)
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && src->buffer_y &&
+                    dst->buffer_y)
                     resize_plane_func(src->buffer_y + src->origin_y * src->stride_y + src->origin_x,
                                       src->height,
                                       src->width,
@@ -962,30 +967,32 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
                                       dst->stride_y);
                 break;
             case 1:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cb_FLAG) && src->buffer_cb && dst->buffer_cb)
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cb_FLAG) && src->buffer_cb &&
+                    dst->buffer_cb)
                     resize_plane_func(src->buffer_cb + (src->origin_y >> ss_y) * src->stride_cb +
-                                      (src->origin_x >> ss_x),
+                                          (src->origin_x >> ss_x),
                                       src->height >> ss_y,
                                       src->width >> ss_x,
                                       src->stride_cb,
                                       dst->buffer_cb + (dst->origin_y >> ss_y) * dst->stride_cb +
-                                      (dst->origin_x >> ss_x),
+                                          (dst->origin_x >> ss_x),
                                       (dst->height + ss_y) >> ss_y,
                                       (dst->width + ss_x) >> ss_x,
                                       dst->stride_cb);
                 break;
             case 2:
-                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cr_FLAG) && src->buffer_cr && dst->buffer_cr)
+                if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cr_FLAG) && src->buffer_cr &&
+                    dst->buffer_cr)
                     resize_plane_func(src->buffer_cr + (src->origin_y >> ss_y) * src->stride_cr +
-                                         (src->origin_x >> ss_x),
-                                     src->height >> ss_y,
-                                     src->width >> ss_x,
-                                     src->stride_cr,
-                                     dst->buffer_cr + (dst->origin_y >> ss_y) * dst->stride_cr +
-                                         (dst->origin_x >> ss_x),
-                                     (dst->height + ss_y) >> ss_y,
-                                     (dst->width + ss_x) >> ss_x,
-                                     dst->stride_cr);
+                                          (src->origin_x >> ss_x),
+                                      src->height >> ss_y,
+                                      src->width >> ss_x,
+                                      src->stride_cr,
+                                      dst->buffer_cr + (dst->origin_y >> ss_y) * dst->stride_cr +
+                                          (dst->origin_x >> ss_x),
+                                      (dst->height + ss_y) >> ss_y,
+                                      (dst->width + ss_x) >> ss_x,
+                                      dst->stride_cr);
                 break;
             default: break;
             }
@@ -996,27 +1003,26 @@ static EbErrorType av1_resize_frame(const EbPictureBufferDesc *src, EbPictureBuf
     if (bd > 8) {
         if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && dst_buffer_highbd[0])
             generate_padding16_bit(dst_buffer_highbd[0],
-                                    dst->stride_y,
-                                    dst->width,
-                                    dst->height,
-                                    dst->origin_x,
-                                    dst->origin_y);
+                                   dst->stride_y,
+                                   dst->width,
+                                   dst->height,
+                                   dst->origin_x,
+                                   dst->origin_y);
         if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cb_FLAG) && dst_buffer_highbd[1])
             generate_padding16_bit(dst_buffer_highbd[1],
-                                    dst->stride_cb,
-                                    (dst->width + ss_x) >> ss_x,
-                                    (dst->height + ss_y) >> ss_y,
-                                    (dst->origin_x + ss_x) >> ss_x,
-                                    (dst->origin_y + ss_y) >> ss_y);
+                                   dst->stride_cb,
+                                   (dst->width + ss_x) >> ss_x,
+                                   (dst->height + ss_y) >> ss_y,
+                                   (dst->origin_x + ss_x) >> ss_x,
+                                   (dst->origin_y + ss_y) >> ss_y);
         if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Cr_FLAG) && dst_buffer_highbd[2])
             generate_padding16_bit(dst_buffer_highbd[2],
-                                    dst->stride_cb,
-                                    (dst->width + ss_x) >> ss_x,
-                                    (dst->height + ss_y) >> ss_y,
-                                    (dst->origin_x + ss_x) >> ss_x,
-                                    (dst->origin_y + ss_y) >> ss_y);
-    }
-    else {
+                                   dst->stride_cb,
+                                   (dst->width + ss_x) >> ss_x,
+                                   (dst->height + ss_y) >> ss_y,
+                                   (dst->origin_x + ss_x) >> ss_x,
+                                   (dst->origin_y + ss_y) >> ss_y);
+    } else {
         if ((buffer_enable_mask & PICTURE_BUFFER_DESC_Y_FLAG) && dst->buffer_y)
             generate_padding(dst->buffer_y,
                              dst->stride_y,
@@ -1223,13 +1229,14 @@ static uint8_t get_superres_denom_for_qindex(SequenceControlSet *     scs_ptr,
         qindex, energy, energy_by_q2_thresh, SUPERRES_ENERGY_BY_AC_THRESH);
 
 #if DEBUG_SUPERRES_ENERGY
-    printf("\nFrame %d. energy_by_q2_thresh %.3f, energy = [", (int)pcs_ptr->picture_number, energy_by_q2_thresh);
+    printf("\nFrame %d. energy_by_q2_thresh %.3f, energy = [",
+           (int)pcs_ptr->picture_number,
+           energy_by_q2_thresh);
     for (int k = 1; k < 16; ++k) printf("%f, ", energy[k]);
     printf("]\n");
     printf("boost = %d\n",
-           (update_type == KF_UPDATE)
-               ? scs_ptr->encode_context_ptr->rc.kf_boost
-               : scs_ptr->encode_context_ptr->rc.gfu_boost);
+           (update_type == KF_UPDATE) ? scs_ptr->encode_context_ptr->rc.kf_boost
+                                      : scs_ptr->encode_context_ptr->rc.gfu_boost);
     printf("denom = %d\n", denom);
 #endif
 
@@ -1534,7 +1541,7 @@ void scale_source_references(SequenceControlSet *scs_ptr, PictureParentControlSe
     const int32_t  num_planes = 0; // Y only
     const uint32_t ss_x       = scs_ptr->subsampling_x;
     const uint32_t ss_y       = scs_ptr->subsampling_y;
-    uint32_t num_of_list_to_search =
+    uint32_t       num_of_list_to_search =
         (pcs_ptr->slice_type == P_SLICE) ? 1 /*List 0 only*/ : 2 /*List 0 + 1*/;
 
     for (uint8_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
@@ -1696,7 +1703,7 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
     const int32_t  num_planes = av1_num_planes(&scs_ptr->seq_header.color_config);
     const uint32_t ss_x       = scs_ptr->subsampling_x;
     const uint32_t ss_y       = scs_ptr->subsampling_y;
-    uint32_t num_of_list_to_search =
+    uint32_t       num_of_list_to_search =
         (pcs_ptr->slice_type == P_SLICE) ? 1 /*List 0 only*/ : 2 /*List 0 + 1*/;
 
     for (uint8_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
@@ -1712,8 +1719,8 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
 
             uint64_t ref_picture_number = ppcs_ptr->ref_pic_poc_array[list_index][ref_pic_index];
 
-            EbPictureBufferDesc *ref_pic_ptr =
-                get_ref_pic_buffer(pcs_ptr, hbd_mode_decision, list_index, ref_pic_index);
+            EbPictureBufferDesc *ref_pic_ptr = get_ref_pic_buffer(
+                pcs_ptr, hbd_mode_decision, list_index, ref_pic_index);
             // if the size of the reference pic is different than the size of the input pic, then scale references
             if (ref_pic_ptr->width != input_picture_ptr->width) {
                 EbBool do_resize = EB_FALSE;
@@ -1723,8 +1730,7 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
                 EbPictureBufferDesc *down_ref_pic8bit =
                     reference_object->downscaled_reference_picture[denom_idx];
 
-                EbPictureBufferDesc *down_ref_pic_ptr =
-                                      down_ref_pic8bit;
+                EbPictureBufferDesc *down_ref_pic_ptr = down_ref_pic8bit;
 
                 if (down_ref_pic_ptr != NULL) {
                     if (ref_pic_ptr->bit_depth != down_ref_pic_ptr->bit_depth) {
@@ -1742,7 +1748,7 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
                         ppcs_ptr);
 
                     down_ref_pic8bit = reference_object->downscaled_reference_picture[denom_idx];
-                    do_resize = EB_TRUE;
+                    do_resize        = EB_TRUE;
                 }
 
                 if (reference_object->downscaled_picture_number[denom_idx] != ref_picture_number) {

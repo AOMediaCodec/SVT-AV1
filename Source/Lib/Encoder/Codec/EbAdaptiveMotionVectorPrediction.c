@@ -111,7 +111,6 @@ static void add_ref_mv_candidate(const ModeInfo *const   candidate_mi,
     assert(weight % 2 == 0);
 
     if (rf[1] == NONE_FRAME) {
-
         // single reference frame
         for (int32_t ref = 0; ref < 2; ++ref) {
             if (candidate->block_mi.ref_frame[ref] == rf[0]) {
@@ -140,7 +139,6 @@ static void add_ref_mv_candidate(const ModeInfo *const   candidate_mi,
             }
         }
     } else {
-
         // compound reference frame
         if (candidate->block_mi.ref_frame[0] == rf[0] &&
             candidate->block_mi.ref_frame[1] == rf[1]) {
@@ -298,8 +296,7 @@ static void scan_blk_mbmi(const MacroBlockD *xd, const int32_t mi_row, const int
                           const MvReferenceFrame rf[2], int32_t row_offset, int32_t col_offset,
                           CandidateMv ref_mv_stack[MAX_REF_MV_STACK_SIZE], uint8_t *ref_match_count,
                           uint8_t *newmv_count, IntMv *gm_mv_candidates,
-                          const EbWarpedMotionParams *gm_params,
-                          uint8_t *refmv_count) {
+                          const EbWarpedMotionParams *gm_params, uint8_t *refmv_count) {
     const TileInfo *const tile   = &xd->tile;
     Position              mi_pos = {row_offset, col_offset};
 
@@ -1163,7 +1160,7 @@ void init_xd(PictureControlSet *pcs_ptr, ModeDecisionContext *context_ptr) {
             (xd->mi_stride >> pcs_ptr->disallow_4x4_all_frames) +
         (mi_col >> pcs_ptr->disallow_4x4_all_frames);
     pcs_ptr->mi_grid_base[offset] = pcs_ptr->mip + mip_offset;
-    xd->mi = pcs_ptr->mi_grid_base + offset;
+    xd->mi                        = pcs_ptr->mi_grid_base + offset;
 
     //ModeInfo *mi_ptr = xd->mi[-(xd->mi_stride)]; /*&xd->mi[-xd->mi_stride]->mbmi*/
     xd->above_mbmi = (xd->up_available) ? &xd->mi[-(xd->mi_stride)]->mbmi : NULL;
@@ -1240,8 +1237,8 @@ void generate_av1_mvp_table(ModeDecisionContext *context_ptr, BlkStruct *blk_ptr
         // If block is intra bordered we only inject NEW unipred, so must generate MVPs
         // If there is only 1 ME candidate, generate MVPs because that candidate will be injected (even if unipred)
         if (context_ptr->cand_reduction_ctrls.reduce_unipred_candidates >= 3 &&
-            context_ptr->lpd1_ctrls.pd1_level > REGULAR_PD1 &&
-            !context_ptr->is_intra_bordered && frm_hdr->reference_mode != SINGLE_REFERENCE &&
+            context_ptr->lpd1_ctrls.pd1_level > REGULAR_PD1 && !context_ptr->is_intra_bordered &&
+            frm_hdr->reference_mode != SINGLE_REFERENCE &&
             !frm_hdr
                  ->use_ref_frame_mvs && //MFMV generation re-uses projection information when symetric references are used.
             //so could not be skipped, as BWD or LAST_BWD might reuse projection info from LAST
@@ -1439,7 +1436,7 @@ void update_mi_map(BlkStruct *blk_ptr, uint32_t blk_origin_x, uint32_t blk_origi
     BlockModeInfoEnc *block_mi = &mi_ptr[0].mbmi.block_mi;
 
     // copy mbmi data
-    block_mi->tx_depth = blk_ptr->tx_depth;
+    block_mi->tx_depth       = blk_ptr->tx_depth;
     block_mi->comp_group_idx = blk_ptr->comp_group_idx;
     if (svt_av1_allow_palette(pcs_ptr->parent_pcs_ptr->palette_level, blk_geom->bsize)) {
         mbmi->palette_mode_info.palette_size = blk_ptr->palette_size[0];

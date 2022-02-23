@@ -258,15 +258,15 @@ typedef struct EncApp {
 EbConfig *svt_config_ctor();
 void      svt_config_dtor(EbConfig *config_ptr);
 
-EbErrorType        enc_channel_ctor(EncChannel *c);
-void               enc_channel_dctor(EncChannel *c, uint32_t inst_cnt);
-EbErrorType        read_command_line(int32_t argc, char *const argv[], EncChannel *channels,
-                                     uint32_t num_channels);
-int                get_version(int argc, char *argv[]);
-extern uint32_t    get_help(int32_t argc, char *const argv[]);
-extern uint32_t    get_number_of_channels(int32_t argc, char *const argv[]);
-uint32_t           get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_PASS],
-                              MultiPassModes *multi_pass_mode);
-EbErrorType        handle_stats_file(EbConfig *config, EncPass pass,
-                                     const SvtAv1FixedBuf *rc_stats_buffer, uint32_t channel_number);
+EbErrorType     enc_channel_ctor(EncChannel *c);
+void            enc_channel_dctor(EncChannel *c, uint32_t inst_cnt);
+EbErrorType     read_command_line(int32_t argc, char *const argv[], EncChannel *channels,
+                                  uint32_t num_channels);
+int             get_version(int argc, char *argv[]);
+extern uint32_t get_help(int32_t argc, char *const argv[]);
+extern uint32_t get_number_of_channels(int32_t argc, char *const argv[]);
+uint32_t        get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_PASS],
+                           MultiPassModes *multi_pass_mode);
+EbErrorType handle_stats_file(EbConfig *config, EncPass pass, const SvtAv1FixedBuf *rc_stats_buffer,
+                              uint32_t channel_number);
 #endif //EbAppConfig_h

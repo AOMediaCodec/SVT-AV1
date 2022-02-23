@@ -1646,7 +1646,7 @@ intra_pred_sized(paeth, 32, 64);
 intra_pred_sized(paeth, 64, 16);
 intra_pred_sized(paeth, 64, 32);
 #define intra_pred_highbd_sized(type, width, height)                                      \
-    void svt_aom_highbd_##type##_predictor_##width##x##height##_c(uint16_t       *dst,    \
+    void svt_aom_highbd_##type##_predictor_##width##x##height##_c(uint16_t *      dst,    \
                                                                   ptrdiff_t       stride, \
                                                                   const uint16_t *above,  \
                                                                   const uint16_t *left,   \

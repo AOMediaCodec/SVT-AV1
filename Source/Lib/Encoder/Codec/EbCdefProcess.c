@@ -35,16 +35,16 @@ int32_t svt_sb_all_skip(PictureControlSet *pcs_ptr, const Av1Common *const cm, i
                         int32_t mi_col);
 int32_t svt_sb_compute_cdef_list(PictureControlSet *pcs_ptr, const Av1Common *const cm,
                                  int32_t mi_row, int32_t mi_col, CdefList *dlist, BlockSize bs);
-void finish_cdef_search(PictureControlSet *pcs_ptr);
-void av1_cdef_frame16bit(EncDecContext *context_ptr, SequenceControlSet *scs_ptr,
-                         PictureControlSet *pCs);
-void svt_av1_cdef_frame(EncDecContext *context_ptr, SequenceControlSet *scs_ptr,
-                        PictureControlSet *pCs);
-void svt_av1_loop_restoration_save_boundary_lines(const Yv12BufferConfig *frame, Av1Common *cm,
-                                                  int32_t after_cdef);
-void svt_av1_superres_upscale_frame(struct Av1Common *cm, PictureControlSet *pcs_ptr,
-                                    SequenceControlSet *scs_ptr);
-void set_unscaled_input_16bit(PictureControlSet *pcs_ptr);
+void    finish_cdef_search(PictureControlSet *pcs_ptr);
+void    av1_cdef_frame16bit(EncDecContext *context_ptr, SequenceControlSet *scs_ptr,
+                            PictureControlSet *pCs);
+void    svt_av1_cdef_frame(EncDecContext *context_ptr, SequenceControlSet *scs_ptr,
+                           PictureControlSet *pCs);
+void    svt_av1_loop_restoration_save_boundary_lines(const Yv12BufferConfig *frame, Av1Common *cm,
+                                                     int32_t after_cdef);
+void    svt_av1_superres_upscale_frame(struct Av1Common *cm, PictureControlSet *pcs_ptr,
+                                       SequenceControlSet *scs_ptr);
+void    set_unscaled_input_16bit(PictureControlSet *pcs_ptr);
 
 void get_recon_pic(PictureControlSet *pcs_ptr, EbPictureBufferDesc **recon_ptr, EbBool is_highbd);
 
@@ -459,7 +459,7 @@ void cdef_seg_search16bit(PictureControlSet *pcs_ptr, SequenceControlSet *scs_pt
                 vb_step = 2;
             }
             const uint32_t fb_idx = fbr * nhfb + fbc;
-            cdef_count = svt_sb_compute_cdef_list(
+            cdef_count            = svt_sb_compute_cdef_list(
                 pcs_ptr, cm, fbr * MI_SIZE_64X64, fbc * MI_SIZE_64X64, dlist, bs);
 
             if (cdef_count == 0) {
@@ -642,9 +642,9 @@ void *cdef_kernel(void *input_ptr) {
         pcs_ptr         = (PictureControlSet *)dlf_results_ptr->pcs_wrapper_ptr->object_ptr;
         scs_ptr         = (SequenceControlSet *)pcs_ptr->scs_wrapper_ptr->object_ptr;
 
-        EbBool     is_16bit = scs_ptr->is_16bit_pipeline;
-        Av1Common *cm       = pcs_ptr->parent_pcs_ptr->av1_cm;
-        frm_hdr             = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+        EbBool     is_16bit      = scs_ptr->is_16bit_pipeline;
+        Av1Common *cm            = pcs_ptr->parent_pcs_ptr->av1_cm;
+        frm_hdr                  = &pcs_ptr->parent_pcs_ptr->frm_hdr;
         CdefControls *cdef_ctrls = &pcs_ptr->parent_pcs_ptr->cdef_ctrls;
         if (!cdef_ctrls->use_reference_cdef_fs) {
             if (scs_ptr->seq_header.cdef_level && pcs_ptr->parent_pcs_ptr->cdef_level) {

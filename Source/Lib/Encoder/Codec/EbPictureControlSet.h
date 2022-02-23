@@ -314,9 +314,7 @@ typedef struct PictureControlSet {
     uint8_t *    sb_intra;
     uint8_t *    sb_skip;
     uint8_t *    sb_64x64_mvp;
-#if OPT_DECODER
-    uint32_t *    sb_count_nz_coeffs;
-#endif
+    uint32_t *   sb_count_nz_coeffs;
 
     // Mode Decision Neighbor Arrays
     NeighborArrayUnit **md_intra_luma_mode_neighbor_array[NEIGHBOR_ARRAY_TOTAL_COUNT];
@@ -603,25 +601,36 @@ typedef struct GmControls {
 typedef struct CdefControls {
     uint8_t enabled;
     uint8_t number_of_prim_in_second_loop[2];
-    uint8_t first_pass_fs_num; // Number of primary filters considered in the first pass. (luma and chroma)
-    uint8_t default_first_pass_fs[TOTAL_STRENGTHS]; //Primary filter strengths to consider in the first pass.
-    uint8_t default_second_pass_fs_num; // Number of secondary filters considered in the second pass. (luma and chroma)
-    uint8_t default_second_pass_fs[TOTAL_STRENGTHS]; // Secondary filter strengths to consider in the second pass.
-    int8_t  default_first_pass_fs_uv[TOTAL_STRENGTHS]; // Mask for primary filters to be considered for chroma and indicates a subset of the primary
-                                                       // filter strengths considered in default_first_pass_fs[64]
-    int8_t  default_second_pass_fs_uv[TOTAL_STRENGTHS]; // Mask for secondary filters to be considered for chroma and indicates a subset of the secondary
-                                                        // filter strengths considered in default_second_pass_fs[64]
-    int8_t  use_reference_cdef_fs; // Flag to indicate the use of reference frames' filter strengths.
-    int8_t  pred_y_f; // Predicted filter strength pair index for the luma component based on reference picture filter strength pairs.
-    int8_t  pred_uv_f; // Predicted filter strength pair index for the chroma component based on reference picture filter strength pairs.
-    uint8_t subsampling_factor; // Allowable levels: [1,2,4] ---> 1: no subsampling; 2: process every 2nd row; 4: process every 4th row for 8x8 blocks, every 2nd row for smaller sizes.
-                                // NB subsampling is capped for certain block sizes, based on how many points the intrinsics can process at once.
-    uint8_t search_best_ref_fs; // Only search best filter strengths of the nearest ref frames (skips the search if the filters of list0/list1 are the same).
-    uint16_t zero_fs_cost_bias; // 0: OFF, higher is safer. Scaling factor to decrease the zero filter strength cost: : <x>/64
-#if OPT_DECODER
-    uint8_t scale_cost_bias_on_nz_coeffs; // When enabled, use non-zero coeff info to make the cost-biasing factor more aggressive (when cost biasing is enabled)
-#endif
-    uint8_t use_skip_detector; // Shut CDEF at the picture level based on the skip area of the nearest reference frames.
+    uint8_t
+        first_pass_fs_num; // Number of primary filters considered in the first pass. (luma and chroma)
+    uint8_t default_first_pass_fs
+        [TOTAL_STRENGTHS]; //Primary filter strengths to consider in the first pass.
+    uint8_t
+            default_second_pass_fs_num; // Number of secondary filters considered in the second pass. (luma and chroma)
+    uint8_t default_second_pass_fs
+        [TOTAL_STRENGTHS]; // Secondary filter strengths to consider in the second pass.
+    int8_t default_first_pass_fs_uv
+        [TOTAL_STRENGTHS]; // Mask for primary filters to be considered for chroma and indicates a subset of the primary
+        // filter strengths considered in default_first_pass_fs[64]
+    int8_t default_second_pass_fs_uv
+        [TOTAL_STRENGTHS]; // Mask for secondary filters to be considered for chroma and indicates a subset of the secondary
+        // filter strengths considered in default_second_pass_fs[64]
+    int8_t use_reference_cdef_fs; // Flag to indicate the use of reference frames' filter strengths.
+    int8_t
+        pred_y_f; // Predicted filter strength pair index for the luma component based on reference picture filter strength pairs.
+    int8_t
+        pred_uv_f; // Predicted filter strength pair index for the chroma component based on reference picture filter strength pairs.
+    uint8_t
+        subsampling_factor; // Allowable levels: [1,2,4] ---> 1: no subsampling; 2: process every 2nd row; 4: process every 4th row for 8x8 blocks, every 2nd row for smaller sizes.
+        // NB subsampling is capped for certain block sizes, based on how many points the intrinsics can process at once.
+    uint8_t
+        search_best_ref_fs; // Only search best filter strengths of the nearest ref frames (skips the search if the filters of list0/list1 are the same).
+    uint16_t
+        zero_fs_cost_bias; // 0: OFF, higher is safer. Scaling factor to decrease the zero filter strength cost: : <x>/64
+    uint8_t
+        scale_cost_bias_on_nz_coeffs; // When enabled, use non-zero coeff info to make the cost-biasing factor more aggressive (when cost biasing is enabled)
+    uint8_t
+        use_skip_detector; // Shut CDEF at the picture level based on the skip area of the nearest reference frames.
 } CdefControls;
 
 typedef struct List0OnlyBase {
@@ -631,9 +640,8 @@ typedef struct List0OnlyBase {
 typedef struct DlfCtrls {
     uint8_t enabled;
     uint8_t sb_based_dlf; // if true, perform DLF per SB, not per picture
-#if OPT_DECODER
-    uint8_t min_filter_level; // when DLF filter level is selected from QP, if the filter level is less than or equal to this TH, the filter level is set to 0
-#endif
+    uint8_t
+        min_filter_level; // when DLF filter level is selected from QP, if the filter level is less than or equal to this TH, the filter level is set to 0
 } DlfCtrls;
 typedef struct IntraBCCtrls {
     uint8_t enabled;
@@ -695,9 +703,7 @@ typedef struct PictureParentControlSet {
     EbBool   idr_flag;
     EbBool   cra_flag;
     EbBool   scene_change_flag;
-#if ADD_VQ_MODE
     EbBool   transition_present;
-#endif
     EbBool   end_of_sequence_flag;
     uint8_t  picture_qp;
     uint64_t picture_number;
@@ -772,8 +778,8 @@ typedef struct PictureParentControlSet {
     uint32_t *me_16x16_distortion;
     uint32_t *me_8x8_distortion;
     // Global motion estimation results
-    EbBool               is_global_motion[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
-    EbWarpedMotionParams global_motion_estimation[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
+    EbBool                is_global_motion[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
+    EbWarpedMotionParams  global_motion_estimation[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint16_t              me_processed_b64_count;
     EbHandle              me_processed_b64_mutex;
     FirstPassData         firstpass_data;
@@ -991,8 +997,8 @@ typedef struct PictureParentControlSet {
 
     int64_t ext_mg_id;
     int64_t ext_mg_size; //same as mg expect for MGops with [LDP-I] which are split into 2
-    uint8_t  tpl_valid_pic[MAX_TPL_EXT_GROUP_SIZE];
-    uint8_t  used_tpl_frame_num;
+    uint8_t tpl_valid_pic[MAX_TPL_EXT_GROUP_SIZE];
+    uint8_t used_tpl_frame_num;
 
     // Tune TPL for better chroma.Only for 240P
     uint8_t      tune_tpl_for_chroma;
@@ -1074,9 +1080,7 @@ typedef struct PictureParentControlSet {
     uint32_t tf_tot_horz_blks; //total horizontal motion blocks in TF
     int8_t   tf_motion_direction; //motion direction in TF   -1:invalid   0:horz  1:vert
     uint8_t  adjust_under_shoot_gf;
-#if ADD_VQ_MODE
-    int32_t is_noise_level;
-#endif
+    int32_t  is_noise_level;
 } PictureParentControlSet;
 
 typedef struct TplDispResults {
@@ -1178,8 +1182,8 @@ extern EbErrorType me_creator(EbPtr *object_dbl_ptr, EbPtr object_init_data_ptr)
 extern EbErrorType me_sb_results_ctor(MeSbResults *              obj_ptr,
                                       PictureControlSetInitData *init_data_ptr);
 
-extern void set_gm_controls(PictureParentControlSet* pcs_ptr, uint8_t gm_level);
-extern uint8_t derive_gm_level(PictureParentControlSet* pcs_ptr);
+extern void    set_gm_controls(PictureParentControlSet *pcs_ptr, uint8_t gm_level);
+extern uint8_t derive_gm_level(PictureParentControlSet *pcs_ptr);
 
 #ifdef __cplusplus
 }

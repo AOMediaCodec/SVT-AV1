@@ -41,8 +41,7 @@ extern "C" {
  * types, removing or reassigning enums, adding/removing/rearranging
  * fields to structures
  */
-#define AOM_DECODER_ABI_VERSION \
-  (3 + AOM_CODEC_ABI_VERSION) /**<\hideinitializer*/
+#define AOM_DECODER_ABI_VERSION (3 + AOM_CODEC_ABI_VERSION) /**<\hideinitializer*/
 
 /*! \brief Decoder capabilities bitfield
  *
@@ -54,7 +53,7 @@ extern "C" {
  */
 #define AOM_CODEC_CAP_PUT_SLICE 0x10000 /**< Will issue put_slice callbacks */
 #define AOM_CODEC_CAP_PUT_FRAME 0x20000 /**< Will issue put_frame callbacks */
-#define AOM_CODEC_CAP_POSTPROC 0x40000  /**< Can postprocess decoded frame */
+#define AOM_CODEC_CAP_POSTPROC 0x40000 /**< Can postprocess decoded frame */
 /*!\brief Can receive encoded frames one fragment at a time */
 #define AOM_CODEC_CAP_INPUT_FRAGMENTS 0x100000
 
@@ -81,12 +80,12 @@ extern "C" {
  * stream.
  */
 typedef struct aom_codec_stream_info {
-  unsigned int w;                      /**< Width (or 0 for unknown/default) */
-  unsigned int h;                      /**< Height (or 0 for unknown/default) */
-  unsigned int is_kf;                  /**< Current frame is a keyframe */
-  unsigned int number_spatial_layers;  /**< Number of spatial layers */
-  unsigned int number_temporal_layers; /**< Number of temporal layers */
-  unsigned int is_annexb;              /**< Is Bitstream in Annex-B format */
+    unsigned int w; /**< Width (or 0 for unknown/default) */
+    unsigned int h; /**< Height (or 0 for unknown/default) */
+    unsigned int is_kf; /**< Current frame is a keyframe */
+    unsigned int number_spatial_layers; /**< Number of spatial layers */
+    unsigned int number_temporal_layers; /**< Number of temporal layers */
+    unsigned int is_annexb; /**< Is Bitstream in Annex-B format */
 } aom_codec_stream_info_t;
 
 /* REQUIRED FUNCTIONS
@@ -101,12 +100,12 @@ typedef struct aom_codec_stream_info {
  * decoder.
  */
 typedef struct aom_codec_dec_cfg {
-  unsigned int threads; /**< Maximum number of threads to use, default 1 */
-  unsigned int w;       /**< Width */
-  unsigned int h;       /**< Height */
-  unsigned int allow_lowbitdepth; /**< Allow use of low-bitdepth coding path */
-  cfg_options_t cfg;              /**< Options defined per config attributes */
-} aom_codec_dec_cfg_t;            /**< alias for struct aom_codec_dec_cfg */
+    unsigned int  threads; /**< Maximum number of threads to use, default 1 */
+    unsigned int  w; /**< Width */
+    unsigned int  h; /**< Height */
+    unsigned int  allow_lowbitdepth; /**< Allow use of low-bitdepth coding path */
+    cfg_options_t cfg; /**< Options defined per config attributes */
+} aom_codec_dec_cfg_t; /**< alias for struct aom_codec_dec_cfg */
 
 /*!\brief Initialize a decoder instance
  *
@@ -130,17 +129,16 @@ typedef struct aom_codec_dec_cfg {
  * \retval #AOM_CODEC_MEM_ERROR
  *     Memory allocation failed.
  */
-aom_codec_err_t aom_codec_dec_init_ver(aom_codec_ctx_t *ctx,
-                                       aom_codec_iface_t *iface,
-                                       const aom_codec_dec_cfg_t *cfg,
-                                       aom_codec_flags_t flags, int ver);
+aom_codec_err_t aom_codec_dec_init_ver(aom_codec_ctx_t *ctx, aom_codec_iface_t *iface,
+                                       const aom_codec_dec_cfg_t *cfg, aom_codec_flags_t flags,
+                                       int ver);
 
 /*!\brief Convenience macro for aom_codec_dec_init_ver()
  *
  * Ensures the ABI version parameter is properly set.
  */
 #define aom_codec_dec_init(ctx, iface, cfg, flags) \
-  aom_codec_dec_init_ver(ctx, iface, cfg, flags, AOM_DECODER_ABI_VERSION)
+    aom_codec_dec_init_ver(ctx, iface, cfg, flags, AOM_DECODER_ABI_VERSION)
 
 /*!\brief Parse stream info from a buffer
  *
@@ -163,9 +161,8 @@ aom_codec_err_t aom_codec_dec_init_ver(aom_codec_ctx_t *ctx,
  *     The decoder didn't recognize the coded data, or the
  *     buffer was too short.
  */
-aom_codec_err_t aom_codec_peek_stream_info(aom_codec_iface_t *iface,
-                                           const uint8_t *data, size_t data_sz,
-                                           aom_codec_stream_info_t *si);
+aom_codec_err_t aom_codec_peek_stream_info(aom_codec_iface_t *iface, const uint8_t *data,
+                                           size_t data_sz, aom_codec_stream_info_t *si);
 
 /*!\brief Return information about the current stream.
  *
@@ -181,8 +178,7 @@ aom_codec_err_t aom_codec_peek_stream_info(aom_codec_iface_t *iface,
  * \retval #AOM_CODEC_UNSUP_BITSTREAM
  *     The decoder couldn't parse the submitted data.
  */
-aom_codec_err_t aom_codec_get_stream_info(aom_codec_ctx_t *ctx,
-                                          aom_codec_stream_info_t *si);
+aom_codec_err_t aom_codec_get_stream_info(aom_codec_ctx_t *ctx, aom_codec_stream_info_t *si);
 
 /*!\brief Decode data
  *
@@ -212,8 +208,8 @@ aom_codec_err_t aom_codec_get_stream_info(aom_codec_ctx_t *ctx,
  *         see the descriptions of the other error codes in ::aom_codec_err_t
  *         for recoverability capabilities.
  */
-aom_codec_err_t aom_codec_decode(aom_codec_ctx_t *ctx, const uint8_t *data,
-                                 size_t data_sz, void *user_priv);
+aom_codec_err_t aom_codec_decode(aom_codec_ctx_t *ctx, const uint8_t *data, size_t data_sz,
+                                 void *user_priv);
 
 /*!\brief Decoded frames iterator
  *
@@ -248,8 +244,7 @@ aom_image_t *aom_codec_get_frame(aom_codec_ctx_t *ctx, aom_codec_iter_t *iter);
  * This callback is invoked by the decoder to notify the application of
  * the availability of decoded image data.
  */
-typedef void (*aom_codec_put_frame_cb_fn_t)(void *user_priv,
-                                            const aom_image_t *img);
+typedef void (*aom_codec_put_frame_cb_fn_t)(void *user_priv, const aom_image_t *img);
 
 /*!\brief Register for notification of frame completion.
  *
@@ -266,9 +261,8 @@ typedef void (*aom_codec_put_frame_cb_fn_t)(void *user_priv,
  *     Decoder context not initialized, or algorithm not capable of
  *     posting slice completion.
  */
-aom_codec_err_t aom_codec_register_put_frame_cb(aom_codec_ctx_t *ctx,
-                                                aom_codec_put_frame_cb_fn_t cb,
-                                                void *user_priv);
+aom_codec_err_t aom_codec_register_put_frame_cb(aom_codec_ctx_t *           ctx,
+                                                aom_codec_put_frame_cb_fn_t cb, void *user_priv);
 
 /*!@} - end defgroup cap_put_frame */
 
@@ -287,8 +281,7 @@ aom_codec_err_t aom_codec_register_put_frame_cb(aom_codec_ctx_t *ctx,
  * This callback is invoked by the decoder to notify the application of
  * the availability of partially decoded image data. The
  */
-typedef void (*aom_codec_put_slice_cb_fn_t)(void *user_priv,
-                                            const aom_image_t *img,
+typedef void (*aom_codec_put_slice_cb_fn_t)(void *user_priv, const aom_image_t *img,
                                             const aom_image_rect_t *valid,
                                             const aom_image_rect_t *update);
 
@@ -307,9 +300,8 @@ typedef void (*aom_codec_put_slice_cb_fn_t)(void *user_priv,
  *     Decoder context not initialized, or algorithm not capable of
  *     posting slice completion.
  */
-aom_codec_err_t aom_codec_register_put_slice_cb(aom_codec_ctx_t *ctx,
-                                                aom_codec_put_slice_cb_fn_t cb,
-                                                void *user_priv);
+aom_codec_err_t aom_codec_register_put_slice_cb(aom_codec_ctx_t *           ctx,
+                                                aom_codec_put_slice_cb_fn_t cb, void *user_priv);
 
 /*!@} - end defgroup cap_put_slice*/
 
@@ -351,9 +343,10 @@ aom_codec_err_t aom_codec_register_put_slice_cb(aom_codec_ctx_t *ctx,
  * #AOM_MAXIMUM_WORK_BUFFERS external frame
  * buffers.
  */
-aom_codec_err_t aom_codec_set_frame_buffer_functions(
-    aom_codec_ctx_t *ctx, aom_get_frame_buffer_cb_fn_t cb_get,
-    aom_release_frame_buffer_cb_fn_t cb_release, void *cb_priv);
+aom_codec_err_t aom_codec_set_frame_buffer_functions(aom_codec_ctx_t *                ctx,
+                                                     aom_get_frame_buffer_cb_fn_t     cb_get,
+                                                     aom_release_frame_buffer_cb_fn_t cb_release,
+                                                     void *                           cb_priv);
 
 /*!@} - end defgroup cap_external_frame_buffer */
 
@@ -361,4 +354,4 @@ aom_codec_err_t aom_codec_set_frame_buffer_functions(
 #ifdef __cplusplus
 }
 #endif
-#endif  // AOM_AOM_DECODER_H_
+#endif // AOM_AOM_DECODER_H_

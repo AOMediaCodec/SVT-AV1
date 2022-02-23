@@ -1538,9 +1538,9 @@ static INLINE void set_txfm_ctxs(ParseCtxt *parse_ctx, TxSize tx_size, int n4_w,
 }
 
 void read_block_tx_size(ParseCtxt *parse_ctx, PartitionInfo *part_info, BlockSize bsize) {
-    BlockModeInfo *mbmi    = part_info->mi;
-    SBInfo *       sb_info = part_info->sb_info;
-    int inter_block_tx = is_inter_block_dec(mbmi);
+    BlockModeInfo *mbmi           = part_info->mi;
+    SBInfo *       sb_info        = part_info->sb_info;
+    int            inter_block_tx = is_inter_block_dec(mbmi);
 
     if (parse_ctx->frame_header->tx_mode == TX_MODE_SELECT && bsize > BLOCK_4X4 && !mbmi->skip &&
         inter_block_tx && !parse_ctx->frame_header->lossless_array[mbmi->segment_id]) {
@@ -1600,7 +1600,7 @@ void parse_transform_type(ParseCtxt *parse_ctxt, PartitionInfo *xd, TxSize tx_si
     if (qindex == 0)
         return;
 
-    const int inter_block = is_inter_block_dec(mbmi);
+    const int       inter_block = is_inter_block_dec(mbmi);
     const TxSetType tx_set_type = get_ext_tx_set_type(
         tx_size, inter_block, parse_ctxt->frame_header->reduced_tx_set);
     if (av1_num_ext_tx_set[tx_set_type] > 1) {
@@ -1870,10 +1870,10 @@ uint16_t parse_coeffs(ParseCtxt *parse_ctxt, PartitionInfo *xd, uint32_t blk_row
     if (plane == AOM_PLANE_Y)
         parse_transform_type(parse_ctxt, xd, tx_size, trans_info);
 
-    uint8_t *lossless_array = &parse_ctxt->frame_header->lossless_array[0];
-    TransformInfo_t *trans_buf = (is_inter_block_dec(xd->mi) && plane)
-        ? parse_ctxt->inter_trans_chroma
-        : trans_info;
+    uint8_t *        lossless_array     = &parse_ctxt->frame_header->lossless_array[0];
+    TransformInfo_t *trans_buf          = (is_inter_block_dec(xd->mi) && plane)
+                 ? parse_ctxt->inter_trans_chroma
+                 : trans_info;
     trans_info->txk_type                = compute_tx_type(plane_type,
                                            xd,
                                            tx_size,

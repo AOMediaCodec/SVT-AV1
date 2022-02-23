@@ -38,9 +38,9 @@ extern "C" {
  * This structure holds allocated frame buffers used by the decoder.
  */
 typedef struct aom_codec_frame_buffer {
-  uint8_t *data; /**< Pointer to the data buffer */
-  size_t size;   /**< Size of data in bytes */
-  void *priv;    /**< Frame's private data */
+    uint8_t *data; /**< Pointer to the data buffer */
+    size_t   size; /**< Size of data in bytes */
+    void *   priv; /**< Frame's private data */
 } aom_codec_frame_buffer_t;
 
 /*!\brief get frame buffer callback prototype
@@ -74,11 +74,10 @@ typedef int (*aom_get_frame_buffer_cb_fn_t)(void *priv, size_t min_size,
  * \param[in] priv         Callback's private data
  * \param[in] fb           Pointer to aom_codec_frame_buffer_t
  */
-typedef int (*aom_release_frame_buffer_cb_fn_t)(void *priv,
-                                                aom_codec_frame_buffer_t *fb);
+typedef int (*aom_release_frame_buffer_cb_fn_t)(void *priv, aom_codec_frame_buffer_t *fb);
 
 #ifdef __cplusplus
-}  // extern "C"
+} // extern "C"
 #endif
 
-#endif  // AOM_AOM_FRAME_BUFFER_H_
+#endif // AOM_AOM_FRAME_BUFFER_H_
