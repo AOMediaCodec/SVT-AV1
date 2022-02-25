@@ -3875,6 +3875,12 @@ void copy_api_from_app(
     scs_ptr->static_config.channel_id = ((EbSvtAv1EncConfiguration*)config_struct)->channel_id;
     scs_ptr->static_config.active_channel_count = ((EbSvtAv1EncConfiguration*)config_struct)->active_channel_count;
     scs_ptr->static_config.logical_processors = ((EbSvtAv1EncConfiguration*)config_struct)->logical_processors;
+#if  FTR_LDB_MT
+    if (scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B && scs_ptr->static_config.logical_processors > 3) {
+        scs_ptr->static_config.logical_processors = 3;
+        SVT_WARN("-lp is capped at 3 for low delay\n");
+    }
+#endif
     scs_ptr->static_config.pin_threads = ((EbSvtAv1EncConfiguration*)config_struct)->pin_threads;
     scs_ptr->static_config.target_socket = ((EbSvtAv1EncConfiguration*)config_struct)->target_socket;
     if ((scs_ptr->static_config.pin_threads == 0) && (scs_ptr->static_config.target_socket != -1)){
