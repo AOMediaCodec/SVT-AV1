@@ -1321,7 +1321,7 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, MIN_QP_TOKEN, "MinQpAllowed", set_min_qp_allowed},
 
     {SINGLE_INPUT, ADAPTIVE_QP_ENABLE_NEW_TOKEN, "AdaptiveQuantization", set_adaptive_quantization},
-
+    //anaghdin to remove
     {SINGLE_INPUT, VBV_BUFSIZE_TOKEN, "VBVBufSize", set_vbv_buf_size},
 
     //   qindex offsets
@@ -2190,11 +2190,13 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
             fprintf(stderr, "Error: The rate control mode must be [0 - 2] \n");
             return 0;
         }
+#if !FTR_CBR
         if (rc_mode == 2) {
             // this is covered in the library
             //fprintf(stderr, "[SVT-Warning]: CBR Rate control is currently not supported, switching to VBR \n");
             rc_mode = 1;
         }
+#endif
     }
 
     int32_t passes     = -1;
@@ -2251,7 +2253,11 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
             fprintf(stderr, "[SVT-Error]: The intra period must be [-2, 2^31-2]  \n");
             return 0;
         }
+#if FTR_CBR
+        if ((ip < 0) && rc_mode == 1) {
+#else
         if ((ip < 0) && rc_mode >= 1) {
+#endif
             fprintf(stderr,
                     "[SVT-Error]: The intra period must be > 0 for RateControlMode %d \n",
                     rc_mode);
@@ -2312,6 +2318,11 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
             }
         }
     }
+#if FTR_CBR
+    else {
+        *multi_pass_mode = SINGLE_PASS;
+    }
+#endif
 
     // Set the settings for each pass based on multi_pass_mode
     switch (*multi_pass_mode) {

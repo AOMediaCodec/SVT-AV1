@@ -106,8 +106,11 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
         SVT_ERROR("Instance %u: The intra period must be [-2, 2^31-2]  \n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-
+#if FTR_CBR
+    if ((config->intra_period_length < 0) && config->rate_control_mode == 1) {
+#else
     if ((config->intra_period_length < 0) && config->rate_control_mode >= 1) {
+#endif
         SVT_ERROR("Instance %u: The intra period must be > 0 for RateControlMode %d \n",
                   channel_number + 1,
                   config->rate_control_mode);
@@ -483,8 +486,11 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
                   channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-
+#if FTR_CBR
+    if (config->rate_control_mode == 1 && config->intra_period_length == -1) {
+#else
     if (config->rate_control_mode != 0 && config->intra_period_length == -1) {
+#endif
         SVT_ERROR(
             "Instance %u: keyint = -1 is not supported for modes other than CRF rate control "
             "encoding modes.\n",

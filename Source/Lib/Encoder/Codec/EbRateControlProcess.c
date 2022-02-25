@@ -599,11 +599,17 @@ int svt_av1_rc_bits_per_mb(FrameType frame_type, int qindex, double correction_f
                            int onepass_cbr_mode) {
     const double q          = svt_av1_convert_qindex_to_q(qindex, bit_depth);
     int          enumerator = frame_type == KEY_FRAME ? 1400000 : 1000000;
+#if FTR_CBR
+    if (onepass_cbr_mode == 2 || onepass_cbr_mode == 1) {
+        enumerator = frame_type == KEY_FRAME ? 1500000 : 1300000;
+    }
+#else
     if (onepass_cbr_mode == 2) {
         enumerator = frame_type == KEY_FRAME ? 7000000 : 5250000;
     } else if (onepass_cbr_mode == 1) {
         enumerator = frame_type == KEY_FRAME ? 2000000 : 1500000;
     }
+#endif
     if (is_screen_content_type) {
         enumerator = frame_type == KEY_FRAME ? 1000000 : 750000;
     }
@@ -1234,10 +1240,13 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
     const uint32_t              width              = scs_ptr->seq_header.max_frame_width;
     const uint32_t              height             = scs_ptr->seq_header.max_frame_height;
     int                         i;
-
+#if FTR_CBR
+    if (scs_ptr->static_config.rate_control_mode == 2) {
+#else
     if ((!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
            scs_ptr->static_config.pass == ENC_LAST_PASS) &&
          scs_ptr->static_config.pass != ENC_FIRST_PASS && rc_cfg->mode == AOM_CBR)) {
+#endif
         rc->avg_frame_qindex[KEY_FRAME]   = rc_cfg->worst_allowed_q;
         rc->avg_frame_qindex[INTER_FRAME] = rc_cfg->worst_allowed_q;
         rc->frames_till_gf_update_due     = 0;
@@ -1274,6 +1283,10 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
     // Set absolute upper and lower quality limits
     rc->worst_quality = rc_cfg->worst_allowed_q;
     rc->best_quality  = rc_cfg->best_allowed_q;
+#if FTR_CBR
+    if (scs_ptr->static_config.rate_control_mode == 2) {
+        rc->onepass_cbr_mode = 2;//anaghdin to remove
+#else
     if (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
           scs_ptr->static_config.pass == ENC_LAST_PASS) &&
         scs_ptr->static_config.pass != ENC_FIRST_PASS && rc_cfg->mode == AOM_CBR) {
@@ -1282,13 +1295,18 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
         } else {
             rc->onepass_cbr_mode = 1;
         }
+#endif
     } else {
         rc->onepass_cbr_mode = 0;
     }
+#if FTR_CBR
+    if (scs_ptr->static_config.rate_control_mode) {
+#else
     if (scs_ptr->lap_enabled ||
         (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
            scs_ptr->static_config.pass == ENC_LAST_PASS) &&
          scs_ptr->static_config.pass != ENC_FIRST_PASS && rc_cfg->mode == AOM_CBR)) {
+#endif
         double frame_rate = (double)scs_ptr->static_config.frame_rate_numerator /
             (double)scs_ptr->static_config.frame_rate_denominator;
         // Each frame can have a different duration, as the frame rate in the source
@@ -3091,7 +3109,11 @@ void *rate_control_kernel(void *input_ptr) {
                     }
                     restore_param(pcs_ptr->parent_pcs_ptr, rate_control_param_ptr);
                     if (scs_ptr->static_config.rate_control_mode == 2 &&
+#if FTR_CBR
+                        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B)//anaghdin to check
+#else
                         scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P)
+#endif
                         svt_av1_get_one_pass_rt_params(pcs_ptr->parent_pcs_ptr);
                     else
                         svt_av1_get_second_pass_params(pcs_ptr->parent_pcs_ptr);

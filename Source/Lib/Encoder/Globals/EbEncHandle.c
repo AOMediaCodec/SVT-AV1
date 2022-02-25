@@ -2881,10 +2881,30 @@ void tf_controls(SequenceControlSet* scs_ptr, uint8_t tf_level) {
         assert(0);
         break;
     }
+#if FIX_TF_LDB
+    if (scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B ||
+        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P)
+    {
+        //for Low Delay, filter only the base B , as Intra is not delayed.
+        //if speed not a concern we can add layer1 B
+
+        // I_SLICE TF Params
+        scs_ptr->tf_params_per_type[0].enabled = 0;
+
+        // BASE TF Params
+        scs_ptr->tf_params_per_type[1].num_future_pics = 0;
+        scs_ptr->tf_params_per_type[1].max_num_future_pics = 0;
+
+        scs_ptr->tf_params_per_type[1].use_intra_for_noise_est = 0; //I frame not TF-ed
+
+        // L1 TF Params
+        scs_ptr->tf_params_per_type[2].enabled = 0;
+    }
+#else
     // Limit the future frames used in TF for lowdelay prediction structure
     if (scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P)
         scs_ptr->tf_params_per_type[1].max_num_future_pics = 0;
-
+#endif
     scs_ptr->tf_params_per_type[0].use_fixed_point = 1;
     scs_ptr->tf_params_per_type[1].use_fixed_point = 1;
     scs_ptr->tf_params_per_type[2].use_fixed_point = 1;
@@ -3755,12 +3775,19 @@ void copy_api_from_app(
     // Rate Control
     scs_ptr->static_config.scene_change_detection = ((EbSvtAv1EncConfiguration*)config_struct)->scene_change_detection;
     scs_ptr->static_config.rate_control_mode = ((EbSvtAv1EncConfiguration*)config_struct)->rate_control_mode;
-
+#if !FTR_CBR
     if (scs_ptr->static_config.rate_control_mode == 2) {
         SVT_WARN("CBR Rate control is currently not supported, switching to VBR\n");
         scs_ptr->static_config.rate_control_mode = 1;
     }
-
+#endif
+#if FTR_CBR
+    if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass == ENC_SINGLE_PASS &&
+        scs_ptr->static_config.pred_structure != EB_PRED_LOW_DELAY_B) {
+        scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
+        SVT_WARN("Forced 1pass CBR to be always low delay mode.\n");
+    }
+#else
     if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass != ENC_FIRST_PASS && !(scs_ptr->static_config.pass == ENC_MIDDLE_PASS || scs_ptr->static_config.pass == ENC_LAST_PASS) &&
         scs_ptr->static_config.pred_structure != 0) {
         scs_ptr->static_config.pred_structure = 0;
@@ -3770,6 +3797,7 @@ void copy_api_from_app(
             SVT_WARN("TPL is disabled in low delay applications.\n");
         }
     }
+#endif
     // for 1pass CBR not real time mode
     //if (scs_ptr->static_config.rate_control_mode == 2 && !use_output_stat(scs_ptr) && !use_input_stat(scs_ptr))
     //    scs_ptr->static_config.hierarchical_levels = 0;

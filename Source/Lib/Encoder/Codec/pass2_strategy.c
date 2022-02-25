@@ -986,7 +986,11 @@ static int av1_calc_iframe_target_size_one_pass_cbr(PictureParentControlSet *pcs
     int                 target;
     if (pcs_ptr->picture_number == 0) {
         target = ((rc->starting_buffer_level / 2) > INT_MAX) ? INT_MAX
+#if FTR_CBR
+                                                            : (int)(rc->starting_buffer_level * 3 / 4);
+#else
                                                              : (int)(rc->starting_buffer_level / 2);
+#endif
     } else {
         int    kf_boost  = 32;
         double framerate = scs_ptr->double_frame_rate; //cpi->framerate;
