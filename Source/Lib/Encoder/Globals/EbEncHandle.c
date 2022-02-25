@@ -3782,6 +3782,24 @@ void copy_api_from_app(
     }
 #endif
 #if FTR_CBR
+    if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P) {
+        scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
+    }
+    if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B) {
+        if (scs_ptr->static_config.hierarchical_levels != 3) {
+            scs_ptr->static_config.hierarchical_levels = 3;
+            SVT_WARN("Forced Low delay mode to use HierarchicalLevels = 3\n");
+        }
+        if (scs_ptr->static_config.enc_mode < ENC_M8) {
+            scs_ptr->static_config.enc_mode = ENC_M8;
+            SVT_WARN("Low delay mode only support encodermode [8-%d]. Forcing encoder mode to 8\n", ENC_M13);
+        }
+        if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass == ENC_SINGLE_PASS &&
+            scs_ptr->static_config.pred_structure != EB_PRED_LOW_DELAY_B) {
+            scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
+            SVT_WARN("Forced 1pass CBR to be always low delay mode.\n");
+        }
+    }
     if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass == ENC_SINGLE_PASS &&
         scs_ptr->static_config.pred_structure != EB_PRED_LOW_DELAY_B) {
         scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
@@ -3797,10 +3815,10 @@ void copy_api_from_app(
             SVT_WARN("TPL is disabled in low delay applications.\n");
         }
     }
-#endif
     // for 1pass CBR not real time mode
     //if (scs_ptr->static_config.rate_control_mode == 2 && !use_output_stat(scs_ptr) && !use_input_stat(scs_ptr))
     //    scs_ptr->static_config.hierarchical_levels = 0;
+#endif
 
     scs_ptr->max_temporal_layers = scs_ptr->static_config.hierarchical_levels;
     scs_ptr->static_config.look_ahead_distance = ((EbSvtAv1EncConfiguration*)config_struct)->look_ahead_distance;
@@ -4276,7 +4294,7 @@ static EbErrorType downsample_copy_frame_buffer(
     else if (config->compressed_ten_bit_format == 1)
     {
         {
-            SVT_WARN("Compressed_ten_bit_format not supported in downsample_copy_frame_buffer");//anaghdin
+            SVT_WARN("Compressed_ten_bit_format not supported in downsample_copy_frame_buffer");
             uint32_t  luma_buffer_offset = (input_picture_ptr->stride_y*scs_ptr->top_padding + scs_ptr->left_padding);
             uint32_t  chroma_buffer_offset = (input_picture_ptr->stride_cr*(scs_ptr->top_padding >> 1) + (scs_ptr->left_padding >> 1));
             uint16_t  luma_stride = input_picture_ptr->stride_y;

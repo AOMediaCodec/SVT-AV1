@@ -7333,7 +7333,7 @@ void *mode_decision_kernel(void *input_ptr) {
             svt_release_mutex(pcs_ptr->intra_mutex);
 
             if (last_sb_flag) {
-                EbBool do_recode = EB_FALSE; //anaghdin: clean up
+                EbBool do_recode = EB_FALSE;
                 if ((scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
                      scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_enabled ||
                      scs_ptr->static_config.max_bit_rate != 0) &&

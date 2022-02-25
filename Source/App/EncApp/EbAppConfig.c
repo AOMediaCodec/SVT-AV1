@@ -2320,6 +2320,11 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
     }
 #if FTR_CBR
     else {
+        if (passes > 1) {
+            fprintf(stderr,
+                "[SVT-Warning]: Multipass CBR is not supported. Switching to 1-pass encoding\n\n");
+            passes = 1;
+        }
         *multi_pass_mode = SINGLE_PASS;
     }
 #endif

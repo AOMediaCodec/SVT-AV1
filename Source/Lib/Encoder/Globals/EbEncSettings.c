@@ -829,11 +829,19 @@ void svt_av1_print_lib_params(SequenceControlSet *scs) {
                 config->scene_change_detection);
             break;
         case 2:
+#if FTR_CBR
+            SVT_INFO(
+                "SVT [config]: BRC Mode / TargetBitrate (kbps)/ SceneChange\t\t\t: CBR "
+                "/ %d / %d\n",
+                (int)config->target_bit_rate / 1000,
+                config->scene_change_detection);
+#else
             SVT_INFO(
                 "SVT [config]: BRC Mode / TargetBitrate (kbps)/ SceneChange\t\t\t: Constraint VBR "
                 "/ %d / %d\n",
                 (int)config->target_bit_rate / 1000,
                 config->scene_change_detection);
+#endif
             break;
         }
     }

@@ -711,7 +711,6 @@ int av1_frame_type_qdelta_org(RATE_CONTROL *rc, GF_GROUP *gf_group, unsigned cha
     double                  rate_factor;
 
     rate_factor = rate_factor_deltas[rf_lvl];
-    //anaghdin: to remove?
     if (rf_lvl == GF_ARF_LOW) {
         rate_factor -= (gf_group->layer_depth[gf_group_index] - 2) * 0.1;
         rate_factor = AOMMAX(rate_factor, 1.0);
@@ -3110,7 +3109,7 @@ void *rate_control_kernel(void *input_ptr) {
                     restore_param(pcs_ptr->parent_pcs_ptr, rate_control_param_ptr);
                     if (scs_ptr->static_config.rate_control_mode == 2 &&
 #if FTR_CBR
-                        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B)//anaghdin to check
+                        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B)
 #else
                         scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P)
 #endif
