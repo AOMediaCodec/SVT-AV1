@@ -1283,7 +1283,7 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
     rc->worst_quality = rc_cfg->worst_allowed_q;
     rc->best_quality  = rc_cfg->best_allowed_q;
 #if FTR_CBR
-    if (scs_ptr->static_config.rate_control_mode == 2) { 
+    if (scs_ptr->static_config.rate_control_mode == 2) {
         rc->onepass_cbr_mode = 1;
 #else
     if (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
