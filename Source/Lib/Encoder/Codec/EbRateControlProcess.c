@@ -3388,7 +3388,9 @@ void *rate_control_kernel(void *input_ptr) {
             scs_ptr = (SequenceControlSet *)
                           parentpicture_control_set_ptr->scs_wrapper_ptr->object_ptr;
 
-            {
+            // Prevent double counting fames with overlay to so we don't
+            // increase processed_frame_number twice per frame
+            if (!parentpicture_control_set_ptr->is_overlay) {
                 uint32_t interval_index_temp = 0;
                 for (RateControlIntervalParamContext **rc_param_queue =
                          context_ptr->rate_control_param_queue;
