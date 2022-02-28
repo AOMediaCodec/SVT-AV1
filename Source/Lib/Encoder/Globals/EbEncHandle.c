@@ -3506,7 +3506,11 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     scs_ptr->enable_dec_order = 1;
 #else
     if (scs_ptr->static_config.logical_processors == 1 && // LP1
+#if FTR_CBR
+        ((scs_ptr->static_config.pass == ENC_MIDDLE_PASS || scs_ptr->static_config.pass == ENC_LAST_PASS) || scs_ptr->static_config.rate_control_mode))
+#else
         ((scs_ptr->static_config.pass == ENC_MIDDLE_PASS || scs_ptr->static_config.pass == ENC_LAST_PASS) || scs_ptr->lap_enabled))
+#endif
         scs_ptr->enable_dec_order = 1;
     else
         scs_ptr->enable_dec_order = 0;
@@ -3786,6 +3790,10 @@ void copy_api_from_app(
         scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
     }
     if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B) {
+        if (scs_ptr->static_config.rate_control_mode == 1) {
+            scs_ptr->static_config.rate_control_mode = 2;
+            SVT_WARN("Low delay mode does not support VBR. Forcing RC mode to CBR\n");
+        }
         if (scs_ptr->static_config.hierarchical_levels != 3) {
             scs_ptr->static_config.hierarchical_levels = 3;
             SVT_WARN("Forced Low delay mode to use HierarchicalLevels = 3\n");
@@ -3793,11 +3801,6 @@ void copy_api_from_app(
         if (scs_ptr->static_config.enc_mode < ENC_M8) {
             scs_ptr->static_config.enc_mode = ENC_M8;
             SVT_WARN("Low delay mode only support encodermode [8-%d]. Forcing encoder mode to 8\n", ENC_M13);
-        }
-        if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass == ENC_SINGLE_PASS &&
-            scs_ptr->static_config.pred_structure != EB_PRED_LOW_DELAY_B) {
-            scs_ptr->static_config.pred_structure = EB_PRED_LOW_DELAY_B;
-            SVT_WARN("Forced 1pass CBR to be always low delay mode.\n");
         }
     }
     if (scs_ptr->static_config.rate_control_mode == 2 && scs_ptr->static_config.pass == ENC_SINGLE_PASS &&
