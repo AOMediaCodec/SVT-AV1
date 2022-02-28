@@ -978,16 +978,23 @@ static int av1_calc_pframe_target_size_one_pass_cbr(PictureParentControlSet *pcs
     }
     return AOMMAX(min_frame_target, target);
 }
-
+#if FTR_CBR
+const int buffer_level_w[5] = { 1,2,3 };
+#endif
 static int av1_calc_iframe_target_size_one_pass_cbr(PictureParentControlSet *pcs_ptr) {
     SequenceControlSet *scs_ptr            = pcs_ptr->scs_ptr;
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
     RATE_CONTROL *const rc                 = &encode_context_ptr->rc;
     int                 target;
+#if FTR_CBR
+    const int ip = pcs_ptr->scs_ptr->static_config.intra_period_length;
+    const int w_idx = ip < 0 ? 2 : MIN(ip / 64, 2);
+    const int w = buffer_level_w[w_idx];
+#endif
     if (pcs_ptr->picture_number == 0) {
         target = ((rc->starting_buffer_level / 2) > INT_MAX) ? INT_MAX
 #if FTR_CBR
-                                                            : (int)(rc->starting_buffer_level * 3 / 4);
+                                                            : (int)(rc->starting_buffer_level * w / 4);
 #else
                                                              : (int)(rc->starting_buffer_level / 2);
 #endif
