@@ -353,10 +353,8 @@ typedef struct EbSvtAv1EncConfiguration {
      *
      * Default is 0. */
     uint32_t max_bit_rate;
-#if !FTR_CBR
     /* VBV Buffer size */
     uint32_t vbv_bufsize;
-#endif
     /* Maxium QP value allowed for rate control use, only applicable when rate
      * control mode is set to 1. It has to be greater or equal to minQpAllowed.
      *
