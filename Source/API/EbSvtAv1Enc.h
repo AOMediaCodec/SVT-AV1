@@ -309,13 +309,21 @@ typedef struct EbSvtAv1EncConfiguration {
     int enable_mfmv;
 
     // Rate Control
-
+#if FTR_CBR
+    /* Rate control mode.
+     *
+     * 0 = Constant QP.
+     * 1 = Variable Bit Rate, achieve the target bitrate at entire stream.
+     * 2 = Constrained Bit Rate, achieve the target bitrate
+     * Default is 0. */
+#else
     /* Rate control mode.
      *
      * 0 = Constant QP.
      * 1 = Variable Bit Rate, achieve the target bitrate at entire stream.
      * 2 = Constrained Variable Bit Rate, achieve the target bitrate at each gop
      * Default is 0. */
+#endif
     uint32_t rate_control_mode;
     /* Flag to enable the scene change detection algorithm.
      *

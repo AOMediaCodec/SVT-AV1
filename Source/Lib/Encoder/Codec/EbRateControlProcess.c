@@ -600,7 +600,7 @@ int svt_av1_rc_bits_per_mb(FrameType frame_type, int qindex, double correction_f
     const double q          = svt_av1_convert_qindex_to_q(qindex, bit_depth);
     int          enumerator = frame_type == KEY_FRAME ? 1400000 : 1000000;
 #if FTR_CBR
-    if (onepass_cbr_mode == 2 || onepass_cbr_mode == 1) {
+    if (onepass_cbr_mode) {
         enumerator = frame_type == KEY_FRAME ? 1500000 : 1300000;
     }
 #else
@@ -1283,8 +1283,8 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
     rc->worst_quality = rc_cfg->worst_allowed_q;
     rc->best_quality  = rc_cfg->best_allowed_q;
 #if FTR_CBR
-    if (scs_ptr->static_config.rate_control_mode == 2) {
-        rc->onepass_cbr_mode = 2;//anaghdin to remove
+    if (scs_ptr->static_config.rate_control_mode == 2) { 
+        rc->onepass_cbr_mode = 1;
 #else
     if (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
           scs_ptr->static_config.pass == ENC_LAST_PASS) &&
