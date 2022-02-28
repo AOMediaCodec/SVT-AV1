@@ -96,7 +96,9 @@
 #define TARGET_BIT_RATE_TOKEN "--tbr"
 #define MAX_BIT_RATE_TOKEN "--mbr"
 #define MAX_QP_TOKEN "--max-qp"
+#if !FTR_CBR
 #define VBV_BUFSIZE_TOKEN "--vbv-bufsize"
+#endif
 #define MIN_QP_TOKEN "--min-qp"
 #define VBR_BIAS_PCT_TOKEN "--bias-pct"
 #define VBR_MIN_SECTION_PCT_TOKEN "--minsection-pct"
@@ -562,9 +564,11 @@ static void set_target_bit_rate(const char *value, EbConfig *cfg) {
 static void set_max_bit_rate(const char *value, EbConfig *cfg) {
     cfg->config.max_bit_rate = 1000 * strtoul(value, NULL, 0);
 };
+#if !FTR_CBR
 static void set_vbv_buf_size(const char *value, EbConfig *cfg) {
     cfg->config.vbv_bufsize = 1000 * strtoul(value, NULL, 0);
 };
+#endif
 static void set_max_qp_allowed(const char *value, EbConfig *cfg) {
     cfg->config.max_qp_allowed = strtoul(value, NULL, 0);
 };
@@ -981,12 +985,12 @@ ConfigEntry config_entry_rc[] = {
      "Set adaptive QP level, default is 2 [0: off, 1: variance base using AV1 segments, 2: deltaq "
      "pred efficiency]",
      set_adaptive_quantization},
-
+#if !FTR_CBR
     {SINGLE_INPUT,
      VBV_BUFSIZE_TOKEN,
      "VBV buffer size, default is the value of `--tbr` [1-4294967]",
      set_vbv_buf_size},
-
+#endif
     {SINGLE_INPUT,
      USE_FIXED_QINDEX_OFFSETS_TOKEN,
      "Overwrite the encoder default hierarchical layer based QP assignment and use fixed Q index "
@@ -1321,8 +1325,9 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, MIN_QP_TOKEN, "MinQpAllowed", set_min_qp_allowed},
 
     {SINGLE_INPUT, ADAPTIVE_QP_ENABLE_NEW_TOKEN, "AdaptiveQuantization", set_adaptive_quantization},
-    //anaghdin to remove
+#if !FTR_CBR
     {SINGLE_INPUT, VBV_BUFSIZE_TOKEN, "VBVBufSize", set_vbv_buf_size},
+#endif
 
     //   qindex offsets
     {SINGLE_INPUT,

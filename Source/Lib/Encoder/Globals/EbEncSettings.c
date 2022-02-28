@@ -1279,7 +1279,9 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
         {"lookahead", &config_struct->look_ahead_distance},
         {"tbr", &config_struct->target_bit_rate},
         {"mbr", &config_struct->max_bit_rate},
+#if !FTR_CBR
         {"vbv-bufsize", &config_struct->vbv_bufsize},
+#endif
         {"scd", &config_struct->scene_change_detection},
         {"max-qp", &config_struct->max_qp_allowed},
         {"min-qp", &config_struct->min_qp_allowed},

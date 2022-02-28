@@ -3835,8 +3835,9 @@ void copy_api_from_app(
         scs_ptr->static_config.max_bit_rate = 0;
         SVT_WARN("Maximum bit rate only supported with tpl on. max bit rate 0 is used instead.\n");
     }
+#if !FTR_CBR
     scs_ptr->static_config.vbv_bufsize = ((EbSvtAv1EncConfiguration*)config_struct)->vbv_bufsize;
-
+#endif
     scs_ptr->static_config.max_qp_allowed = (scs_ptr->static_config.rate_control_mode) ?
         ((EbSvtAv1EncConfiguration*)config_struct)->max_qp_allowed :
         63;
