@@ -3310,9 +3310,15 @@ void set_multi_pass_params(SequenceControlSet *scs_ptr)
         scs_ptr->rc_stat_gen_pass_mode = 0;
 
     if (scs_ptr->static_config.recode_loop > 0 &&
+#if FRFCTR_RC_P9
+        ((scs_ptr->static_config.rate_control_mode == 0 && scs_ptr->static_config.max_bit_rate == 0) ||
+        (scs_ptr->static_config.rate_control_mode == 2))) {
+        // Only allow re-encoding for VBR or capped CRF, otherwise force recode_loop to DISALLOW_RECODE or 0
+#else
         (!scs_ptr->static_config.rate_control_mode && scs_ptr->static_config.max_bit_rate == 0) &&
         (!scs_ptr->static_config.rate_control_mode || (!scs_ptr->lap_enabled && !(scs_ptr->static_config.pass == ENC_MIDDLE_PASS || scs_ptr->static_config.pass == ENC_LAST_PASS)))) {
         // Only allow re-encoding for 2pass VBR/CBR or 1 PASS LAP, otherwise force recode_loop to DISALLOW_RECODE or 0
+#endif
         scs_ptr->static_config.recode_loop = DISALLOW_RECODE;
     }
     else if (scs_ptr->static_config.recode_loop == ALLOW_RECODE_DEFAULT) {
@@ -3957,7 +3963,11 @@ void copy_api_from_app(
     scs_ptr->static_config.starting_buffer_level_ms = ((EbSvtAv1EncConfiguration*)config_struct)->starting_buffer_level_ms;
     scs_ptr->static_config.optimal_buffer_level_ms  = ((EbSvtAv1EncConfiguration*)config_struct)->optimal_buffer_level_ms;
     scs_ptr->static_config.recode_loop         = ((EbSvtAv1EncConfiguration*)config_struct)->recode_loop;
+#if FRFCTR_RC_P9
+    if (scs_ptr->static_config.rate_control_mode == 1 && scs_ptr->static_config.pass == ENC_SINGLE_PASS)
+#else
     if (scs_ptr->static_config.rate_control_mode == 1 && scs_ptr->static_config.pass != ENC_MIDDLE_PASS && scs_ptr->static_config.pass != ENC_FIRST_PASS && !(scs_ptr->static_config.pass == ENC_MIDDLE_PASS || scs_ptr->static_config.pass == ENC_LAST_PASS))
+#endif
         scs_ptr->lap_enabled = 1;
     else
         scs_ptr->lap_enabled = 0;

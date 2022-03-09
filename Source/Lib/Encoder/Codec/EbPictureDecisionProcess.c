@@ -2568,8 +2568,10 @@ static void  av1_generate_rps_info(
         frm_hdr->frame_type = pcs_ptr->idr_flag ? KEY_FRAME : INTRA_ONLY_FRAME;
     else
         frm_hdr->frame_type = INTER_FRAME;
+#if !FRFCTR_RC_P8
     Av1Common *  cm = pcs_ptr->av1_cm;
     cm->current_frame.frame_type = frm_hdr->frame_type;
+#endif
 
     pcs_ptr->intra_only = pcs_ptr->slice_type == I_SLICE ? 1 : 0;
     // When a hierarchical change happens, the references should be chosen properly. In the following case, we switch from 6L to 5L or 4L.

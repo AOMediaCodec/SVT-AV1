@@ -1260,12 +1260,14 @@ void *resource_coordination_kernel(void *input_ptr) {
                     set_rc_param(scs_ptr);
                 if (scs_ptr->static_config.pass == ENC_MIDDLE_PASS)
                     find_init_qp_middle_pass(scs_ptr, pcs_ptr);
+#if !FRFCTR_RC_P9
                 if (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
                       scs_ptr->static_config.pass == ENC_LAST_PASS) &&
                     scs_ptr->static_config.pass != ENC_FIRST_PASS &&
                     scs_ptr->static_config.rate_control_mode == 2) {
                     setup_two_pass(scs_ptr);
                 }
+#endif
             }
             if (scs_ptr->passes == 3 && !end_of_sequence_flag &&
                 scs_ptr->static_config.pass == ENC_LAST_PASS &&
