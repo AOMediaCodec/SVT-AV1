@@ -553,7 +553,6 @@ typedef struct TplControls {
     //modified inside the get_ function, as it is linked to memory allocation at init time
     uint8_t vq_adjust_lambda_sb;
 } TplControls;
-#if !FRFCTR_RC_P7
 /*!
  * \brief Refresh frame flags for different type of frames.
  *
@@ -567,7 +566,6 @@ typedef struct {
     bool bwd_ref_frame; /*!< Refresh flag for bwd-ref frame */
     bool alt_ref_frame; /*!< Refresh flag for alt-ref frame */
 } RefreshFrameFlagsInfo;
-#endif
 typedef struct {
     uint8_t  tpl_temporal_layer_index;
     EB_SLICE tpl_slice_type;
@@ -783,9 +781,7 @@ typedef struct PictureParentControlSet {
     uint16_t              me_processed_b64_count;
     EbHandle              me_processed_b64_mutex;
     FirstPassData         firstpass_data;
-#if !FRFCTR_RC_P7
     RefreshFrameFlagsInfo refresh_frame;
-#endif
     double                ts_duration;
     double                r0;
     uint8_t tpl_src_data_ready; //track pictures that are processd in two different TPL groups
