@@ -775,8 +775,7 @@ static void adjust_active_best_and_worst_quality(PictureControlSet *pcs_ptr, RAT
     const int           bit_depth = scs_ptr->static_config.encoder_bit_depth;
 
     // Static forced key frames Q restrictions dealt with elsewhere.
-    if (!frame_is_intra_only(pcs_ptr->parent_pcs_ptr)
-        /*|| (cpi->twopass.last_kfgroup_zeromotion_pct < STATIC_MOTION_THRESH)*/) {
+    if (!frame_is_intra_only(pcs_ptr->parent_pcs_ptr)) {
         const int qdelta = svt_av1_frame_type_qdelta(
             rc, rf_level, active_worst_quality, bit_depth, pcs_ptr->parent_pcs_ptr->sc_class1);
         active_worst_quality = AOMMAX(active_worst_quality + qdelta, active_best_quality);
@@ -1319,7 +1318,7 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
 #if FTR_CBR
     if (scs_ptr->static_config.rate_control_mode) {
 #else
-    if (scs_ptr->lap_enabled ||
+    if (scs_ptr->lap_rc ||
         (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
            scs_ptr->static_config.pass == ENC_LAST_PASS) &&
          scs_ptr->static_config.pass != ENC_FIRST_PASS && rc_cfg->mode == AOM_CBR)) {
@@ -1562,7 +1561,7 @@ static double get_rate_correction_factor(PictureParentControlSet *ppcs_ptr) {
     else if (scs_ptr->static_config.rate_control_mode == 1) {
 #else
     } else if (scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
-               scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_enabled) {
+               scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_rc) {
 #endif
         const rate_factor_level rf_lvl = ppcs_ptr->temporal_layer_index + 1;
         rcf                            = rc->rate_correction_factors[rf_lvl];
@@ -1601,7 +1600,7 @@ static void set_rate_correction_factor(PictureParentControlSet *ppcs_ptr, double
     else if (scs_ptr->static_config.rate_control_mode == 1) {
 #else
     } else if (scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
-               scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_enabled) {
+               scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_rc) {
 #endif
         const rate_factor_level rf_lvl      = ppcs_ptr->temporal_layer_index + 1;
         rc->rate_correction_factors[rf_lvl] = factor;
@@ -1641,9 +1640,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
 static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentControlSet *ppcs_ptr,
                                        double correction_factor, int best_qindex,
                                        int worst_qindex) {
-    const int use_cyclic_refresh = 0 /*cpi->oxcf.q_cfg.aq_mode == CYCLIC_REFRESH_AQ &&
-                                 cpi->cyclic_refresh->apply_cyclic_refresh*/
-        ;
+    const int use_cyclic_refresh = 0;
 
     // Find 'qindex' based on 'desired_bits_per_mb'.
     assert(best_qindex <= worst_qindex);
@@ -2863,7 +2860,7 @@ static void restore_two_pass_param(PictureParentControlSet         *ppcs_ptr,
                                    RateControlIntervalParamContext *rate_control_param_ptr) {
     SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
     TWO_PASS *const     twopass = &scs_ptr->twopass;
-    if (ppcs_ptr->scs_ptr->enable_dec_order == 1 && ppcs_ptr->scs_ptr->lap_enabled &&
+    if (ppcs_ptr->scs_ptr->enable_dec_order == 1 && ppcs_ptr->scs_ptr->lap_rc &&
         ppcs_ptr->temporal_layer_index == 0) {
         for (uint64_t num_frames = ppcs_ptr->stats_in_offset;
              num_frames < ppcs_ptr->stats_in_end_offset;
@@ -2914,7 +2911,7 @@ static void restore_param(PictureParentControlSet         *ppcs_ptr,
     ppcs_ptr->frames_since_key = (int)(ppcs_ptr->decode_order - ppcs_ptr->last_idr_picture);
 
     int key_max = scs_ptr->static_config.intra_period_length + 1;
-    if (scs_ptr->lap_enabled) {
+    if (scs_ptr->lap_rc) {
         if (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
             ppcs_ptr->end_of_sequence_region)
             key_max = (int)MIN(
@@ -2939,7 +2936,7 @@ static void restore_param(PictureParentControlSet         *ppcs_ptr,
         // to kf_cfg->key_freq_max and the kf_group_bits is calculated based on that. However, when we get closer to the end, the
         // end of sequence will be in the look ahead and frames_to_key is updated. In this case, kf_group_bits is calculated based
         // on the new GOP size
-        if (scs_ptr->lap_enabled && ((scs_ptr->static_config.intra_period_length + 1) != ppcs_ptr->frames_since_key) &&
+        if (scs_ptr->lap_rc && ((scs_ptr->static_config.intra_period_length + 1) != ppcs_ptr->frames_since_key) &&
             (scs_ptr->lad_mg + 1) * (1 << scs_ptr->static_config.hierarchical_levels) <
             scs_ptr->static_config.intra_period_length &&
             (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
@@ -2969,7 +2966,7 @@ static void restore_param(PictureParentControlSet         *ppcs_ptr,
     ppcs_ptr->frames_since_key      = (int)(ppcs_ptr->decode_order - ppcs_ptr->last_idr_picture);
 
     int key_max                     = kf_cfg->key_freq_max;
-    if (scs_ptr->lap_enabled) {
+    if (scs_ptr->lap_rc) {
         if (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
             ppcs_ptr->end_of_sequence_region)
             key_max = (int)MIN(
@@ -2999,7 +2996,7 @@ static void restore_param(PictureParentControlSet         *ppcs_ptr,
         // to kf_cfg->key_freq_max and the kf_group_bits is calculated based on that. However, when we get closer to the end, the
         // end of sequence will be in the look ahead and frames_to_key is updated. In this case, kf_group_bits is calculated based
         // on the new GOP size
-        if (scs_ptr->lap_enabled && (kf_cfg->key_freq_max != ppcs_ptr->frames_since_key) &&
+        if (scs_ptr->lap_rc && (kf_cfg->key_freq_max != ppcs_ptr->frames_since_key) &&
             (scs_ptr->lad_mg + 1) * (1 << scs_ptr->static_config.hierarchical_levels) <
                 scs_ptr->static_config.intra_period_length &&
             (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
@@ -3304,15 +3301,10 @@ void *rate_control_kernel(void *input_ptr) {
                         av1_rc_init(scs_ptr);
                     }
                     restore_param(pcs_ptr->parent_pcs_ptr, rate_control_param_ptr);
-                    if (scs_ptr->static_config.rate_control_mode == 2 &&
-#if FTR_CBR
-                        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_B)
-#else
-                        scs_ptr->static_config.pred_structure == EB_PRED_LOW_DELAY_P)
-#endif
-                        svt_av1_get_one_pass_rt_params(pcs_ptr->parent_pcs_ptr);
+                    if (scs_ptr->static_config.rate_control_mode == 2)
+                        one_pass_rt_rate_alloc(pcs_ptr->parent_pcs_ptr);
                     else
-                        svt_av1_get_second_pass_params(pcs_ptr->parent_pcs_ptr);
+                        process_rc_stat(pcs_ptr->parent_pcs_ptr);
                     av1_configure_buffer_updates(
                         pcs_ptr, &(pcs_ptr->parent_pcs_ptr->refresh_frame), 0);
                     av1_set_target_rate(pcs_ptr);

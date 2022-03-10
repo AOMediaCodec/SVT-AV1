@@ -596,7 +596,7 @@ void *packetization_kernel(void *input_ptr) {
             if (scs_ptr->static_config.rate_control_mode)
 #else
             if (scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
-                scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_enabled ||
+                scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_rc ||
                 (!(scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
                    scs_ptr->static_config.pass == ENC_LAST_PASS) &&
                  scs_ptr->static_config.pass != ENC_FIRST_PASS &&

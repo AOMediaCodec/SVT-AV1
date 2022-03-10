@@ -856,7 +856,7 @@ typedef struct AV1_COMP {
     /*!
    * Flag indicating whether look ahead processing (LAP) is enabled.
    */
-    int lap_enabled;
+    int lap_rc;
     /*!
    * Indicates whether current processing stage is encode stage or LAP stage.
    */

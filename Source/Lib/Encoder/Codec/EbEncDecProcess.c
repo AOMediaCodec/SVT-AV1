@@ -7665,7 +7665,7 @@ void *mode_decision_kernel(void *input_ptr) {
                     scs_ptr->static_config.max_bit_rate != 0) &&
 #else
                 if ((scs_ptr->static_config.pass == ENC_MIDDLE_PASS ||
-                     scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_enabled ||
+                     scs_ptr->static_config.pass == ENC_LAST_PASS || scs_ptr->lap_rc ||
                      scs_ptr->static_config.max_bit_rate != 0) &&
 #endif
                     scs_ptr->encode_context_ptr->recode_loop != DISALLOW_RECODE) {

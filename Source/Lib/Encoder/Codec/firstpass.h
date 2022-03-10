@@ -203,7 +203,6 @@ typedef struct {
     int64_t kf_group_error_left;
 
     int     kf_zeromotion_pct;
-    int     last_kfgroup_zeromotion_pct;
     int     extend_minq;
     int     extend_maxq;
     int     extend_minq_fast;
