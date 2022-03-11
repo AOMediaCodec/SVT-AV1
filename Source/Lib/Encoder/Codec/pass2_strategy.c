@@ -881,19 +881,19 @@ static int construct_multi_layer_gf_structure(
 }
 #if FRFCTR_RC_P8
 static void av1_gop_setup_structure(
-    PictureParentControlSet       *pcs_ptr) {
+    PictureParentControlSet       *ppcs) {
 
-    SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
-    EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
-    RATE_CONTROL *const rc = &encode_context_ptr->rc;
-    GF_GROUP *const     gf_group = &encode_context_ptr->gf_group;
+    SequenceControlSet *scs = ppcs->scs_ptr;
+    EncodeContext      *ec_ctx = scs->encode_context_ptr;
+    RATE_CONTROL *const rc = &ec_ctx->rc;
+    GF_GROUP *const     gf_group = &ec_ctx->gf_group;
 
-    const int               key_frame = (pcs_ptr->frm_hdr.frame_type == KEY_FRAME);
+    const int               key_frame = (ppcs->frm_hdr.frame_type == KEY_FRAME);
     const FRAME_UPDATE_TYPE first_frame_update_type = key_frame ? KF_UPDATE : GF_UPDATE;
     gf_group->size = construct_multi_layer_gf_structure(
         gf_group,
         rc->baseline_gf_interval,
-        (1 << scs_ptr->static_config.hierarchical_levels),
+        (1 << scs->static_config.hierarchical_levels),
         first_frame_update_type);
 
 }

@@ -2901,55 +2901,55 @@ static void restore_gf_group_param(PictureParentControlSet *ppcs_ptr) {
 * Populate the required parameters in rc, twopass and gf_group structures from other structures
 *************************************************************************************************/
 #if FRFCTR_RC_P3
-static void restore_param(PictureParentControlSet         *ppcs_ptr,
+static void restore_param(PictureParentControlSet         *ppcs,
     RateControlIntervalParamContext *rate_control_param_ptr) {
-    SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
-    EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
-    if (scs_ptr->static_config.rate_control_mode != 2)
-        restore_two_pass_param(ppcs_ptr, rate_control_param_ptr);
+    SequenceControlSet *scs = ppcs->scs_ptr;
+    EncodeContext      *ec_ctx = scs->encode_context_ptr;
+    if (scs->static_config.rate_control_mode != 2)
+        restore_two_pass_param(ppcs, rate_control_param_ptr);
 
-    ppcs_ptr->frames_since_key = (int)(ppcs_ptr->decode_order - ppcs_ptr->last_idr_picture);
+    ppcs->frames_since_key = (int)(ppcs->decode_order - ppcs->last_idr_picture);
 
-    int key_max = scs_ptr->static_config.intra_period_length + 1;
-    if (scs_ptr->lap_rc) {
-        if (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
-            ppcs_ptr->end_of_sequence_region)
+    int key_max = scs->static_config.intra_period_length + 1;
+    if (scs->lap_rc) {
+        if (scs->static_config.hierarchical_levels != ppcs->hierarchical_levels ||
+            ppcs->end_of_sequence_region)
             key_max = (int)MIN(
-                (scs_ptr->static_config.intra_period_length + 1),
-                (int)((int64_t)((scs_ptr->twopass.stats_buf_ctx->stats_in_end - 1)->frame) -
-                    ppcs_ptr->last_idr_picture + 1));
+                (scs->static_config.intra_period_length + 1),
+                (int)((int64_t)((scs->twopass.stats_buf_ctx->stats_in_end - 1)->frame) -
+                    ppcs->last_idr_picture + 1));
         else
-            key_max = scs_ptr->static_config.intra_period_length + 1;
+            key_max = scs->static_config.intra_period_length + 1;
     }
     else {
-        if (scs_ptr->static_config.rate_control_mode != 2)
+        if (scs->static_config.rate_control_mode != 2)
             key_max = (int)MIN(
-                scs_ptr->static_config.intra_period_length + 1,
-                (int)((int64_t)((scs_ptr->twopass.stats_buf_ctx->stats_in_end - 1)->frame) -
-                    ppcs_ptr->last_idr_picture + 1));
+                scs->static_config.intra_period_length + 1,
+                (int)((int64_t)((scs->twopass.stats_buf_ctx->stats_in_end - 1)->frame) -
+                    ppcs->last_idr_picture + 1));
     }
-    if (scs_ptr->static_config.rate_control_mode != 2) {
-        ppcs_ptr->frames_to_key = key_max - ppcs_ptr->frames_since_key;
-        TWO_PASS *const twopass = &scs_ptr->twopass;
-        RATE_CONTROL   *rc = &encode_context_ptr->rc;
+    if (scs->static_config.rate_control_mode != 2) {
+        ppcs->frames_to_key = key_max - ppcs->frames_since_key;
+        TWO_PASS *const twopass = &scs->twopass;
+        RATE_CONTROL   *rc = &ec_ctx->rc;
         // For the last minigop of the sequence, when look ahead is not long enough to find the GOP size, the GOP size is set
         // to kf_cfg->key_freq_max and the kf_group_bits is calculated based on that. However, when we get closer to the end, the
         // end of sequence will be in the look ahead and frames_to_key is updated. In this case, kf_group_bits is calculated based
         // on the new GOP size
-        if (scs_ptr->lap_rc && ((scs_ptr->static_config.intra_period_length + 1) != ppcs_ptr->frames_since_key) &&
-            (scs_ptr->lad_mg + 1) * (1 << scs_ptr->static_config.hierarchical_levels) <
-            scs_ptr->static_config.intra_period_length &&
-            (scs_ptr->static_config.hierarchical_levels != ppcs_ptr->hierarchical_levels ||
-                ppcs_ptr->end_of_sequence_region) &&
+        if (scs->lap_rc && ((scs->static_config.intra_period_length + 1) != ppcs->frames_since_key) &&
+            (scs->lad_mg + 1) * (1 << scs->static_config.hierarchical_levels) <
+            scs->static_config.intra_period_length &&
+            (scs->static_config.hierarchical_levels != ppcs->hierarchical_levels ||
+                ppcs->end_of_sequence_region) &&
             !rate_control_param_ptr->end_of_seq_seen) {
-            twopass->kf_group_bits = (ppcs_ptr->frames_to_key) * twopass->kf_group_bits /
-                (scs_ptr->static_config.intra_period_length + 1 - ppcs_ptr->frames_since_key);
+            twopass->kf_group_bits = (ppcs->frames_to_key) * twopass->kf_group_bits /
+                (scs->static_config.intra_period_length + 1 - ppcs->frames_since_key);
             rate_control_param_ptr->end_of_seq_seen = 1;
         }
-        rc->frames_to_key = ppcs_ptr->frames_to_key;
-        rc->frames_since_key = ppcs_ptr->frames_since_key;
+        rc->frames_to_key = ppcs->frames_to_key;
+        rc->frames_since_key = ppcs->frames_since_key;
     }
-    restore_gf_group_param(ppcs_ptr);
+    restore_gf_group_param(ppcs);
 }
 #else
 static void restore_param(PictureParentControlSet         *ppcs_ptr,
