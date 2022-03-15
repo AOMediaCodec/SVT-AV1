@@ -1981,7 +1981,6 @@ static int calc_active_best_quality_no_stats_cbr(PictureParentControlSet *ppcs_p
     SequenceControlSet                *scs_ptr             = ppcs_ptr->scs_ptr;
     EncodeContext                     *encode_context_ptr  = scs_ptr->encode_context_ptr;
     RATE_CONTROL                      *rc                  = &encode_context_ptr->rc;
-    const RefreshFrameFlagsInfo *const refresh_frame_flags = &ppcs_ptr->refresh_frame;
     int                               *rtc_minq;
     const int                          bit_depth = scs_ptr->static_config.encoder_bit_depth;
     int                                active_best_quality = rc->best_quality;
@@ -2040,11 +2039,9 @@ static int calc_active_best_quality_no_stats_cbr(PictureParentControlSet *ppcs_p
 
         //Derive the temporal layer of the reference picture
         uint8_t ref_tmp_layer = ref_obj_l0->tmp_layer_idx;
-        uint8_t ref_tmp_type = ref_obj_l0->slice_type;
         if (ppcs_ptr->slice_type == B_SLICE) {
             if (ref_obj_l1->tmp_layer_idx > ref_tmp_layer) {
                 ref_tmp_layer = ref_obj_l1->tmp_layer_idx;
-                ref_tmp_type = ref_obj_l1->slice_type;
             }
         }
         rc->arf_q = 0;
