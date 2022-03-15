@@ -2048,9 +2048,7 @@ static int calc_active_best_quality_no_stats_cbr(PictureParentControlSet *ppcs_p
         rc->arf_q = MAX(rc->arf_q, ((pcs_ptr->ref_pic_qp_array[0][0] << 2) + 2));
         if (pcs_ptr->slice_type == B_SLICE)
             rc->arf_q = MAX(rc->arf_q, ((pcs_ptr->ref_pic_qp_array[1][0] << 2) + 2));
-
         int ip = ppcs_ptr->scs_ptr->static_config.intra_period_length;
-        
         if (ip == -1|| ip > 64)
             active_best_quality = MIN(active_best_quality,rc->arf_q);
         else
@@ -2064,7 +2062,6 @@ static int calc_active_best_quality_no_stats_cbr(PictureParentControlSet *ppcs_p
         while (tmp_layer_delta--)
             active_best_quality = (active_best_quality + q + 1) / 2;
 #endif
-        
     } else {
         // Use the lower of active_worst_quality and recent/average Q.
         svt_block_on_mutex(encode_context_ptr->frame_updated_mutex);
