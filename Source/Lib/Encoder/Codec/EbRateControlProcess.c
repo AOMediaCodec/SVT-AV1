@@ -604,7 +604,7 @@ int svt_av1_get_deltaq_offset(AomBitDepth bit_depth, int qindex, double beta, Sl
 int svt_av1_rc_bits_per_mb(FrameType frame_type, int qindex, double correction_factor,
                            const int bit_depth, const int is_screen_content_type,
 #if FTR_IMPROVE_SI
-                           int onepass_cbr_mode, int sip) {
+                           int onepass_cbr_mode, int iperiod_fctr) {
 #else
                            int onepass_cbr_mode) {
 #endif
@@ -614,7 +614,7 @@ int svt_av1_rc_bits_per_mb(FrameType frame_type, int qindex, double correction_f
     if (onepass_cbr_mode) {
         enumerator = frame_type == KEY_FRAME ? 1500000 : 1300000;
 #if FTR_IMPROVE_SI
-        enumerator /= sip;
+        enumerator /= iperiod_fctr;
 #endif
     }
 #else
@@ -636,7 +636,7 @@ int svt_av1_rc_bits_per_mb(FrameType frame_type, int qindex, double correction_f
 static int find_qindex_by_rate(int desired_bits_per_mb, const int bit_depth, FrameType frame_type,
                                const int is_screen_content_type, int onepass_cbr_mode,
 #if FTR_IMPROVE_SI
-                               int best_qindex, int worst_qindex, int sip) {
+                               int best_qindex, int worst_qindex, int iperiod_fctr) {
 #else
                                int best_qindex, int worst_qindex) {
 #endif
@@ -647,7 +647,7 @@ static int find_qindex_by_rate(int desired_bits_per_mb, const int bit_depth, Fra
         const int mid             = (low + high) >> 1;
         const int mid_bits_per_mb = svt_av1_rc_bits_per_mb(
 #if FTR_IMPROVE_SI
-            frame_type, mid, 1.0, bit_depth, is_screen_content_type, onepass_cbr_mode, sip);
+            frame_type, mid, 1.0, bit_depth, is_screen_content_type, onepass_cbr_mode, iperiod_fctr);
 #else
             frame_type, mid, 1.0, bit_depth, is_screen_content_type, onepass_cbr_mode);
 #endif
@@ -660,7 +660,7 @@ static int find_qindex_by_rate(int desired_bits_per_mb, const int bit_depth, Fra
     assert(low == high);
 #if FTR_IMPROVE_SI
     assert(svt_av1_rc_bits_per_mb(
-        frame_type, low, 1.0, bit_depth, is_screen_content_type, onepass_cbr_mode, sip) <=
+        frame_type, low, 1.0, bit_depth, is_screen_content_type, onepass_cbr_mode, iperiod_fctr) <=
         desired_bits_per_mb ||
         low == worst_qindex);
 #else
@@ -675,14 +675,14 @@ static int find_qindex_by_rate(int desired_bits_per_mb, const int bit_depth, Fra
 int svt_av1_compute_qdelta_by_rate(const RATE_CONTROL *rc, FrameType frame_type, int qindex,
                                    double rate_target_ratio, const int bit_depth,
 #if FTR_IMPROVE_SI
-                                   const int is_screen_content_type, int sip) {
+                                   const int is_screen_content_type, int iperiod_fctr) {
 #else
                                    const int is_screen_content_type) {
 #endif
     // Look up the current projected bits per block for the base index
     const int base_bits_per_mb = svt_av1_rc_bits_per_mb(
 #if FTR_IMPROVE_SI
-        frame_type, qindex, 1.0, bit_depth, is_screen_content_type, rc->onepass_cbr_mode, sip);
+        frame_type, qindex, 1.0, bit_depth, is_screen_content_type, rc->onepass_cbr_mode, iperiod_fctr);
 #else
         frame_type, qindex, 1.0, bit_depth, is_screen_content_type, rc->onepass_cbr_mode);
 #endif
@@ -697,7 +697,7 @@ int svt_av1_compute_qdelta_by_rate(const RATE_CONTROL *rc, FrameType frame_type,
                                                  rc->onepass_cbr_mode,
                                                  rc->best_quality,
 #if FTR_IMPROVE_SI
-                                                 rc->worst_quality, sip);
+                                                 rc->worst_quality, iperiod_fctr);
 #else
                                                  rc->worst_quality);
 #endif
@@ -715,7 +715,7 @@ static const double rate_factor_deltas[RATE_FACTOR_LEVELS] = {
 
 int svt_av1_frame_type_qdelta(RATE_CONTROL *rc, int rf_level, int q, const int bit_depth,
 #if FTR_IMPROVE_SI
-                              const int sc_content_detected, int sip) {
+                              const int sc_content_detected, int iperiod_fctr) {
 #else
                               const int sc_content_detected) {
 #endif
@@ -730,7 +730,7 @@ int svt_av1_frame_type_qdelta(RATE_CONTROL *rc, int rf_level, int q, const int b
     }
     return svt_av1_compute_qdelta_by_rate(
 #if FTR_IMPROVE_SI
-        rc, frame_type, q, rate_factor, bit_depth, sc_content_detected, sip);
+        rc, frame_type, q, rate_factor, bit_depth, sc_content_detected, iperiod_fctr);
 #else
         rc, frame_type, q, rate_factor, bit_depth, sc_content_detected);
 #endif
@@ -755,7 +755,7 @@ static rate_factor_level get_rate_factor_level(const GF_GROUP *const gf_group,
 
 int av1_frame_type_qdelta_org(RATE_CONTROL *rc, GF_GROUP *gf_group, unsigned char gf_group_index,
 #if FTR_IMPROVE_SI
-                              int q, const int bit_depth, uint8_t sc_content_detected, int sip) {
+                              int q, const int bit_depth, uint8_t sc_content_detected, int iperiod_fctr) {
 #else
                               int q, const int bit_depth, uint8_t sc_content_detected) {
 #endif
@@ -770,7 +770,7 @@ int av1_frame_type_qdelta_org(RATE_CONTROL *rc, GF_GROUP *gf_group, unsigned cha
     }
     return svt_av1_compute_qdelta_by_rate(
 #if FTR_IMPROVE_SI
-        rc, frame_type, q, rate_factor, bit_depth, sc_content_detected, sip);
+        rc, frame_type, q, rate_factor, bit_depth, sc_content_detected, iperiod_fctr);
 #else
         rc, frame_type, q, rate_factor, bit_depth, sc_content_detected);
 #endif
@@ -815,7 +815,7 @@ static void adjust_active_best_and_worst_quality_org(PictureControlSet *pcs_ptr,
 #endif
 
 #if FTR_IMPROVE_SI
-    int sip = intra_period_factor(pcs_ptr->parent_pcs_ptr);
+    int iperiod_fctr = intra_period_factor(pcs_ptr->parent_pcs_ptr);
 #endif
     // Static forced key frames Q restrictions dealt with elsewhere.
     const int qdelta     = av1_frame_type_qdelta_org(rc,
@@ -824,7 +824,7 @@ static void adjust_active_best_and_worst_quality_org(PictureControlSet *pcs_ptr,
                                                  active_worst_quality,
                                                  bit_depth,
 #if FTR_IMPROVE_SI
-                                                 pcs_ptr->parent_pcs_ptr->sc_class1, sip);
+                                                 pcs_ptr->parent_pcs_ptr->sc_class1, iperiod_fctr);
 #else
                                                  pcs_ptr->parent_pcs_ptr->sc_class1);
 #endif
@@ -848,11 +848,11 @@ static void adjust_active_best_and_worst_quality(PictureControlSet *pcs_ptr, RAT
     // Static forced key frames Q restrictions dealt with elsewhere.
     if (!frame_is_intra_only(pcs_ptr->parent_pcs_ptr)) {
 #if FTR_IMPROVE_SI
-        int sip = intra_period_factor(pcs_ptr->parent_pcs_ptr);
+        int iperiod_fctr = intra_period_factor(pcs_ptr->parent_pcs_ptr);
 #endif
         const int qdelta = svt_av1_frame_type_qdelta(
 #if FTR_IMPROVE_SI
-            rc, rf_level, active_worst_quality, bit_depth, pcs_ptr->parent_pcs_ptr->sc_class1, sip);
+            rc, rf_level, active_worst_quality, bit_depth, pcs_ptr->parent_pcs_ptr->sc_class1, iperiod_fctr);
 #else
             rc, rf_level, active_worst_quality, bit_depth, pcs_ptr->parent_pcs_ptr->sc_class1);
 #endif
@@ -1739,7 +1739,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
                            double correction_factor, int q) {
     SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
 #if FTR_IMPROVE_SI
-    int sip = intra_period_factor(ppcs_ptr);
+    int iperiod_fctr = intra_period_factor(ppcs_ptr);
 #endif
     return use_cyclic_refresh
         ? 0 /*av1_cyclic_refresh_rc_bits_per_mb(cpi, q, correction_factor)*/
@@ -1749,7 +1749,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
                                  scs_ptr->static_config.encoder_bit_depth,
                                  ppcs_ptr->sc_class1,
 #if FTR_IMPROVE_SI
-                                 scs_ptr->encode_context_ptr->rc.onepass_cbr_mode, sip);
+                                 scs_ptr->encode_context_ptr->rc.onepass_cbr_mode, iperiod_fctr);
 #else
                                  scs_ptr->encode_context_ptr->rc.onepass_cbr_mode);
 #endif
@@ -1806,7 +1806,7 @@ static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentCon
     return (curr_bit_diff <= prev_bit_diff) ? curr_q : prev_q;
 }
 #if FTR_IMPROVE_SI
-int max_delta_per_layer[6] = { 80,40,20,16,16,16 };
+int max_delta_per_layer[MAX_TEMPORAL_LAYERS] = { 80,40,20,16,16,16 };
 #endif
 static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
     SequenceControlSet *scs_ptr            = ppcs_ptr->scs_ptr;
@@ -2062,8 +2062,10 @@ static int calc_active_best_quality_no_stats_cbr(PictureParentControlSet *ppcs_p
         int8_t tmp_layer_delta = (int8_t)pcs_ptr->parent_pcs_ptr->temporal_layer_index -
             (int8_t)ref_tmp_layer;
         // active_best_quality is updated with the q index of the reference
-        while (tmp_layer_delta--)
+        while (tmp_layer_delta > 0) {
             active_best_quality = (active_best_quality + q + 1) / 2;
+            tmp_layer_delta--;
+        }
 #endif
     } else {
         // Use the lower of active_worst_quality and recent/average Q.
@@ -2111,7 +2113,7 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
         aom_clear_system_state();
 #endif
 #if FTR_IMPROVE_SI
-        int sip = intra_period_factor(pcs_ptr->parent_pcs_ptr);
+        int iperiod_fctr = intra_period_factor(pcs_ptr->parent_pcs_ptr);
 #endif
         qdelta                             = svt_av1_compute_qdelta_by_rate(rc,
                                                 pcs_ptr->parent_pcs_ptr->frm_hdr.frame_type,
@@ -2119,7 +2121,7 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
                                                 2.0,
                                                 bit_depth,
 #if FTR_IMPROVE_SI
-                                                pcs_ptr->parent_pcs_ptr->sc_class1, sip);
+                                                pcs_ptr->parent_pcs_ptr->sc_class1, iperiod_fctr);
 #else
                                                 pcs_ptr->parent_pcs_ptr->sc_class1);
 #endif
@@ -2246,13 +2248,13 @@ static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
 static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double correction_factor,
                                   AomBitDepth bit_depth, uint8_t sc_content_detected,
 #if FTR_IMPROVE_SI
-                                  int onepass_cbr_mode, int sip) {
+                                  int onepass_cbr_mode, int iperiod_fctr) {
 #else
                                   int onepass_cbr_mode) {
 #endif
     const int bpm = (int)(svt_av1_rc_bits_per_mb(
 #if FTR_IMPROVE_SI
-        frame_type, q, correction_factor, bit_depth, sc_content_detected, onepass_cbr_mode, sip));
+        frame_type, q, correction_factor, bit_depth, sc_content_detected, onepass_cbr_mode, iperiod_fctr));
 #else
         frame_type, q, correction_factor, bit_depth, sc_content_detected, onepass_cbr_mode));
 #endif
@@ -2289,7 +2291,7 @@ static void av1_rc_update_rate_correction_factors(PictureParentControlSet *ppcs_
 
     {
 #if FTR_IMPROVE_SI
-        int sip = intra_period_factor(ppcs_ptr);
+        int iperiod_fctr = intra_period_factor(ppcs_ptr);
 #endif
         projected_size_based_on_q = av1_estimate_bits_at_q(
             ppcs_ptr->frm_hdr.frame_type,
@@ -2299,7 +2301,7 @@ static void av1_rc_update_rate_correction_factors(PictureParentControlSet *ppcs_
             scs_ptr->static_config.encoder_bit_depth,
             ppcs_ptr->sc_class1,
 #if FTR_IMPROVE_SI
-            rc->onepass_cbr_mode, sip);
+            rc->onepass_cbr_mode, iperiod_fctr);
 #else
             rc->onepass_cbr_mode);
 #endif
