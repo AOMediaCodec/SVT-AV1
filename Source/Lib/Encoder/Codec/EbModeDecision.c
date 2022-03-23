@@ -5824,12 +5824,11 @@ void inject_pme_candidates(
                 }
                 if (inj_mv) {
 #endif
-
                     uint8_t to_inject_ref_type = av1_ref_frame_type((const MvReferenceFrame[]){
                         svt_get_ref_frame_type(list_idx_0, ref_idx_0),
                         svt_get_ref_frame_type(list_idx_1, ref_idx_1),
                     });
-    #if OPT_MV_INJ_CHECK
+#if OPT_MV_INJ_CHECK
                     Mv to_inj_mv0 = { { to_inject_mv_x_l0, to_inject_mv_y_l0 } };
                     Mv to_inj_mv1 = { { to_inject_mv_x_l1, to_inject_mv_y_l1 } };
                     if ((context_ptr->injected_mv_count == 0 ||
@@ -5837,7 +5836,7 @@ void inject_pme_candidates(
                             to_inj_mv0,
                             to_inj_mv1,
                             to_inject_ref_type) == FALSE)) {
-    #else
+#else
                     if (context_ptr->injected_mv_count_bipred == 0 ||
                         mrp_is_already_injected_mv_bipred(context_ptr,
                                                           to_inject_mv_x_l0,
@@ -5845,7 +5844,7 @@ void inject_pme_candidates(
                                                           to_inject_mv_x_l1,
                                                           to_inject_mv_y_l1,
                                                           to_inject_ref_type) == FALSE) {
-    #endif
+#endif
                         uint8_t drl_index = 0;
                         choose_best_av1_mv_pred(context_ptr,
                                                 context_ptr->md_rate_estimation_ptr,
@@ -5860,14 +5859,14 @@ void inject_pme_candidates(
                                                 &drl_index,
                                                 best_pred_mv);
                         if (!context_ptr->corrupted_mv_check ||
-    #if CLN_IS_VALID_MV_DIFF
+#if CLN_IS_VALID_MV_DIFF
                             is_valid_mv_diff(
                                 best_pred_mv,
                                 to_inj_mv0,
                                 to_inj_mv1,
                                 1,
                                 pcs_ptr->parent_pcs_ptr->frm_hdr.allow_high_precision_mv)) {
-    #else
+#else
                             is_valid_mv_diff(
                                 best_pred_mv,
                                 to_inject_mv_x_l0,
@@ -5876,7 +5875,7 @@ void inject_pme_candidates(
                                 to_inject_mv_y_l1,
                                 1,
                                 pcs_ptr->parent_pcs_ptr->frm_hdr.allow_high_precision_mv)) {
-    #endif
+#endif
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
@@ -5887,37 +5886,37 @@ void inject_pme_candidates(
                                                       list_idx_1,
                                                       ref_idx_1))
                                     continue;
-    #if !CLN_REMOVE_REDUND_4
+#if !CLN_REMOVE_REDUND_4
                                 cand_array[cand_total_cnt].type              = INTER_MODE;
-    #endif
+#endif
                                 cand_array[cand_total_cnt].use_intrabc       = 0;
                                 cand_array[cand_total_cnt].skip_mode_allowed = FALSE;
                                 cand_array[cand_total_cnt].drl_index         = drl_index;
                                 // Set the MV to ME result
-    #if CLN_CAND_MV
+#if CLN_CAND_MV
                                 cand_array[cand_total_cnt].mv[REF_LIST_0].as_int = to_inj_mv0.as_int;
                                 cand_array[cand_total_cnt].mv[REF_LIST_1].as_int = to_inj_mv1.as_int;
-    #else
+#else
                                 cand_array[cand_total_cnt].motion_vector_xl0 = to_inject_mv_x_l0;
                                 cand_array[cand_total_cnt].motion_vector_yl0 = to_inject_mv_y_l0;
                                 cand_array[cand_total_cnt].motion_vector_xl1 = to_inject_mv_x_l1;
                                 cand_array[cand_total_cnt].motion_vector_yl1 = to_inject_mv_y_l1;
-    #endif
+#endif
                                 // will be needed later by the rate estimation
                                 cand_array[cand_total_cnt].pred_mode               = NEW_NEWMV;
                                 cand_array[cand_total_cnt].motion_mode             = SIMPLE_TRANSLATION;
-    #if !CLN_REMOVE_REDUND
+#if !CLN_REMOVE_REDUND
                                 cand_array[cand_total_cnt].is_compound             = 1;
-    #endif
+#endif
                                 cand_array[cand_total_cnt].is_interintra_used      = 0;
-    #if !CLN_REMOVE_REDUND_2
+#if !CLN_REMOVE_REDUND_2
                                 cand_array[cand_total_cnt].prediction_direction[0] = BI_PRED;
-    #endif
+#endif
                                 cand_array[cand_total_cnt].ref_frame_type          = to_inject_ref_type;
-    #if CLN_CAND_MV
+#if CLN_CAND_MV
                                 cand_array[cand_total_cnt].pred_mv[REF_LIST_0] = (Mv) { {best_pred_mv[0].as_mv.col, best_pred_mv[0].as_mv.row } };
                                 cand_array[cand_total_cnt].pred_mv[REF_LIST_1] = (Mv) { {best_pred_mv[1].as_mv.col, best_pred_mv[1].as_mv.row } };
-    #else
+#else
                                 cand_array[cand_total_cnt].motion_vector_pred_x[REF_LIST_0] =
                                     best_pred_mv[0].as_mv.col;
                                 cand_array[cand_total_cnt].motion_vector_pred_y[REF_LIST_0] =
@@ -5926,7 +5925,7 @@ void inject_pme_candidates(
                                     best_pred_mv[1].as_mv.col;
                                 cand_array[cand_total_cnt].motion_vector_pred_y[REF_LIST_1] =
                                     best_pred_mv[1].as_mv.row;
-    #endif
+#endif
                                 //MVP REFINE
                                 if (cur_type > MD_COMP_AVG) {
                                     if (mask_done != 1) {
@@ -5940,12 +5939,12 @@ void inject_pme_candidates(
                                     pcs_ptr, context_ptr, &cand_array[cand_total_cnt], cur_type);
                                 INC_MD_CAND_CNT(cand_total_cnt, pcs_ptr->parent_pcs_ptr->max_can_count);
                             }
-    #if OPT_MV_INJ_CHECK
+#if OPT_MV_INJ_CHECK
                             context_ptr->injected_mvs[context_ptr->injected_mv_count][0].as_int = to_inj_mv0.as_int;
                             context_ptr->injected_mvs[context_ptr->injected_mv_count][1].as_int = to_inj_mv1.as_int;
                             context_ptr->injected_ref_types[context_ptr->injected_mv_count] = to_inject_ref_type;
                             ++context_ptr->injected_mv_count;
-    #else
+#else
                             context_ptr
                                 ->injected_mv_x_bipred_l0_array[context_ptr->injected_mv_count_bipred] =
                                 to_inject_mv_x_l0;
@@ -5961,7 +5960,7 @@ void inject_pme_candidates(
                             context_ptr->injected_ref_type_bipred_array
                                 [context_ptr->injected_mv_count_bipred] = to_inject_ref_type;
                             ++context_ptr->injected_mv_count_bipred;
-    #endif
+#endif
                         }
                     }
 #if FIX_RMV
