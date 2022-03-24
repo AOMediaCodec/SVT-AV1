@@ -48,6 +48,7 @@ Bool               check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_sh
 
 static INLINE int32_t derive_rmv_setting(const SequenceControlSet * scs, const PictureParentControlSet * ppcs) {
 #if SFRAME_FORCE_RMV
+    // force RMV on to fix quality issue caused by MVs out of picture boundary
     int32_t rmv = scs->static_config.restricted_motion_vector ? 1 :
         ppcs->frm_hdr.frame_type == S_FRAME ? 1 : 0;
 #else

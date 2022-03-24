@@ -2847,14 +2847,15 @@ static void set_key_frame_rps(PictureParentControlSet *pcs, PictureDecisionConte
     return;
 }
 
-static void set_sframe_type(PictureParentControlSet *pcs, EncodeContext *encode_context_ptr, PictureDecisionContext *context_ptr)
+// Decide whether to make an inter frame into an S-Frame
+static void set_sframe_type(PictureParentControlSet *ppcs, EncodeContext *encode_context_ptr, PictureDecisionContext *context_ptr)
 {
 #if FIX_REMOVE_SCS_WRAPPER
-    SequenceControlSet* scs = pcs->scs_ptr;
+    SequenceControlSet* scs = ppcs->scs_ptr;
 #else
-    SequenceControlSet *scs = (SequenceControlSet*)pcs->scs_wrapper_ptr->object_ptr;
+    SequenceControlSet *scs = (SequenceControlSet*)ppcs->scs_wrapper_ptr->object_ptr;
 #endif
-    FrameHeader *frm_hdr = &pcs->frm_hdr;
+    FrameHeader *frm_hdr = &ppcs->frm_hdr;
     const int sframe_dist = encode_context_ptr->sf_cfg.sframe_dist;
     const EbSFrameMode sframe_mode = encode_context_ptr->sf_cfg.sframe_mode;
 
@@ -2862,10 +2863,10 @@ static void set_sframe_type(PictureParentControlSet *pcs, EncodeContext *encode_
     assert_err(scs->static_config.pred_structure == 0 || scs->static_config.pred_structure == 1,
         "S-frame supports only low delay");
     // handle multiple hierarchical levels only, no flat IPPP support
-    assert_err(pcs->hierarchical_levels > 0, "S-frame doesn't support flat IPPP...");
+    assert_err(ppcs->hierarchical_levels > 0, "S-frame doesn't support flat IPPP...");
 
-    const int is_arf = pcs->temporal_layer_index == 0 ? TRUE : FALSE;
-    const uint64_t frames_since_key = pcs->picture_number - context_ptr->key_poc;
+    const int is_arf = ppcs->temporal_layer_index == 0 ? TRUE : FALSE;
+    const uint64_t frames_since_key = ppcs->picture_number - context_ptr->key_poc;
     if (sframe_mode == SFRAME_STRICT_BASE) {
         // SFRAME_STRICT_ARF: insert sframe if it matches altref frame.
         if (is_arf && (frames_since_key % sframe_dist) == 0) {
@@ -2885,12 +2886,13 @@ static void set_sframe_type(PictureParentControlSet *pcs, EncodeContext *encode_
 
 #if DEBUG_SFRAME
     if (frm_hdr->frame_type == S_FRAME) {
-        fprintf(stderr, "\nFrame %d - set sframe\n", (int)pcs->picture_number);
+        fprintf(stderr, "\nFrame %d - set sframe\n", (int)ppcs->picture_number);
     }
 #endif
     return;
 }
 
+// Update RPS info for S-Frame
 static void set_sframe_rps(PictureParentControlSet *ppcs, EncodeContext *encode_context_ptr, PictureDecisionContext *context_ptr)
 {
     ppcs->frm_hdr.error_resilient_mode = 1;
