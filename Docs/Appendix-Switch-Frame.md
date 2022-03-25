@@ -2,11 +2,11 @@
 ## 1. Introduction [1]
 In HTTP ABR (adaptive bitrate) streaming, a source video stream is encoded into multiple renditions of different bitrates. Furthermore, each rendition consists of small segments and each segment starts with a keyframe. An ABR player can dynamically select one of the renditions suitable to its current network condition (see below picture). Since the switching can only happen at keyframes, so all the frames in a segment are decodable, the latency depends on the frequency of keyframe. However, keyframes cost a lot of bits to encode, so having too many of them will make substantially negative impact on the video quality.
 ![switch-at-key-frames-only](./img/switch-at-key-frames-only.png)
- 
 
-In order to address the conflict between video quality and latency AV1 introduces a new frame type called Switch Frame (s-frame). S-frame is a special inter frame can be used as a point to switch between renditions while it is much cheaper than keyframe. With s-frame, the video can be encoded in smaller segments (e.g. 1 second duration or even less). Thus an ABR player equipped with an AV1-spec-compliant decoder can download and decode segments starting with keyframes or s-frames (see picture below). 
+
+In order to address the conflict between video quality and latency AV1 introduces a new frame type called Switch Frame (s-frame). S-frame is a special inter frame can be used as a point to switch between renditions while it is much cheaper than keyframe. With s-frame, the video can be encoded in smaller segments (e.g. 1 second duration or even less). Thus an ABR player equipped with an AV1-spec-compliant decoder can download and decode segments starting with keyframes or s-frames (see picture below).
 ![switch-at-switch-frames-or-key-frames](./img/switch-at-switch-frames-or-key-frames.png)
- 
+
 ## 2. Implementation
 According to AV1 spec and s-frame white paper [1], following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
 ### In the sequence level
@@ -15,7 +15,7 @@ Two command line options are added to the encoder to allow user to set these two
   - frame_width_bits_minus_1 and frame_height_bits_minus_1 (refer to AV1 spec 5.5.1.) must equal across all renditions.
 SVT-AV1 encoder derives the values of these two parameters from max_frame_width and max_frame_height.
   - All renditions have identical mini GOP size.
-In the high level (API), encoder will disable adaptive mini GOP size to ensure aligned mini GOP between all renditions when s-frame feature is on. 
+In the high level (API), encoder will disable adaptive mini GOP size to ensure aligned mini GOP between all renditions when s-frame feature is on.
   - All renditions have identical super block size.
 Super block size is fixed to 64 when s-frame feature is on.
 
@@ -75,8 +75,8 @@ There are a few parameters from the above commands are important to make renditi
     Set keyframe interval. All renditions must have identical value to align keyframes.
 
 ##### Stitch renditions
-The above three renditions can be stitched together to simulate the ABR player behavior mentioned in the introduction section. This requires an ivf parser to extract frame type and stitch renditions at s-frames. 
-There are players have already supported such stitched bitstream, such as mpv player, FFmpeg and Chrome, etc. 
+The above three renditions can be stitched together to simulate the ABR player behavior mentioned in the introduction section. This requires an ivf parser to extract frame type and stitch renditions at s-frames.
+There are players have already supported such stitched bitstream, such as mpv player, FFmpeg and Chrome, etc.
 
 ## Notes
 The feature settings that are described in this document were compiled at v0.9.1 of the code and may not reflect the current status of the code. The description in this document represents an example showing how features would interact with the SVT architecture. For the most up-to-date settings, it's recommended to review the section of the code implementing this feature.
