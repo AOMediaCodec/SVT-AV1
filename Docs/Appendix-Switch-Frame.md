@@ -8,7 +8,7 @@ In order to address the conflict between video quality and latency AV1 introduce
 ![switch-at-switch-frames-or-key-frames](./img/switch-at-switch-frames-or-key-frames.png)
 
 ## 2. Implementation
-According to AV1 spec and s-frame white paper [1], following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
+According to AV1 spec and s-frame white paper [1], the following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
 ### In the sequence level
   - max_frame_width and max_frame_height (refer to AV1 spec 5.5.1.) written in sequence header must equal to or larger than the dimensions of the largest rendition to be used in the sequence.
 Two command line options are added to the encoder to allow user to set these two parameters, they are ‘--forced-max-frame-width’ and ‘--forced-max-frame-height’.
@@ -43,7 +43,7 @@ This parameter is set in Mode Decision Configuration process. When reference fra
 The hints are updated in Picture Decision process and written to bitstream in the Entropy Coding process.
 
 ## 3. Usage
-In the example below a video sequence in three different resolutions are encoded with switch frame feature on. Keyframe interval is set to 150, s-frame interval is set to 32, prediction structure is set to low delay B (--pred-struct 1), and mini GOP size is set to 8 (--hierarchical-levels 3).
+In the example below a video sequence in three different resolutions are encoded with switch frame feature on. Keyframe interval is set to 150, s-frame interval is set to 32, prediction structure is set to low delay (--pred-struct 1), and mini GOP size is set to 8 (--hierarchical-levels 3).
 
 ##### Generate a rendition in 1080p
 ```./SvtAv1EncApp --preset 8 --sframe-dist 32 --sframe-mode 2 --pred-struct 1 --hierarchical-levels 3 --forced-max-frame-width 1920 --forced-max-frame-height 1080 -q 32 --rc 0 --keyint 150 -i dota2_1080p60_600f.y4m -b dota2_1080p60_600f.ivf```
@@ -63,7 +63,7 @@ There are a few parameters from the above commands are important to make renditi
     S-frame insertion mode. All renditions must have identical value.
 
   - --pred-struct<br>
-    Set prediction structure type. S-frame feature supports low delay P (parameter value 0) and low delay B (parameter value 1). All renditions must have identical value to align s-frames reference frame lists between renditions.
+    Set prediction structure type. S-frame feature only supports low delay. All renditions must have identical value to align s-frames reference frame lists between renditions.
 
   - --hierarchical-levels<br>
     Set hierarchical levels. All renditions must have identical value to align mini GOP size between renditions. Available values are 3, 4 and 5; correspond to mini GOP size 8, 16 and 32 respectively.
