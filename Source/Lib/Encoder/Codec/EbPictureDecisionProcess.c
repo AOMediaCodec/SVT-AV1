@@ -1917,8 +1917,10 @@ EbErrorType signal_derivation_multi_processes_oq(
         if (fast_decode <= 2) {
             if (enc_mode <= ENC_M5)
                 wn_filter_lvl = 1;
-            else
+            else if (enc_mode <= ENC_M7)
                 wn_filter_lvl = 4;
+            else
+                wn_filter_lvl = is_ref ? 4 : 0;
         }
         else {
             wn_filter_lvl = 4;

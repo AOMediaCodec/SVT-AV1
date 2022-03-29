@@ -529,6 +529,8 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
                 ppcs->pic_obmc_level = 1;
             else if (enc_mode <= ENC_M6)
                 ppcs->pic_obmc_level = 2;
+            else if (enc_mode <= ENC_M8)
+                ppcs->pic_obmc_level = is_ref ? 2 : 0;
             else
                 ppcs->pic_obmc_level = 0;
         } else {

@@ -342,7 +342,7 @@ uint8_t get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoratio
                                uint8_t input_resolution, uint8_t fast_decode) {
     uint8_t enable_restoration;
     if (fast_decode <= 2)
-        enable_restoration = (enc_mode <= ENC_M7) ? 1 : 0;
+        enable_restoration = (enc_mode <= ENC_M8) ? 1 : 0;
     else
         enable_restoration = input_resolution <= INPUT_SIZE_480p_RANGE ? 1 : 0;
 
