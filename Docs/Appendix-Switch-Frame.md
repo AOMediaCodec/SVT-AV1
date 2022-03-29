@@ -9,7 +9,7 @@ In order to address the conflict between video quality and latency AV1 introduce
 
 ## 2. Implementation
 According to the AV1 spec and s-frame white paper [1], the following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
-### In the sequence level
+### At the sequence level
   - max_frame_width and max_frame_height (refer to the AV1 spec 5.5.1.) written in sequence header must be equal to or larger than the dimensions of the largest rendition to be used in the sequence.
 Two command line options are added to the encoder to allow user to set these two parameters, they are ‘--forced-max-frame-width’ and ‘--forced-max-frame-height’.
   - frame_width_bits_minus_1 and frame_height_bits_minus_1 (refer to the AV1 spec 5.5.1.) must be equal across all renditions.
@@ -19,11 +19,11 @@ In the high level (API), encoder will disable adaptive mini GOP size to ensure a
   - All renditions have identical super block size.
 Super block size is fixed to 64 when s-frame feature is on.
 
-### In the frame level
+### At the frame level
   - Decide which frames to be made into s-frames.<br>
 This is done in the Picture Decision process. For every sframe-dist frames (controlled by command line option --sframe-dist), the encoder will decide whether to make the frame into an s-frame. There are two modes to make the decision (controlled by command line option --sframe-mode):
     * Mode 1. Strict mode<br>
-The considered frame will be made into an s-frame only if it is a base layer inter frame. This mode is supposed to be used for debug purposes only since the s-frame interval could be much larger than expected, E.g. Setting s-frame interval to 30, while mini GOP size is set to 16.
+The considered frame will be made into an s-frame only if it is a base layer inter frame. This mode is supposed to be used for debugging purposes only since the s-frame interval could be much larger than expected, E.g. Setting s-frame interval to 30, while mini GOP size is set to 16.
     * Mode 2. Nearest mode<br>
 The considered frame will be made into an s-frame if it is a base layer inter frame. If it’s not, the next base layer inter frame will be made into an s-frame. This is the default mode.
 
