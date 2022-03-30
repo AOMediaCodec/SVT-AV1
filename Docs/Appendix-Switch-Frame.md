@@ -1,14 +1,15 @@
 # Switch Frame Appendix
 ## 1. Introduction [1]
-In HTTP ABR (adaptive bitrate) streaming, a source video stream is encoded into multiple renditions of different bitrates. Furthermore, each rendition consists of small segments and each segment starts with a keyframe. An ABR player can dynamically select one of the renditions suitable to its current network condition (see below picture). Since the switching can only happen at keyframes, so all the frames in a segment are decodable, the latency depends on the frequency of keyframe. However, keyframes cost a lot of bits to encode, so having too many of them will have a substantially negative impact on the video quality.
+In HTTP ABR (adaptive bitrate) streaming, there will be multiple renditions generated at different bit rate after the encode of a source video to meet various network status. Each rendition is cut into multiple segments each starts with a key frame. As the switch of rendition can only happens at the position of a key frame, there will be a latency of quite a few seconds caused by the decode of current segment before reaching the next key frame. <br>
+To shorten the latency, a possible solution is to insert more key frames into renditions as to shorten the length of a segment. However, this will inevitably increase the bits as key frames call for more to encode. Or, an obvious drop of video quality will happen when the original bitrates is managed to be kept.
 ![switch-at-key-frames-only](./img/switch-at-key-frames-only.png)
 
 
-In order to address the conflict between video quality and latency AV1 introduces a new frame type called Switch Frame (s-frame). S-frame is a special inter frame that can be used as a point to switch between renditions while being much cheaper than a keyframe. With s-frame, the video can be encoded in smaller segments (e.g. 1 second duration or even less). Thus an ABR player equipped with an AV1-spec-compliant decoder can download and decode segments starting with keyframes or s-frames (see picture below).
+To solve this issue, a new type of frame is introduced as Switch Frame(s-frame) in AV1. Unlike key frame, s-frame requires fewer bits to encode and is more affordable to be inserted into the segments. It can act like a key frame to further divide the segments to smaller pieces at a low cost. The spread of s-frames will shorten the latency to around 1 second or even 0.25 second (when set the mini GOP size of a 30fps video source to 8).
 ![switch-at-switch-frames-or-key-frames](./img/switch-at-switch-frames-or-key-frames.png)
 
 ## 2. Implementation
-According to the AV1 spec and s-frame white paper [1], the following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
+According to the AV1 spec, the following requirements must be satisfied and so corresponding changes are made in SVT-AV1 encoder to support s-frame feature.
 ### At the sequence level
   - max_frame_width and max_frame_height (refer to the AV1 spec 5.5.1.) written in sequence header must be equal to or larger than the dimensions of the largest rendition to be used in the sequence.
 Two command line options are added to the encoder to allow user to set these two parameters, they are ‘--forced-max-frame-width’ and ‘--forced-max-frame-height’.
@@ -74,6 +75,14 @@ There are a few parameters from the above commands that are important to make re
   - --keyint<br>
     Set keyframe interval. All renditions must have identical value to align keyframes.
 
+  - Switch between renditions<br>
+    According to the AV1 spec chapter “7.11.3.3. Motion vector scaling process”, it is a requirement of bitstream conformance that all the following conditions are satisfied:<br>
+    - 2 * FrameWidth >= RefUpscaledWidth[ refIdx ]<br>
+    - 2 * FrameHeight >= RefFrameHeight[ refIdx ]<br>
+    - FrameWidth <= 16 * RefUpscaledWidth[ refIdx ]<br>
+    - FrameHeight <= 16 * RefFrameHeight[ refIdx ]<br>
+    So when switching, dest_resolution / source_resolution must be between 1/2 and 16.
+
 ##### Stitch renditions
 The above three renditions can be stitched together to simulate the ABR player behavior mentioned in the introduction section. This requires an ivf parser to extract frame type and stitch renditions at s-frames.
 There are players have already supported such stitched bitstream, such as mpv player, FFmpeg and Chrome, etc.
@@ -82,4 +91,5 @@ There are players have already supported such stitched bitstream, such as mpv pl
 The feature settings that are described in this document were compiled at v0.9.1 of the code and may not reflect the current status of the code. The description in this document represents an example showing how features would interact with the SVT architecture. For the most up-to-date settings, it's recommended to review the section of the code implementing this feature.
 
 ## References
-[1] Yueshi Shen, Tarek Amara, Yann Landry, Alex Converse, John Bartos, Ronald Bultje, Nathan Egge, Thomas Daede, Adrian Grange, Yaowu Xu. “White Paper: AV1 Switch Frame Codec Implementation Guideline”
+[1] Tarek Amara (Twitch) - “S-Frame in AV1: Enabling better compression for low latency live streaming”. Presented in the Demuxed 2017.([Video link](https://www.youtube.com/watch?v=o5sJX6VA34o&list=PLkyaYNWEKcOfntbMd6KtHhF7qpL9hj6of&index=3&ab_channel=Demuxed))<br>
+[2] AV1 Bitstream & Decoding Process Specification v1.0.0
