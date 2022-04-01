@@ -1234,8 +1234,8 @@ ConfigEntry config_entry_specific[] = {
 
     {SINGLE_INPUT,
      FILM_GRAIN_DENOISE_APPLY_TOKEN,
-     "Apply denoising when film grain is ON, default is 1 [0: OFF, film grain data is still sent in frame header, however denoising is turned off\
-        1: ON, level of denoising is set by --film-grain token parameter]",
+     "Apply denoising when film grain is ON, default is 1 [0: no denoising, film grain data is still in frame header, "
+     "1: level of denoising is set by the film-grain parameter]",
      set_cfg_film_grain_denoise_apply},
 
     // --- start: SUPER-RESOLUTION SUPPORT
