@@ -2916,10 +2916,58 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
 
     // Do not perform TF if LD or 1 Layer or 1st pass
     Bool do_tf = scs_ptr->static_config.enable_tf && scs_ptr->static_config.hierarchical_levels >= 1 && scs_ptr->static_config.pass != ENC_FIRST_PASS;
+#if NEW_FAST_DEC_LEVELS
+    const EncMode enc_mode = scs_ptr->static_config.enc_mode;
+    const Bool fast_decode = scs_ptr->static_config.fast_decode;
+    const uint32_t hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
+#endif
     uint8_t tf_level = 0;
     if (do_tf == 0) {
         tf_level = 0;
     }
+#if NEW_FAST_DEC_LEVELS
+    else if (fast_decode == 0) {
+        if (enc_mode <= ENC_M1) {
+            tf_level = 1;
+        }
+        else if (enc_mode <= ENC_M6) {
+            tf_level = 2;
+        }
+        else if (enc_mode <= ENC_M7) {
+            tf_level = 3;
+        }
+        else if (enc_mode <= ENC_M8) {
+            if (hierarchical_levels <= 3)
+                tf_level = 4;
+            else
+                tf_level = 3;
+        }
+        else if (enc_mode <= ENC_M9) {
+            tf_level = 4;
+        }
+        else
+            tf_level = 5;
+    }
+    else {
+        if (enc_mode <= ENC_M1) {
+            tf_level = 1;
+        }
+        else if (enc_mode <= ENC_M5) {
+            tf_level = 2;
+        }
+        else if (enc_mode <= ENC_M7) {
+            tf_level = 3;
+        }
+        else if (enc_mode <= ENC_M9) {
+            if (hierarchical_levels <= 3)
+                tf_level = 4;
+            else
+                tf_level = 3;
+        }
+        else
+            tf_level = 5;
+    }
+#else
     else if (scs_ptr->static_config.enc_mode <= ENC_M1) {
         tf_level = 1;
     }
@@ -2940,6 +2988,7 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
     }
     else
         tf_level = 5;
+#endif
     tf_controls(scs_ptr, tf_level);
 }
 /*
@@ -3110,10 +3159,15 @@ uint8_t get_tpl_level(int8_t enc_mode, int32_t pass, int32_t lap_rc, uint8_t pre
     }
     else if (enc_mode <= ENC_M5)
         tpl_level = 1;
+#if NEW_FAST_DEC_LEVELS
+    else if (enc_mode <= ENC_M7)
+        tpl_level = 3;
+#else
     else if (enc_mode <= ENC_M6)
         tpl_level = 3;
     else if (enc_mode <= ENC_M7)
         tpl_level = 4;
+#endif
     else if (enc_mode <= ENC_M9) {
         if (hierarchical_levels <= 3)
             tpl_level = 5;
@@ -3780,6 +3834,19 @@ void copy_api_from_app(
 
     // Decoder Optimization Flag
     scs_ptr->static_config.fast_decode = ((EbSvtAv1EncConfiguration*)config_struct)->fast_decode;
+
+#if NEW_FAST_DEC_LEVELS
+    // If the set fast_decode value is in the allowable range, check that the value is supported for the current preset.
+    // If the value is valid, but not supported in the current preset, change the value to one that is supported.
+    if (scs_ptr->static_config.fast_decode == 1) {
+        if (scs_ptr->static_config.enc_mode <= ENC_MR || scs_ptr->static_config.enc_mode >= ENC_M10) {
+            SVT_WARN("Decoder speedup level is not supported in M%d.\n"
+                "Decoder speedup level is supported in presets M0-M9.\n", scs_ptr->static_config.enc_mode);
+            scs_ptr->static_config.fast_decode = 0;
+            SVT_WARN("Switching to decoder speedup level %d.\n", scs_ptr->static_config.fast_decode);
+        }
+    }
+#else
     //If the set fast_decode value is in the allowable range, check that the value is supported for the current preset.
     // If the value is valid, but not supported in the current preset, change the value to one that is supported.
     if (scs_ptr->static_config.fast_decode &&
@@ -3810,6 +3877,7 @@ void copy_api_from_app(
             SVT_WARN("Switching to decoder speedup level %d.\n", scs_ptr->static_config.fast_decode);
         }
     }
+#endif
     //Film Grain
     scs_ptr->static_config.film_grain_denoise_strength = ((EbSvtAv1EncConfiguration*)config_struct)->film_grain_denoise_strength;
     scs_ptr->static_config.film_grain_denoise_apply = ((EbSvtAv1EncConfiguration*)config_struct)->film_grain_denoise_apply;

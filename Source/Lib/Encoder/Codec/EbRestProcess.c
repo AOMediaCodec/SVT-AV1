@@ -79,8 +79,13 @@ static void rest_context_dctor(EbPtr p) {
     EB_FREE_ALIGNED(obj->rst_tmpbuf);
     EB_FREE_ARRAY(obj);
 }
+#if NEW_FAST_DEC_LEVELS
+uint8_t get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration,
+                               uint8_t input_resolution);
+#else
 uint8_t get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration,
                                uint8_t input_resolution, uint8_t fast_decode);
+#endif
 /******************************************************
  * Rest Context Constructor
  ******************************************************/
@@ -106,10 +111,16 @@ EbErrorType rest_context_ctor(EbThreadContext   *thread_context_ptr,
         enc_handle_ptr->picture_demux_results_resource_ptr, demux_index);
 
     Bool is_16bit = scs_ptr->is_16bit_pipeline;
+#if NEW_FAST_DEC_LEVELS
+    if (get_enable_restoration(init_data_ptr->enc_mode,
+                               config->enable_restoration_filtering,
+                               scs_ptr->input_resolution)) {
+#else
     if (get_enable_restoration(init_data_ptr->enc_mode,
                                config->enable_restoration_filtering,
                                scs_ptr->input_resolution,
                                scs_ptr->static_config.fast_decode)) {
+#endif
         EbPictureBufferDescInitData init_data;
 
         init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;

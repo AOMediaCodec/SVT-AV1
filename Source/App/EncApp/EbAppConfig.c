@@ -555,7 +555,11 @@ static void set_enable_mfmv_flag(const char *value, EbConfig *cfg) {
     cfg->config.enable_mfmv = strtol(value, NULL, 0);
 };
 static void set_fast_decode_flag(const char *value, EbConfig *cfg) {
+#if NEW_FAST_DEC_LEVELS
+    cfg->config.fast_decode = (Bool)strtol(value, NULL, 0);
+#else
     cfg->config.fast_decode = (uint8_t)strtol(value, NULL, 0);
+#endif
 };
 static void set_tile_row(const char *value, EbConfig *cfg) {
     cfg->config.tile_rows = strtoul(value, NULL, 0);
@@ -1189,10 +1193,17 @@ ConfigEntry config_entry_specific[] = {
      MFMV_ENABLE_NEW_TOKEN,
      "Motion Field Motion Vector control, default is -1 [-1: auto, 0-1]",
      set_enable_mfmv_flag},
+#if NEW_FAST_DEC_LEVELS
+    {SINGLE_INPUT,
+     FAST_DECODE_TOKEN,
+     "Fast Decoder levels, default is 0 [0-1]",
+     set_fast_decode_flag},
+#else
     {SINGLE_INPUT,
      FAST_DECODE_TOKEN,
      "Fast Decoder levels, default is 0 [0-4]",
      set_fast_decode_flag},
+#endif
     // --- start: ALTREF_FILTERING_SUPPORT
     {SINGLE_INPUT,
      ENABLE_TF_TOKEN,
