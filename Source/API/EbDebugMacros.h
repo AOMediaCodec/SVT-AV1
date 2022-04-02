@@ -35,8 +35,6 @@
 extern "C" {
 #endif // __cplusplus
 
-#define NEW_FAST_DEC_LEVELS     1 // Change presets; only fast-decode ON/OFF will be supported
-
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

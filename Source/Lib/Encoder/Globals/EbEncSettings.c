@@ -457,7 +457,6 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
         return_error = EB_ErrorBadParameter;
     }
 
-#if NEW_FAST_DEC_LEVELS
     if (config->fast_decode > 1) {
         SVT_ERROR(
             "Instance %u: Invalid fast decode flag [0 - 1, 0 for no decoder optimization], your "
@@ -466,16 +465,7 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
             config->fast_decode);
         return_error = EB_ErrorBadParameter;
     }
-#else
-    if (config->fast_decode > 4) {
-        SVT_ERROR(
-            "Instance %u: Invalid fast decode flag [0 - 4, 0 for no decoder optimization], your "
-            "input: %d\n",
-            channel_number + 1,
-            config->fast_decode);
-        return_error = EB_ErrorBadParameter;
-    }
-#endif
+
     if (config->tune > 1) {
         SVT_ERROR(
             "Instance %u: Invalid tune flag [0 - 1, 0 for VQ and 1 for PSNR], your input: %d\n",
