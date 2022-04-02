@@ -339,9 +339,9 @@ void set_tpl_extended_controls(PictureParentControlSet *pcs_ptr, uint8_t tpl_lev
   Used by signal_derivation_pre_analysis_oq and memory allocation
 */
 uint8_t get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration,
-                               Bool input_resolution) {
+                               uint8_t input_resolution) {
 
-    uint8_t enable_restoration = (enc_mode <= ENC_M7) ? 1 : 0;
+    Bool enable_restoration = (enc_mode <= ENC_M7) ? 1 : 0;
 
     // higher resolutions will shut restoration to save memory
     if (input_resolution >= INPUT_SIZE_8K_RANGE)

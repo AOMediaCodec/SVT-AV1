@@ -3808,10 +3808,10 @@ void copy_api_from_app(
     // If the value is valid, but not supported in the current preset, change the value to one that is supported.
     if (scs_ptr->static_config.fast_decode == 1) {
         if (scs_ptr->static_config.enc_mode <= ENC_MR || scs_ptr->static_config.enc_mode >= ENC_M10) {
-            SVT_WARN("Decoder speedup level is not supported in M%d.\n"
-                "Decoder speedup level is supported in presets M0-M9.\n", scs_ptr->static_config.enc_mode);
+            SVT_WARN("The fast decode option is not supported in M%d.\n", scs_ptr->static_config.enc_mode);
+            SVT_WARN("Decoder speedup is only supported in presets M0-M9.\n");
+            SVT_WARN("Switching off decoder speedup optimizations.\n");
             scs_ptr->static_config.fast_decode = 0;
-            SVT_WARN("Switching to decoder speedup level %d.\n", scs_ptr->static_config.fast_decode);
         }
     }
 
