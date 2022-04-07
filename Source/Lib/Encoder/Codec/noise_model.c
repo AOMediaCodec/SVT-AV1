@@ -19,6 +19,7 @@
 #include "aom_dsp_rtcd.h"
 
 #define kLowPolyNumParams 3
+#define kFileMagic "filmgrn1"
 
 static const int32_t k_max_lag = 4;
 
@@ -2572,7 +2573,8 @@ static void unpack_2d_pic(uint8_t *packed[3], EbPictureBufferDesc *outputPicture
 }
 
 int32_t svt_aom_denoise_and_model_run(struct AomDenoiseAndModel *ctx, EbPictureBufferDesc *sd,
-                                      AomFilmGrain *film_grain, int32_t use_highbd) {
+                                      AomFilmGrain *film_grain, int32_t use_highbd,
+                                      AomFilmGrain *film_grain_table) {
     const int32_t block_size = ctx->block_size;
     uint8_t *     raw_data[3];
     int32_t       chroma_sub_log2[2] = {1, 1}; //todo: send chroma subsampling
@@ -2634,7 +2636,13 @@ int32_t svt_aom_denoise_and_model_run(struct AomDenoiseAndModel *ctx, EbPictureB
 
     film_grain->apply_grain = 0;
     if (have_noise_estimate) {
-        if (!svt_aom_noise_model_get_grain_parameters(&ctx->noise_model, film_grain)) {
+        if (film_grain_table) {
+            if (svt_memcpy != NULL) {
+                svt_memcpy(film_grain, film_grain_table, sizeof(*film_grain));
+            } else {
+                svt_memcpy_c(film_grain, film_grain_table, sizeof(*film_grain));
+            }
+        } else if (!svt_aom_noise_model_get_grain_parameters(&ctx->noise_model, film_grain)) {
             SVT_ERROR("Unable to get grain parameters.\n");
             return 0;
         }
@@ -2671,4 +2679,135 @@ int32_t svt_aom_denoise_and_model_run(struct AomDenoiseAndModel *ctx, EbPictureB
     ctx->flat_blocks = NULL;
 
     return 1;
+}
+
+
+int32_t svt_aom_noise_model_read_film_grain_table(const char *filename,
+                                                 AomFilmGrain **p_film_grain_table) {
+    int32_t status = 0;
+    AomFilmGrain *film_grain;
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        SVT_ERROR("failed to open grain table %s\n", filename);
+        return status;
+    }
+    // Read in one extra character as there should be white space after
+    // the header.
+    char magic[9];
+    if (!fread(magic, 9, 1, file) || strncmp(magic, kFileMagic, 8)) {
+        SVT_ERROR("invalid grain table magic %s\n", filename);
+        fclose(file);
+        return status;
+    }
+
+    EB_CALLOC_ARRAY(film_grain, 1);
+
+    while (!feof(file)) {
+        int num_read = fscanf(file, "E %*d %*d %d %hd %d\n",
+                    &film_grain->apply_grain, &film_grain->random_seed,
+                    &film_grain->update_parameters);
+
+        if (num_read == 0 && feof(file))
+        {
+            SVT_ERROR("invalid grain table %s\n", filename);
+            break;
+        }
+        if (num_read != 3)
+        {
+            SVT_ERROR("Unable to read entry header. Read %d != 3\n", num_read);
+            break;
+        }
+
+        if (film_grain->update_parameters) {
+            num_read = fscanf(file, "p %d %d %d %d %d %d %d %d %d %d %d %d\n",
+                            &film_grain->ar_coeff_lag, &film_grain->ar_coeff_shift,
+                            &film_grain->grain_scale_shift, &film_grain->scaling_shift,
+                            &film_grain->chroma_scaling_from_luma, &film_grain->overlap_flag,
+                            &film_grain->cb_mult, &film_grain->cb_luma_mult, &film_grain->cb_offset,
+                            &film_grain->cr_mult, &film_grain->cr_luma_mult, &film_grain->cr_offset);
+            if (num_read != 12) {
+                SVT_ERROR("Unable to read entry header. Read %d != 12\n", num_read);
+                break;
+            }
+            if (!fscanf(file, "\tsY %d ", &film_grain->num_y_points)) {
+                SVT_ERROR("Unable to read num y points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_y_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_y[i][0],
+                                &film_grain->scaling_points_y[i][1])) {
+                    SVT_ERROR("Unable to read y scaling points\n");
+                    break;
+                }
+            }
+            if (!fscanf(file, "\n\tsCb %d", &film_grain->num_cb_points)) {
+                SVT_ERROR("Unable to read num cb points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_cb_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_cb[i][0],
+                                &film_grain->scaling_points_cb[i][1])) {
+                    SVT_ERROR("Unable to read cb scaling points\n");
+                    break;
+                }
+            }
+            if (!fscanf(file, "\n\tsCr %d", &film_grain->num_cr_points)) {
+                SVT_ERROR("Unable to read num cr points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_cr_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_cr[i][0],
+                                &film_grain->scaling_points_cr[i][1])) {
+                    SVT_ERROR("Unable to read cr scaling points\n");
+                    break;
+                }
+            }
+
+            if (fscanf(file, "\n\tcY")) {
+                SVT_ERROR("Unable to read Y coeffs header (cY)\n");
+                break;
+            }
+            const int n = 2 * film_grain->ar_coeff_lag * (film_grain->ar_coeff_lag + 1);
+            for (int i = 0; i < n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_y[i])) {
+                    SVT_ERROR("Unable to read Y coeffs\n");
+                    break;
+                }
+            }
+            if (fscanf(file, "\n\tcCb")) {
+                SVT_ERROR("Unable to read Cb coeffs header (cCb)\n");
+                break;
+            }
+            for (int i = 0; i <= n; ++i) {
+            if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cb[i])) {
+                    SVT_ERROR("Unable to read Cb coeffs\n");
+                    break;
+                }
+            }
+            if (fscanf(file, "\n\tcCr")) {
+                SVT_ERROR("Unable read to Cr coeffs header (cCr)\n");
+                break;
+            }
+            for (int i = 0; i <= n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cr[i])) {
+                    SVT_ERROR("Unable to read Cr coeffs\n");
+                    break;
+                }
+            }
+            (void)fscanf(file, "\n");
+        }
+        status = 1;
+        // TODO Add functionality to read multiple grain table entries
+        break;
+    }
+
+    if (status == 1) {
+        film_grain->apply_grain = 1;
+        *p_film_grain_table = film_grain;
+    } else {
+        EB_FREE(film_grain);
+    }
+
+    fclose(file);
+    return status;
 }

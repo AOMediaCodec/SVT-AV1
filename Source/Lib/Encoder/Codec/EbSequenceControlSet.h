@@ -415,6 +415,10 @@ typedef struct SequenceControlSet {
     // If true, calculate and store the SB-based variance
     uint8_t calculate_variance;
 
+    /* Pre-calcilated grain synthesis table
+    *
+    * Default is null */
+    AomFilmGrain *film_grain_table;
 } SequenceControlSet;
 typedef struct EbSequenceControlSetInstance {
     EbDctor             dctor;

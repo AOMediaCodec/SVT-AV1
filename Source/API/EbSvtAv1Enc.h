@@ -339,6 +339,9 @@ typedef struct EbSvtAv1EncConfiguration {
     */
     uint8_t film_grain_denoise_apply;
 
+    /* Indicates the path to the film grain parameters. */
+    const char *film_grain_table_filename;
+
     /* CDEF Level
     *
     * Default is -1. */

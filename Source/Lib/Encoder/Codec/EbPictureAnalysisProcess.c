@@ -1927,10 +1927,11 @@ static int32_t apply_denoise_2d(SequenceControlSet *scs_ptr, PictureParentContro
     fg_init_data.denoise_apply        = scs_ptr->static_config.film_grain_denoise_apply;
     EB_NEW(denoise_and_model, denoise_and_model_ctor, (EbPtr)&fg_init_data);
 
-    if (svt_aom_denoise_and_model_run(denoise_and_model,
+    svt_aom_denoise_and_model_run(denoise_and_model,
                                       inputPicturePointer,
                                       &pcs_ptr->frm_hdr.film_grain_params,
-                                      scs_ptr->static_config.encoder_bit_depth > EB_8BIT)) {}
+                                      scs_ptr->static_config.encoder_bit_depth > EB_8BIT,
+                                      scs_ptr->film_grain_table);
 
     EB_DELETE(denoise_and_model);
 
@@ -1940,16 +1941,33 @@ static int32_t apply_denoise_2d(SequenceControlSet *scs_ptr, PictureParentContro
 EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs_ptr,
                                         PictureParentControlSet *pcs_ptr) {
     EbErrorType return_error = EB_ErrorNone;
-
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
-
     EbPictureBufferDesc *input_picture_ptr = pcs_ptr->enhanced_picture_ptr;
     frm_hdr->film_grain_params.apply_grain = 0;
 
-    if (scs_ptr->static_config.film_grain_denoise_strength) {
-        if (apply_denoise_2d(scs_ptr, pcs_ptr, input_picture_ptr) < 0)
-            return 1;
+    if (apply_denoise_2d(scs_ptr, pcs_ptr, input_picture_ptr) < 0)
+        return 1;
+    scs_ptr->seq_header.film_grain_params_present |= frm_hdr->film_grain_params.apply_grain;
+
+    return return_error; //todo: add proper error handling
+}
+
+
+EbErrorType apply_film_grain_table(SequenceControlSet      *scs_ptr,
+                                   PictureParentControlSet *pcs_ptr) {
+    EbErrorType return_error = EB_ErrorNone;
+    FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
+    AomFilmGrain* grain_params = &frm_hdr->film_grain_params;
+    AomFilmGrain* grain_table = scs_ptr->film_grain_table;
+
+    if (svt_memcpy != NULL) {
+        svt_memcpy(grain_params, grain_table, sizeof(*grain_params));
+    } else {
+        svt_memcpy_c(grain_params, grain_table, sizeof(*grain_params));
     }
+
+    frm_hdr->film_grain_params.apply_grain = 1;
+    scs_ptr->seq_header.film_grain_params_present = 1;
 
     return return_error; //todo: add proper error handling
 }
@@ -1964,9 +1982,11 @@ EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs_ptr,
  ************************************************/
 void picture_pre_processing_operations(PictureParentControlSet *pcs_ptr,
                                        SequenceControlSet      *scs_ptr) {
-    if (scs_ptr->static_config.film_grain_denoise_strength)
+    if (scs_ptr->static_config.film_grain_denoise_strength) {
         denoise_estimate_film_grain(scs_ptr, pcs_ptr);
-    return;
+    } else if (scs_ptr->film_grain_table) {
+        apply_film_grain_table(scs_ptr, pcs_ptr);
+    }
 }
 
 static void sub_sample_luma_generate_pixel_intensity_histogram_bins(
