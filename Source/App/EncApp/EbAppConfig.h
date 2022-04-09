@@ -186,6 +186,7 @@ typedef struct EbConfig {
     FILE      *stat_file;
     FILE      *buffer_file;
     FILE      *qp_file;
+    char      *film_grain_table_filename;
     /* two pass */
     const char   *stats;
     FILE         *input_stat_file;

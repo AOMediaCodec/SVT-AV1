@@ -25,7 +25,6 @@
 #include "EbDecHandle.h"
 #include "EbDecMemInit.h"
 #include "EbDecPicMgr.h"
-#include "grainSynthesis.h"
 #include "EbUtility.h"
 
 #ifndef _WIN32

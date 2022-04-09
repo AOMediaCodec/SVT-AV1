@@ -886,7 +886,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     // Film Grain
     config_ptr->film_grain_denoise_strength = 0;
     config_ptr->film_grain_denoise_apply = 1;
-    config_ptr->film_grain_table_filename = NULL;
+    config_ptr->film_grain_table = NULL;
 
     // CPU Flags
     config_ptr->use_cpu_flags = CPU_FLAGS_ALL;
@@ -1080,18 +1080,6 @@ void svt_av1_print_lib_params(SequenceControlSet *scs) {
     SVT_INFO("-------------------------------------------\n");
 
     fflush(stdout);
-}
-
-
-EbErrorType svt_av1_update_film_grain_parameters(SequenceControlSet *scs_ptr) {
-    if (scs_ptr->static_config.film_grain_table_filename) {
-        if (!svt_aom_noise_model_read_film_grain_table(
-            scs_ptr->static_config.film_grain_table_filename,
-            &scs_ptr->film_grain_table)) {
-            return EB_ErrorBadParameter;
-        }
-    }
-    return EB_ErrorNone;
 }
 
 /**********************************

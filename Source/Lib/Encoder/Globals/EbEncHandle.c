@@ -3821,8 +3821,7 @@ void copy_api_from_app(
         SVT_WARN("Film grain denoise apply signal is going to be ignored when film grain is off.\n");
     }
     scs_ptr->seq_header.film_grain_params_present = (uint8_t)(scs_ptr->static_config.film_grain_denoise_strength>0);
-    scs_ptr->static_config.film_grain_table_filename = ((EbSvtAv1EncConfiguration*)config_struct)->film_grain_table_filename;
-    scs_ptr->film_grain_table = NULL;
+    scs_ptr->static_config.film_grain_table = ((EbSvtAv1EncConfiguration*)config_struct)->film_grain_table;
 
     // MD Parameters
     scs_ptr->enable_hbd_mode_decision = ((EbSvtAv1EncConfiguration*)config_struct)->encoder_bit_depth > 8 ? DEFAULT : 0;
@@ -4084,9 +4083,6 @@ EB_API EbErrorType svt_av1_enc_set_parameter(
         enc_handle->scs_instance_array[instance_index]->scs_ptr);
 
     svt_av1_print_lib_params(
-        enc_handle->scs_instance_array[instance_index]->scs_ptr);
-
-    svt_av1_update_film_grain_parameters(
         enc_handle->scs_instance_array[instance_index]->scs_ptr);
 
     return return_error;

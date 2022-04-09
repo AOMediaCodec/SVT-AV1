@@ -1931,15 +1931,15 @@ static int32_t apply_denoise_2d(SequenceControlSet *scs_ptr, PictureParentContro
                                       inputPicturePointer,
                                       &pcs_ptr->frm_hdr.film_grain_params,
                                       scs_ptr->static_config.encoder_bit_depth > EB_8BIT,
-                                      scs_ptr->film_grain_table);
+                                      scs_ptr->static_config.film_grain_table);
 
     EB_DELETE(denoise_and_model);
 
     return 0;
 }
 
-EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs_ptr,
-                                        PictureParentControlSet *pcs_ptr) {
+static EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs_ptr,
+                                               PictureParentControlSet *pcs_ptr) {
     EbErrorType return_error = EB_ErrorNone;
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
     EbPictureBufferDesc *input_picture_ptr = pcs_ptr->enhanced_picture_ptr;
@@ -1953,12 +1953,12 @@ EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs_ptr,
 }
 
 
-EbErrorType apply_film_grain_table(SequenceControlSet      *scs_ptr,
-                                   PictureParentControlSet *pcs_ptr) {
+static EbErrorType apply_film_grain_table(SequenceControlSet      *scs_ptr,
+                                          PictureParentControlSet *pcs_ptr) {
     EbErrorType return_error = EB_ErrorNone;
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
     AomFilmGrain* grain_params = &frm_hdr->film_grain_params;
-    AomFilmGrain* grain_table = scs_ptr->film_grain_table;
+    AomFilmGrain* grain_table = scs_ptr->static_config.film_grain_table;
 
     if (svt_memcpy != NULL) {
         svt_memcpy(grain_params, grain_table, sizeof(*grain_params));
@@ -1984,7 +1984,7 @@ void picture_pre_processing_operations(PictureParentControlSet *pcs_ptr,
                                        SequenceControlSet      *scs_ptr) {
     if (scs_ptr->static_config.film_grain_denoise_strength) {
         denoise_estimate_film_grain(scs_ptr, pcs_ptr);
-    } else if (scs_ptr->film_grain_table) {
+    } else if (scs_ptr->static_config.film_grain_table) {
         apply_film_grain_table(scs_ptr, pcs_ptr);
     }
 }

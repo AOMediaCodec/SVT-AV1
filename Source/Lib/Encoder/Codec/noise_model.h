@@ -300,11 +300,6 @@ void svt_aom_noise_model_save_latest(AomNoiseModel *noise_model);
 int32_t svt_aom_noise_model_get_grain_parameters(AomNoiseModel *const noise_model,
                                                  AomFilmGrain        *film_grain);
 
-/*!\brief Reads grain parameters from a pre-prepared grain table file
-     */
-int32_t svt_aom_noise_model_read_film_grain_table(const char *filename,
-                                                 AomFilmGrain **film_grain);
-
 /*!\brief Perform a Wiener filter denoising in 2D using the provided noise psd.
      *
      * \param[in]     data            Raw frame data

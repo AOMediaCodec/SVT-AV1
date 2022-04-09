@@ -254,6 +254,16 @@ static void set_pred_struct_file(const char *value, EbConfig *cfg) {
     cfg->config.enable_manual_pred_struct = TRUE;
 }
 
+static void set_cfg_film_grain_table(const char *value, EbConfig *cfg) {
+    if (cfg->film_grain_table_filename)
+        free(cfg->film_grain_table_filename);
+#ifndef _WIN32
+    cfg->film_grain_table_filename = strdup(value);
+#else
+    cfg->film_grain_table_filename = _strdup(value);
+#endif
+};
+
 static void set_cfg_stream_file(const char *value, EbConfig *cfg) {
     if (cfg->bitstream_file && cfg->bitstream_file != stdout) {
         fclose(cfg->bitstream_file);
@@ -541,9 +551,6 @@ static void set_cfg_film_grain(const char *value, EbConfig *cfg) {
 };
 static void set_cfg_film_grain_denoise_apply(const char *value, EbConfig *cfg) {
     cfg->config.film_grain_denoise_apply = (Bool)strtol(value, NULL, 0);
-};
-static void set_cfg_film_grain_table(const char *value, EbConfig *cfg) {
-    cfg->config.film_grain_table_filename = strdup(value);
 };
 static void set_enable_dlf_flag(const char *value, EbConfig *cfg) {
     //not bool to enable possible algorithm extension in the future
@@ -1581,6 +1588,11 @@ void svt_config_dtor(EbConfig *config_ptr) {
     if (config_ptr->input_pred_struct_filename) {
         free(config_ptr->input_pred_struct_filename);
         config_ptr->input_pred_struct_filename = NULL;
+    }
+
+    if (config_ptr->film_grain_table_filename) {
+        free(config_ptr->film_grain_table_filename);
+        config_ptr->film_grain_table_filename = NULL;
     }
 
     if (config_ptr->error_log_file && config_ptr->error_log_file != stderr) {
@@ -2688,6 +2700,139 @@ static int32_t read_pred_struct_file(EbConfig *config, char *PredStructPath,
     return return_error;
 }
 
+/**********************************
+* Read Grain Table File
+**********************************/
+static EbErrorType read_film_grain_table(const char *filename,
+                                     AomFilmGrain **p_film_grain_table) {
+    EbErrorType status = EB_ErrorBadParameter;
+    AomFilmGrain *film_grain;
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        fprintf(stderr, "failed to open grain table %s\n", filename);
+        return status;
+    }
+    // Read in one extra character as there should be white space after
+    // the header.
+    char magic[9];
+    if (!fread(magic, 9, 1, file) || strncmp(magic, "filmgrn1", 8)) {
+        fprintf(stderr, "invalid grain table magic %s\n", filename);
+        fclose(file);
+        return status;
+    }
+
+    film_grain = (AomFilmGrain*)calloc(1 , sizeof(AomFilmGrain));
+
+    while (!feof(file)) {
+        int num_read = fscanf(file, "E %*d %*d %d %hd %d\n",
+                    &film_grain->apply_grain, &film_grain->random_seed,
+                    &film_grain->update_parameters);
+
+        if (num_read == 0 && feof(file))
+        {
+            fprintf(stderr, "invalid grain table %s\n", filename);
+            break;
+        }
+        if (num_read != 3)
+        {
+            fprintf(stderr, "Unable to read entry header. Read %d != 3\n", num_read);
+            break;
+        }
+
+        if (film_grain->update_parameters) {
+            num_read = fscanf(file, "p %d %d %d %d %d %d %d %d %d %d %d %d\n",
+                            &film_grain->ar_coeff_lag, &film_grain->ar_coeff_shift,
+                            &film_grain->grain_scale_shift, &film_grain->scaling_shift,
+                            &film_grain->chroma_scaling_from_luma, &film_grain->overlap_flag,
+                            &film_grain->cb_mult, &film_grain->cb_luma_mult, &film_grain->cb_offset,
+                            &film_grain->cr_mult, &film_grain->cr_luma_mult, &film_grain->cr_offset);
+            if (num_read != 12) {
+                fprintf(stderr, "Unable to read entry header. Read %d != 12\n", num_read);
+                break;
+            }
+            if (!fscanf(file, "\tsY %d ", &film_grain->num_y_points)) {
+                fprintf(stderr, "Unable to read num y points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_y_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_y[i][0],
+                                &film_grain->scaling_points_y[i][1])) {
+                    fprintf(stderr, "Unable to read y scaling points\n");
+                    break;
+                }
+            }
+            if (!fscanf(file, "\n\tsCb %d", &film_grain->num_cb_points)) {
+                fprintf(stderr, "Unable to read num cb points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_cb_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_cb[i][0],
+                                &film_grain->scaling_points_cb[i][1])) {
+                    fprintf(stderr, "Unable to read cb scaling points\n");
+                    break;
+                }
+            }
+            if (!fscanf(file, "\n\tsCr %d", &film_grain->num_cr_points)) {
+                fprintf(stderr, "Unable to read num cr points\n");
+                break;
+            }
+            for (int i = 0; i < film_grain->num_cr_points; ++i) {
+                if (2 != fscanf(file, "%d %d", &film_grain->scaling_points_cr[i][0],
+                                &film_grain->scaling_points_cr[i][1])) {
+                    fprintf(stderr, "Unable to read cr scaling points\n");
+                    break;
+                }
+            }
+
+            if (fscanf(file, "\n\tcY")) {
+                fprintf(stderr, "Unable to read Y coeffs header (cY)\n");
+                break;
+            }
+            const int n = 2 * film_grain->ar_coeff_lag * (film_grain->ar_coeff_lag + 1);
+            for (int i = 0; i < n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_y[i])) {
+                    fprintf(stderr, "Unable to read Y coeffs\n");
+                    break;
+                }
+            }
+            if (fscanf(file, "\n\tcCb")) {
+                fprintf(stderr, "Unable to read Cb coeffs header (cCb)\n");
+                break;
+            }
+            for (int i = 0; i <= n; ++i) {
+            if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cb[i])) {
+                    fprintf(stderr, "Unable to read Cb coeffs\n");
+                    break;
+                }
+            }
+            if (fscanf(file, "\n\tcCr")) {
+                fprintf(stderr, "Unable read to Cr coeffs header (cCr)\n");
+                break;
+            }
+            for (int i = 0; i <= n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cr[i])) {
+                    fprintf(stderr, "Unable to read Cr coeffs\n");
+                    break;
+                }
+            }
+            (void)fscanf(file, "\n");
+        }
+        status = EB_ErrorNone;
+        // TODO Add functionality to read multiple grain table entries
+        break;
+    }
+
+    if (status == EB_ErrorNone) {
+        film_grain->apply_grain = 1;
+        *p_film_grain_table = film_grain;
+    } else {
+        free(film_grain);
+    }
+
+    fclose(file);
+    return status;
+}
+
 static Bool warn_legacy_token(const char *const token) {
     static struct warn_set {
         const char *old_token;
@@ -2847,6 +2992,17 @@ EbErrorType read_command_line(int32_t argc, char *const argv[], EncChannel *chan
         if (config->config.enable_manual_pred_struct == TRUE) {
             c->return_error = (EbErrorType)read_pred_struct_file(
                 config, config->input_pred_struct_filename, index);
+            return_error = (EbErrorType)(return_error & c->return_error);
+        }
+    }
+
+
+    for (index = 0; index < num_channels; ++index) {
+        EncChannel *c      = channels + index;
+        EbConfig   *config = c->config;
+        if (config->film_grain_table_filename) {
+            c->return_error = read_film_grain_table(config->film_grain_table_filename,
+                &config->config.film_grain_table);
             return_error = (EbErrorType)(return_error & c->return_error);
         }
     }

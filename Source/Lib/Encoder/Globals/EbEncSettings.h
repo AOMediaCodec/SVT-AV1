@@ -27,7 +27,4 @@ EbErrorType svt_av1_verify_settings(struct SequenceControlSet* scs_ptr);
 
 EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr);
 
-EbErrorType svt_av1_update_film_grain_parameters(SequenceControlSet *scs_ptr);
-
-
 #endif // EbEncSettings_h
