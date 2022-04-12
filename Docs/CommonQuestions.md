@@ -84,11 +84,13 @@ from higher levels in the 10-15 range.  2-D animation typically has less grain,
 so a level of around 4 works well with standard (hand-drawn) animation. Grainy
 animation can benefit from higher levels up to around 10.
 
+More detail on film grain synthesis is available in the [appendix](Appendix-Film-Grain-Synthesis).
+
 # Improving Decoding Performance
 
-Although modern AV1 decoders (such as dav1d and hardware decoders) are extremely
-efficient, there can be cases where older hardware has a difficult time decoding
-AV1 streams without stuttering.
+Although modern AV1 decoders (such as dav1d and hardware decoders) are
+extremely efficient, there can be cases where software encoders on slower
+hardware have a difficult time decoding AV1 streams without stuttering.
 
 Tips that may improve decoding performance include:
 
@@ -97,13 +99,72 @@ Tips that may improve decoding performance include:
 * Reduction in the bitrate used (higher CRF values mean lower bitrate)
 * Avoiding the use of synthetic grain
 
+# Tuning for Animation
+
+There are two types of vidoe that are called "animation": hand-drawn 2D
+and 3D animated. Both types tend to be easy to encode (meaning the resulting
+file will be small), but for different reasons. 2D animation often has large
+areas that do not move so that the difference between one frame and another is
+small in many cases. In addition, it tends to have small amounts of grain.
+Experience has shown that relatively high `crf` values with low levels of
+`film-grain` produce 2D animation results that are visual very close to the
+original.
+
+3D animation has much more detail and movement, but it sometimes has no grain
+whatsoever, or only small amounts that were purposely added to the image. Encoding
+3D animation with no grain will go much faster if `film-grain` synthesis is not
+enabled at encode time.
+
 # 8 or 10-bit Encoding
 
-TODO
+Video may be encoded with either 8 or 10-bit color depth. 10-bit video
+can represent more colors and is less prone to certain artifacts, such as
+color banding. Most SDR sources come in 8-bit color and SVT-AV1, by default, will
+encode 8-bit video to 8-bit video or 10-bit to 10-bit.
+
+It is possible to encode 8-bit video to a 10-bit final result. This allows the
+encoder to use less rounding and can produce superior fidelity. There is a small
+cost in terms of resulting file size, and a significant cost in terms of encoding
+time. 10-bit decoding can also be more compute-intensive than 8-bit.
+
+It is also possible to encode 10-bit video to an 8-bit result. This may be a smart
+choice if final file size and broad compatibility are critical and a small loss in
+fidelity is acceptable. Many users are unable to tell the difference
+between 10 and 8-bit SDR video.
+
+To force the final result to be 10-bit, specify `-pix_fmt yuv420p10le` in ffmpeg, or you
+can force 8-bit using `-pix_fmt yuv420p` in ffmpeg.
+
+# HDR and SDR Video
+
+Some video sources now come designed for display on high dynamic range (HDR) hardware.
+SVT-AV1 can encode these sources correctly and embed the required metadata in the final
+output. High definition typically involves a high definition color space (such as BT.2020)
+and an associated set of transfer functions (such as pr or HLG). HDR video is also
+typically encoded with 10-bit color. Detailed information on forcing these
+settings is available in the [full parameters description](parameters.md).
+
+Standard dynamic range video is usually encoded in a BT.709 color space. Colors
+can be mapped from a wider space into a less wide space using ffmpeg or other
+tools, but there are always losses, either in the accuracy of the color or
+the retention of detail in high and low brightness areas. As a rule, it is best not
+avoid conversion from HDR to SDR, if possible.
 
 # Options That Give the Best Encoding Bang-For-Buck
 
-TODO
+The quality/filesize tradeoff is controlled by the `crf` parameter. Increasing
+this parameter can significantly reduce the file size. AV1 is very efficient at
+preserving the types of details that humans notice, so significant reduction in
+objective quality (PNSR and similar measures) can still result in a video with
+good subjective quality.
+
+[Film grain synthesis](#practical-advice-on-grain-synethsis) can also significantly
+reduce file size while retaining apparent visual quality. It is not enabled by
+default because not all sources have film grain or CCD noise, Additionally,
+the de-noising process used in this procedure can delete very fine details
+(such as small, fast-moving particles or skin imperfections), so the
+aggressiveness of the denoising/synthesis needs to be paired with the strength
+of the grain/noise in the original sample.
 
 # Multi-Pass Encoding
 

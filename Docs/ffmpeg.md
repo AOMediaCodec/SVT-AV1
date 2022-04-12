@@ -13,6 +13,42 @@ If your ffmpeg version is 5.0 or lower, we suggest you upgrade to a more recent 
 
 The following are some examples of common use cases.
 
+## Most Common Options
+
+The parameters that are most frequently changed from one encode to another are
+
+* `crf`. This parameter governs the quality/size trade-off. Higher crf values will
+result in a final output that takes less space, but begins to lose detail. Lower crf
+values retain more detail at the cost of file size. The possible range of crf
+in SVT-AV1 is 1-63. Crf values are not meant to be equivalent across different
+encoders. A good starting point for 1080p video is `crf=30`.
+* `preset`. This parameter governs the efficiency/encode-time trade-off. Lower
+presets will result in an output with better quality for a given file size, but
+will take longer to encode. Higher presets can result in a very fast encode, with
+excellent multi-threading, but will make some compromises on visual quality for a
+given crf value.
+* `-g` (in ffmpeg) or `keyint` (in SvtAv1EncApp). These parameters govern how
+many frames will pass before the encoder will add a key frame. Key frames include
+all information about a single image. Other (delta) frames store only
+differences between one frame and another. Key frames are necessary for seeking
+and for error-resilience (in VOD applications). More frequent key frames make the
+video quicker to seek and more robust at the cost of efficiency. For VOD, a setting
+a key frame once per second or so is a common choice. In other contexts, less
+frequent key frames (such as 5 or 10 seconds) are preferred.
+* `film-grain`. Because of the random nature of film grain and CCD noise present
+in some videos, it is very difficult to compress. The AV1 specification has the
+capability to produce synthetic noise of varying strengths. It is therefore
+possible for SVT-AV1 to delete film grain and CCD noise and replace it with
+[synthetic grain](Appendix-Film-Grain-Synthesis.md) of the same character, resulting in good bitrate savings while
+retaining subjective visual quality. The `film-grain` parameter enables this
+behavior. Setting it to a higher level does so more aggressively. Very high
+levels of denoising can result in the loss of some high-frequency detail, however.
+* `pix_fmt`. This parameter forces encoding to 10 or 8 bit color depth. By default
+SVT-AV1 will encode 10-bit sources to 10-bit outputs and 8-bit to 8-bit.
+* `tune`. This parameter changes some encoder settings to produce a result
+that is optimized for subjective quality `tune=0` or PSNR `tune=1`. The former
+can result in an apparently sharper image.
+
 ## Example 1: Fast/Realtime Encoding
 
 For fast encoding, the preset must be sufficiently high that your CPU can
