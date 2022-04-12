@@ -137,5 +137,3 @@ or
 
 #### 1 pass CRF at maximum speed from 24fps yuv 1920x1080 input with colorimetry set to BT.709
 `SvtAv1EncApp -i input.yuv -w 1920 -h 1080 --fps 24 --crf 30 --preset 12 --color-primaries bt709 --transfer-characteristics bt709 --matrix-coefficients bt709 -b output.ivf`
-
-```
