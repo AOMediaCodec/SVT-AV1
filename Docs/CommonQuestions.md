@@ -84,7 +84,7 @@ from higher levels in the 10-15 range.  2-D animation typically has less grain,
 so a level of around 4 works well with standard (hand-drawn) animation. Grainy
 animation can benefit from higher levels up to around 10.
 
-More detail on film grain synthesis is available in the [appendix](Appendix-Film-Grain-Synthesis).
+More detail on film grain synthesis is available in the [appendix](Appendix-Film-Grain-Synthesis.md).
 
 # Improving Decoding Performance
 
@@ -174,7 +174,7 @@ using VBR (variable bit rate) or CBR (constant bit rate) encoding. When using
 CRF (constant visual rate factor) mode, there is little to no advantage to
 doing a multi-pass encode.
 
-# Bitrate Modes
+# Bitrate Control Modes
 
 SVT-AV1 supports three general approaches to controlling the bitrate.
 
@@ -188,5 +188,5 @@ zero makes the encode behave more like a CBR encode, while a value closer to
 100 gives it greater flexibility.
 * CRF (constant rate factor) mode targets a constant visual quality. This approach
 leads to a favorable visual quality for a given file size and is recommended
-for applications where a target bitrate is not necessary, such as in a home environment. 
+for applications where a target bitrate is not necessary, such as in a home environment.
 Set `--rc=0` to use this method.

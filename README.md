@@ -21,13 +21,13 @@ The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV
 - [GOP size selection](Docs/CommonQuestions.md#gop-size-selection)
 - [Threading and efficiency](Docs/CommonQuestions.md#threading-and-efficiency)
 - [Practical advice about grain synthesis](Docs/CommonQuestions.md#practical-advice-about-grain-synthesis)
-- [Improving decoding performance](Docs/CommonQuesions.md#improving-decoding-performance)
-- [Tuning for animation](Docs/CommonQuesions.md#tuning-for-animation)
+- [Improving decoding performance](Docs/CommonQuestions.md#improving-decoding-performance)
+- [Tuning for animation](Docs/CommonQuestions.md#tuning-for-animation)
 - [8 vs. 10-bit encoding](Docs/CommonQuestions.md#8-or-10-bit-encoding)
 - [HDR and SDR video](Docs/CommonQuestions.md#hdr-and-sdr)
 - [Options that give the best encoding bang-for-buck](Docs/CommonQuestions.md#options-that-give-the-best-encoding-bang-for-buck)
 - [Multi-pass encoding](Docs/CommonQuestions.md#multi-pass-encoding)
-- [CBR, VBR, and CRF modes](Docs/CommonQuestions.md#bitrate-modes)
+- [CBR, VBR, and CRF modes](Docs/CommonQuestions.md#bitrate-control-modes)
 
 **Technical Appendices**:
 - [Adaptive Prediction Structure Appendix](Docs/Appendix-Adaptive-Prediction-Structure.md)
