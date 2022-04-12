@@ -1,3 +1,5 @@
+[Top level](../README.md)
+
 # Using SVT-AV1 within ffmpeg
 
 **A note on ffmpeg versions** 
@@ -5,11 +7,11 @@
 Although ffmpeg had an SVT-AV1 plugin, its functionality was severely limited
 prior to and including ffmpeg version 5.0. Any version subsequent to that
 permits the full functionality, including passing SVT-AV1 parameters directly
-via the `svt-av1-params=` keyword. 
+via the `svt-av1-params` keyword. 
 
 If your ffmpeg version is 5.0 or lower, we suggest you upgrade to a more recent version.
 
-The following are some examples of common use cases:
+The following are some examples of common use cases.
 
 ## Example 1: Fast/Realtime Encoding
 
@@ -19,7 +21,7 @@ highest preset is 13.
 
     ffmpeg -i infile.mkv -c:v libsvtav1 -preset 10 -crf 35 -c:a copy outfile.mkv
 
-Since SVTAV1 is designed to scale well across cores/processors, fast encoding is
+Since SVT-AV1V1 is designed to scale well across cores/processors, fast encoding is
 best performed on machines with at least 8 logical cores.
 
 ## Example 2: Encoding for Personal Use
@@ -49,8 +51,8 @@ values in the range of 10-15 enable more aggressive use of this technique for vi
 grain. For 2D animation, lower values in the range of 4-6 are often appropriate. If the original
 video does not have natural grain, this parameter can be omitted.
 
-Note that the CRF range for SVTAV1 is 0-63, which is a wider range than is found on some popular
-open-source encoders. As a result, CRF values that approximate the visual quality in those encoders
+Note that the `crf` range for SVT-AV1V1 is 0-63, which is a wider range than is found on some popular
+open-source encoders. As a result, `crf` values that approximate the visual quality in those encoders
 will tend to be higher in SVT-AV1.
 
 Using a higher GOP via the `g` parameter results in a more efficient encode, at

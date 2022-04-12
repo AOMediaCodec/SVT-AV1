@@ -4,17 +4,15 @@ The Scalable Video Technology for AV1 (SVT-AV1 Encoder and Decoder) is an AV1-co
 
 The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV1>
 
-
 ## Documentation
 
 **Quick Start Guides**
 - [Running SVT-AV1 within ffmpeg](Docs/ffmpeg.md)
-- [Using the Standalone Encoder](Docs/Standalone.md)
+- [Using the Standalone Encoder](Docs/svt-av1_encoder_user_guide.md)
 
-**More Technical Guides**:
+**Technical Guides**:
 - [System Requirements and Build Guide](Docs/System-Requirements.md)
 - [List of All Paramemeters](Docs/parameters.md)
-- [SVT-AV1 Standalone Encoder User Guide](Docs/svt-av1_encoder_user_guide.md)
 - [SVT-AV1 Decoder User Guide](Docs/svt-av1_decoder_user_guide.md)
 
 **Common Questions/Issues**
@@ -54,7 +52,8 @@ The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV
 - [Temporal Dependency Model](Docs/Appendix-TPL.md)
 - [Transform Search Appendix](Docs/Appendix-TX-Search.md)
 
-**[How Do I Contribute?](Docs/Contribute.md)**
+**How Can I Contribute?**
+- [SVT-AV1 Contribution Guide](Docs/Contribute.md)**
 
 ## Performance tracker
 
