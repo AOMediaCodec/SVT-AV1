@@ -1,3 +1,5 @@
+[Top level](../README.md)
+
 # Switch Frame Appendix
 ## 1. Introduction [1]
 In HTTP ABR (adaptive bitrate) streaming, there will be multiple renditions generated at different bit rate after the encode of a source video to meet various network status. Each rendition is cut into multiple segments each starts with a key frame. As the switch of rendition can only happens at the position of a key frame, there will be a latency of quite a few seconds caused by the decode of current segment before reaching the next key frame. <br>

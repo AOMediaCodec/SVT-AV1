@@ -1,3 +1,5 @@
+[Top level](../README.md)
+
 # Palette Prediction
 
 ## 1.  Description of the algorithm
