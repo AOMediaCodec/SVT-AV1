@@ -16,16 +16,16 @@ The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV
 - [SVT-AV1 Decoder User Guide](Docs/svt-av1_decoder_user_guide.md)
 
 **Common Questions/Issues**
-- What presets do
-- Scene change detection
-- GOP size selection
-- Threading and efficiency
-- Practical advice on grain synthesis
-- Improving decoding performance
-- 8 vs. 10-bit encoding
-- Options that give the best encoding bang-for-buck
-- Multi-pass encoding
-- VBR vs CRF mode
+- [What presets do](Docs/CommonQuestions.md#what-presets-do)
+- [Scene change detection](Docs/CommonQuestions.md#what-presets-do)
+- [GOP size selection](Docs/CommonQuestions.md#gop-size-selection)
+- [Threading and efficiency](Docs/CommonQuestions.md#threading-and-efficiency)
+- [Practical advice about grain synthesis](Docs/CommonQuestions.md#practical-advice-about-grain-synthesis)
+- [Improving decoding performance](Docs/CommonQuesions.md#improving-decoding-performance)
+- [8 vs. 10-bit encoding](Docs/CommonQuestions.md#8-or-10-bit-encoding)
+- [Options that give the best encoding bang-for-buck](Docs/CommonQuestions.md#options-that-give-the-best-encoding-bang-for-buck)
+- [Multi-pass encoding](Docs/CommonQuestions.md#multi-pass-encoding)
+- [CBR, VBR, and CRF modes](Docs/CommonQuestions.md#bitrate-modes)
 
 **Technical Appendices**:
 - [Adaptive Prediction Structure Appendix](Docs/Appendix-Adaptive-Prediction-Structure.md)
