@@ -26,7 +26,7 @@ best performed on machines with at least 8 logical cores.
 
 ## Example 2: Encoding for Personal Use
 
-When encoding for personal use, such as a plex server or HTPC, higher efficiency
+When encoding for personal use, such as a media server or HTPC, higher efficiency
 and *reasonable* encoding times are desirable.
 
     ffmpeg -i infile.mkv -c:v libsvtav1 -preset 5 -crf 32 -g 240 -pix_fmt yuv420p10le -svtav1-params tune=0:film-grain=8 -c:v copy outfile.mkv
@@ -37,9 +37,9 @@ accurate colors and fewer artifacts with minimal increase in filesize. The
 resulting file may be more computationally intensive to decode in some cases.
 If compatibility with older-generation hardware is required, omitting the
 `pix_fmt` argument will help. Also, if decode performance is important, passing
-the parameter `fast-decode` with an appropriate level may help (this parameter is
-not available for all presets, so check the [user guide](svt-av1_encoder_user_guide.md)
-for the levels avaialable for your preset.
+the parameter `fast-decode=1` may help (this parameter is
+does not have an effect for all presets, so check the [user guide](svt-av1_encoder_user_guide.md)
+for your preset.
 
 The `tune=0` parameter optimizes the encode for visual quality (apparent sharpness),
 instead of objective quality (PSNR).
