@@ -117,12 +117,15 @@ doing a multi-pass encode.
 
 SVT-AV1 supports three general approaches to controlling the bitrate.
 
-In CBR (constant bit rate) mode, the target bitrate is forced at all times.
+* In CBR (constant bit rate) mode, the target bitrate is forced at all times.
 This results in a predictable file size, but inefficient use of space as simple
 scenes get too many bits and complex scenes get too few. Use `--rc=2` for this mode.
-
-In VBR (variable bit rate) mode, a target bitrate it set, but the effective bitrate
+* In VBR (variable bit rate) mode, a target bitrate it set, but the effective bitrate
 can vary above and below the target. Use `--rc=1` to enable VBR mode and set
 the flexibility of the effective bitrate using `--bias-pct`. A value closer to
 zero makes the encode behave more like a CBR encode, while a value closer to
 100 gives it greater flexibility.
+* CRF (constant rate factor) mode targets a constant visual quality. This approach
+leads to a favorable visual quality for a given file size and is recommended
+for applications where a target bitrate is not necessary, such as in a home environment. 
+Set `--rc=0` to use this method.
