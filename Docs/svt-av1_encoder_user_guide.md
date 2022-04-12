@@ -1,7 +1,7 @@
 [Top level](../README.md)
 
 [List of all configuration parameters](parameters.md)
-    
+
 # Scalable Video Technology for AV1 Encoder (SVT-AV1 Encoder) User Guide
 
 ## Table of Contents

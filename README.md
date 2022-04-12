@@ -53,7 +53,7 @@ The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV
 - [Transform Search Appendix](Docs/Appendix-TX-Search.md)
 
 **How Can I Contribute?**
-- [SVT-AV1 Contribution Guide](Docs/Contribute.md)**
+- [SVT-AV1 Contribution Guide](Docs/Contribute.md)
 
 ## Performance tracker
 

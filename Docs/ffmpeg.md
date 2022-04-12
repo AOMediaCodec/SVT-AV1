@@ -2,12 +2,12 @@
 
 # Using SVT-AV1 within ffmpeg
 
-**A note on ffmpeg versions** 
+**A note on ffmpeg versions**
 
 Although ffmpeg had an SVT-AV1 plugin, its functionality was severely limited
 prior to and including ffmpeg version 5.0. Any version subsequent to that
 permits the full functionality, including passing SVT-AV1 parameters directly
-via the `svt-av1-params` keyword. 
+via the `svt-av1-params` keyword.
 
 If your ffmpeg version is 5.0 or lower, we suggest you upgrade to a more recent version.
 
@@ -26,8 +26,8 @@ best performed on machines with at least 8 logical cores.
 
 ## Example 2: Encoding for Personal Use
 
-When encoding for personal use, such as a plex server or HTPC, higher efficiency 
-and *reasonable* encoding times are desirable. 
+When encoding for personal use, such as a plex server or HTPC, higher efficiency
+and *reasonable* encoding times are desirable.
 
     ffmpeg -i infile.mkv -c:v libsvtav1 -preset 5 -crf 32 -g 240 -pix_fmt yuv420p10le -svtav1-params tune=0:film-grain=8 -c:v copy outfile.mkv
 
@@ -68,11 +68,11 @@ currently insert a key frame at scene changes.
 
 A short GOP size (the `g` parameter) results in better seeking performance and fault-tolerance.
 
-An example use of a single-scene video 
+An example use of a single-scene video:
 
     ffmpeg -i infile.mkv -c:v libsvtav1 -preset 2 -crf 25 -g 24 -pix_fmt yuv420p10le -svtav1-params tune=0:film-grain=8 -c:v copy outfile.mkv
 
-Note that the use of 10-bit color depth can result in decode performance degradation in some cases. Using 8-bit instead will 
+Note that the use of 10-bit color depth can result in decode performance degradation in some cases. Using 8-bit instead will
 increase decode performance and compatibility.
 
 # Using an Older Version of ffmpeg
