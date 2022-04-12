@@ -4,9 +4,9 @@
 
 **A note on ffmpeg versions**
 
-Although ffmpeg had an SVT-AV1 plugin, its functionality was severely limited
+Although ffmpeg has an SVT-AV1 wrapper, its functionality was severely limited
 prior to and including ffmpeg version 5.0. Any version subsequent to that
-permits the full functionality, including passing SVT-AV1 parameters directly
+permits full functionality, including passing SVT-AV1 parameters directly
 via the `svt-av1-params` keyword.
 
 If your ffmpeg version is 5.0 or lower, we suggest you upgrade to a more recent version.
@@ -51,7 +51,7 @@ values in the range of 10-15 enable more aggressive use of this technique for vi
 grain. For 2D animation, lower values in the range of 4-6 are often appropriate. If the original
 video does not have natural grain, this parameter can be omitted.
 
-Note that the `crf` range for SVT-AV1V1 is 0-63, which is a wider range than is found on some popular
+Note that the `crf` range for SVT-AV1 is 1-63, which is a wider range than is found on some popular
 open-source encoders. As a result, `crf` values that approximate the visual quality in those encoders
 will tend to be higher in SVT-AV1.
 
