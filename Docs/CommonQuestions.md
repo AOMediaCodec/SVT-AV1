@@ -14,8 +14,9 @@ Generally speaking, presets 1-3 represent extremely high efficiency, for
 use when encode time is not important and quality/size of the resulting
 video file is critical. Presets 4-6 are commonly used by home enthusiasts
 as they represent a balance of efficiency and reasonable compute time. Presets
-between 7 and 13 are used for fast and real-time encoding. One should use
-the lowest preset that is tolerable.
+between 7 and 12 are used for fast and real-time encoding. Preset 13 is even
+faster but not recommended for videos meant for human consumption. One should
+use the lowest preset that is tolerable.
 
 # Scene Change Detection
 
@@ -127,11 +128,11 @@ It is possible to encode 8-bit video to a 10-bit final result. This allows the
 encoder to use less rounding and can produce slightly better fidelity. There is
 a small cost in terms of resulting file size (~5%), and, with some encoders, an
 encoding-time cost. SVT-AV1 was carefully designed to be able to encode 10-bit
-color in a compute-efficient manner, so there should not be a significant
+color in a compute-efficient manner, so there should not be much of a
 encoding performance penalty associated with 10-bit except at faster presets
-(11-13), where there may be a 25-30% slowdown. One should be aware, however,
-that 10-bit *decoding* can also be more compute-intensive than 8-bit in some
-cases.
+(11-13), where the slowdown may be more noticeable. One should be aware,
+however, that 10-bit *decoding* can also be more compute-intensive than 8-bit
+in some cases.
 
 It is possible to encode 10-bit video to an 8-bit result. This may make sense
 if broad compatibility is critical and a small loss in fidelity is acceptable.

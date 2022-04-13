@@ -2,16 +2,17 @@
 
 # Using SVT-AV1 within ffmpeg
 
-**A note on ffmpeg versions**
+## A Note on ffmpeg Versions
 
 Although ffmpeg has an SVT-AV1 wrapper, its functionality was severely limited
-prior to and including ffmpeg version 5.0. Any version subsequent to that
-permits full functionality, including passing SVT-AV1 parameters directly
+prior to and including ffmpeg version 5.0.X. Any version starting with 5.1.0 will
+permit full SVT-AV1 functionality, including passing SVT-AV1 parameters directly
 via the `svt-av1-params` keyword.
 
-If your ffmpeg version is 5.0 or lower, we suggest you upgrade to a more recent version.
+If your ffmpeg version is 5.0.X or lower, we suggest you upgrade to a more recent version or
+use the [ffmpeg patch](../ffmpeg_plugin/README.md) included in the [SVT-AV1 repository](https://gitlab.com/AOMediaCodec/SVT-AV1/-/tree/master/ffmpeg_plugin).
 
-The following are some examples of common use cases.
+The following are some examples of common use cases that utilize ffmpeg.
 
 ## Most Common Options
 
@@ -71,8 +72,8 @@ Presets between 4 and 6 offer what many people consider a reasonable trade-off
 between quality and encoding time. Encoding with 10-bit depth results in more
 accurate colors and fewer artifacts with minimal increase in filesize. The
 resulting file may be more computationally intensive to decode in some cases.
-If compatibility with older-generation hardware is required, omitting the
-`pix_fmt` argument will help. Also, if decode performance is important, passing
+If compatibility with less capable hardware is required, omitting the
+`pix_fmt` argument may help. Also, if decode performance is important, passing
 the parameter `fast-decode=1` may help (this parameter is
 does not have an effect for all presets, so check the [user guide](svt-av1_encoder_user_guide.md)
 for your preset.
