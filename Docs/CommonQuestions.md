@@ -124,10 +124,14 @@ encode 8-bit video to 8-bit video or 10-bit to 10-bit.
 
 It is possible to encode 8-bit video to a 10-bit final result. This allows the
 encoder to use less rounding and can produce superior fidelity. There is a small
-cost in terms of resulting file size, and a significant cost in terms of encoding
-time. 10-bit decoding can also be more compute-intensive than 8-bit.
+cost in terms of resulting file size, and, with some encoders, an encoding-time cost.
+SVT-AV1 was carefully designed to be able to encode 10-bit color in a
+compute-efficient manner, so there should not be a significant encoding
+performance penalty except at faster presets (11-13), where there may be a
+25-30% slowdown. One should be aware, however, that 10-bit decoding can also be
+more compute-intensive than 8-bit in some cases.
 
-It is also possible to encode 10-bit video to an 8-bit result. This may be a smart
+It is possible to encode 10-bit video to an 8-bit result. This may be a smart
 choice if final file size and broad compatibility are critical and a small loss in
 fidelity is acceptable. Many users are unable to tell the difference
 between 10 and 8-bit SDR video.
