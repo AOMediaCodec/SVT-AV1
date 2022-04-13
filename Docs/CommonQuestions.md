@@ -118,23 +118,24 @@ enabled at encode time.
 # 8 or 10-bit Encoding
 
 Video may be encoded with either 8 or 10-bit color depth. 10-bit video
-can represent more colors and is less prone to certain artifacts, such as
-color banding. Most SDR sources come in 8-bit color and SVT-AV1, by default, will
-encode 8-bit video to 8-bit video or 10-bit to 10-bit.
+can represent more colors and is less prone to certain artifacts, such as color
+banding and loss of detail in low luma areas. Most SDR sources come in 8-bit
+color and SVT-AV1, by default, will encode 8-bit video to 8-bit video or 10-bit
+to 10-bit.
 
 It is possible to encode 8-bit video to a 10-bit final result. This allows the
-encoder to use less rounding and can produce superior fidelity. There is a small
-cost in terms of resulting file size, and, with some encoders, an encoding-time cost.
-SVT-AV1 was carefully designed to be able to encode 10-bit color in a
-compute-efficient manner, so there should not be a significant encoding
-performance penalty except at faster presets (11-13), where there may be a
-25-30% slowdown. One should be aware, however, that 10-bit decoding can also be
-more compute-intensive than 8-bit in some cases.
+encoder to use less rounding and can produce slightly better fidelity. There is
+a small cost in terms of resulting file size (~5%), and, with some encoders, an
+encoding-time cost. SVT-AV1 was carefully designed to be able to encode 10-bit
+color in a compute-efficient manner, so there should not be a significant
+encoding performance penalty associated with 10-bit except at faster presets
+(11-13), where there may be a 25-30% slowdown. One should be aware, however,
+that 10-bit *decoding* can also be more compute-intensive than 8-bit in some
+cases.
 
-It is possible to encode 10-bit video to an 8-bit result. This may be a smart
-choice if final file size and broad compatibility are critical and a small loss in
-fidelity is acceptable. Many users are unable to tell the difference
-between 10 and 8-bit SDR video.
+It is possible to encode 10-bit video to an 8-bit result. This may make sense
+if broad compatibility is critical and a small loss in fidelity is acceptable.
+Many users are unable to tell the difference between 10 and 8-bit SDR video.
 
 To force the final result to be 10-bit, specify `-pix_fmt yuv420p10le` in ffmpeg, or you
 can force 8-bit using `-pix_fmt yuv420p` in ffmpeg.
