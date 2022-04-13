@@ -4,14 +4,19 @@ The Scalable Video Technology for AV1 (SVT-AV1 Encoder and Decoder) is an AV1-co
 
 The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV1>
 
+## License
+
+Up to v0.8.7, SVT-AV1 is licensed under the BSD-2-clause license and the Alliance for Open Media Patent License 1.0. See [LICENSE](LICENSE-BSD2.md) and [PATENTS](PATENTS.md) for details.
+Starting from v0.9, SVT-AV1 is licensed under the BSD-3-clause clear license and the Alliance for Open Media Patent License 1.0. See [LICENSE](LICENSE.md) and [PATENTS](PATENTS.md) for details.
+
 ## Documentation
 
 **Quick Start Guides**
+- [System Requirements and Build Guide](Docs/System-Requirements.md)
 - [Running SVT-AV1 within ffmpeg](Docs/ffmpeg.md)
 - [Using the Standalone Encoder](Docs/svt-av1_encoder_user_guide.md)
 
 **Technical Guides**:
-- [System Requirements and Build Guide](Docs/System-Requirements.md)
 - [List of All Paramemeters](Docs/parameters.md)
 - [SVT-AV1 Decoder User Guide](Docs/svt-av1_decoder_user_guide.md)
 
@@ -57,11 +62,3 @@ The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV
 **How Can I Contribute?**
 - [SVT-AV1 Contribution Guide](Docs/Contribute.md)
 
-## Performance tracker
-
-Performance and raw data files available at <http://videocodectracker.dev>
-
-## License
-
-Up to v0.8.7, SVT-AV1 is licensed under the BSD-2-clause license and the Alliance for Open Media Patent License 1.0. See [LICENSE](LICENSE-BSD2.md) and [PATENTS](PATENTS.md) for details.
-Starting from v0.9, SVT-AV1 is licensed under the BSD-3-clause clear license and the Alliance for Open Media Patent License 1.0. See [LICENSE](LICENSE.md) and [PATENTS](PATENTS.md) for details.
