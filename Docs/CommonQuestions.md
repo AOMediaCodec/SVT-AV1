@@ -26,27 +26,34 @@ reference frames. A scene change can be a reasonable time to insert a new key
 frame since the previous key frame may not have much in common with subsequent
 images.
 
-At present, SVT-AV1 does not insert key frames at scene changes. The `scd`
-parameter does not change the encoding. It is, therefore, advisable to use
-a third-party splitting program to encode videos by chunks if key frame
-insertion at scene changes is desired.
+At present, SVT-AV1 does not insert key frames at scene changes, regardless of
+the `scd` parameter. It is, therefore, advisable to use a third-party splitting
+program to encode videos by chunks if key frame insertion at scene changes is
+desired. 
+
+Users who are unable to perform their own key frame insertion should consider
+the use of subjective mode (`--tune 0`). In subjective mode, when a new scene 
+is detected, encoding improvements are made to the most important pictures at
+the start of the new scene to accommodate the new scene or other non-motion 
+changes.
 
 # GOP Size Selection
 
-Modern video files include key frames, which save the entire image, and delta
-frames, which store only information changed since the last key frame. The GOP
-size (governed by the `keyint` parameter) determines how frequently a key frame
-is inserted. In general, key frames are far larger than delta frames, so using a
-larger GOP can significantly improve efficiency.
+Modern video files include key frames, which save the entire intra-coded image,
+and delta frames, which store only information changed since the last key frame
+(through motion-compensated-prediction and residual coding). The GOP size
+(governed by the `keyint` parameter) determines how frequently a key frame is
+inserted. In general, key frames are far larger in terms of bits than delta
+frames, so using a larger GOP can significantly improve efficiency.
 
 However, frequent key frames can be helpful in two respects:
 
-1. They represent seek times. Decode software must go to the nearest previous
-   key frame when a seek is requested, then it will need to process all delta
-   frames from that key frame until the desired time. Closely spaced
-   key frames make seeking much faster.
-2. In video on demand applications, key frames allow improved resilience to
-   lost packets as each key frame serves as a sort of reset for the reference
+1. They make seek times much faster. Decode software must go to the nearest
+   previous key frame when a seek is requested, then it must process
+   all delta frames between the key frame and the desired seek point. When key
+   frames are far apart, seek performance can suffer.
+2. In video on demand applications, key frames provide improved resilience to
+   lost packets. Each key frame serves as a sort of reset for the reference
    chain used by inter frames. If the key frames are too widely spaced, missed
    packets can cause relatively long-lasting visual artifacts.
 
@@ -61,7 +68,16 @@ By default, SVT-AV1 only uses multi-threading techniques that do not cause a
 decrease in the resulting quality/efficiency (for example, it does not use
 tile-based threading, which is known to decrease quality). As a result, the
 quality of the video will be the same when using `--lp 1` as `--lp n` in the
-default CRF configuration.
+default CRF configuration. Although SVT-AV1 supports tiles, it does not rely 
+on tiles for parallelization.
+
+Anecdotally, SVT-AV1 is able to fairly efficiently about 16 logical cores.
+Beyond that, its ability to fully utilize cores drops off. For this reason, 
+tools that split video into scene-based chunks can be useful if greater 
+multiprocessing is desired.
+
+Note that the highest quality presets (0-3) use features that have a lot of
+dependencies, which may lead to lower CPU usage. 
 
 # Practical Advice on Grain Synthesis
 
