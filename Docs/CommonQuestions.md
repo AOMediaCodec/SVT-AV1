@@ -20,10 +20,11 @@ use the lowest preset that is tolerable.
 
 # Scene Change Detection
 
-Modern video files include key frames, which save the entire image, and delta
-frames, which store only information changed since the last key frame. A scene
-change can be a reasonable time to insert a new key frame since the previous
-key frame may not have much in common with subsequent images.
+Modern video files include key frames, which are intra-coded pictures, and
+inter-frames, which store only information changed since the previously encoded
+reference frames. A scene change can be a reasonable time to insert a new key
+frame since the previous key frame may not have much in common with subsequent
+images.
 
 At present, SVT-AV1 does not insert key frames at scene changes. The `scd`
 parameter does not change the encoding. It is, therefore, advisable to use
@@ -45,9 +46,9 @@ However, frequent key frames can be helpful in two respects:
    frames from that key frame until the desired time. Closely spaced
    key frames make seeking much faster.
 2. In video on demand applications, key frames allow improved resilience to
-   lost packets as each key frame serves as a sort of reset for the image. If
-   the key frames are too widely spaced, missed packets can cause relatively
-   long-lasting visual artifacts.
+   lost packets as each key frame serves as a sort of reset for the reference
+   chain used by inter frames. If the key frames are too widely spaced, missed
+   packets can cause relatively long-lasting visual artifacts.
 
 For video on demand applications, it is common to use GOP sizes of approximately
 one second. For example `keyint=24` for a 24 fps video. Home users frequently prefer
@@ -56,13 +57,11 @@ significantly longer GOP sizes of 5-10 seconds.
 # Threading and Efficiency
 
 SVT-AV1 is specifically designed to scale well across many logical processors.
-Some multi-threading techniques do not cause a decrease in resulting
-quality/efficiency while others do. At lower presets, multi-threading is
-disabled on tools where using it will reduce quality. As result, the number
-of cores SVT-AV1 can usefully use varies by preset.
-
-For presets in the range of 4-6, SVT-AV1 seems to fully utilize at least 16 logical
-processors relatively completely.
+By default, SVT-AV1 only uses multi-threading techniques that do not cause a
+decrease in the resulting quality/efficiency (for example, it does not use
+tile-based threading, which is known to decrease quality). As a result, the
+quality of the video will be the same when using `--lp 1` as `--lp n` in the
+default CRF configuration.
 
 # Practical Advice on Grain Synthesis
 
@@ -70,9 +69,9 @@ The random pattern associated with film grain (or CCD noise) is notoriously diff
 to compress. When grain is present in the original source, significant efficiency gains
 can be made by deleting film grain and replacing it with synthetic grain that
 does not take up significant space in the file. When `film-grain` is enabled, SVT-AV1
-deletes the existing grain, compares the resulting image with the original, analyzes
-the nature of the grain, and reproduces it with synthetic grain. This can greatly
-improve efficiency while retaining visual quality.
+denoises the image, compares the resulting image with the original, analyzes
+the nature of the grain. It then inserts synthetic grain with similar
+properties. This can greatly improve efficiency while retaining visual quality.
 
 The process of removing grain can sometimes delete very fine detail from the
 original image, so it should not be used too aggressively. The level passed
@@ -90,7 +89,7 @@ More detail on film grain synthesis is available in the [appendix](Appendix-Film
 # Improving Decoding Performance
 
 Although modern AV1 decoders (such as dav1d and hardware decoders) are
-extremely efficient, there can be cases where software encoders on slower
+extremely efficient, there can be cases where software decoders on slower
 hardware have a difficult time decoding AV1 streams without stuttering.
 
 Tips that may improve decoding performance include:
@@ -102,7 +101,7 @@ Tips that may improve decoding performance include:
 
 # Tuning for Animation
 
-There are two types of vidoe that are called "animation": hand-drawn 2D
+There are two types of video that are called "animation": hand-drawn 2D
 and 3D animated. Both types tend to be easy to encode (meaning the resulting
 file will be small), but for different reasons. 2D animation often has large
 areas that do not move so that the difference between one frame and another is
@@ -174,11 +173,20 @@ of the grain/noise in the original sample.
 
 # Multi-Pass Encoding
 
-Some encoders benefit from the use of a multi-pass encoding approach. In SVT-AV1,
-in general, multi-pass encoding is useful for achieving a target bitrate when
-using VBR (variable bit rate) or CBR (constant bit rate) encoding. When using
-CRF (constant visual rate factor) mode, there is little to no advantage to
-doing a multi-pass encode.
+Some encoder features benefit from or require the use of a multi-pass encoding
+approach. In SVT-AV1, in general, multi-pass encoding is useful for achieving a
+target bitrate when using VBR (variable bit rate) encoding, although both
+one-pass and multi-pass modes are supported.
+
+When using CRF (constant visual rate factor) mode, multi-pass encoding is
+designed to improve quality for corner case videos--it is particularly helpful
+in videos with high motion because it can adjust the prediction structure (to
+use closer references, for example). Multi-pass encoding, can, therefore, be
+said to have an impact on quality in CRF mode, but is not crticial in most
+cases. In general, multi-pass encoding is not as important for SVT-AV1 in CRF
+mode than it is for some other encoders.
+
+CBR (constant bit rate) encoding is always one-pass.
 
 # Bitrate Control Modes
 
