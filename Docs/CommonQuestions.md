@@ -1,13 +1,28 @@
 [Top level](../README.md)
 
+# Common Questions and Topics of Interest
+
+* [What Presets Do](#what-presets-do)
+* [Scene Change Detection](#scene-change-detection)
+* [GOP Size Selection](#gop-size-selection)
+* [Threading and Efficiency](#threading-and-efficiency)
+* [Practical Advice on Grain Synthesis](#practical-advice-on-grain-synthesis)
+* [Improving Decoding Performance](#improving-decoding-performance)
+* [Tuning for Animation](#tuning-for-animation)
+* [8 or 10-bit Encoding](#8-or-10-bit-encoding)
+* [HDR and SDR Video](#hdr-and-sdr-video)
+* [Options That Give the Best Encoding Bang-For-Buck](#options-that-give-the-best-encoding-bang-for-buck)
+* [Multi-Pass Encoding](#multi-pass-encoding)
+* [Bitrate Control Modes](#bitrate-control-modes)
+
 # What Presets Do
 
 Presets control how many efficiency features are used during the encoding
 process, and the intensity with which those features are used. Lower presets
-use more features and produce a more efficient file (smaller, for a given
-quality). However, lower presets also require more compute time during the
+use more features and produce a more efficient file (smaller file, for a given
+visual quality). However, lower presets also require more compute time during the
 encode process. If a file is to be widely distributed, it can be worth it to
-use very low presets, while high presets allow very fast encoding, such
+use very low presets, while high presets allow fast encoding, such
 as for real-time applications.
 
 Generally speaking, presets 1-3 represent extremely high efficiency, for
@@ -29,12 +44,12 @@ images.
 At present, SVT-AV1 does not insert key frames at scene changes, regardless of
 the `scd` parameter. It is, therefore, advisable to use a third-party splitting
 program to encode videos by chunks if key frame insertion at scene changes is
-desired. 
+desired.
 
 Users who are unable to perform their own key frame insertion should consider
-the use of subjective mode (`--tune 0`). In subjective mode, when a new scene 
+the use of subjective mode (`--tune 0`). In subjective mode, when a new scene
 is detected, encoding improvements are made to the most important pictures at
-the start of the new scene to accommodate the new scene or other non-motion 
+the start of the new scene to accommodate the new scene or other non-motion
 changes.
 
 # GOP Size Selection
@@ -43,23 +58,24 @@ Modern video files include key frames, which save the entire intra-coded image,
 and delta frames, which store only information changed since the last key frame
 (through motion-compensated-prediction and residual coding). The GOP size
 (governed by the `keyint` parameter) determines how frequently a key frame is
-inserted. In general, key frames are far larger in terms of bits than delta
-frames, so using a larger GOP can significantly improve efficiency.
+inserted. In general, key frames are far larger, in terms of bits, than delta
+frames are, so using a larger GOP can significantly improve efficiency.
 
 However, frequent key frames can be helpful in two respects:
 
-1. They make seek times much faster. Decode software must go to the nearest
+1. They make seek times faster. Decode software must go to the nearest
    previous key frame when a seek is requested, then it must process
    all delta frames between the key frame and the desired seek point. When key
    frames are far apart, seek performance can suffer.
-2. In video on demand applications, key frames provide improved resilience to
+2. In video-on-demand applications, key frames provide improved resilience to
    lost packets. Each key frame serves as a sort of reset for the reference
    chain used by inter frames. If the key frames are too widely spaced, missed
    packets can cause relatively long-lasting visual artifacts.
 
-For video on demand applications, it is common to use GOP sizes of approximately
-one second. For example `keyint=24` for a 24 fps video. Home users frequently prefer
-significantly longer GOP sizes of 5-10 seconds.
+For video on demand applications, it is common to use GOP sizes of
+approximately one second. For example, `keyint=24` provides a key frame once
+per second for a 24 fps video. Home users frequently prefer longer GOP sizes, often
+in the range of 5-10 seconds.
 
 # Threading and Efficiency
 
@@ -68,16 +84,16 @@ By default, SVT-AV1 only uses multi-threading techniques that do not cause a
 decrease in the resulting quality/efficiency (for example, it does not use
 tile-based threading, which is known to decrease quality). As a result, the
 quality of the video will be the same when using `--lp 1` as `--lp n` in the
-default CRF configuration. Although SVT-AV1 supports tiles, it does not rely 
+default CRF configuration. Although SVT-AV1 supports tiles, it does not rely
 on tiles for parallelization.
 
-Anecdotally, SVT-AV1 is able to fairly efficiently about 16 logical cores.
-Beyond that, its ability to fully utilize cores drops off. For this reason, 
-tools that split video into scene-based chunks can be useful if greater 
-multiprocessing is desired.
+Anecdotally, SVT-AV1 is able to fairly efficiently use about 16 logical cores.
+Beyond that, its ability to fully utilize cores drops off. For this reason,
+tools that split video into scene-based chunks can be useful if greater
+parallelization is desired.
 
 Note that the highest quality presets (0-3) use features that have a lot of
-dependencies, which may lead to lower CPU usage. 
+dependencies, which may lead to lower CPU usage.
 
 # Practical Advice on Grain Synthesis
 
@@ -85,9 +101,10 @@ The random pattern associated with film grain (or CCD noise) is notoriously diff
 to compress. When grain is present in the original source, significant efficiency gains
 can be made by deleting film grain and replacing it with synthetic grain that
 does not take up significant space in the file. When `film-grain` is enabled, SVT-AV1
-denoises the image, compares the resulting image with the original, analyzes
+denoises the image, compares the resulting image with the original, and analyzes
 the nature of the grain. It then inserts synthetic grain with similar
-properties. This can greatly improve efficiency while retaining visual quality.
+properties. This can greatly improve efficiency while retaining visual quality and
+character.
 
 The process of removing grain can sometimes delete very fine detail from the
 original image, so it should not be used too aggressively. The level passed
@@ -112,7 +129,7 @@ Tips that may improve decoding performance include:
 
 * Use of the `fast-decode=1` parameter
 * Use of 8-bit color depth instead of 10
-* Reduction in the bitrate used (higher CRF values mean lower bitrate)
+* Reduction in the bitrate used (higher CRF values result in lower bitrates)
 * Avoiding the use of synthetic grain
 
 # Tuning for Animation
@@ -120,16 +137,16 @@ Tips that may improve decoding performance include:
 There are two types of video that are called "animation": hand-drawn 2D
 and 3D animated. Both types tend to be easy to encode (meaning the resulting
 file will be small), but for different reasons. 2D animation often has large
-areas that do not move so that the difference between one frame and another is
-small in many cases. In addition, it tends to have small amounts of grain.
+areas that do not move, so the difference between one frame and another is
+often small. In addition, it tends to have low levels of grain.
 Experience has shown that relatively high `crf` values with low levels of
-`film-grain` produce 2D animation results that are visual very close to the
-original.
+`film-grain` produce 2D animation results that are visually good.
 
 3D animation has much more detail and movement, but it sometimes has no grain
-whatsoever, or only small amounts that were purposely added to the image. Encoding
-3D animation with no grain will go much faster if `film-grain` synthesis is not
-enabled at encode time.
+whatsoever, or only small amounts that were purposely added to the image. If
+the original animated video has no grain, encoding without `film-grain` will
+increase encoding speed and avoid the possible loss of fine detail that can
+sometimes result from the denoising step of the synthetic grain process.
 
 # 8 or 10-bit Encoding
 
@@ -161,15 +178,15 @@ can force 8-bit using `-pix_fmt yuv420p` in ffmpeg.
 Some video sources now come designed for display on high dynamic range (HDR) hardware.
 SVT-AV1 can encode these sources correctly and embed the required metadata in the final
 output. High definition typically involves a high definition color space (such as BT.2020)
-and an associated set of transfer functions (such as pr or HLG). HDR video is also
+and an associated set of transfer functions (such as PQ or HLG). HDR video is also
 typically encoded with 10-bit color. Detailed information on forcing these
 settings is available in the [full parameters description](parameters.md).
 
-Standard dynamic range video is usually encoded in a BT.709 color space. Colors
-can be mapped from a wider space into a less wide space using ffmpeg or other
-tools, but there are always losses, either in the accuracy of the color or
-the retention of detail in high and low brightness areas. As a rule, it is best not
-avoid conversion from HDR to SDR, if possible.
+Colors can be mapped from a wider space into a less wide space (such as the
+frequently used BT.709) using ffmpeg or other tools, but there are always
+losses, either in the accuracy of the color or the retention of detail in high
+and low brightness areas. As a rule, it is best to avoid conversion from HDR to
+SDR, if possible.
 
 # Options That Give the Best Encoding Bang-For-Buck
 
@@ -187,6 +204,11 @@ the de-noising process used in this procedure can delete very fine details
 aggressiveness of the denoising/synthesis needs to be paired with the strength
 of the grain/noise in the original sample.
 
+The use of subjective mode (`--tune=0`) often results in an image with greater
+apparent sharpness and is intended to produce a result that appears to humans
+to be of high quality (as opposed to doing well on objective measures such as
+PSNR).
+
 # Multi-Pass Encoding
 
 Some encoder features benefit from or require the use of a multi-pass encoding
@@ -197,8 +219,8 @@ one-pass and multi-pass modes are supported.
 When using CRF (constant visual rate factor) mode, multi-pass encoding is
 designed to improve quality for corner case videos--it is particularly helpful
 in videos with high motion because it can adjust the prediction structure (to
-use closer references, for example). Multi-pass encoding, can, therefore, be
-said to have an impact on quality in CRF mode, but is not crticial in most
+use closer references, for example). Multi-pass encoding, therefore, can be
+said to have an impact on quality in CRF mode, but is not critical in most
 cases. In general, multi-pass encoding is not as important for SVT-AV1 in CRF
 mode than it is for some other encoders.
 
