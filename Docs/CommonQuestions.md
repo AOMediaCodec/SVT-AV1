@@ -39,18 +39,26 @@ Modern video files include key frames, which are intra-coded pictures, and
 inter-frames, which store only information changed since the previously encoded
 reference frames. A scene change can be a reasonable time to insert a new key
 frame since the previous key frame may not have much in common with subsequent
-images.
+images. Insertion of key frames is common practice but is not required.
 
 At present, SVT-AV1 does not insert key frames at scene changes, regardless of
 the `scd` parameter. It is, therefore, advisable to use a third-party splitting
 program to encode videos by chunks if key frame insertion at scene changes is
-desired.
+desired. 
 
+Note that not inserting a key frame at scene changes is not considered a bug
+nor missing feature by the SVT-AV1 team. AV1 is sufficiently flexible that when
+a scene change is detected, the encoder automatically relies less on temporally
+neighboring frames, which allows it to adapt to scene changes without affecting
+the GOP structure (frequency of key frames).
+
+<!--
 Users who are unable to perform their own key frame insertion should consider
 the use of subjective mode (`--tune 0`). In subjective mode, when a new scene
 is detected, encoding improvements are made to the most important pictures at
 the start of the new scene to accommodate the new scene or other non-motion
 changes.
+-->
 
 # GOP Size Selection
 
@@ -131,6 +139,8 @@ Tips that may improve decoding performance include:
 * Use of 8-bit color depth instead of 10
 * Reduction in the bitrate used (higher CRF values result in lower bitrates)
 * Avoiding the use of synthetic grain
+* Use of higher presets (which do not use the more complex AV1 tools)
+* Provide the option of a lower resolution version of the video
 
 # Tuning for Animation
 
@@ -151,7 +161,7 @@ sometimes result from the denoising step of the synthetic grain process.
 # 8 or 10-bit Encoding
 
 Video may be encoded with either 8 or 10-bit color depth. 10-bit video
-can represent more colors and is less prone to certain artifacts, such as color
+can represent more shades of grey and colors and is less prone to certain artifacts, such as color
 banding and loss of detail in low luma areas. Most SDR sources come in 8-bit
 color and SVT-AV1, by default, will encode 8-bit video to 8-bit video or 10-bit
 to 10-bit.
