@@ -51,7 +51,7 @@ In this mode, the latency is controlled by the size of the look ahead. The CRF I
 
 ### 3-PASS VBR (CRF IPP first pass + CRF middle pass with same Prediction structure as final pass + final VBR pass)
 
-The multi-pass mode can only be used in applications where latency is not a concern. This mode is available only  using the SVT-AV1 sample application. This mode provides the best BD-rate and rate matching performance. In the first pass, the encoder runs in IPP CRF mode with simple prediction modes. The collected statistics are stored in memory or file and are passed to the encoder in the next pass. The middle pass has the same prediction structure as the final pass. Using similar prediction structure helps significantly in rate assignment. The data from the first pass is used to estimate the sequence QP for the middle pass. Having a middle pass with closer rate to the target rate helps in matching the target rate considerably. Finally, the last pass uses the data from the previous passes to achieve the best performance. A block diagram of the encoder with three passes is shown in Figure 2.
+The multi-pass mode can only be used in applications where latency is not a concern. This mode is available only using the SVT-AV1 sample application. This mode provides the best BD-rate and rate matching performance. In the first pass, the encoder runs in IPP CRF mode with simple prediction modes. The collected statistics are stored in memory or file and are passed to the encoder in the next pass. The middle pass has the same prediction structure as the final pass. Using similar prediction structure helps significantly in rate assignment. The data from the first pass is used to estimate the sequence QP for the middle pass. Having a middle pass with closer rate to the target rate helps in matching the target rate considerably. Finally, the last pass uses the data from the previous passes to achieve the best performance. A block diagram of the encoder with three passes is shown in Figure 2.
 
 ![rc_figure2](./img/rc_figure2.PNG)
 
@@ -113,7 +113,7 @@ where:
 - *kf_group_err* is the calculated error for the GoP as the sum of frame errors in the GoP.
 - *modified_error_left* is the calculated error over the remaining frames in the clip.
 
-In the above definitions, error is defined as function of the best Inter vs Intra error from the first pass.
+In the above definitions, error is defined as function of the best Inter vs. Intra error from the first pass.
 
 #### 3-Pass VBR:
 
@@ -131,7 +131,7 @@ The concept of rate allocation for the mini-GoP is similar to the rate allocatio
 
 ___GF_group_bits = kf_bits_left * (GF_group_err / kf_error_left)___
 
-*kf_bits_left* refers to the remaining bit budget in the GoP. *GF_group_err* is the calculated error for the gf group as the sum of frame errors in the gf group and *kf_error_left* is the calculated error for the remaining frames in the GoP. Error is defined as a function of the best inter vs intra error from the first pass for the mini-GoP.
+*kf_bits_left* refers to the remaining bit budget in the GoP. *GF_group_err* is the calculated error for the gf group as the sum of frame errors in the gf group and *kf_error_left* is the calculated error for the remaining frames in the GoP. Error is defined as a function of the best inter vs. intra error from the first pass for the mini-GoP.
 
 #### 3-Pass
 
@@ -275,7 +275,7 @@ The main idea is to update the range of qindex values which is between the activ
 
 ## Constant Bitrate Rate Mode
 
-In several rate constrained video coding applications, it is desired to use the constant bitrate (CBR) mode to maintain a constant bitrate during the encoding process while allowing the resulting video quality to vary. In SVT-AV1, the CBR mode is implemented through a qindex adjustment mechanism based on the fullness status of a virtual buffer. A virtual buffer is used to account for  the size of the encoded frames. Knowing the desired constant bit rate, the size of previously encoded pictures and the fullness status of the virtual buffer, the algorithm adjusts the qindex of the frame being encoded to maintain the virtual buffer fullness at the desired level.  Once  a frame is completely processed in the packetization process, feedback information representing the size of the processed frame is sent to the rate control algorithm to update the buffer fullness level.
+In several rate constrained video coding applications, it is desired to use the constant bitrate (CBR) mode to maintain a constant bitrate during the encoding process while allowing the resulting video quality to vary. In SVT-AV1, the CBR mode is implemented through a qindex adjustment mechanism based on the fullness status of a virtual buffer. A virtual buffer is used to account for the size of the encoded frames. Knowing the desired constant bit rate, the size of previously encoded pictures and the fullness status of the virtual buffer, the algorithm adjusts the qindex of the frame being encoded to maintain the virtual buffer fullness at the desired level.  Once a frame is completely processed in the packetization process, feedback information representing the size of the processed frame is sent to the rate control algorithm to update the buffer fullness level.
 
 ### CBR Date Flow
 
@@ -287,7 +287,7 @@ A high-level description of the steps involved in the CBR mode in SVT-AV1 is as 
 
 ### Setting the virtual buffer parameters (set_rc_buffer_sizes())
 
-The CBR rate control makes use of a virtual buffer and tries to maintain the buffer fullness close to a desired optimal fullness level. This goal is achieved by adjusting the encoded frame size through the quantization parameter qindex. A diagram of a virtual buffer is shown in the Figure 7. The input to the frame buffer is the desired frame size corresponding to the target bitrate (Target Bitrate is the allocated size, here what goes into the buffer is the Average Bit Size from a transmission channel). The buffer content is incremented by the target frame size every time a new frame is to be processed. The output is the actual encoded frame size, and is removed from the buffer content at the same frequency the contents of the virtual buffer is updated by the target frame size.
+The CBR rate control makes use of a virtual buffer and tries to maintain the buffer fullness close to a desired optimal fullness level. This goal is achieved by adjusting the encoded frame size through the quantization parameter qindex. A diagram of a virtual buffer is shown in the Figure 7. The input to the frame buffer is the desired frame size corresponding to the target bitrate (Target Bitrate is the allocated size, here what goes into the buffer is the Average Bit Size from a transmission channel). The buffer content is incremented by the target frame size every time a new frame is to be processed. The output is the actual encoded frame size, and is removed from the buffer content at the same frequency the contents of the virtual buffer are updated by the target frame size.
 
 ![rc_figure7](./img/rc_figure7.PNG)
 ###### Figure 7. CBR virtual buffer diagram.
@@ -299,7 +299,7 @@ starting_buffer_level = starting_buffer_level_ms* target_bit_rate/ 1000 <br /> o
 where the following are user-specified input parameters to the encoder:
 
 - starting_buffer_level_ms: Initial delay in milliseconds before the decoder starts removing bits from its buffer.
-- optimal_buffer_level_ms: Optimal delay in milli-seconds the decoder should maintain.
+- optimal_buffer_level_ms: Optimal delay in milliseconds the decoder should maintain.
 - maximum_buffer_size_ms: Maximum buffer delay in milliseconds.
 - target_bit_rate: Target(better to say average) bitrate.
 
@@ -328,7 +328,7 @@ ___kf_boost = 2 \* framerate – 16___
 
 #### B.Non-Key frame target frame size calculation (av1_calc_pframe_target_size_one_pass_cbr())
 
-Setting the target frame size for non-key frames involves a first step where an initial value of the target frame size is set followed by a second step where an adjustment of the generated target frame size occurs. In the first step, the initial target frame size is normally set to avg_frame_size.  In the second step, the target frame size is adjusted based on the difference between the optimal buffer level and the current buffer level. The algorithm tends to lower the target frame size for the current frame when the computed difference is positive or  increase the target frame size for the current frame if the difference is negative. Finally, the adjusted target fame size is clipped.
+Setting the target frame size for non-key frames involves a first step where an initial value of the target frame size is set followed by a second step where an adjustment of the generated target frame size occurs. In the first step, the initial target frame size is normally set to avg_frame_size.  In the second step, the target frame size is adjusted based on the difference between the optimal buffer level and the current buffer level. The algorithm tends to lower the target frame size for the current frame when the computed difference is positive or increase the target frame size for the current frame if the difference is negative. Finally, the adjusted target frame size is clipped.
 
 ### Determining the final qindex for the frame (rc_pick_q_and_bounds_no_stats_cbr())
 
@@ -336,10 +336,10 @@ After estimating the target frame size for the current frame, the algorithm proc
 
 #### A. Determining the worst quality qindex (calc_active_worst_quality_no_stats_cbr())
 
-The worst quality qindex is the highest allowed qindex value and is  initialized to 255. The worst quality qindex is generated based on the current buffer level as follows:
+The worst quality qindex is the highest allowed qindex value and is initialized to 255. The worst quality qindex is generated based on the current buffer level as follows:
 - Initially, the worst quality qindex is first obtained by applying a factor of 5/4 to an ambient qindex defined as the average of the previously coded frames of the same type (i.e. key frames or non-key frames).  The worst quality qindex is further adjusted based on the fullness of the buffer as follows:
 - If the buffer fullness level is greater than the optimal level, then the value of the worst quality qindex is reduced (to increase the actual size of the encoded frame) in such a way that the expected reduction in buffer level does not go beyond 30% of its current level.
-- If the buffer fullness level is  greater than the critical level and less than the optimal level, then the worst quality qindex is increased by a factor that is a linear function of the location of the current buffer level in the interval [Critical..optimal] and the difference :  worst_quality – ambient qp
+- If the buffer fullness level is greater than the critical level and less than the optimal level, then the worst quality qindex is increased by a factor that is a linear function of the location of the current buffer level in the interval [Critical..optimal] and the difference :  worst_quality – ambient qp
 - If the buffer level is less than the critical level, the qindex is set to the highest possible qindex value worst_qindex. The latter is set to by default to 255 or to any value entered by the user.
 
 #### B. Determining the best quality q index (calc_active_best_quality_no_stats_cbr())
