@@ -44,7 +44,7 @@ images. Insertion of key frames is common practice but is not required.
 At present, SVT-AV1 does not insert key frames at scene changes, regardless of
 the `scd` parameter. It is, therefore, advisable to use a third-party splitting
 program to encode videos by chunks if key frame insertion at scene changes is
-desired. 
+desired.
 
 Note that not inserting a key frame at scene changes is not considered a bug
 nor missing feature by the SVT-AV1 team. AV1 is sufficiently flexible that when
