@@ -273,7 +273,7 @@ ___rate_error_estimate  = (vbr_bits_off_target * 100) / total_actual_bits___
 
 The main idea is to update the range of qindex values which is between the active_best_quality and active_worst_quality  using the feedback information from the packetization. If *rate_error_estimate* > *undershoot_pct*, the encoder is undershooting, so the lower value of the range is reduced by extend_minq, hence allowing the encoder to reduce the qindex and increase the rate. If *rate_error_estimate* < *-overshoot_pct*, the higher value of the qindex range is increased by extend_maxq to reduce the overall bit rate (see svt_av1_twopass_postencode_update).
 
-## Constant Bitrate Rate Mode
+## Constant Bitrate Rate Control
 
 In several rate constrained video coding applications, it is desired to use the constant bitrate (CBR) mode to maintain a constant bitrate during the encoding process while allowing the resulting video quality to vary. In SVT-AV1, the CBR mode is implemented through a qindex adjustment mechanism based on the fullness status of a virtual buffer. A virtual buffer is used to account for the size of the encoded frames. Knowing the desired constant bit rate, the size of previously encoded pictures and the fullness status of the virtual buffer, the algorithm adjusts the qindex of the frame being encoded to maintain the virtual buffer fullness at the desired level.  Once a frame is completely processed in the packetization process, feedback information representing the size of the processed frame is sent to the rate control algorithm to update the buffer fullness level.
 
