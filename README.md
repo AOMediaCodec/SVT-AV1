@@ -1,8 +1,18 @@
 # Scalable Video Technology for AV1 (SVT-AV1 Encoder and Decoder)
 
-The Scalable Video Technology for AV1 (SVT-AV1 Encoder and Decoder) is an AV1-compliant encoder/decoder library core. The SVT-AV1 encoder development is a work-in-progress targeting performance levels applicable to both VOD and Live encoding / transcoding video applications. The SVT-AV1 decoder implementation is targeting future codec research activities.
+The Scalable Video Technology for AV1 (SVT-AV1 Encoder and Decoder) is an
+AV1-compliant software encoder/decoder library. The work on the SVT-AV1 encoder
+targets the development of a production-quality AV1-encoder with performance
+levels applicable to a wide range of applications, from premium VOD to
+real-time and live encoding / transcoding. The SVT-AV1 decoder implementation,
+targets future codec research activities. 
 
-The canonical url for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV1>
+The SVT-AV1 project was initially founded by Intel in partnership with Netflix,
+and was then [adopted](https://aomedia.org/press%20releases/aomedia-software-implementation-working-group-to-bring-av1-to-more-video-platforms/) by the Alliance of Open Media (AOM) Software
+Implementation Working Group (SIWG), in August 2020, to carry on the group's
+mission.
+
+The canonical URL for this project is at <https://gitlab.com/AOMediaCodec/SVT-AV1>
 
 ## License
 
@@ -11,14 +21,13 @@ Starting from v0.9, SVT-AV1 is licensed under the BSD-3-clause clear license and
 
 ## Documentation
 
-**Quick Start Guides**
-- [System Requirements and Build Guide](Docs/System-Requirements.md)
-- [Running SVT-AV1 within ffmpeg](Docs/ffmpeg.md)
-- [Using the Standalone Encoder](Docs/svt-av1_encoder_user_guide.md)
-
-**Technical Guides**:
-- [List of All Paramemeters](Docs/parameters.md)
-- [SVT-AV1 Decoder User Guide](Docs/svt-av1_decoder_user_guide.md)
+**Guides**
+- [System Requirements](Docs/System-Requirements.md)
+- [How to run SVT-AV1 within ffmpeg](Docs/ffmpeg.md)
+- [Standalone Encoder Usage](Docs/svt-av1_encoder_user_guide.md)
+- [Decoder Usage](Docs/svt-av1_decoder_user_guide.md)
+- [List of All Parameters](Docs/parameters.md)
+- [Build Guide](Docs/Build-Guide.md)
 
 **Common Questions/Issues**
 - [What presets do](Docs/CommonQuestions.md#what-presets-do)
@@ -34,7 +43,16 @@ Starting from v0.9, SVT-AV1 is licensed under the BSD-3-clause clear license and
 - [Multi-pass encoding](Docs/CommonQuestions.md#multi-pass-encoding)
 - [CBR, VBR, and CRF modes](Docs/CommonQuestions.md#bitrate-control-modes)
 
-**Technical Appendices**:
+**Presentations**
+- [Big Apple Video 2019](https://www.youtube.com/watch?v=lXqOaYNo8m0)
+- [Video @ Scale 2021](https://atscaleconference.com/videos/highly-efficient-svt-av1-based-solutions-for-vod-applications/?contact-form-id=124119&contact-form-sent=163268&contact-form-hash=d4bb3fd420fae91cd39c11bdb69f970a05a152a9&_wpnonce=bba8096d24#contact-form-124119)
+
+**Papers and Blogs**
+- [Netflix Blog 2020](https://netflixtechblog.com/svt-av1-an-open-source-av1-encoder-and-decoder-ad295d9b5ca2)
+- [SPIE 2020](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/11510/1151021/The-SVT-AV1-encoder--overview-features-and-speed-quality/10.1117/12.2569270.full)
+- [SPIE 2021](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/11842/118420T/Towards-much-better-SVT-AV1-quality-cycles-tradeoffs-for-VOD/10.1117/12.2595598.full)
+
+**Technical Appendices**
 - [Adaptive Prediction Structure Appendix](Docs/Appendix-Adaptive-Prediction-Structure.md)
 - [Altref and Overlay Pictures Appendix](Docs/Appendix-Alt-Refs.md)
 - [CDEF Appendix](Docs/Appendix-CDEF.md)

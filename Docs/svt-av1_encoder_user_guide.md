@@ -1,6 +1,6 @@
 [Top level](../README.md)
 
-[List of all configuration parameters](parameters.md)
+See also, the [list of all parameters](parameters.md)
 
 # Scalable Video Technology for AV1 Encoder (SVT-AV1 Encoder) User Guide
 
@@ -91,7 +91,7 @@ The number of frames of the sequence to encode. e.g. 100. If the input frame cou
 
 `--keyint integer` **[Optional]**
 
-The keyint defines the display order location at which the encoder would insert a keyframe. It is recommended to use a value that is (a multiple of the mini GOP size (default 16)) + 1 so that the keyframe does not break a mini GOP formation. When using forward frame, it's recommended that the keyint value is placed at a multiple of mini-gop size. The mini-gop size is measured by 1 << hierarchical-levels.
+The keyint defines the display order location at which the encoder would insert a keyframe. It is recommended to use a value that is (a multiple of the mini GOP size (default 16)) + 1 so that the keyframe does not break a mini GOP formation. When using forward frame, it's recommended that the keyint value is placed at a multiple of mini-gop size. The mini-gop size is measured by `1 << hierarchical-levels`.
 
 SvtAv1EncApp only: optionally accepts a `s` suffix to indicate to use `keyint * frame-rate` as the keyint value. e.g. `--keyint 5s` for 5 seconds
 
