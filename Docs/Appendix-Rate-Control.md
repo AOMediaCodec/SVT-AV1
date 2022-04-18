@@ -24,7 +24,7 @@
   * Block-basd Lambda Modulation Algorithm
   * Re-encoding
   * Post Encode RC Update
-5. [Constant Bitrate Rate Control](#constant-bitrate-rate-mode)
+5. [Constant Bitrate Rate Control](#constant-bitrate-rate-control)
 - Appendix A: Final-Pass Rate Control Functions
 - Appendix B: Speed Optimization of the Middle Pass
 - Appendix C: Capped CRF
