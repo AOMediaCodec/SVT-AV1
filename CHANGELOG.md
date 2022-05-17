@@ -12,7 +12,7 @@ Encoder
 
 Build, Cleanup and Documentation
 - API / ABI cleanup and implement independent versioning
-- Add UEB_DLL for static linking
+- Add UEB_DLL for static linking with pkgconf
 - Update system requirements docs
 - Rate control code refactoring
 - Fix AVX512 vs AVX2 mismatch
