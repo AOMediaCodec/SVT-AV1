@@ -11,7 +11,7 @@ Encoder
 - Fix VQ issues #1896 #1857 and #1819
 
 Build, Cleanup and Documentation
-- API / ABI cleanup and implement independant versioning
+- API / ABI cleanup and implement independent versioning
 - Add UEB_DLL for static linking
 - Update system requirements docs
 - Rate control code refactoring
