@@ -139,4 +139,4 @@ recommended to review the section of the code implementing this feature.
 
 ## References
 [1] Tarek Amara (Twitch) - “S-Frame in AV1: Enabling better compression for low latency live streaming”. Presented in the Demuxed 2017.([Video link](https://www.youtube.com/watch?v=o5sJX6VA34o&list=PLkyaYNWEKcOfntbMd6KtHhF7qpL9hj6of&index=3&ab_channel=Demuxed))<br>
-[2] AV1 Bitstream & Decoding Process Specification v1.1.0
+[2] AV1 Bitstream & Decoding Process Specification v1.0.0
