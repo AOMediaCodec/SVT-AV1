@@ -763,7 +763,11 @@ static int av1_calc_pframe_target_size_one_pass_cbr(PictureParentControlSet *pcs
     return AOMMAX(min_frame_target, target);
 }
 // buffer level weights to calculate the target rate for Key frame
+#if CBR_OPT
+const int  buffer_level_weight[3] = {3, 3, 3};
+#else
 const int  buffer_level_weight[3] = {1, 2, 3};
+#endif
 static int av1_calc_iframe_target_size_one_pass_cbr(PictureParentControlSet *pcs_ptr) {
     SequenceControlSet *scs_ptr            = pcs_ptr->scs_ptr;
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;

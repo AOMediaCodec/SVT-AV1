@@ -34,6 +34,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+#define CBR_OPT 1 // Optimisation of the cbr mode towards better coding efficiency and behavior
+#define CBR_QPM 1 // QP modulation for the cbr mode based on Motion estimatiom distorsion (no tpl)
 
 #define TUNE_DEFAULT_M10_M11    1 // Tune default M10 M11 with consideration to decode speed
 #define TUNE_DEFAULT_M9         1 // Tune default M9 with consideration to decode speed
