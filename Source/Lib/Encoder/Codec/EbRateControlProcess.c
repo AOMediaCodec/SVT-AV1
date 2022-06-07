@@ -788,8 +788,9 @@ static void adjust_active_best_and_worst_quality_org(PictureControlSet *pcs_ptr,
         active_best_quality -= (twopass->extend_minq + twopass->extend_minq_fast) / 2;
         active_worst_quality += twopass->extend_maxq;
     }
-
+#if !CBR_OPT
     int iperiod_fctr = intra_period_factor(pcs_ptr->parent_pcs_ptr);
+#endif
     // Static forced key frames Q restrictions dealt with elsewhere.
     const int qdelta     = av1_frame_type_qdelta_org(pcs_ptr->parent_pcs_ptr,
                                                  rc,
@@ -2030,7 +2031,6 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
     if (ip > -1 && ip < 256) {
         if (pcs_ptr->slice_type == I_SLICE)
         {
-            int qdelta = 0;
             int q1 = pcs_ptr->picture_number == 0 ? q + 20 : rc->q_1_frame;
             q = (q + q1) / 2;
         }
@@ -3352,7 +3352,7 @@ void *rate_control_kernel(void *input_ptr) {
                 sb_qp_derivation_tpl_la(pcs_ptr);
             }
 #if CBR_QPM
-            else if (scs_ptr->static_config.enable_adaptive_quantization && 
+            else if (scs_ptr->static_config.enable_adaptive_quantization &&
                 scs_ptr->static_config.rate_control_mode == 2) {
                 sb_qp_derivation(pcs_ptr);
             }
