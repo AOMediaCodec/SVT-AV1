@@ -2053,7 +2053,6 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
                 pcs_ptr->parent_pcs_ptr->sc_class1,
                 iperiod_fctr);
 #endif
-            
             q = q + qdelta;
         }
     }
