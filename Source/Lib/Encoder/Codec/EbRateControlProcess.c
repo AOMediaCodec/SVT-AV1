@@ -1206,7 +1206,7 @@ static void sb_setup_lambda(PictureControlSet *pcs_ptr, SuperBlock *sb_ptr) {
  * Calculates the QP per SB based on the ME statistics
  * used in one pass encoding
  ******************************************************/
-void sb_qp_derivation(PictureControlSet *pcs_ptr) {
+static void sb_qp_derivation(PictureControlSet *pcs_ptr) {
     PictureParentControlSet *ppcs_ptr = pcs_ptr->parent_pcs_ptr;
     SequenceControlSet      *scs_ptr = pcs_ptr->parent_pcs_ptr->scs_ptr;
     SuperBlock              *sb_ptr;
