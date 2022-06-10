@@ -1206,52 +1206,52 @@ static void sb_setup_lambda(PictureControlSet *pcs_ptr, SuperBlock *sb_ptr) {
  * Calculates the QP per SB based on the ME statistics
  * used in one pass encoding
  ******************************************************/
-static void sb_qp_derivation(PictureControlSet *pcs_ptr) {
-    PictureParentControlSet *ppcs_ptr = pcs_ptr->parent_pcs_ptr;
-    SequenceControlSet      *scs_ptr = pcs_ptr->parent_pcs_ptr->scs_ptr;
-    SuperBlock              *sb_ptr;
+static void sb_qp_derivation(PictureControlSet *pcs) {
+    PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
+    SequenceControlSet      *scs = pcs->parent_pcs_ptr->scs_ptr;
+    SuperBlock              *sb;
     uint32_t                 sb_addr;
-    if ((ppcs_ptr->slice_type != I_SLICE) && (ppcs_ptr->is_used_as_reference_flag))
-        pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
+    if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
+        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
     else
-        pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
+        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
-    uint16_t sb_cnt = scs_ptr->sb_tot_cnt;
-    if (scs_ptr->static_config.superres_mode > SUPERRES_NONE)
-        sb_cnt = ppcs_ptr->sb_total_count;
-    if (pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
+    uint16_t sb_cnt = scs->sb_tot_cnt;
+    if (scs->static_config.superres_mode > SUPERRES_NONE)
+        sb_cnt = ppcs->sb_total_count;
+    if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
         uint64_t avg_me_dist = 0;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            avg_me_dist += ppcs_ptr->me_8x8_cost_variance[sb_addr];
+            avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
         }
-        avg_me_dist /= ppcs_ptr->sb_total_count;
+        avg_me_dist /= ppcs->sb_total_count;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb_ptr = pcs_ptr->sb_ptr_array[sb_addr];
-            double diff_dist = (double)(ppcs_ptr->me_8x8_cost_variance[sb_addr] - avg_me_dist);
+            sb = pcs->sb_ptr_array[sb_addr];
+            double diff_dist = (double)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
             double beta = (double)(diff_dist /avg_me_dist);
             beta = MAX(QPM_MIN_BETA, MIN(beta, QPM_MAX_BETA));
             int    offset = 0;
             if (beta) {
-                offset = svt_av1_get_deltaq_offset(scs_ptr->static_config.encoder_bit_depth,
-                    ppcs_ptr->frm_hdr.quantization_params.base_q_idx,
+                offset = svt_av1_get_deltaq_offset(scs->static_config.encoder_bit_depth,
+                    ppcs->frm_hdr.quantization_params.base_q_idx,
                     beta,
-                    pcs_ptr->parent_pcs_ptr->slice_type == I_SLICE ||
-                    pcs_ptr->parent_pcs_ptr->transition_present);
+                    pcs->parent_pcs_ptr->slice_type == I_SLICE ||
+                    pcs->parent_pcs_ptr->transition_present);
             }
             offset = AOMMIN(
-                offset, pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
+                offset, pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
             offset = AOMMAX(
-                offset, -pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
-            sb_ptr->qindex = CLIP3(
-                pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
-                255 - pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
-                ((int16_t)ppcs_ptr->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
+                offset, -pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
+            sb->qindex = CLIP3(
+                pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
+                255 - pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
+                ((int16_t)ppcs->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
         }
     }
     else {
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb_ptr = pcs_ptr->sb_ptr_array[sb_addr];
-            sb_ptr->qindex = quantizer_to_qindex[pcs_ptr->picture_qp];
+            sb = pcs->sb_ptr_array[sb_addr];
+            sb->qindex = quantizer_to_qindex[pcs->picture_qp];
         }
     }
 }
@@ -1694,7 +1694,12 @@ static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentCon
     return (curr_bit_diff <= prev_bit_diff) ? curr_q : prev_q;
 }
 #if CBR_OPT
-int        max_delta_per_layer[MAX_TEMPORAL_LAYERS] = { 60, 5, 2, 2, 2, 2 };
+int        max_delta_per_layer[MAX_HIERARCHICAL_LEVEL][MAX_TEMPORAL_LAYERS] = { { 60 },
+                                                                                { 60, 5},
+                                                                                { 60, 5, 2 }, 
+                                                                                { 60, 5, 2, 2}, 
+                                                                                { 60, 5, 2, 2, 2 }, 
+                                                                                { 60, 5, 2, 2, 2, 2 }};
 #else
 int        max_delta_per_layer[MAX_TEMPORAL_LAYERS] = {80, 40, 20, 16, 16, 16};
 #endif
@@ -1703,7 +1708,7 @@ static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
     EncodeContext                     *encode_context_ptr  = scs_ptr->encode_context_ptr;
     RATE_CONTROL                      *rc                  = &encode_context_ptr->rc;
 #if CBR_OPT
-    const int max_delta = max_delta_per_layer[ppcs_ptr->temporal_layer_index];
+    const int max_delta = max_delta_per_layer[ppcs_ptr->hierarchical_levels][ppcs_ptr->temporal_layer_index];
 #else
     const int max_delta                  = max_delta_per_layer[ppcs_ptr->temporal_layer_index] / 2;
 #endif
@@ -1953,7 +1958,9 @@ void svt_av1_resize_reset_rc(PictureParentControlSet* ppcs_ptr,
             rc->rate_correction_factors[INTER_NORMAL] *= 2.0;
     }
 }
-
+#if CBR_OPT
+#define QFACTOR 1.4
+#endif
 static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
     SequenceControlSet *scs_ptr            = pcs_ptr->parent_pcs_ptr->scs_ptr;
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
@@ -2045,7 +2052,7 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
             qdelta = svt_av1_compute_qdelta_by_rate(rc,
                 pcs_ptr->parent_pcs_ptr->frm_hdr.frame_type,
                 active_worst_quality,
-                1.4,
+                QFACTOR,
                 bit_depth,
 #if CBR_OPT
                 pcs_ptr->parent_pcs_ptr->sc_class1);
