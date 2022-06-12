@@ -1696,9 +1696,9 @@ static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentCon
 #if CBR_OPT
 int        max_delta_per_layer[MAX_HIERARCHICAL_LEVEL][MAX_TEMPORAL_LAYERS] = { { 60 },
                                                                                 { 60, 5},
-                                                                                { 60, 5, 2 }, 
-                                                                                { 60, 5, 2, 2}, 
-                                                                                { 60, 5, 2, 2, 2 }, 
+                                                                                { 60, 5, 2 },
+                                                                                { 60, 5, 2, 2},
+                                                                                { 60, 5, 2, 2, 2 },
                                                                                 { 60, 5, 2, 2, 2, 2 }};
 #else
 int        max_delta_per_layer[MAX_TEMPORAL_LAYERS] = {80, 40, 20, 16, 16, 16};

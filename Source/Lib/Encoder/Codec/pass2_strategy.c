@@ -771,8 +771,10 @@ static int av1_calc_iframe_target_size_one_pass_cbr(PictureParentControlSet *pcs
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
     RATE_CONTROL *const rc                 = &encode_context_ptr->rc;
     int                 target;
-    const int           ip    = pcs_ptr->scs_ptr->static_config.intra_period_length;
-    const int           w_idx = ip < 0 ? 2 : MIN(ip / 64, 2);
+#if !CBR_OPT
+    const int ip    = pcs_ptr->scs_ptr->static_config.intra_period_length;
+    const int w_idx = ip < 0 ? 2 : MIN(ip / 64, 2);
+#endif
     const int           w     = 3;
     if (pcs_ptr->picture_number == 0) {
         target = ((rc->starting_buffer_level / 2) > INT_MAX)
