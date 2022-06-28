@@ -25,6 +25,7 @@
 #include "aom_dsp_rtcd.h"
 #include "EbDefinitions.h"
 #include "EbUtility.h"
+#include "EbUnitTestUtility.h"
 #include "random.h"
 #include "util.h"
 
@@ -35,6 +36,7 @@ using std::make_tuple;
 using svt_av1_test_tool::SVTRandom;
 
 static const int min_test_times = 10;
+static const int default_speed_test_times = 1000;
 static const uint8_t REF_STUFF = 0xAA;
 static const uint8_t TST_STUFF = 0xBB;
 
@@ -158,6 +160,7 @@ class ResizePlaneTest : public ::testing::TestWithParam<ResizeTestParam> {
         }
     }
     virtual void run_test(bool width_only = false) = 0;
+    virtual void speed_test(int loop, bool width_only = false) = 0;
 
     void check_data(const int index) {
         const uint16_t value_limit = 1 << bd_;
@@ -210,6 +213,11 @@ class ResizePlaneTest : public ::testing::TestWithParam<ResizeTestParam> {
             run_test(width_only);
             check_data(iter);
         }
+    }
+
+    virtual void run_speed_test(bool width_only = false) {
+        prepare_random_data();
+        speed_test(default_speed_test_times, width_only);
     }
 
   protected:
@@ -274,6 +282,84 @@ class ResizePlaneLbdTest : public ResizePlaneTest<uint8_t> {
                              src_stride_);
         }
     }
+    void speed_test(int loop, bool width_only) override {
+        double time_c, time_o;
+        uint64_t start_time_seconds, start_time_useconds;
+        uint64_t finish_time_seconds, finish_time_useconds;
+
+        // setup using c code
+        reset_test_env();
+        svt_av1_get_time(&start_time_seconds, &start_time_useconds);
+        for (int i = 0; i < loop; i++) {
+            if (width_only) {
+                svt_av1_resize_plane_horizontal(src_,
+                                                src_height_,
+                                                src_width_,
+                                                src_stride_,
+                                                scaled_ref_,
+                                                src_height_,
+                                                scaled_width_,
+                                                src_stride_);
+            }
+            else {
+                svt_av1_resize_plane(src_,
+                                     src_height_,
+                                     src_width_,
+                                     src_stride_,
+                                     scaled_ref_,
+                                     scaled_height_,
+                                     scaled_width_,
+                                     src_stride_);
+            }
+        }
+        svt_av1_get_time(&finish_time_seconds, &finish_time_useconds);
+        time_c = svt_av1_compute_overall_elapsed_time_ms(start_time_seconds,
+                                                         start_time_useconds,
+                                                         finish_time_seconds,
+                                                         finish_time_useconds);
+
+        // setup using simd accelerating
+        setup_test_env();
+        svt_av1_get_time(&start_time_seconds, &start_time_useconds);
+        for (int i = 0; i < loop; i++) {
+            if (width_only) {
+                svt_av1_resize_plane_horizontal(src_,
+                                                src_height_,
+                                                src_width_,
+                                                src_stride_,
+                                                scaled_tst_,
+                                                src_height_,
+                                                scaled_width_,
+                                                src_stride_);
+            } else {
+                svt_av1_resize_plane(src_,
+                                     src_height_,
+                                     src_width_,
+                                     src_stride_,
+                                     scaled_tst_,
+                                     scaled_height_,
+                                     scaled_width_,
+                                     src_stride_);
+            }
+        }
+        svt_av1_get_time(&finish_time_seconds, &finish_time_useconds);
+        time_o = svt_av1_compute_overall_elapsed_time_ms(start_time_seconds,
+                                                         start_time_useconds,
+                                                         finish_time_seconds,
+                                                         finish_time_useconds);
+        printf("Resize %ux%u --> %ux%u\n",
+               src_width_,
+               src_height_,
+               scaled_width_,
+               width_only ? src_height_ : scaled_height_);
+        printf("Average Nanoseconds per Function Call\n");
+        printf("    svt_av1_resize_plane_c   : %6.2f\n",
+               1000000 * time_c / loop);
+        printf("    svt_av1_resize_plane_avx2 : %6.2f   (Comparison: "
+               "%5.2fx)\n",
+               1000000 * time_o / loop,
+               time_c / time_o);
+    }
 };
 
 TEST_P(ResizePlaneLbdTest, MatchTestWithZeroValue) {
@@ -287,6 +373,10 @@ TEST_P(ResizePlaneLbdTest, MatchTestWithRandomValue) {
 TEST_P(ResizePlaneLbdTest, MatchTestWithExtremeValue) {
     run_extreme_test();
     run_extreme_test(true);
+}
+TEST_P(ResizePlaneLbdTest, DISABLED_SpeedTestWithRandomValue) {
+    run_speed_test();
+    run_speed_test(true);
 }
 
 static PicSizeParam pic_size_vector[] = {
@@ -350,6 +440,84 @@ class ResizePlaneHbdTest : public ResizePlaneTest<uint16_t> {
                                     bd_);
         }
     }
+    void speed_test(int loop, bool width_only) override {
+        double time_c, time_o;
+        uint64_t start_time_seconds, start_time_useconds;
+        uint64_t finish_time_seconds, finish_time_useconds;
+
+        // setup using c code
+        reset_test_env();
+        svt_av1_get_time(&start_time_seconds, &start_time_useconds);
+        for (int i = 0; i < loop; i++) {
+            if (width_only) {
+                svt_av1_highbd_resize_plane_horizontal(src_,
+                                                       src_height_,
+                                                       src_width_,
+                                                       src_stride_,
+                                                       scaled_ref_,
+                                                       src_height_,
+                                                       scaled_width_,
+                                                       src_stride_,
+                                                       bd_);
+            }
+            else {
+                svt_av1_highbd_resize_plane(src_,
+                                            src_height_,
+                                            src_width_,
+                                            src_stride_,
+                                            scaled_ref_,
+                                            scaled_height_,
+                                            scaled_width_,
+                                            src_stride_,
+                                            bd_);
+            }
+        }
+        svt_av1_get_time(&finish_time_seconds, &finish_time_useconds);
+        time_c = svt_av1_compute_overall_elapsed_time_ms(start_time_seconds,
+                                                         start_time_useconds,
+                                                         finish_time_seconds,
+                                                         finish_time_useconds);
+
+        // setup using simd accelerating
+        setup_test_env();
+        svt_av1_get_time(&start_time_seconds, &start_time_useconds);
+        for (int i = 0; i < loop; i++) {
+            if (width_only) {
+                svt_av1_highbd_resize_plane_horizontal(src_,
+                                                       src_height_,
+                                                       src_width_,
+                                                       src_stride_,
+                                                       scaled_tst_,
+                                                       src_height_,
+                                                       scaled_width_,
+                                                       src_stride_,
+                                                       bd_);
+            }
+            else {
+                svt_av1_highbd_resize_plane(src_,
+                                            src_height_,
+                                            src_width_,
+                                            src_stride_,
+                                            scaled_tst_,
+                                            scaled_height_,
+                                            scaled_width_,
+                                            src_stride_,
+                                            bd_);
+            }
+        }
+        svt_av1_get_time(&finish_time_seconds, &finish_time_useconds);
+        time_o = svt_av1_compute_overall_elapsed_time_ms(start_time_seconds,
+                                                         start_time_useconds,
+                                                         finish_time_seconds,
+                                                         finish_time_useconds);
+        printf("Average Nanoseconds per Function Call\n");
+        printf("    svt_av1_highbd_resize_plane_c   : %6.2f\n",
+               1000000 * time_c / loop);
+        printf("    svt_av1_highbd_resize_plane_avx2 : %6.2f   (Comparison: "
+               "%5.2fx)\n",
+               1000000 * time_o / loop,
+               time_c / time_o);
+    }
 };
 
 TEST_P(ResizePlaneHbdTest, MatchTestWithZeroValue) {
@@ -363,6 +531,10 @@ TEST_P(ResizePlaneHbdTest, MatchTestWithRandomValue) {
 TEST_P(ResizePlaneHbdTest, MatchTestWithExtremeValue) {
     run_extreme_test();
     run_extreme_test(true);
+}
+TEST_P(ResizePlaneHbdTest, DISABLED_SpeedTestWithRandomValue) {
+    run_speed_test();
+    run_speed_test(true);
 }
 
 INSTANTIATE_TEST_CASE_P(Resize, ResizePlaneHbdTest,
