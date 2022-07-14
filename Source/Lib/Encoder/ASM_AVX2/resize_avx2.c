@@ -727,11 +727,9 @@ static INLINE void highbd_down2_symeven_w8_end_part_avx2(const uint16_t *const i
     __m128i load[2];
 
     load[0] = _mm_lddqu_si128((const __m128i *)in);
-    {
-        // first 4 points of the 8 points to output will not access padding source
-        assert(in + 16 < end);
-        load[1] = _mm_lddqu_si128((const __m128i *)(in+8));
-    }
+    // first 4 points of the 8 points to output will not access padding source
+    assert(in + 16 < end);
+    load[1] = _mm_lddqu_si128((const __m128i *)(in+8));
 
     {
         __m256i vec0123, vec4567;
@@ -2675,13 +2673,13 @@ static const InterpKernel *choose_interp_filter(int in_length, int out_length) {
     if (out_length16 >= in_length * 16)
         return filteredinterp_filters1000;
     else if (out_length16 >= in_length * 13)
-        return filteredinterp_filters875;
+        return av1_filteredinterp_filters875;
     else if (out_length16 >= in_length * 11)
-        return filteredinterp_filters750;
+        return av1_filteredinterp_filters750;
     else if (out_length16 >= in_length * 9)
-        return filteredinterp_filters625;
+        return av1_filteredinterp_filters625;
     else
-        return filteredinterp_filters500;
+        return av1_filteredinterp_filters500;
 }
 
 static EbErrorType highbd_resize_multistep(const uint16_t *const input, int length,
