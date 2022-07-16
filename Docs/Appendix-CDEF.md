@@ -10,16 +10,16 @@ addressing ringing artifacts. CDEF is a combination of the directional
 de-ringing filter from the Daala codec (Mozilla) and the Constrained Low
 Pass Filter (CLPF) from the Thor codec (Cisco).
 
-Filtering is applied on an 8x8 block level. 8x8 blocks have enough pixels 
-that an edge can be accurately detected, which would not be possible for 
-4x4 blocks. However, 8x8 blocks don't have so many pixels that the detected 
-edge will have more than one direction, which would be much more likely 
-to occur for an edge present in a 16x16 block. Filtering is applied to 
-both luma and chroma samples. For a given block, the algorithm consists 
+Filtering is applied on an 8x8 block level. 8x8 blocks have enough pixels
+that an edge can be accurately detected, which would not be possible for
+4x4 blocks. However, 8x8 blocks don't have so many pixels that the detected
+edge will have more than one direction, which would be much more likely
+to occur for an edge present in a 16x16 block. Filtering is applied to
+both luma and chroma samples. For a given block, the algorithm consists
 of the two main steps outlined below:
 
-1. Identify the direction **d** of the block (i.e. direction of edges). One 
-of eight possible directions {0,…,7} can be utilized to identify the direction 
+1. Identify the direction **d** of the block (i.e. direction of edges). One
+of eight possible directions {0,…,7} can be utilized to identify the direction
 of the block.
 
 2. Filtering
@@ -54,7 +54,7 @@ performed as follows:
     direction.
 
 The example in Figure 2 below illustrates this step for an 8x8 input block. In this
-example, direction 0 has the smallest error variance and is selected as the block 
+example, direction 0 has the smallest error variance and is selected as the block
 direction.
 
 ![image25](./img/image25.png)
@@ -69,7 +69,7 @@ direction. In the example shown in Figure 3 below, the block direction
 is d=0, ![math](http://latex.codecogs.com/gif.latex?45^o). The sample to be filtered is highlighted in
 red. During primary filtering of the red sample the four green samples are considered.
 During secondary filtering of the red sample the eight blue samples
-located at a ![math](http://latex.codecogs.com/gif.latex?45^o) angle from the block direction 
+located at a ![math](http://latex.codecogs.com/gif.latex?45^o) angle from the block direction
 are considered.
 
 ![image26](./img/image26.png)
@@ -157,7 +157,7 @@ Step 1: Split the frame to be filtered into segments to allow for parallel filte
 The segments are processed in ```cdef_kernel```. Each segment is split into
 64x64 filter blocks.
 
-Step 2: CDEF search is performed for each segment using a separate thread. 
+Step 2: CDEF search is performed for each segment using a separate thread.
 Each segment goes through a filter search operation
 through the function (```cdef_seg_search```). For a given 64x64 filter block
 in a segment, the main purpose of the search is to identify the
@@ -181,7 +181,7 @@ ordered as indicated in Table 2 below:
 | …                         | (...,…)                                         |
 | 63                        | (15,4)                                          |
 
-Searching for the best filter (Primary strength, Secondary strength) pair is equivalent 
+Searching for the best filter (Primary strength, Secondary strength) pair is equivalent
 to searching for the best filter strength index.
 
 The primary luma damping (```pri_damping```) and secondary luma damping (```sec_damping```)
@@ -207,7 +207,7 @@ The CDEF search (```cdef_seg_search```) proceeds along the following steps.
 
       - Find the direction for each 8x8 block (```cdef_find_dir```).
       - Filter the 8x8 block according to the identified direction using the set filter strength
-        (```cdef_filter_block```). More details on the C-only version of this 
+        (```cdef_filter_block```). More details on the C-only version of this
         function, ```cdef_filter_block_c```, are provided below.
 
 
@@ -216,9 +216,9 @@ The CDEF search (```cdef_seg_search```) proceeds along the following steps.
 
 Step 3: Select a subset of filter strengths to use in the final filtering of the 64x64
 filter blocks using the results from step 2. The entire frame will be filtered using the subset of filter
-strenghts chosen, therefore before the subset can be chosen all segements must be completed in order to 
-collect the filter strength data from all 64x64 filter blocks. This step is frame-based and is performed 
-using only one thread (```finish_cdef_search```). More details on ```finish_cdef_search``` are 
+strenghts chosen, therefore before the subset can be chosen all segements must be completed in order to
+collect the filter strength data from all 64x64 filter blocks. This step is frame-based and is performed
+using only one thread (```finish_cdef_search```). More details on ```finish_cdef_search``` are
 provided below.
 
 Step 4: Complete the filtering of the frame using the subset of filtering strengths chosen in Step 3.
