@@ -2541,8 +2541,7 @@ uint64_t d1_non_square_block_decision(ModeDecisionContext *context_ptr, uint32_t
                             from_shape_to_part[context_ptr->blk_geom->shape],
                             &split_cost,
                             full_lambda,
-                            context_ptr->md_rate_estimation_ptr,
-                            context_ptr->sb_ptr->pcs_ptr->parent_pcs_ptr->scs_ptr->max_sb_depth);
+                            context_ptr->md_rate_estimation_ptr);
 
         tot_cost += split_cost;
     }
@@ -2605,8 +2604,7 @@ void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *s
                             PARTITION_SPLIT,
                             &above_split_rate,
                             full_lambda,
-                            context_ptr->md_rate_estimation_ptr,
-                            scs_ptr->max_sb_depth);
+                            context_ptr->md_rate_estimation_ptr);
     } else
         *above_depth_cost = MAX_MODE_COST;
     if (context_ptr->blk_geom->bsize > BLOCK_4X4) {
@@ -2619,8 +2617,7 @@ void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *s
                                     PARTITION_NONE,
                                     &curr_non_split_rate_blk0,
                                     full_lambda,
-                                    context_ptr->md_rate_estimation_ptr,
-                                    scs_ptr->max_sb_depth);
+                                    context_ptr->md_rate_estimation_ptr);
         if (context_ptr->tested_blk_flag[curr_depth_blk1_mds])
             if (context_ptr->md_blk_arr_nsq[curr_depth_blk1_mds].mdc_split_flag == 0)
                 av1_split_flag_rate(pcs_ptr,
@@ -2630,8 +2627,7 @@ void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *s
                                     PARTITION_NONE,
                                     &curr_non_split_rate_blk1,
                                     full_lambda,
-                                    context_ptr->md_rate_estimation_ptr,
-                                    scs_ptr->max_sb_depth);
+                                    context_ptr->md_rate_estimation_ptr);
         if (context_ptr->tested_blk_flag[curr_depth_blk2_mds])
             if (context_ptr->md_blk_arr_nsq[curr_depth_blk2_mds].mdc_split_flag == 0)
                 av1_split_flag_rate(pcs_ptr,
@@ -2641,8 +2637,7 @@ void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *s
                                     PARTITION_NONE,
                                     &curr_non_split_rate_blk2,
                                     full_lambda,
-                                    context_ptr->md_rate_estimation_ptr,
-                                    scs_ptr->max_sb_depth);
+                                    context_ptr->md_rate_estimation_ptr);
         if (context_ptr->tested_blk_flag[curr_depth_blk3_mds])
             if (context_ptr->md_blk_arr_nsq[curr_depth_blk3_mds].mdc_split_flag == 0)
                 av1_split_flag_rate(pcs_ptr,
@@ -2652,8 +2647,7 @@ void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *s
                                     PARTITION_NONE,
                                     &curr_non_split_rate_blk3,
                                     full_lambda,
-                                    context_ptr->md_rate_estimation_ptr,
-                                    scs_ptr->max_sb_depth);
+                                    context_ptr->md_rate_estimation_ptr);
     }
     //curr_non_split_rate_344 = splitflag_mdc_344 || 4x4 ? 0 : compute;
 
@@ -2782,8 +2776,7 @@ void compute_depth_costs_md_skip(ModeDecisionContext *context_ptr, SequenceContr
                                         PARTITION_NONE,
                                         &curr_non_split_rate_blk,
                                         full_lambda,
-                                        context_ptr->md_rate_estimation_ptr,
-                                        scs_ptr->max_sb_depth);
+                                        context_ptr->md_rate_estimation_ptr);
         }
         *curr_depth_cost += context_ptr->md_local_blk_unit[curr_depth_cur_blk_mds].cost +
             curr_non_split_rate_blk;
@@ -2817,8 +2810,7 @@ void compute_depth_costs_md_skip(ModeDecisionContext *context_ptr, SequenceContr
                             PARTITION_SPLIT,
                             &above_split_rate,
                             full_lambda,
-                            context_ptr->md_rate_estimation_ptr,
-                            scs_ptr->max_sb_depth);
+                            context_ptr->md_rate_estimation_ptr);
     } else
         *above_depth_cost = MAX_MODE_COST;
 

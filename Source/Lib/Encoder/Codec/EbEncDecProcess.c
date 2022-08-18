@@ -7158,7 +7158,6 @@ void *mode_decision_kernel(void *input_ptr) {
         // SB Constants
         uint8_t sb_size            = (uint8_t)scs_ptr->sb_size_pix;
         uint8_t sb_size_log2     = (uint8_t)svt_log2f(sb_size);
-        context_ptr->sb_size       = sb_size;
         uint32_t pic_width_in_sb   = (pcs_ptr->parent_pcs_ptr->aligned_width + sb_size - 1) >>
             sb_size_log2;
         uint16_t tile_group_width_in_sb = pcs_ptr->parent_pcs_ptr
