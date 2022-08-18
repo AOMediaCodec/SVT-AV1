@@ -16,7 +16,7 @@
 
 static void svt_sequence_control_set_dctor(EbPtr p) {
     SequenceControlSet *obj = (SequenceControlSet *)p;
-    EB_FREE_ARRAY(obj->sb_params_array);
+    EB_FREE_ARRAY(obj->b64_geom);
     EB_FREE_ARRAY(obj->sb_geom);
 }
 /**************************************************************************************************
@@ -54,7 +54,7 @@ EbErrorType svt_sequence_control_set_ctor(SequenceControlSet *scs, EbPtr object_
     scs->dctor = svt_sequence_control_set_dctor;
 
     // Allocation will happen in resource-coordination
-    scs->sb_params_array = NULL;
+    scs->b64_geom = NULL;
 
     scs->mvrate_set                   = 0;
     scs->bits_for_picture_order_count = 16;
@@ -138,45 +138,45 @@ extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
     uint16_t picture_sb_height = (scs_ptr->max_input_luma_height + scs_ptr->sb_sz - 1) /
         scs_ptr->sb_sz;
     //free old one;
-    EB_FREE_ARRAY(scs_ptr->sb_params_array);
+    EB_FREE_ARRAY(scs_ptr->b64_geom);
 
-    EB_MALLOC_ARRAY(scs_ptr->sb_params_array, picture_sb_width * picture_sb_height);
+    EB_MALLOC_ARRAY(scs_ptr->b64_geom, picture_sb_width * picture_sb_height);
 
     for (sb_index = 0; sb_index < picture_sb_width * picture_sb_height; ++sb_index) {
-        scs_ptr->sb_params_array[sb_index].horizontal_index = (uint8_t)(sb_index %
+        scs_ptr->b64_geom[sb_index].horizontal_index      = (uint8_t)(sb_index %
                                                                         picture_sb_width);
-        scs_ptr->sb_params_array[sb_index].vertical_index = (uint8_t)(sb_index / picture_sb_width);
-        scs_ptr->sb_params_array[sb_index].origin_x =
-            scs_ptr->sb_params_array[sb_index].horizontal_index * scs_ptr->sb_sz;
-        scs_ptr->sb_params_array[sb_index].origin_y =
-            scs_ptr->sb_params_array[sb_index].vertical_index * scs_ptr->sb_sz;
+        scs_ptr->b64_geom[sb_index].vertical_index   = (uint8_t)(sb_index / picture_sb_width);
+        scs_ptr->b64_geom[sb_index].origin_x =
+            scs_ptr->b64_geom[sb_index].horizontal_index * scs_ptr->sb_sz;
+        scs_ptr->b64_geom[sb_index].origin_y =
+            scs_ptr->b64_geom[sb_index].vertical_index * scs_ptr->sb_sz;
 
-        scs_ptr->sb_params_array[sb_index].width =
+        scs_ptr->b64_geom[sb_index].width =
             (uint8_t)(((scs_ptr->max_input_luma_width -
-                        scs_ptr->sb_params_array[sb_index].origin_x) < scs_ptr->sb_sz)
+                        scs_ptr->b64_geom[sb_index].origin_x) < scs_ptr->sb_sz)
                           ? scs_ptr->max_input_luma_width -
-                              scs_ptr->sb_params_array[sb_index].origin_x
+                              scs_ptr->b64_geom[sb_index].origin_x
                           : scs_ptr->sb_sz);
 
-        scs_ptr->sb_params_array[sb_index].height =
+        scs_ptr->b64_geom[sb_index].height =
             (uint8_t)(((scs_ptr->max_input_luma_height -
-                        scs_ptr->sb_params_array[sb_index].origin_y) < scs_ptr->sb_sz)
+                        scs_ptr->b64_geom[sb_index].origin_y) < scs_ptr->sb_sz)
                           ? scs_ptr->max_input_luma_height -
-                              scs_ptr->sb_params_array[sb_index].origin_y
+                              scs_ptr->b64_geom[sb_index].origin_y
                           : scs_ptr->sb_sz);
 
-        scs_ptr->sb_params_array[sb_index].is_complete_sb =
-            (uint8_t)(((scs_ptr->sb_params_array[sb_index].width == scs_ptr->sb_sz) &&
-                       (scs_ptr->sb_params_array[sb_index].height == scs_ptr->sb_sz))
+        scs_ptr->b64_geom[sb_index].is_complete_sb =
+            (uint8_t)(((scs_ptr->b64_geom[sb_index].width == scs_ptr->sb_sz) &&
+                       (scs_ptr->b64_geom[sb_index].height == scs_ptr->sb_sz))
                           ? 1
                           : 0);
 
-        scs_ptr->sb_params_array[sb_index].is_edge_sb =
-            (scs_ptr->sb_params_array[sb_index].origin_x < scs_ptr->sb_sz) ||
-                (scs_ptr->sb_params_array[sb_index].origin_y < scs_ptr->sb_sz) ||
-                (scs_ptr->sb_params_array[sb_index].origin_x >
+        scs_ptr->b64_geom[sb_index].is_edge_sb =
+            (scs_ptr->b64_geom[sb_index].origin_x < scs_ptr->sb_sz) ||
+                (scs_ptr->b64_geom[sb_index].origin_y < scs_ptr->sb_sz) ||
+                (scs_ptr->b64_geom[sb_index].origin_x >
                  scs_ptr->max_input_luma_width - scs_ptr->sb_sz) ||
-                (scs_ptr->sb_params_array[sb_index].origin_y >
+                (scs_ptr->b64_geom[sb_index].origin_y >
                  scs_ptr->max_input_luma_height - scs_ptr->sb_sz)
             ? 1
             : 0;
@@ -184,12 +184,12 @@ extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
         for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
              raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
              raster_scan_blk_index++) {
-            scs_ptr->sb_params_array[sb_index].raster_scan_blk_validity[raster_scan_blk_index] =
-                ((scs_ptr->sb_params_array[sb_index].origin_x +
+            scs_ptr->b64_geom[sb_index].raster_scan_blk_validity[raster_scan_blk_index] =
+                ((scs_ptr->b64_geom[sb_index].origin_x +
                       raster_scan_blk_x[raster_scan_blk_index] +
                       raster_scan_blk_size[raster_scan_blk_index] >
                   scs_ptr->max_input_luma_width) ||
-                 (scs_ptr->sb_params_array[sb_index].origin_y +
+                 (scs_ptr->b64_geom[sb_index].origin_y +
                       raster_scan_blk_y[raster_scan_blk_index] +
                       raster_scan_blk_size[raster_scan_blk_index] >
                   scs_ptr->max_input_luma_height))

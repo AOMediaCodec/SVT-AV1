@@ -524,7 +524,7 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
     mb_plane.dequant_qtx     = scs_ptr->deq_8bit.y_dequant_qtx[qIndex];
 
     const uint32_t src_stride      = pcs_ptr->enhanced_picture_ptr->stride_y;
-    SbParams      *sb_params       = &scs_ptr->sb_params_array[sb_index];
+    B64Geom *      b64_geom        = &scs_ptr->b64_geom[sb_index];
     const int      aligned16_width = (pcs_ptr->aligned_width + 15) >> 4;
 
     const uint8_t disable_intra_pred = (pcs_ptr->tpl_ctrls.disable_intra_pred_nref &&
@@ -539,8 +539,8 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
                       : bsize == 16                       ? BLOCK_16X16
                       : bsize == 32                       ? BLOCK_32X32
                                                           : BLOCK_64X64;
-        const uint32_t         mb_origin_x   = sb_params->origin_x + blk_stats_ptr->origin_x;
-        const uint32_t         mb_origin_y   = sb_params->origin_y + blk_stats_ptr->origin_y;
+        const uint32_t mb_origin_x = b64_geom->origin_x + blk_stats_ptr->origin_x;
+        const uint32_t mb_origin_y = b64_geom->origin_y + blk_stats_ptr->origin_y;
 
         // at least half of the block inside
         if (mb_origin_x + (size >> 1) > pcs_ptr->enhanced_picture_ptr->width ||
@@ -2086,7 +2086,7 @@ void *tpl_disp_kernel(void *input_ptr) {
                                                            x_sb_index + tile_group_x_sb_start);
 
                         // TPL dispenser per SB (64)
-                        SbParams *sb_params = &scs_ptr->sb_params_array[context_ptr->sb_index];
+                        B64Geom *b64_geom = &scs_ptr->b64_geom[context_ptr->sb_index];
                         tpl_mc_flow_dispenser_sb_generic(
                             pcs_ptr->scs_ptr->encode_context_ptr,
                             scs_ptr,
@@ -2094,7 +2094,7 @@ void *tpl_disp_kernel(void *input_ptr) {
                             frame_idx,
                             context_ptr->sb_index,
                             in_results_ptr->qIndex,
-                            (sb_params->width == 64 && sb_params->height == 64)
+                            (b64_geom->width == 64 && b64_geom->height == 64)
                                 ? pcs_ptr->tpl_ctrls.dispenser_search_level
                                 : 0);
                         context_ptr->coded_sb_count++;
@@ -2114,14 +2114,14 @@ void *tpl_disp_kernel(void *input_ptr) {
         } else {
             // Tiles path does not suupport segments
             for (uint32_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; ++sb_index) {
-                SbParams *sb_params = &scs_ptr->sb_params_array[sb_index];
+                B64Geom *b64_geom = &scs_ptr->b64_geom[sb_index];
                 tpl_mc_flow_dispenser_sb_generic(pcs_ptr->scs_ptr->encode_context_ptr,
                                                  scs_ptr,
                                                  pcs_ptr,
                                                  frame_idx,
                                                  sb_index,
                                                  in_results_ptr->qIndex,
-                                                 (sb_params->width == 64 && sb_params->height == 64)
+                                                 (b64_geom->width == 64 && b64_geom->height == 64)
                                                      ? pcs_ptr->tpl_ctrls.dispenser_search_level
                                                      : 0);
             }
@@ -2206,8 +2206,8 @@ void *source_based_operations_kernel(void *input_ptr) {
             sb_cnt = pcs_ptr->sb_total_count;
         uint32_t sb_index;
         for (sb_index = 0; sb_index < sb_cnt; ++sb_index) {
-            SbParams *sb_params      = &pcs_ptr->sb_params_array[sb_index];
-            Bool      is_complete_sb = sb_params->is_complete_sb;
+            B64Geom *b64_geom      = &pcs_ptr->b64_geom[sb_index];
+            Bool     is_complete_sb = b64_geom->is_complete_sb;
             if (is_complete_sb) {
                 context_ptr->complete_sb_count++;
             }

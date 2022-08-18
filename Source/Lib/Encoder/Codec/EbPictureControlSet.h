@@ -474,7 +474,7 @@ typedef struct PictureControlSet {
 
 // To optimize based on the max input size
 // To study speed-memory trade-offs
-typedef struct SbParams {
+typedef struct B64Geom {
     uint8_t  horizontal_index;
     uint8_t  vertical_index;
     uint16_t origin_x;
@@ -488,7 +488,7 @@ typedef struct SbParams {
     uint32_t tile_start_y;
     uint32_t tile_end_x;
     uint32_t tile_end_y;
-} SbParams;
+} B64Geom;
 
 typedef struct SbGeom {
     uint16_t horizontal_index;
@@ -938,8 +938,8 @@ typedef struct PictureParentControlSet {
     uint8_t     pic_obmc_level;
 
     Bool is_pcs_sb_params;
-    SbParams *
-        sb_params_array; // Contains info for 64x64 blocks, NOT SB info.  Should not be used in MD; use sb_geom instead.
+    B64Geom *
+        b64_geom; // Contains info for 64x64 blocks, NOT SB info.  Should not be used in MD; use sb_geom instead.
     SbGeom               *
         sb_geom; // Contains SB info (adapts automatically when SB 128x128 is used). This should be used in MD.
     EbInputResolution input_resolution;

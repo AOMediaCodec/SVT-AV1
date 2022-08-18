@@ -75,7 +75,7 @@ typedef struct SequenceControlSet {
     /*!< Super block geomerty pointer */
     SbGeom *sb_geom;
     /*!< Array of superblock parameters computed at the resource coordination stage */
-    SbParams *sb_params_array;
+    B64Geom *b64_geom;
     /*!< Bitstream level */
     BitstreamLevel level[MAX_NUM_OPERATING_POINTS];
     /*!< Sequence header structure, common between the encoder and decoder */

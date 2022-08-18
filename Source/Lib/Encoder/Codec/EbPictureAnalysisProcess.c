@@ -2066,10 +2066,10 @@ void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
     uint64_t pic_tot_variance = 0;
 
     for (uint16_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; ++sb_index) {
-        SbParams *sb_params = &pcs_ptr->sb_params_array[sb_index];
+        B64Geom *b64_geom = &pcs_ptr->b64_geom[sb_index];
 
-        uint16_t sb_origin_x             = sb_params->origin_x; // to avoid using child PCS
-        uint16_t sb_origin_y             = sb_params->origin_y;
+        uint16_t sb_origin_x             = b64_geom->origin_x; // to avoid using child PCS
+        uint16_t sb_origin_y             = b64_geom->origin_y;
         uint32_t input_luma_origin_index = (input_padded_picture_ptr->origin_y + sb_origin_y) *
                 input_padded_picture_ptr->stride_y +
             input_padded_picture_ptr->origin_x + sb_origin_x;

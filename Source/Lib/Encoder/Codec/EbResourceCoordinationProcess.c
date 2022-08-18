@@ -720,11 +720,9 @@ extern EbErrorType first_pass_signal_derivation_pre_analysis_pcs(PictureParentCo
 extern EbErrorType first_pass_signal_derivation_pre_analysis_scs(SequenceControlSet *scs_ptr);
 
 static EbErrorType realloc_sb_param(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
-    EB_FREE_ARRAY(pcs_ptr->sb_params_array);
-    EB_MALLOC_ARRAY(pcs_ptr->sb_params_array, scs_ptr->sb_total_count);
-    memcpy(pcs_ptr->sb_params_array,
-           scs_ptr->sb_params_array,
-           sizeof(SbParams) * scs_ptr->sb_total_count);
+    EB_FREE_ARRAY(pcs_ptr->b64_geom);
+    EB_MALLOC_ARRAY(pcs_ptr->b64_geom, scs_ptr->sb_total_count);
+    memcpy(pcs_ptr->b64_geom, scs_ptr->b64_geom, sizeof(B64Geom) * scs_ptr->sb_total_count);
     EB_FREE_ARRAY(pcs_ptr->sb_geom);
     EB_MALLOC_ARRAY(pcs_ptr->sb_geom, scs_ptr->sb_tot_cnt);
     memcpy(pcs_ptr->sb_geom, scs_ptr->sb_geom, sizeof(SbGeom) * scs_ptr->sb_tot_cnt);
@@ -881,7 +879,7 @@ void *resource_coordination_kernel(void *input_ptr) {
                 scs_ptr->static_config.resize_mode > RESIZE_NONE)
                 realloc_sb_param(scs_ptr, pcs_ptr);
             else {
-                pcs_ptr->sb_params_array  = scs_ptr->sb_params_array;
+                pcs_ptr->b64_geom         = scs_ptr->b64_geom;
                 pcs_ptr->sb_geom          = scs_ptr->sb_geom;
                 pcs_ptr->is_pcs_sb_params = FALSE;
             }
@@ -1082,13 +1080,13 @@ void *resource_coordination_kernel(void *input_ptr) {
                                  x_sb_index++) {
                                 int sb_index = (uint16_t)(x_sb_index +
                                                           y_sb_index * pic_width_in_sb);
-                                scs_ptr->sb_params_array[sb_index].tile_start_x = 4 *
+                                scs_ptr->b64_geom[sb_index].tile_start_x = 4 *
                                     tile_info.mi_col_start;
-                                scs_ptr->sb_params_array[sb_index].tile_end_x = 4 *
+                                scs_ptr->b64_geom[sb_index].tile_end_x = 4 *
                                     tile_info.mi_col_end;
-                                scs_ptr->sb_params_array[sb_index].tile_start_y = 4 *
+                                scs_ptr->b64_geom[sb_index].tile_start_y = 4 *
                                     tile_info.mi_row_start;
-                                scs_ptr->sb_params_array[sb_index].tile_end_y = 4 *
+                                scs_ptr->b64_geom[sb_index].tile_end_y = 4 *
                                     tile_info.mi_row_end;
                             }
                         }
