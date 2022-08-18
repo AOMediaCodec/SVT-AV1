@@ -1790,8 +1790,8 @@ void init_tpl_segments(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs
         // TPL segments are 64x64 SB based
         uint16_t pic_width_in_sb;
         uint16_t pic_height_in_sb;
-        pic_width_in_sb  = (pcs_ptr->aligned_width + scs_ptr->sb_sz - 1) / scs_ptr->sb_sz;
-        pic_height_in_sb = (pcs_ptr->aligned_height + scs_ptr->sb_sz - 1) / scs_ptr->sb_sz;
+        pic_width_in_sb  = (pcs_ptr->aligned_width + scs_ptr->b64_size - 1) / scs_ptr->b64_size;
+        pic_height_in_sb = (pcs_ptr->aligned_height + scs_ptr->b64_size - 1) / scs_ptr->b64_size;
 
         if (tile_group_cols * tile_group_rows > 1) {
             enc_dec_seg_col_cnt = MIN(enc_dec_seg_col_cnt,
@@ -2028,9 +2028,9 @@ void *tpl_disp_kernel(void *input_ptr) {
         // Segments
         uint16_t segment_index;
 
-        uint8_t  sb_sz           = (uint8_t)scs_ptr->sb_sz;
-        uint8_t  sb_size_log2    = (uint8_t)svt_log2f(sb_sz);
-        uint32_t pic_width_in_sb = (pcs_ptr->aligned_width + sb_sz - 1) >> sb_size_log2;
+        uint8_t  b64_size           = (uint8_t)scs_ptr->b64_size;
+        uint8_t  sb_size_log2    = (uint8_t)svt_log2f(b64_size);
+        uint32_t pic_width_in_sb    = (pcs_ptr->aligned_width + b64_size - 1) >> sb_size_log2;
 
         segment_index = 0;
         // no Tiles path

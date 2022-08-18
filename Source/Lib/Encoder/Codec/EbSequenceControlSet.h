@@ -162,7 +162,7 @@ typedef struct SequenceControlSet {
     EbInputResolution input_resolution;
 
     /*!< Super block parameters set for the stream */
-    uint8_t  sb_sz;
+    uint8_t  b64_size;
     uint8_t  max_sb_depth;
     uint16_t pic_width_in_sb;
     uint16_t picture_height_in_sb;

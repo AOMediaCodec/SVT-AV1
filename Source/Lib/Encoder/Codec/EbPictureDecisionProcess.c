@@ -4909,8 +4909,8 @@ void perform_simple_picture_analysis_for_overlay(PictureParentControlSet     *pc
     input_picture_ptr = pcs_ptr->enhanced_picture_ptr;
     pa_ref_obj_ = (EbPaReferenceObject*)pcs_ptr->pa_reference_picture_wrapper_ptr->object_ptr;
     input_padded_picture_ptr = (EbPictureBufferDesc*)pa_ref_obj_->input_padded_picture_ptr;
-    pic_width_in_sb = (pcs_ptr->aligned_width + scs_ptr->sb_sz - 1) / scs_ptr->sb_sz;
-    pic_height_in_sb = (pcs_ptr->aligned_height + scs_ptr->sb_sz - 1) / scs_ptr->sb_sz;
+    pic_width_in_sb = (pcs_ptr->aligned_width + scs_ptr->b64_size - 1) / scs_ptr->b64_size;
+    pic_height_in_sb = (pcs_ptr->aligned_height + scs_ptr->b64_size - 1) / scs_ptr->b64_size;
     sb_total_count = pic_width_in_sb * pic_height_in_sb;
 
     // Pad pictures to multiple min cu size

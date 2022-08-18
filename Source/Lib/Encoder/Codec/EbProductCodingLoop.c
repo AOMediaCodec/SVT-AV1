@@ -2263,8 +2263,8 @@ void derive_me_offsets(const SequenceControlSet *scs_ptr, PictureControlSet *pcs
     context_ptr->geom_offset_y = 0;
 
     if (scs_ptr->seq_header.sb_size == BLOCK_128X128) {
-        uint32_t me_sb_size         = scs_ptr->sb_sz;
-        uint32_t me_pic_width_in_sb = (pcs_ptr->parent_pcs_ptr->aligned_width + scs_ptr->sb_sz -
+        uint32_t me_sb_size         = scs_ptr->b64_size;
+        uint32_t me_pic_width_in_sb = (pcs_ptr->parent_pcs_ptr->aligned_width + scs_ptr->b64_size -
                                        1) /
             me_sb_size;
         uint32_t me_sb_x             = (context_ptr->blk_origin_x / me_sb_size);

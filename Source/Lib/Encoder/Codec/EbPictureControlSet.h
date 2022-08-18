@@ -1094,7 +1094,7 @@ typedef struct PictureControlSetInitData {
     uint16_t      bot_padding;
     EbBitDepth    bit_depth;
     EbColorFormat color_format;
-    uint32_t      sb_sz;
+    uint32_t      b64_size;
     uint8_t       cfg_palette;
     uint32_t
         sb_size_pix; //since we still have lot of code assuming 64x64 SB, we add a new paramter supporting both128x128 and 64x64,
