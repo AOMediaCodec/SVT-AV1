@@ -133,10 +133,10 @@ void recon_coef_dctor(EbPtr p) {
     EB_DELETE(obj->recon_picture16bit_ptr);
     EB_DELETE(obj->recon_picture_ptr);
 
-    for (uint16_t sb_index = 0; sb_index < obj->sb_total_count_unscaled; ++sb_index) {
+    for (uint16_t sb_index = 0; sb_index < obj->b64_total_count; ++sb_index) {
         EB_DELETE(obj->quantized_coeff[sb_index]); //OMK2
     }
-    EB_DELETE_PTR_ARRAY(obj->quantized_coeff, obj->sb_total_count_unscaled);
+    EB_DELETE_PTR_ARRAY(obj->quantized_coeff, obj->b64_total_count);
 }
 void picture_control_set_dctor(EbPtr p) {
     PictureControlSet *obj      = (PictureControlSet *)p;
@@ -208,7 +208,7 @@ void picture_control_set_dctor(EbPtr p) {
         EB_DELETE_PTR_ARRAY(obj->md_ref_frame_type_neighbor_array[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_interpolation_type_neighbor_array[depth], tile_cnt);
     }
-    EB_DELETE_PTR_ARRAY(obj->sb_ptr_array, obj->sb_total_count_unscaled);
+    EB_DELETE_PTR_ARRAY(obj->sb_ptr_array, obj->b64_total_count);
     EB_FREE_ARRAY(obj->sb_intra);
     EB_FREE_ARRAY(obj->sb_skip);
     EB_FREE_ARRAY(obj->sb_64x64_mvp);
@@ -364,8 +364,8 @@ EbErrorType recon_coef_ctor(EncDecSet *object_ptr, EbPtr object_init_data_ptr) {
 
     // SB Array
     // object_ptr->sb_total_count          = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = picture_sb_width * picture_sb_height;
-    EB_ALLOC_PTR_ARRAY(object_ptr->quantized_coeff, object_ptr->sb_total_count_unscaled);
+    object_ptr->b64_total_count = picture_sb_width * picture_sb_height;
+    EB_ALLOC_PTR_ARRAY(object_ptr->quantized_coeff, object_ptr->b64_total_count);
 
     //object_ptr->sb_total_count_pix = all_sb;
 
@@ -380,7 +380,7 @@ EbErrorType recon_coef_ctor(EncDecSet *object_ptr, EbPtr object_init_data_ptr) {
     coeff_init_data.top_padding        = 0;
     coeff_init_data.bot_padding        = 0;
     coeff_init_data.split_mode         = FALSE;
-    for (sb_index = 0; sb_index < object_ptr->sb_total_count_unscaled; ++sb_index) {
+    for (sb_index = 0; sb_index < object_ptr->b64_total_count; ++sb_index) {
         EB_NEW(object_ptr->quantized_coeff[sb_index], //OMK2
                svt_picture_buffer_desc_ctor,
                (EbPtr)&coeff_init_data);
@@ -497,7 +497,6 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
 
     // SB Array
     object_ptr->b64_total_count         = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = object_ptr->b64_total_count;
     EB_ALLOC_PTR_ARRAY(object_ptr->sb_ptr_array, object_ptr->b64_total_count);
     EB_MALLOC_ARRAY(object_ptr->sb_intra, object_ptr->b64_total_count);
     EB_MALLOC_ARRAY(object_ptr->sb_skip, object_ptr->b64_total_count);
@@ -1368,7 +1367,6 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
     object_ptr->total_num_bits          = 0;
     object_ptr->last_idr_picture        = 0;
     object_ptr->b64_total_count         = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = object_ptr->b64_total_count;
     object_ptr->is_pcs_sb_params        = FALSE;
 
     object_ptr->data_ll_head_ptr         = (EbLinkedListNode *)NULL;
@@ -1522,7 +1520,7 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
 static void me_dctor(EbPtr p) {
     MotionEstimationData *obj = (MotionEstimationData *)p;
 
-    EB_DELETE_PTR_ARRAY(obj->me_results, obj->sb_total_count_unscaled);
+    EB_DELETE_PTR_ARRAY(obj->me_results, obj->b64_total_count);
     if (obj->ois_mb_results)
         EB_FREE_2D(obj->ois_mb_results);
     if (obj->tpl_stats)
@@ -1549,7 +1547,7 @@ EbErrorType me_ctor(MotionEstimationData *object_ptr, EbPtr object_init_data_ptr
     uint16_t sb_index;
     object_ptr->dctor                   = me_dctor;
     uint32_t sb_total_count             = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = sb_total_count;
+    object_ptr->b64_total_count         = sb_total_count;
 
     EB_ALLOC_PTR_ARRAY(object_ptr->me_results, sb_total_count);
 

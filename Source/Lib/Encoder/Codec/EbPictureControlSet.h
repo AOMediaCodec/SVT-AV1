@@ -231,9 +231,7 @@ typedef struct EncDecSet {
     EbObjectWrapper                *enc_dec_wrapper_ptr;
     struct PictureParentControlSet *parent_pcs_ptr; //The parent of this PCS.
     EbObjectWrapper                *picture_parent_control_set_wrapper_ptr;
-
-    uint16_t sb_total_count_unscaled;
-
+    uint16_t b64_total_count;
 } EncDecSet;
 typedef struct CdefDirData {
     uint8_t dir[CDEF_NBLOCKS][CDEF_NBLOCKS];
@@ -448,7 +446,6 @@ typedef struct PictureControlSet {
     uint16_t tile_row_count;
     uint16_t tile_column_count;
     uint16_t sb_total_count_pix;
-    uint16_t sb_total_count_unscaled;
     // pointer to a scratch buffer used by self-guided restoration
     int32_t *rst_tmpbuf;
 
@@ -518,7 +515,7 @@ typedef struct TileGroupInfo {
 typedef struct MotionEstimationData {
     EbDctor        dctor;
     MeSbResults  **me_results;
-    uint16_t       sb_total_count_unscaled;
+    uint16_t       b64_total_count;
     uint8_t        max_cand; //total max me candidates given the active references
     uint8_t        max_refs; //total max active references
     uint8_t        max_l0; //max active refs in L0
@@ -945,7 +942,6 @@ typedef struct PictureParentControlSet {
     EbInputResolution input_resolution;
     uint16_t          picture_sb_width;
     uint16_t          picture_sb_height;
-    uint16_t          sb_total_count_unscaled;
 
     // Picture dimensions (resized or not)
     // aligned to be a multiple of 8 pixels
