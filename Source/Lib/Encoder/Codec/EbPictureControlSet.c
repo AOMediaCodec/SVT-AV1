@@ -1601,79 +1601,153 @@ EbErrorType me_ctor(MotionEstimationData *object_ptr, EbPtr object_init_data_ptr
     }
     return return_error;
 }
-EbErrorType sb_params_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
-    EbErrorType return_error = EB_ErrorNone;
-    uint16_t    sb_index;
-    uint16_t    raster_scan_blk_index;
-    uint16_t    encoding_width  = pcs_ptr->aligned_width;
-    uint16_t    encoding_height = pcs_ptr->aligned_height;
 
-    uint8_t picture_sb_width  = (uint8_t)((encoding_width + scs_ptr->b64_size - 1) / scs_ptr->b64_size);
-    uint8_t picture_sb_height = (uint8_t)((encoding_height + scs_ptr->b64_size - 1) / scs_ptr->b64_size);
+#if B64_RENAMING
+    EbErrorType b64_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
+        EbErrorType return_error = EB_ErrorNone;
+        uint16_t    b64_idx;
+        uint16_t    raster_scan_blk_index;
+        uint16_t    encoding_width  = pcs_ptr->aligned_width;
+        uint16_t    encoding_height = pcs_ptr->aligned_height;
 
-    EB_FREE_ARRAY(pcs_ptr->b64_geom);
-    EB_MALLOC_ARRAY(pcs_ptr->b64_geom, picture_sb_width * picture_sb_height);
+        uint8_t picture_b64_width  = (uint8_t)((encoding_width + scs_ptr->b64_size - 1) /
+                                             scs_ptr->b64_size);
+        uint8_t picture_b64_height = (uint8_t)((encoding_height + scs_ptr->b64_size - 1) /
+                                              scs_ptr->b64_size);
 
-    for (sb_index = 0; sb_index < picture_sb_width * picture_sb_height; ++sb_index) {
-        pcs_ptr->b64_geom[sb_index].horizontal_index      = (uint8_t)(sb_index %
-                                                                        picture_sb_width);
-        pcs_ptr->b64_geom[sb_index].vertical_index   = (uint8_t)(sb_index / picture_sb_width);
-        pcs_ptr->b64_geom[sb_index].origin_x = pcs_ptr->b64_geom[sb_index].horizontal_index *
-            scs_ptr->b64_size;
-        pcs_ptr->b64_geom[sb_index].origin_y = pcs_ptr->b64_geom[sb_index].vertical_index *
-            scs_ptr->b64_size;
+        EB_FREE_ARRAY(pcs_ptr->b64_geom);
+        EB_MALLOC_ARRAY(pcs_ptr->b64_geom, picture_b64_width * picture_b64_height);
 
-        pcs_ptr->b64_geom[sb_index].width = (uint8_t)(
-            ((encoding_width - pcs_ptr->b64_geom[sb_index].origin_x) <
-                       scs_ptr->b64_size)
-                ? encoding_width - pcs_ptr->b64_geom[sb_index].origin_x
-                          : scs_ptr->b64_size);
+        for (b64_idx = 0; b64_idx < picture_b64_width * picture_b64_height; ++b64_idx) {
+            pcs_ptr->b64_geom[b64_idx].horizontal_index = (uint8_t)(b64_idx % picture_b64_width);
+            pcs_ptr->b64_geom[b64_idx].vertical_index   = (uint8_t)(b64_idx / picture_b64_width);
+            pcs_ptr->b64_geom[b64_idx].origin_x = pcs_ptr->b64_geom[b64_idx].horizontal_index *
+                scs_ptr->b64_size;
+            pcs_ptr->b64_geom[b64_idx].origin_y = pcs_ptr->b64_geom[b64_idx].vertical_index *
+                scs_ptr->b64_size;
 
-        pcs_ptr->b64_geom[sb_index].height = (uint8_t)(
-            ((encoding_height - pcs_ptr->b64_geom[sb_index].origin_y) <
-                       scs_ptr->b64_size)
-                ? encoding_height - pcs_ptr->b64_geom[sb_index].origin_y
-                          : scs_ptr->b64_size);
+            pcs_ptr->b64_geom[b64_idx].width = (uint8_t)(
+                ((encoding_width - pcs_ptr->b64_geom[b64_idx].origin_x) < scs_ptr->b64_size)
+                    ? encoding_width - pcs_ptr->b64_geom[b64_idx].origin_x
+                    : scs_ptr->b64_size);
 
-        pcs_ptr->b64_geom[sb_index].is_complete_sb =
-            (uint8_t)(((pcs_ptr->b64_geom[sb_index].width == scs_ptr->b64_size) &&
-                       (pcs_ptr->b64_geom[sb_index].height == scs_ptr->b64_size))
-                          ? 1
-                          : 0);
+            pcs_ptr->b64_geom[b64_idx].height = (uint8_t)(
+                ((encoding_height - pcs_ptr->b64_geom[b64_idx].origin_y) < scs_ptr->b64_size)
+                    ? encoding_height - pcs_ptr->b64_geom[b64_idx].origin_y
+                    : scs_ptr->b64_size);
 
-        pcs_ptr->b64_geom[sb_index].is_edge_sb =
-            (pcs_ptr->b64_geom[sb_index].origin_x < scs_ptr->b64_size) ||
-                (pcs_ptr->b64_geom[sb_index].origin_y < scs_ptr->b64_size) ||
-                (pcs_ptr->b64_geom[sb_index].origin_x > encoding_width - scs_ptr->b64_size) ||
-                (pcs_ptr->b64_geom[sb_index].origin_y > encoding_height - scs_ptr->b64_size)
-            ? 1
-            : 0;
+            pcs_ptr->b64_geom[b64_idx].is_complete_sb = (uint8_t)(
+                ((pcs_ptr->b64_geom[b64_idx].width == scs_ptr->b64_size) &&
+                 (pcs_ptr->b64_geom[b64_idx].height == scs_ptr->b64_size))
+                    ? 1
+                    : 0);
 
-        for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
-             raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
-             raster_scan_blk_index++) {
-            pcs_ptr->b64_geom[sb_index].raster_scan_blk_validity[raster_scan_blk_index] =
-                ((pcs_ptr->b64_geom[sb_index].origin_x +
-                      raster_scan_blk_x[raster_scan_blk_index] +
-                      raster_scan_blk_size[raster_scan_blk_index] >
-                  encoding_width) ||
-                 (pcs_ptr->b64_geom[sb_index].origin_y +
-                      raster_scan_blk_y[raster_scan_blk_index] +
-                      raster_scan_blk_size[raster_scan_blk_index] >
-                  encoding_height))
-                ? FALSE
-                : TRUE;
+            pcs_ptr->b64_geom[b64_idx].is_edge_sb = (pcs_ptr->b64_geom[b64_idx].origin_x <
+                                                      scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[b64_idx].origin_y < scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[b64_idx].origin_x > encoding_width - scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[b64_idx].origin_y > encoding_height - scs_ptr->b64_size)
+                ? 1
+                : 0;
+
+            for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
+                 raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
+                 raster_scan_blk_index++) {
+                pcs_ptr->b64_geom[b64_idx].raster_scan_blk_validity[raster_scan_blk_index] =
+                    ((pcs_ptr->b64_geom[b64_idx].origin_x + raster_scan_blk_x[raster_scan_blk_index] +
+                          raster_scan_blk_size[raster_scan_blk_index] >
+                      encoding_width) ||
+                     (pcs_ptr->b64_geom[b64_idx].origin_y + raster_scan_blk_y[raster_scan_blk_index] +
+                          raster_scan_blk_size[raster_scan_blk_index] >
+                      encoding_height))
+                    ? FALSE
+                    : TRUE;
+            }
+
+            // super-res can not work with multi-tiles, just set up it for no tiling
+            pcs_ptr->b64_geom[b64_idx].tile_start_x = 0;
+            pcs_ptr->b64_geom[b64_idx].tile_start_y = 0;
+            pcs_ptr->b64_geom[b64_idx].tile_end_x   = encoding_width;
+            pcs_ptr->b64_geom[b64_idx].tile_end_y   = encoding_height;
         }
 
-        // super-res can not work with multi-tiles, just set up it for no tiling
-        pcs_ptr->b64_geom[sb_index].tile_start_x = 0;
-        pcs_ptr->b64_geom[sb_index].tile_start_y = 0;
-        pcs_ptr->b64_geom[sb_index].tile_end_x   = encoding_width;
-        pcs_ptr->b64_geom[sb_index].tile_end_y   = encoding_height;
+        return return_error;
     }
+#else
+    EbErrorType sb_params_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
+        EbErrorType return_error = EB_ErrorNone;
+        uint16_t    sb_index;
+        uint16_t    raster_scan_blk_index;
+        uint16_t    encoding_width  = pcs_ptr->aligned_width;
+        uint16_t    encoding_height = pcs_ptr->aligned_height;
 
-    return return_error;
-}
+        uint8_t picture_sb_width  = (uint8_t)((encoding_width + scs_ptr->b64_size - 1) / scs_ptr->b64_size);
+        uint8_t picture_sb_height = (uint8_t)((encoding_height + scs_ptr->b64_size - 1) / scs_ptr->b64_size);
+
+        EB_FREE_ARRAY(pcs_ptr->b64_geom);
+        EB_MALLOC_ARRAY(pcs_ptr->b64_geom, picture_sb_width * picture_sb_height);
+
+        for (sb_index = 0; sb_index < picture_sb_width * picture_sb_height; ++sb_index) {
+            pcs_ptr->b64_geom[sb_index].horizontal_index      = (uint8_t)(sb_index %
+                                                                            picture_sb_width);
+            pcs_ptr->b64_geom[sb_index].vertical_index   = (uint8_t)(sb_index / picture_sb_width);
+            pcs_ptr->b64_geom[sb_index].origin_x = pcs_ptr->b64_geom[sb_index].horizontal_index *
+                scs_ptr->b64_size;
+            pcs_ptr->b64_geom[sb_index].origin_y = pcs_ptr->b64_geom[sb_index].vertical_index *
+                scs_ptr->b64_size;
+
+            pcs_ptr->b64_geom[sb_index].width = (uint8_t)(
+                ((encoding_width - pcs_ptr->b64_geom[sb_index].origin_x) <
+                           scs_ptr->b64_size)
+                    ? encoding_width - pcs_ptr->b64_geom[sb_index].origin_x
+                              : scs_ptr->b64_size);
+
+            pcs_ptr->b64_geom[sb_index].height = (uint8_t)(
+                ((encoding_height - pcs_ptr->b64_geom[sb_index].origin_y) <
+                           scs_ptr->b64_size)
+                    ? encoding_height - pcs_ptr->b64_geom[sb_index].origin_y
+                              : scs_ptr->b64_size);
+
+            pcs_ptr->b64_geom[sb_index].is_complete_sb =
+                (uint8_t)(((pcs_ptr->b64_geom[sb_index].width == scs_ptr->b64_size) &&
+                           (pcs_ptr->b64_geom[sb_index].height == scs_ptr->b64_size))
+                              ? 1
+                              : 0);
+
+            pcs_ptr->b64_geom[sb_index].is_edge_sb =
+                (pcs_ptr->b64_geom[sb_index].origin_x < scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[sb_index].origin_y < scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[sb_index].origin_x > encoding_width - scs_ptr->b64_size) ||
+                    (pcs_ptr->b64_geom[sb_index].origin_y > encoding_height - scs_ptr->b64_size)
+                ? 1
+                : 0;
+
+            for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
+                 raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
+                 raster_scan_blk_index++) {
+                pcs_ptr->b64_geom[sb_index].raster_scan_blk_validity[raster_scan_blk_index] =
+                    ((pcs_ptr->b64_geom[sb_index].origin_x +
+                          raster_scan_blk_x[raster_scan_blk_index] +
+                          raster_scan_blk_size[raster_scan_blk_index] >
+                      encoding_width) ||
+                     (pcs_ptr->b64_geom[sb_index].origin_y +
+                          raster_scan_blk_y[raster_scan_blk_index] +
+                          raster_scan_blk_size[raster_scan_blk_index] >
+                      encoding_height))
+                    ? FALSE
+                    : TRUE;
+            }
+
+            // super-res can not work with multi-tiles, just set up it for no tiling
+            pcs_ptr->b64_geom[sb_index].tile_start_x = 0;
+            pcs_ptr->b64_geom[sb_index].tile_start_y = 0;
+            pcs_ptr->b64_geom[sb_index].tile_end_x   = encoding_width;
+            pcs_ptr->b64_geom[sb_index].tile_end_y   = encoding_height;
+        }
+
+        return return_error;
+    }
+#endif
 
 EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
     uint16_t sb_index;

@@ -423,7 +423,7 @@ typedef struct SequenceControlSet {
 } SequenceControlSet;
 typedef struct EbSequenceControlSetInstance {
     EbDctor             dctor;
-    EncodeContext      *encode_context_ptr;
+    EncodeContext *     encode_context_ptr;
     SequenceControlSet *scs_ptr;
 } EbSequenceControlSetInstance;
 
@@ -432,7 +432,11 @@ typedef struct EbSequenceControlSetInstance {
      **************************************/
 extern EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance *object_ptr);
 
-extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr);
+#if B64_RENAMING
+    extern EbErrorType b64_geom_init(SequenceControlSet *scs_ptr);
+#else
+    extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr);
+#endif
 
 extern EbErrorType derive_input_resolution(EbInputResolution *input_resolution,
                                            uint32_t           input_size);

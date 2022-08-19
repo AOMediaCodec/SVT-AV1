@@ -835,7 +835,11 @@ void *resource_coordination_kernel(void *input_ptr) {
                 scs_ptr->max_input_luma_height;
             derive_input_resolution(&scs_ptr->input_resolution, input_size);
 
+#if B64_RENAMING            
+            b64_geom_init(scs_ptr);
+#else            
             sb_params_init(scs_ptr);
+#endif
             sb_geom_init(scs_ptr);
 
             // sf_identity

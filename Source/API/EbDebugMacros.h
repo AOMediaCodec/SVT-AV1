@@ -9,7 +9,6 @@
 * PATENTS file, you can obtain it at https://www.aomedia.org/license/patent-license.
 */
 
-
 /*
 * This file contains only debug macros that are used during the development
 * and are supposed to be cleaned up every tag cycle
@@ -24,7 +23,6 @@
 * - all macros must have a coherent comment explaining what the MACRO is doing
 * - #if 0 / #if 1 are not to be used
 */
-
 
 #ifndef EbDebugMacros_h
 #define EbDebugMacros_h
@@ -51,6 +49,7 @@ extern "C" {
 #define LAD_MG_PRINT            0 // Report LAD
 #define RC_NO_R2R               0 // This is a debugging flag for RC and makes encoder to run with no R2R in RC mode
                                   // Note that the speed might impacted significantly
+#define B64_RENAMING            1 // Use b64 where appropriate rather than sb variant
 #if RC_NO_R2R
 #define REMOVE_LP1_LPN_DIFF     1 // Disallow single-thread/multi-thread differences
 #else
