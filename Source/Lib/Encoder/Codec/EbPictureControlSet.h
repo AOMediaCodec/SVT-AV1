@@ -306,7 +306,7 @@ typedef struct PictureControlSet {
     // Rate Control
     uint8_t picture_qp;
     // SB Array
-    uint16_t     sb_total_count;
+    uint16_t     b64_total_count;
     SuperBlock **sb_ptr_array;
     uint8_t     *sb_intra;
     uint8_t     *sb_skip;
@@ -714,7 +714,7 @@ typedef struct PictureParentControlSet {
     uint8_t          tot_ref_frame_types;
     // Rate Control
     uint64_t                                total_num_bits;
-    uint16_t                                sb_total_count;
+    uint16_t                                b64_total_count;
     Bool                                    end_of_sequence_region;
     int                                     frames_in_sw; // used for Look ahead
     struct RateControlIntervalParamContext *rate_control_param_ptr;

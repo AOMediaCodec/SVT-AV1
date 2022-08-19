@@ -194,9 +194,9 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
         }
     }
 
-    scs_ptr->pic_width_in_sb      = picture_b64_width;
-    scs_ptr->picture_height_in_sb = picture_b64_height;
-    scs_ptr->sb_total_count       = picture_b64_width * picture_b64_height;
+    scs_ptr->pic_width_in_b64      = picture_b64_width;
+    scs_ptr->picture_height_in_b64 = picture_b64_height;
+    scs_ptr->b64_total_count       = picture_b64_width * picture_b64_height;
 
     return return_error;
 }

@@ -496,12 +496,12 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
     object_ptr->temporal_layer_index = 0;
 
     // SB Array
-    object_ptr->sb_total_count          = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = object_ptr->sb_total_count;
-    EB_ALLOC_PTR_ARRAY(object_ptr->sb_ptr_array, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->sb_intra, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->sb_skip, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->sb_64x64_mvp, object_ptr->sb_total_count);
+    object_ptr->b64_total_count         = picture_sb_width * picture_sb_height;
+    object_ptr->sb_total_count_unscaled = object_ptr->b64_total_count;
+    EB_ALLOC_PTR_ARRAY(object_ptr->sb_ptr_array, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->sb_intra, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->sb_skip, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->sb_64x64_mvp, object_ptr->b64_total_count);
 
     sb_origin_x = 0;
     sb_origin_y = 0;
@@ -1367,8 +1367,8 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
     object_ptr->temporal_layer_index    = 0;
     object_ptr->total_num_bits          = 0;
     object_ptr->last_idr_picture        = 0;
-    object_ptr->sb_total_count          = picture_sb_width * picture_sb_height;
-    object_ptr->sb_total_count_unscaled = object_ptr->sb_total_count;
+    object_ptr->b64_total_count         = picture_sb_width * picture_sb_height;
+    object_ptr->sb_total_count_unscaled = object_ptr->b64_total_count;
     object_ptr->is_pcs_sb_params        = FALSE;
 
     object_ptr->data_ll_head_ptr         = (EbLinkedListNode *)NULL;
@@ -1380,7 +1380,7 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
             block_count = 85;
         else
             block_count = 1;
-        EB_MALLOC_2D(object_ptr->variance, object_ptr->sb_total_count, block_count);
+        EB_MALLOC_2D(object_ptr->variance, object_ptr->b64_total_count, block_count);
     }
 
     if (init_data_ptr->scene_change_detection) {
@@ -1412,15 +1412,15 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
     }
     object_ptr->r0 = 0;
 
-    EB_MALLOC_ARRAY(object_ptr->rc_me_distortion, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->stationary_block_present_sb, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->rc_me_allow_gm, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->me_64x64_distortion, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->me_32x32_distortion, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->me_16x16_distortion, object_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(object_ptr->me_8x8_distortion, object_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(object_ptr->rc_me_distortion, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->stationary_block_present_sb, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->rc_me_allow_gm, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->me_64x64_distortion, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->me_32x32_distortion, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->me_16x16_distortion, object_ptr->b64_total_count);
+    EB_MALLOC_ARRAY(object_ptr->me_8x8_distortion, object_ptr->b64_total_count);
 
-    EB_MALLOC_ARRAY(object_ptr->me_8x8_cost_variance, object_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(object_ptr->me_8x8_cost_variance, object_ptr->b64_total_count);
     // SB noise variance array
     EB_CREATE_MUTEX(object_ptr->me_processed_b64_mutex);
     EB_CREATE_SEMAPHORE(object_ptr->temp_filt_done_semaphore, 0, 1);

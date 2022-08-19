@@ -1386,7 +1386,7 @@ static int create_ref_buf_descs(EbEncHandle *enc_handle_ptr, uint32_t instance_i
     ref_pic_buf_desc_init_data.color_format = scs_ptr->static_config.encoder_color_format;
     ref_pic_buf_desc_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
     ref_pic_buf_desc_init_data.rest_units_per_tile = scs_ptr->rest_units_per_tile;
-    ref_pic_buf_desc_init_data.sb_total_count = scs_ptr->sb_total_count;
+    ref_pic_buf_desc_init_data.sb_total_count = scs_ptr->b64_total_count;
     uint16_t padding = scs_ptr->super_block_size + 32;
     if (scs_ptr->static_config.superres_mode > SUPERRES_NONE ||
         scs_ptr->static_config.resize_mode > RESIZE_NONE) {
@@ -1704,7 +1704,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
             // The restoration assumes only 1 tile is used, so only allocate for 1 tile... see svt_av1_alloc_restoration_struct()
             PictureControlSet *pcs = (PictureControlSet *)enc_handle_ptr->picture_control_set_pool_ptr_array[instance_index]->wrapper_ptr_pool[0]->object_ptr;
             enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->rest_units_per_tile = pcs->rst_info[0/*Y-plane*/].units_per_tile;
-            enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->sb_total_count = pcs->sb_total_count;
+            enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->b64_total_count = pcs->b64_total_count;
             create_ref_buf_descs(enc_handle_ptr, instance_index);
 
         create_pa_ref_buf_descs(enc_handle_ptr, instance_index);

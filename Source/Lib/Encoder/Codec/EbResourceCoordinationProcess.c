@@ -562,7 +562,7 @@ static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs_ptr) {
 
     pcs_ptr->me_segments_total_count = (uint16_t)(pcs_ptr->me_segments_column_count *
                                                   pcs_ptr->me_segments_row_count);
-    pcs_ptr->sb_total_count_pix      = pcs_ptr->sb_total_count;
+    pcs_ptr->sb_total_count_pix      = pcs_ptr->b64_total_count;
     pcs_ptr->tpl_disp_coded_sb_count = 0;
 
     pcs_ptr->tpl_src_data_ready  = 0;
@@ -721,8 +721,8 @@ extern EbErrorType first_pass_signal_derivation_pre_analysis_scs(SequenceControl
 
 static EbErrorType realloc_sb_param(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
     EB_FREE_ARRAY(pcs_ptr->b64_geom);
-    EB_MALLOC_ARRAY(pcs_ptr->b64_geom, scs_ptr->sb_total_count);
-    memcpy(pcs_ptr->b64_geom, scs_ptr->b64_geom, sizeof(B64Geom) * scs_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(pcs_ptr->b64_geom, scs_ptr->b64_total_count);
+    memcpy(pcs_ptr->b64_geom, scs_ptr->b64_geom, sizeof(B64Geom) * scs_ptr->b64_total_count);
     EB_FREE_ARRAY(pcs_ptr->sb_geom);
     EB_MALLOC_ARRAY(pcs_ptr->sb_geom, scs_ptr->sb_tot_cnt);
     memcpy(pcs_ptr->sb_geom, scs_ptr->sb_geom, sizeof(SbGeom) * scs_ptr->sb_tot_cnt);
@@ -888,8 +888,8 @@ void *resource_coordination_kernel(void *input_ptr) {
                 pcs_ptr->is_pcs_sb_params = FALSE;
             }
             pcs_ptr->input_resolution  = scs_ptr->input_resolution;
-            pcs_ptr->picture_sb_width  = scs_ptr->pic_width_in_sb;
-            pcs_ptr->picture_sb_height = scs_ptr->picture_height_in_sb;
+            pcs_ptr->picture_sb_width  = scs_ptr->pic_width_in_b64;
+            pcs_ptr->picture_sb_height = scs_ptr->picture_height_in_b64;
 
             pcs_ptr->overlay_ppcs_ptr   = NULL;
             pcs_ptr->is_alt_ref         = 0;
@@ -976,7 +976,7 @@ void *resource_coordination_kernel(void *input_ptr) {
             pcs_ptr->idr_flag          = scs_ptr->encode_context_ptr->initial_picture;
             pcs_ptr->scene_change_flag = FALSE;
             pcs_ptr->qp_on_the_fly     = FALSE;
-            pcs_ptr->sb_total_count    = scs_ptr->sb_total_count;
+            pcs_ptr->b64_total_count   = scs_ptr->b64_total_count;
             if (scs_ptr->speed_control_flag) {
                 speed_buffer_control(context_ptr, pcs_ptr, scs_ptr);
             } else

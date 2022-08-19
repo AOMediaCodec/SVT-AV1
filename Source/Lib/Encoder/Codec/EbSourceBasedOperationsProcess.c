@@ -2106,14 +2106,14 @@ void *tpl_disp_kernel(void *input_ptr) {
 
             svt_block_on_mutex(pcs_ptr->tpl_disp_mutex);
             pcs_ptr->tpl_disp_coded_sb_count += (uint32_t)context_ptr->coded_sb_count;
-            Bool last_sb_flag = (pcs_ptr->sb_total_count == pcs_ptr->tpl_disp_coded_sb_count);
+            Bool last_sb_flag = (pcs_ptr->b64_total_count == pcs_ptr->tpl_disp_coded_sb_count);
 
             svt_release_mutex(pcs_ptr->tpl_disp_mutex);
             if (last_sb_flag)
                 svt_post_semaphore(pcs_ptr->tpl_disp_done_semaphore);
         } else {
             // Tiles path does not suupport segments
-            for (uint32_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; ++sb_index) {
+            for (uint32_t sb_index = 0; sb_index < pcs_ptr->b64_total_count; ++sb_index) {
                 B64Geom *b64_geom = &scs_ptr->b64_geom[sb_index];
                 tpl_mc_flow_dispenser_sb_generic(pcs_ptr->scs_ptr->encode_context_ptr,
                                                  scs_ptr,
@@ -2203,7 +2203,7 @@ void *source_based_operations_kernel(void *input_ptr) {
         /***********************************************SB-based operations************************************************************/
         uint16_t sb_cnt = scs_ptr->sb_tot_cnt;
         if (pcs_ptr->frame_superres_enabled || pcs_ptr->frame_resize_enabled)
-            sb_cnt = pcs_ptr->sb_total_count;
+            sb_cnt = pcs_ptr->b64_total_count;
         uint32_t sb_index;
         for (sb_index = 0; sb_index < sb_cnt; ++sb_index) {
             B64Geom *b64_geom      = &pcs_ptr->b64_geom[sb_index];

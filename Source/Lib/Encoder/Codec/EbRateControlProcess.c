@@ -1185,13 +1185,13 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
     uint16_t sb_cnt = scs->sb_tot_cnt;
     if (scs->static_config.superres_mode > SUPERRES_NONE)
-        sb_cnt = ppcs->sb_total_count;
+        sb_cnt = ppcs->b64_total_count;
     if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
         uint64_t avg_me_dist = 0;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
         }
-        avg_me_dist /= ppcs->sb_total_count;
+        avg_me_dist /= ppcs->b64_total_count;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             sb               = pcs->sb_ptr_array[sb_addr];
             double diff_dist = (double)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
@@ -1238,7 +1238,7 @@ void sb_qp_derivation_tpl_la(PictureControlSet *pcs_ptr) {
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
     uint16_t sb_cnt = scs_ptr->sb_tot_cnt;
     if (ppcs_ptr->frame_superres_enabled || ppcs_ptr->frame_resize_enabled)
-        sb_cnt = ppcs_ptr->sb_total_count;
+        sb_cnt = ppcs_ptr->b64_total_count;
     if ((pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) &&
         (pcs_ptr->parent_pcs_ptr->tpl_is_valid == 1)) {
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {

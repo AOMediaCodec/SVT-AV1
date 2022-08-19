@@ -1501,7 +1501,7 @@ void scale_pcs_params(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_
     pcs_ptr->picture_sb_width  = picture_sb_width; // TODO: use this instead of re-computing
     pcs_ptr->picture_sb_height = picture_sb_height;
 
-    pcs_ptr->sb_total_count = picture_sb_width * picture_sb_height;
+    pcs_ptr->b64_total_count = picture_sb_width * picture_sb_height;
 
     // mi params
     cm->mi_stride = picture_sb_width * (scs_ptr->sb_size_pix >> MI_SIZE_LOG2);

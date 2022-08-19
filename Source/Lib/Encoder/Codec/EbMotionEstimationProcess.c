@@ -907,7 +907,7 @@ void *motion_estimation_kernel(void *input_ptr) {
                                 svt_block_on_mutex(pcs_ptr->me_processed_b64_mutex);
                                 pcs_ptr->me_processed_b64_count++;
                                 // We need to finish ME for all SBs to do GM
-                                if (pcs_ptr->me_processed_b64_count == pcs_ptr->sb_total_count) {
+                                if (pcs_ptr->me_processed_b64_count == pcs_ptr->b64_total_count) {
                                     if (pcs_ptr->gm_ctrls.enabled)
                                         global_motion_estimation(pcs_ptr, input_picture_ptr);
                                     else

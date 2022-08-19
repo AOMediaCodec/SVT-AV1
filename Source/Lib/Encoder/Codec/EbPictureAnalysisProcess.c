@@ -2065,7 +2065,7 @@ void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
     // Variance
     uint64_t pic_tot_variance = 0;
 
-    for (uint16_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; ++sb_index) {
+    for (uint16_t sb_index = 0; sb_index < pcs_ptr->b64_total_count; ++sb_index) {
         B64Geom *b64_geom = &pcs_ptr->b64_geom[sb_index];
 
         uint16_t sb_origin_x             = b64_geom->origin_x; // to avoid using child PCS
@@ -2778,7 +2778,7 @@ void *picture_analysis_kernel(void *input_ptr) {
                     pcs_ptr,
                     input_padded_picture_ptr,
                     (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr,
-                    pcs_ptr->sb_total_count);
+                    pcs_ptr->b64_total_count);
 
             // If running multi-threaded mode, perform SC detection in picture_analysis_kernel, else in picture_decision_kernel
             if (scs_ptr->static_config.logical_processors != 1) {

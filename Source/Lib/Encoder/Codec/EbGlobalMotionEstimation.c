@@ -56,7 +56,7 @@ void global_motion_estimation(PictureParentControlSet *pcs_ptr,
     uint32_t total_me_sad        = 0;
     uint32_t total_stationary_sb = 0;
     uint32_t total_gm_sbs        = 0;
-    for (uint16_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; ++sb_index) {
+    for (uint16_t sb_index = 0; sb_index < pcs_ptr->b64_total_count; ++sb_index) {
         total_me_sad += pcs_ptr->rc_me_distortion[sb_index];
         total_stationary_sb += pcs_ptr->stationary_block_present_sb[sb_index];
         total_gm_sbs += pcs_ptr->rc_me_allow_gm[sb_index];
@@ -83,10 +83,10 @@ void global_motion_estimation(PictureParentControlSet *pcs_ptr,
         pcs_ptr->gm_downsample_level = pcs_ptr->gm_ctrls.downsample_level;
     }
     if (pcs_ptr->gm_ctrls.bypass_based_on_me) {
-        if ((total_gm_sbs < (uint32_t)(pcs_ptr->sb_total_count >> 1)) ||
+        if ((total_gm_sbs < (uint32_t)(pcs_ptr->b64_total_count >> 1)) ||
             (pcs_ptr->gm_ctrls.use_stationary_block &&
              (total_stationary_sb >
-              (uint32_t)((pcs_ptr->sb_total_count * 5) /
+              (uint32_t)((pcs_ptr->b64_total_count * 5) /
                          100)))) // if more than 5% of SB(s) have stationary block(s) then shut gm
             global_motion_estimation_level = 0;
     }

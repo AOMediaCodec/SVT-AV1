@@ -316,7 +316,7 @@ void superres_setup_child_pcs(SequenceControlSet      *entry_scs_ptr,
     uint8_t pic_width_in_sb;
     uint8_t picture_height_in_sb;
 
-    child_pcs_ptr->sb_total_count = entry_pcs_ptr->sb_total_count;
+    child_pcs_ptr->b64_total_count = entry_pcs_ptr->b64_total_count;
 
     pic_width_in_sb = (uint8_t)((entry_pcs_ptr->aligned_width + entry_scs_ptr->sb_size_pix - 1) /
                                 entry_scs_ptr->sb_size_pix);
@@ -820,7 +820,7 @@ void *picture_manager_kernel(void *input_ptr) {
                         child_pcs_ptr->parent_pcs_ptr->total_num_bits = 0;
                         child_pcs_ptr->parent_pcs_ptr->picture_qp     = entry_pcs_ptr->picture_qp;
                         child_pcs_ptr->enc_mode                       = entry_pcs_ptr->enc_mode;
-                        child_pcs_ptr->sb_total_count = entry_pcs_ptr->sb_total_count;
+                        child_pcs_ptr->b64_total_count = entry_pcs_ptr->b64_total_count;
 
                         child_pcs_ptr->enc_dec_coded_sb_count = 0;
                         child_pcs_ptr->parent_pcs_ptr->av1_cm->rst_tmpbuf =
