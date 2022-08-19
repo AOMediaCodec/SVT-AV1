@@ -681,7 +681,7 @@ typedef struct PictureParentControlSet {
     EbBufferHeaderType *input_ptr; // input picture buffer
     uint8_t             log2_tile_rows;
     uint8_t             log2_tile_cols;
-    uint8_t             log2_sb_sz;
+    uint8_t             log2_sb_size;
     TileGroupInfo      *tile_group_info;
     uint8_t             tile_group_cols;
     uint8_t             tile_group_rows;
@@ -1115,7 +1115,7 @@ typedef struct PictureControlSetInitData {
     //Init value for parent pcs
     uint8_t log2_tile_rows; //from command line
     uint8_t log2_tile_cols;
-    uint8_t log2_sb_sz; //in mi unit
+    uint8_t log2_sb_size; //in mi unit
     Bool    is_16bit_pipeline;
 
     uint16_t   non_m8_pad_w;

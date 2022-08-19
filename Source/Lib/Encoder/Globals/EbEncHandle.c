@@ -1488,7 +1488,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
         input_data.bit_depth = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.encoder_bit_depth;
         input_data.log2_tile_rows = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.tile_rows;
         input_data.log2_tile_cols = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.tile_columns;
-        input_data.log2_sb_sz = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size == 128) ? 5 : 4;
+        input_data.log2_sb_size = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size == 128) ? 5 : 4;
         input_data.is_16bit_pipeline = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->is_16bit_pipeline;
         input_data.non_m8_pad_w = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->max_input_pad_right;
         input_data.non_m8_pad_h = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->max_input_pad_bottom;

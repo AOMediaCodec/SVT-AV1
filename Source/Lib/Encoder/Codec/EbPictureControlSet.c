@@ -1477,7 +1477,7 @@ EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
     //Jing: need to know the tile split info at pcs initialize stage
     object_ptr->log2_tile_rows = init_data_ptr->log2_tile_rows;
     object_ptr->log2_tile_cols = init_data_ptr->log2_tile_cols;
-    object_ptr->log2_sb_sz     = init_data_ptr->log2_sb_sz;
+    object_ptr->log2_sb_size   = init_data_ptr->log2_sb_size;
     set_tile_info(object_ptr);
     EB_MALLOC_ARRAY(
         object_ptr->tile_group_info,
