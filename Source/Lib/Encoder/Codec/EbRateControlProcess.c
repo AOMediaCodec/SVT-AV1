@@ -953,12 +953,12 @@ int8_t non_base_boost(PictureControlSet *pcs_ptr) {
         (EbReferenceObject *)pcs_ptr->ref_pic_ptr_array[REF_LIST_0][0]->object_ptr;
     uint32_t l0_was_intra = 0;
     if (ref_obj_l0->slice_type != I_SLICE) {
-        for (uint32_t sb_index = 0; sb_index < pcs_ptr->sb_total_count_pix; sb_index++) {
+        for (uint32_t sb_index = 0; sb_index < pcs_ptr->sb_total_count; sb_index++) {
             l0_was_intra += ref_obj_l0->sb_intra[sb_index];
         }
     }
     if (l0_was_intra) {
-        int8_t intra_percentage = (l0_was_intra * 100) / pcs_ptr->sb_total_count_pix;
+        int8_t intra_percentage = (l0_was_intra * 100) / pcs_ptr->sb_total_count;
         q_boost                 = intra_percentage >> 2;
     }
     return q_boost;
@@ -3412,7 +3412,7 @@ void *rate_control_kernel(void *input_ptr) {
                 sb_qp_derivation(pcs_ptr);
             } else {
                 pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
-                for (int sb_addr = 0; sb_addr < pcs_ptr->sb_total_count_pix; ++sb_addr) {
+                for (int sb_addr = 0; sb_addr < pcs_ptr->sb_total_count; ++sb_addr) {
                     SuperBlock *sb_ptr = pcs_ptr->sb_ptr_array[sb_addr];
                     sb_ptr->qindex     = quantizer_to_qindex[pcs_ptr->picture_qp];
                 }

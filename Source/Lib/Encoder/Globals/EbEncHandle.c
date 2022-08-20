@@ -1584,7 +1584,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
             input_data.bit_depth = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->encoder_bit_depth;
             input_data.color_format = color_format;
             input_data.b64_size = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->b64_size;
-            input_data.sb_size_pix = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size;
+            input_data.sb_size = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size;
             input_data.hbd_mode_decision = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->enable_hbd_mode_decision;
             input_data.cdf_mode = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->cdf_mode;
             input_data.mfmv = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->mfmv_enabled;
@@ -1646,7 +1646,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
             input_data.bit_depth = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->encoder_bit_depth;
             input_data.color_format = color_format;
             input_data.b64_size = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->b64_size;
-            input_data.sb_size_pix = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size;
+            input_data.sb_size = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->super_block_size;
             input_data.hbd_mode_decision = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->enable_hbd_mode_decision;
             input_data.cdf_mode = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->cdf_mode;
             input_data.mfmv = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->mfmv_enabled;
@@ -3484,13 +3484,13 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     // Set config info related to SB size
     if (scs_ptr->super_block_size == 128) {
         scs_ptr->seq_header.sb_size = BLOCK_128X128;
-        scs_ptr->sb_size_pix = 128;
+        scs_ptr->sb_size = 128;
         scs_ptr->seq_header.sb_mi_size = 32; // Size of the superblock in units of MI blocks
         scs_ptr->seq_header.sb_size_log2 = 5;
     }
     else {
         scs_ptr->seq_header.sb_size = BLOCK_64X64;
-        scs_ptr->sb_size_pix = 64;
+        scs_ptr->sb_size = 64;
         scs_ptr->seq_header.sb_mi_size = 16; // Size of the superblock in units of MI blocks
         scs_ptr->seq_header.sb_size_log2 = 4;
     }

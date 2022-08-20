@@ -1673,11 +1673,11 @@ static void generate_r0beta(PictureParentControlSet *pcs_ptr) {
     generate_lambda_scaling_factor(pcs_ptr, mc_dep_cost_base);
 
     // If superres scale down is on, should use scaled width instead of full size
-    const int32_t  sb_mi_sz = (int32_t)(scs_ptr->sb_size_pix >> 2);
+    const int32_t  sb_mi_sz = (int32_t)(scs_ptr->sb_size >> 2);
     const uint32_t picture_sb_width =
-        (uint32_t)((pcs_ptr->aligned_width + scs_ptr->sb_size_pix - 1) / scs_ptr->sb_size_pix);
+        (uint32_t)((pcs_ptr->aligned_width + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
     const uint32_t picture_sb_height =
-        (uint32_t)((pcs_ptr->aligned_height + scs_ptr->sb_size_pix - 1) / scs_ptr->sb_size_pix);
+        (uint32_t)((pcs_ptr->aligned_height + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
     const int32_t mi_high = sb_mi_sz; // sb size in 4x4 units
     const int32_t mi_wide = sb_mi_sz;
     for (uint32_t sb_y = 0; sb_y < picture_sb_height; ++sb_y) {

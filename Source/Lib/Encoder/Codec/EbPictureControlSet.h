@@ -445,7 +445,7 @@ typedef struct PictureControlSet {
     //Put it here for deinit, don't need to go pcs->ppcs->av1_cm which may already be released
     uint16_t tile_row_count;
     uint16_t tile_column_count;
-    uint16_t sb_total_count_pix;
+    uint16_t sb_total_count;
     // pointer to a scratch buffer used by self-guided restoration
     int32_t *rst_tmpbuf;
 
@@ -1026,7 +1026,9 @@ typedef struct PictureParentControlSet {
     uint16_t tile_group_index;
     uint16_t tpl_disp_coded_sb_count;
 
+ #if !B64_RENAMING
     uint16_t         sb_total_count_pix;
+#endif
     EncDecSegments **tpl_disp_segment_ctrl;
     // the offsets for STATS_BUFFER_CTX
     uint64_t stats_in_end_offset;
@@ -1093,7 +1095,7 @@ typedef struct PictureControlSetInitData {
     uint32_t      b64_size;
     uint8_t       cfg_palette;
     uint32_t
-        sb_size_pix; //since we still have lot of code assuming 64x64 SB, we add a new paramter supporting both128x128 and 64x64,
+        sb_size; //since we still have lot of code assuming 64x64 SB, we add a new paramter supporting both128x128 and 64x64,
     //ultimately the fixed code supporting 64x64 should be upgraded to use 128x128 and the above could be removed.
     uint32_t max_depth;
     //Bool                             is_16bit;

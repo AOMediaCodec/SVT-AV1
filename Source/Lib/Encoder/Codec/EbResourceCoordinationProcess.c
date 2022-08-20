@@ -562,7 +562,9 @@ static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs_ptr) {
 
     pcs_ptr->me_segments_total_count = (uint16_t)(pcs_ptr->me_segments_column_count *
                                                   pcs_ptr->me_segments_row_count);
+#if !B64_RENAMING
     pcs_ptr->sb_total_count_pix      = pcs_ptr->b64_total_count;
+#endif
     pcs_ptr->tpl_disp_coded_sb_count = 0;
 
     pcs_ptr->tpl_src_data_ready  = 0;
@@ -1054,9 +1056,9 @@ void *resource_coordination_kernel(void *input_ptr) {
             if (scs_ptr->static_config.restricted_motion_vector) {
                 struct PictureParentControlSet *ppcs_ptr = pcs_ptr;
                 Av1Common *const                cm       = ppcs_ptr->av1_cm;
-                uint8_t pic_width_in_sb = (uint8_t)((pcs_ptr->aligned_width + scs_ptr->sb_size_pix -
+                uint8_t pic_width_in_sb = (uint8_t)((pcs_ptr->aligned_width + scs_ptr->sb_size -
                                                      1) /
-                                                    scs_ptr->sb_size_pix);
+                                                    scs_ptr->sb_size);
                 int     tile_row, tile_col;
                 uint32_t  x_sb_index, y_sb_index;
                 const int tile_cols = cm->tiles_info.tile_cols;

@@ -327,9 +327,9 @@ EbErrorType recon_coef_ctor(EncDecSet *object_ptr, EbPtr object_init_data_ptr) {
     input_pic_buf_desc_init_data.bit_depth          = init_data_ptr->bit_depth;
     input_pic_buf_desc_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
     input_pic_buf_desc_init_data.color_format       = init_data_ptr->color_format;
-    uint16_t padding                                = init_data_ptr->sb_size_pix + 32;
+    uint16_t padding                                = init_data_ptr->sb_size + 32;
     if (init_data_ptr->is_scale) {
-        padding += init_data_ptr->sb_size_pix;
+        padding += init_data_ptr->sb_size;
     }
     input_pic_buf_desc_init_data.left_padding  = padding;
     input_pic_buf_desc_init_data.right_padding = padding;
@@ -371,8 +371,8 @@ EbErrorType recon_coef_ctor(EncDecSet *object_ptr, EbPtr object_init_data_ptr) {
 
     EbPictureBufferDescInitData coeff_init_data;
     coeff_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
-    coeff_init_data.max_width          = init_data_ptr->sb_size_pix;
-    coeff_init_data.max_height         = init_data_ptr->sb_size_pix;
+    coeff_init_data.max_width          = init_data_ptr->sb_size;
+    coeff_init_data.max_height         = init_data_ptr->sb_size;
     coeff_init_data.bit_depth          = EB_THIRTYTWO_BIT;
     coeff_init_data.color_format       = init_data_ptr->color_format;
     coeff_init_data.left_padding       = 0;
@@ -406,7 +406,7 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
     EbPictureBufferDescInitData coeff_buffer_desc_init_data;
 
     // Max/Min CU Sizes
-    const uint32_t max_blk_size = init_data_ptr->sb_size_pix;
+    const uint32_t max_blk_size = init_data_ptr->sb_size;
     // SBs
     const uint16_t picture_sb_width  = (uint16_t)((init_data_ptr->picture_width +
                                                   init_data_ptr->b64_size - 1) /
@@ -436,7 +436,7 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
     object_ptr->hash_table.p_lookup_table = NULL;
 
     // Init Picture Init data
-    uint16_t padding = init_data_ptr->sb_size_pix + 32;
+    uint16_t padding = init_data_ptr->sb_size + 32;
 
     coeff_buffer_desc_init_data.max_width          = init_data_ptr->picture_width;
     coeff_buffer_desc_init_data.max_height         = init_data_ptr->picture_height;
@@ -505,22 +505,18 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
     sb_origin_x = 0;
     sb_origin_y = 0;
 
-    const uint16_t picture_sb_w = (uint16_t)((init_data_ptr->picture_width +
-                                              init_data_ptr->sb_size_pix - 1) /
-                                             init_data_ptr->sb_size_pix);
-    const uint16_t picture_sb_h = (uint16_t)((init_data_ptr->picture_height +
-                                              init_data_ptr->sb_size_pix - 1) /
-                                             init_data_ptr->sb_size_pix);
+    const uint16_t picture_sb_w = (uint16_t)((init_data_ptr->picture_width + init_data_ptr->sb_size - 1) / init_data_ptr->sb_size);
+    const uint16_t picture_sb_h = (uint16_t)((init_data_ptr->picture_height + init_data_ptr->sb_size - 1) / init_data_ptr->sb_size);
     const uint16_t all_sb       = picture_sb_w * picture_sb_h;
 
-    object_ptr->sb_total_count_pix = all_sb;
+    object_ptr->sb_total_count = all_sb;
 
-    EB_MALLOC_ARRAY(object_ptr->sb_count_nz_coeffs, object_ptr->sb_total_count_pix);
+    EB_MALLOC_ARRAY(object_ptr->sb_count_nz_coeffs, object_ptr->sb_total_count);
 
     for (sb_index = 0; sb_index < all_sb; ++sb_index) {
         EB_NEW(object_ptr->sb_ptr_array[sb_index],
                largest_coding_unit_ctor,
-               (uint8_t)init_data_ptr->sb_size_pix,
+               (uint8_t)init_data_ptr->sb_size,
                (uint16_t)(sb_origin_x * max_blk_size),
                (uint16_t)(sb_origin_y * max_blk_size),
                (uint16_t)sb_index,
@@ -1177,8 +1173,8 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
 
     //the granularity is 4x4
     EB_MALLOC_ARRAY(object_ptr->mi_grid_base,
-                    all_sb * (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2) *
-                        (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2));
+                    all_sb * (init_data_ptr->sb_size >> MI_SIZE_LOG2) *
+                        (init_data_ptr->sb_size >> MI_SIZE_LOG2));
 
     // If NSQ is allowed, then need a 4x4 MI grid because 8x8 NSQ shapes will require 4x4 granularity
     uint8_t disallow_4x4 = get_disallow_nsq(init_data_ptr->enc_mode);
@@ -1191,19 +1187,18 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
     8x8 blocks.  The mi_grid will still be 4x4 so that the data can be accessed the same way throughout
     the code. */
     EB_MALLOC_ARRAY(object_ptr->mip,
-                    all_sb * (init_data_ptr->sb_size_pix >> (MI_SIZE_LOG2 + disallow_4x4)) *
-                        (init_data_ptr->sb_size_pix >> (MI_SIZE_LOG2 + disallow_4x4)));
+                    all_sb * (init_data_ptr->sb_size >> (MI_SIZE_LOG2 + disallow_4x4)) *
+                        (init_data_ptr->sb_size >> (MI_SIZE_LOG2 + disallow_4x4)));
 
     memset(object_ptr->mip,
            0,
-           sizeof(ModeInfo) * all_sb *
-               (init_data_ptr->sb_size_pix >> (MI_SIZE_LOG2 + disallow_4x4)) *
-               (init_data_ptr->sb_size_pix >> (MI_SIZE_LOG2 + disallow_4x4)));
+           sizeof(ModeInfo) * all_sb * (init_data_ptr->sb_size >> (MI_SIZE_LOG2 + disallow_4x4)) *
+               (init_data_ptr->sb_size >> (MI_SIZE_LOG2 + disallow_4x4)));
 
-    uint32_t mi_stride = picture_sb_w * (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2);
-    for (uint32_t mi_h = 0; mi_h < picture_sb_h * (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2);
+    uint32_t mi_stride = picture_sb_w * (init_data_ptr->sb_size >> MI_SIZE_LOG2);
+    for (uint32_t mi_h = 0; mi_h < picture_sb_h * (init_data_ptr->sb_size >> MI_SIZE_LOG2);
          mi_h++) {
-        for (uint32_t mi_w = 0; mi_w < picture_sb_w * (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2);
+        for (uint32_t mi_w = 0; mi_w < picture_sb_w * (init_data_ptr->sb_size >> MI_SIZE_LOG2);
              mi_w++) {
             uint32_t mi_grid_idx = mi_h * mi_stride + mi_w;
             uint32_t mip_idx     = (mi_h >> disallow_4x4) * (mi_stride >> disallow_4x4) +
@@ -1211,7 +1206,7 @@ EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr object
             object_ptr->mi_grid_base[mi_grid_idx] = object_ptr->mip + mip_idx;
         }
     }
-    object_ptr->mi_stride = picture_sb_w * (init_data_ptr->sb_size_pix >> MI_SIZE_LOG2);
+    object_ptr->mi_stride = picture_sb_w * (init_data_ptr->sb_size >> MI_SIZE_LOG2);
     if (init_data_ptr->mfmv) {
         //MFMV: map is 8x8 based.
         uint32_t  mi_rows  = init_data_ptr->picture_height >> MI_SIZE_LOG2;
@@ -1753,9 +1748,9 @@ EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSe
     uint16_t encoding_width  = pcs_ptr->aligned_width;
     uint16_t encoding_height = pcs_ptr->aligned_height;
 
-    uint16_t picture_sb_width  = (encoding_width + scs_ptr->sb_size_pix - 1) / scs_ptr->sb_size_pix;
-    uint16_t picture_sb_height = (encoding_height + scs_ptr->sb_size_pix - 1) /
-        scs_ptr->sb_size_pix;
+    uint16_t picture_sb_width  = (encoding_width + scs_ptr->sb_size - 1) / scs_ptr->sb_size;
+    uint16_t picture_sb_height = (encoding_height + scs_ptr->sb_size - 1) /
+        scs_ptr->sb_size;
 
     EB_FREE_ARRAY(pcs_ptr->sb_geom);
     EB_MALLOC_ARRAY(pcs_ptr->sb_geom, picture_sb_width * picture_sb_height);
@@ -1764,25 +1759,25 @@ EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSe
         pcs_ptr->sb_geom[sb_index].horizontal_index = sb_index % picture_sb_width;
         pcs_ptr->sb_geom[sb_index].vertical_index   = sb_index / picture_sb_width;
         pcs_ptr->sb_geom[sb_index].origin_x         = pcs_ptr->sb_geom[sb_index].horizontal_index *
-            scs_ptr->sb_size_pix;
+            scs_ptr->sb_size;
         pcs_ptr->sb_geom[sb_index].origin_y = pcs_ptr->sb_geom[sb_index].vertical_index *
-            scs_ptr->sb_size_pix;
+            scs_ptr->sb_size;
 
         pcs_ptr->sb_geom[sb_index].width =
             (uint8_t)(((encoding_width - pcs_ptr->sb_geom[sb_index].origin_x) <
-                       scs_ptr->sb_size_pix)
+                       scs_ptr->sb_size)
                           ? encoding_width - pcs_ptr->sb_geom[sb_index].origin_x
-                          : scs_ptr->sb_size_pix);
+                          : scs_ptr->sb_size);
 
         pcs_ptr->sb_geom[sb_index].height =
             (uint8_t)(((encoding_height - pcs_ptr->sb_geom[sb_index].origin_y) <
-                       scs_ptr->sb_size_pix)
+                       scs_ptr->sb_size)
                           ? encoding_height - pcs_ptr->sb_geom[sb_index].origin_y
-                          : scs_ptr->sb_size_pix);
+                          : scs_ptr->sb_size);
 
         pcs_ptr->sb_geom[sb_index].is_complete_sb =
-            (uint8_t)(((pcs_ptr->sb_geom[sb_index].width == scs_ptr->sb_size_pix) &&
-                       (pcs_ptr->sb_geom[sb_index].height == scs_ptr->sb_size_pix))
+            (uint8_t)(((pcs_ptr->sb_geom[sb_index].width == scs_ptr->sb_size) &&
+                       (pcs_ptr->sb_geom[sb_index].height == scs_ptr->sb_size))
                           ? 1
                           : 0);
 

@@ -6724,7 +6724,7 @@ static void recode_loop_decision_maker(PictureControlSet *pcs_ptr, SequenceContr
             sb_qp_derivation_tpl_la(pcs_ptr);
         else {
             ppcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
-            for (int sb_addr = 0; sb_addr < pcs_ptr->sb_total_count_pix; ++sb_addr) {
+            for (int sb_addr = 0; sb_addr < pcs_ptr->sb_total_count; ++sb_addr) {
                 SuperBlock *sb_ptr = pcs_ptr->sb_ptr_array[sb_addr];
                 sb_ptr->qindex     = quantizer_to_qindex[pcs_ptr->picture_qp];
             }
@@ -7156,7 +7156,7 @@ void *mode_decision_kernel(void *input_ptr) {
         context_ptr->coded_sb_count   = 0;
         segments_ptr = pcs_ptr->enc_dec_segment_ctrl[context_ptr->tile_group_index];
         // SB Constants
-        uint8_t sb_size            = (uint8_t)scs_ptr->sb_size_pix;
+        uint8_t  sb_size           = (uint8_t)scs_ptr->sb_size;
         uint8_t sb_size_log2     = (uint8_t)svt_log2f(sb_size);
         uint32_t pic_width_in_sb   = (pcs_ptr->parent_pcs_ptr->aligned_width + sb_size - 1) >>
             sb_size_log2;
@@ -7573,7 +7573,7 @@ void *mode_decision_kernel(void *input_ptr) {
             pcs_ptr->skip_coded_area += (uint32_t)context_ptr->tot_skip_coded_area;
             // Accumulate block selection
             pcs_ptr->enc_dec_coded_sb_count += (uint32_t)context_ptr->coded_sb_count;
-            Bool last_sb_flag = (pcs_ptr->sb_total_count_pix == pcs_ptr->enc_dec_coded_sb_count);
+            Bool last_sb_flag = (pcs_ptr->sb_total_count == pcs_ptr->enc_dec_coded_sb_count);
             svt_release_mutex(pcs_ptr->intra_mutex);
 
             if (last_sb_flag) {
