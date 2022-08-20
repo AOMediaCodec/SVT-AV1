@@ -40,8 +40,7 @@ void pad_picture_to_multiple_of_sb_dimensions(EbPictureBufferDesc *input_padded_
 
 void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
                                   EbPictureBufferDesc *input_padded_picture_ptr,
-                                  EbPictureBufferDesc *sixteenth_decimated_picture_ptr,
-                                  uint32_t             sb_total_count);
+                                  EbPictureBufferDesc *sixteenth_decimated_picture_ptr);
 
 void down_sample_chroma(EbPictureBufferDesc *input_picture_ptr,
                         EbPictureBufferDesc *outputPicturePtr);
