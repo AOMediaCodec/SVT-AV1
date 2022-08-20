@@ -1440,7 +1440,7 @@ EbErrorType downscaled_source_buffer_desc_ctor(EbPictureBufferDesc **picture_ptr
 EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
 
 #if B64_RENAMING
-    EbErrorType b64_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
+    void b64_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
 #else
     EbErrorType sb_params_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
 #endif

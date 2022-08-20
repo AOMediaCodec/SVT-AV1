@@ -433,7 +433,7 @@ typedef struct EbSequenceControlSetInstance {
 extern EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance *object_ptr);
 
 #if B64_RENAMING
-    extern EbErrorType b64_geom_init(SequenceControlSet *scs_ptr);
+    extern void b64_geom_init(SequenceControlSet *scs_ptr);
 #else
     extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr);
 #endif
