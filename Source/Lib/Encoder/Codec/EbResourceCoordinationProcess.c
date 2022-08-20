@@ -726,8 +726,8 @@ static EbErrorType realloc_sb_param(SequenceControlSet *scs_ptr, PictureParentCo
     EB_MALLOC_ARRAY(pcs_ptr->b64_geom, scs_ptr->b64_total_count);
     memcpy(pcs_ptr->b64_geom, scs_ptr->b64_geom, sizeof(B64Geom) * scs_ptr->b64_total_count);
     EB_FREE_ARRAY(pcs_ptr->sb_geom);
-    EB_MALLOC_ARRAY(pcs_ptr->sb_geom, scs_ptr->sb_tot_cnt);
-    memcpy(pcs_ptr->sb_geom, scs_ptr->sb_geom, sizeof(SbGeom) * scs_ptr->sb_tot_cnt);
+    EB_MALLOC_ARRAY(pcs_ptr->sb_geom, scs_ptr->sb_total_count);
+    memcpy(pcs_ptr->sb_geom, scs_ptr->sb_geom, sizeof(SbGeom) * scs_ptr->sb_total_count);
     pcs_ptr->is_pcs_sb_params = TRUE;
     return EB_ErrorNone;
 }

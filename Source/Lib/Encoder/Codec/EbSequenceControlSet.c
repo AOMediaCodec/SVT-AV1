@@ -364,7 +364,7 @@ EbErrorType sb_geom_init(SequenceControlSet *scs_ptr) {
         }
     }
 
-    scs_ptr->sb_tot_cnt = picture_sb_width * picture_sb_height;
+    scs_ptr->sb_total_count = picture_sb_width * picture_sb_height;
 
     return 0;
 }

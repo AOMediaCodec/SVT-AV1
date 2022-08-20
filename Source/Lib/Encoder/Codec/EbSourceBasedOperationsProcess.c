@@ -2201,7 +2201,7 @@ void *source_based_operations_kernel(void *input_ptr) {
         }
 
         /***********************************************SB-based operations************************************************************/
-        uint16_t sb_cnt = scs_ptr->sb_tot_cnt;
+        uint16_t sb_cnt = scs_ptr->sb_total_count;
         if (pcs_ptr->frame_superres_enabled || pcs_ptr->frame_resize_enabled)
             sb_cnt = pcs_ptr->b64_total_count;
         uint32_t sb_index;

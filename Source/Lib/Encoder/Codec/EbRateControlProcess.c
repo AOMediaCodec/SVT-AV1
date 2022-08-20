@@ -1183,7 +1183,7 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     else
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
-    uint16_t sb_cnt = scs->sb_tot_cnt;
+    uint16_t sb_cnt = scs->sb_total_count;
     if (scs->static_config.superres_mode > SUPERRES_NONE)
         sb_cnt = ppcs->b64_total_count;
     if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
@@ -1236,7 +1236,7 @@ void sb_qp_derivation_tpl_la(PictureControlSet *pcs_ptr) {
     else
         pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
-    uint16_t sb_cnt = scs_ptr->sb_tot_cnt;
+    uint16_t sb_cnt = scs_ptr->sb_total_count;
     if (ppcs_ptr->frame_superres_enabled || ppcs_ptr->frame_resize_enabled)
         sb_cnt = ppcs_ptr->b64_total_count;
     if ((pcs_ptr->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) &&
