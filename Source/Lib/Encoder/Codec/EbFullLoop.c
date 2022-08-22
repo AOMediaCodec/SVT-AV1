@@ -2557,10 +2557,9 @@ uint64_t d1_non_square_block_decision(ModeDecisionContext *context_ptr, uint32_t
 }
 
 /// compute the cost of curr depth, and the depth above
-void compute_depth_costs(ModeDecisionContext *context_ptr, SequenceControlSet *scs_ptr,
-                         PictureParentControlSet *pcs_ptr, uint32_t curr_depth_mds,
-                         uint32_t above_depth_mds, uint32_t step, uint64_t *above_depth_cost,
-                         uint64_t *curr_depth_cost) {
+void compute_depth_costs(ModeDecisionContext *context_ptr, PictureParentControlSet *pcs_ptr,
+                         uint32_t curr_depth_mds, uint32_t above_depth_mds, uint32_t step,
+                         uint64_t *above_depth_cost, uint64_t *curr_depth_cost) {
     uint32_t full_lambda = context_ptr->hbd_mode_decision
         ? context_ptr->full_sb_lambda_md[EB_10_BIT_MD]
         : context_ptr->full_sb_lambda_md[EB_8_BIT_MD];
@@ -2679,7 +2678,6 @@ uint32_t d2_inter_depth_block_decision(SequenceControlSet *scs_ptr, PictureContr
                 parent_depth_cost = MAX_MODE_COST;
             else
                 compute_depth_costs(context_ptr,
-                                    scs_ptr,
                                     pcs_ptr->parent_pcs_ptr,
                                     current_depth_idx_mds,
                                     parent_depth_idx_mds,
@@ -2752,10 +2750,9 @@ void compute_depth_costs_md_skip_light_pd0(ModeDecisionContext *context_ptr,
         *above_depth_cost = MAX_MODE_COST;
     }
 }
-void compute_depth_costs_md_skip(ModeDecisionContext *context_ptr, SequenceControlSet *scs_ptr,
-                                 PictureParentControlSet *pcs_ptr, uint32_t above_depth_mds,
-                                 uint32_t step, uint64_t *above_depth_cost,
-                                 uint64_t *curr_depth_cost) {
+void compute_depth_costs_md_skip(ModeDecisionContext *context_ptr, PictureParentControlSet *pcs_ptr,
+                                 uint32_t above_depth_mds, uint32_t step,
+                                 uint64_t *above_depth_cost, uint64_t *curr_depth_cost) {
     uint32_t full_lambda = context_ptr->hbd_mode_decision
         ? context_ptr->full_sb_lambda_md[EB_10_BIT_MD]
         : context_ptr->full_sb_lambda_md[EB_8_BIT_MD];

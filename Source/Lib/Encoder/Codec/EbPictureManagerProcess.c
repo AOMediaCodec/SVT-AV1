@@ -318,10 +318,9 @@ void superres_setup_child_pcs(SequenceControlSet      *entry_scs_ptr,
 
     child_pcs_ptr->b64_total_count = entry_pcs_ptr->b64_total_count;
 
-    pic_width_in_sb = (uint8_t)((entry_pcs_ptr->aligned_width + entry_scs_ptr->sb_size - 1) /
+    pic_width_in_sb      = (uint8_t)((entry_pcs_ptr->aligned_width + entry_scs_ptr->sb_size - 1) /
                                 entry_scs_ptr->sb_size);
-    picture_height_in_sb = (uint8_t)((entry_pcs_ptr->aligned_height + entry_scs_ptr->sb_size -
-                                      1) /
+    picture_height_in_sb = (uint8_t)((entry_pcs_ptr->aligned_height + entry_scs_ptr->sb_size - 1) /
                                      entry_scs_ptr->sb_size);
 
     child_pcs_ptr->sb_total_count = pic_width_in_sb * picture_height_in_sb;
@@ -830,8 +829,8 @@ void *picture_manager_kernel(void *input_ptr) {
                         context_ptr->pmgr_dec_order = child_pcs_ptr->parent_pcs_ptr->decode_order;
                         //3.make all  init for ChildPCS
 
-                        pic_width_in_sb = (entry_pcs_ptr->aligned_width +
-                                           entry_scs_ptr->sb_size - 1) /
+                        pic_width_in_sb = (entry_pcs_ptr->aligned_width + entry_scs_ptr->sb_size -
+                                           1) /
                             entry_scs_ptr->sb_size;
                         picture_height_in_sb = (entry_pcs_ptr->aligned_height +
                                                 entry_scs_ptr->sb_size - 1) /
@@ -860,15 +859,14 @@ void *picture_manager_kernel(void *input_ptr) {
                             for (sb_index = 0; sb_index < child_pcs_ptr->sb_total_count;
                                  ++sb_index) {
                                 largest_coding_unit_dctor(child_pcs_ptr->sb_ptr_array[sb_index]);
-                                largest_coding_unit_ctor(
-                                    child_pcs_ptr->sb_ptr_array[sb_index],
-                                    (uint8_t)scs_ptr->sb_size,
-                                    (uint16_t)(sb_origin_x * scs_ptr->sb_size),
-                                    (uint16_t)(sb_origin_y * scs_ptr->sb_size),
-                                    (uint16_t)sb_index,
-                                    child_pcs_ptr->enc_mode,
-                                    scs_ptr->max_block_cnt,
-                                    child_pcs_ptr);
+                                largest_coding_unit_ctor(child_pcs_ptr->sb_ptr_array[sb_index],
+                                                         (uint8_t)scs_ptr->sb_size,
+                                                         (uint16_t)(sb_origin_x * scs_ptr->sb_size),
+                                                         (uint16_t)(sb_origin_y * scs_ptr->sb_size),
+                                                         (uint16_t)sb_index,
+                                                         child_pcs_ptr->enc_mode,
+                                                         scs_ptr->max_block_cnt,
+                                                         child_pcs_ptr);
                                 // Increment the Order in coding order (Raster Scan Order)
                                 sb_origin_y = (sb_origin_x == pic_width_in_sb - 1) ? sb_origin_y + 1
                                                                                    : sb_origin_y;

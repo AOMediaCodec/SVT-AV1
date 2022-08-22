@@ -7156,9 +7156,9 @@ void *mode_decision_kernel(void *input_ptr) {
         context_ptr->coded_sb_count   = 0;
         segments_ptr = pcs_ptr->enc_dec_segment_ctrl[context_ptr->tile_group_index];
         // SB Constants
-        uint8_t  sb_size           = (uint8_t)scs_ptr->sb_size;
-        uint8_t sb_size_log2     = (uint8_t)svt_log2f(sb_size);
-        uint32_t pic_width_in_sb   = (pcs_ptr->parent_pcs_ptr->aligned_width + sb_size - 1) >>
+        uint8_t  sb_size         = (uint8_t)scs_ptr->sb_size;
+        uint8_t  sb_size_log2    = (uint8_t)svt_log2f(sb_size);
+        uint32_t pic_width_in_sb = (pcs_ptr->parent_pcs_ptr->aligned_width + sb_size - 1) >>
             sb_size_log2;
         uint16_t tile_group_width_in_sb = pcs_ptr->parent_pcs_ptr
                                               ->tile_group_info[context_ptr->tile_group_index]

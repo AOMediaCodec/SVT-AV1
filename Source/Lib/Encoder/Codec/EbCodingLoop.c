@@ -2389,12 +2389,8 @@ void prepare_input_picture(SequenceControlSet *scs, PictureControlSet *pcs, EncD
                                 (scs->sb_size - sb_height) >> 1);
 
         if (ctx->md_context->hbd_mode_decision == 0)
-            store16bit_input_src(ctx->input_sample16bit_buffer,
-                                 pcs,
-                                 sb_org_x,
-                                 sb_org_y,
-                                 scs->sb_size,
-                                 scs->sb_size);
+            store16bit_input_src(
+                ctx->input_sample16bit_buffer, pcs, sb_org_x, sb_org_y, scs->sb_size, scs->sb_size);
     }
 
     if (is_16bit && scs->static_config.encoder_bit_depth == EB_EIGHT_BIT) {
@@ -2415,8 +2411,7 @@ void prepare_input_picture(SequenceControlSet *scs, PictureControlSet *pcs, EncD
              : sb_width;
         sb_height = ((sb_height < MIN_SB_SIZE) ||
                      ((sb_height > MIN_SB_SIZE) && (sb_height < MAX_SB_SIZE)))
-            ? MIN(scs->sb_size,
-                  (pcs->parent_pcs_ptr->aligned_height + scs->bot_padding) - sb_org_y)
+            ? MIN(scs->sb_size, (pcs->parent_pcs_ptr->aligned_height + scs->bot_padding) - sb_org_y)
             : sb_height;
 
         // PACK Y
@@ -3171,8 +3166,7 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
         //Jing: Don't work for tile_parallel since the SB of bottom tile comes early than the bottom SB of top tile
         if (pcs->parent_pcs_ptr->frm_hdr.loop_filter_params.filter_level[0] ||
             pcs->parent_pcs_ptr->frm_hdr.loop_filter_params.filter_level[1]) {
-            uint32_t sb_width = MIN(scs->sb_size,
-                                    pcs->parent_pcs_ptr->aligned_width - sb_org_x);
+            uint32_t sb_width = MIN(scs->sb_size, pcs->parent_pcs_ptr->aligned_width - sb_org_x);
             uint8_t  last_col = ((sb_org_x + sb_width) == pcs->parent_pcs_ptr->aligned_width) ? 1
                                                                                               : 0;
             loop_filter_sb(recon_buffer, pcs, sb_org_y >> 2, sb_org_x >> 2, 0, 3, last_col);

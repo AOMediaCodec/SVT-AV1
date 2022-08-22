@@ -10726,12 +10726,8 @@ EbPictureBufferDesc *pad_hbd_pictures(SequenceControlSet *scs, PictureControlSet
                                 sb_height >> 1,
                                 (scs->sb_size - sb_width) >> 1,
                                 (scs->sb_size - sb_height) >> 1);
-        store16bit_input_src(ctx->input_sample16bit_buffer,
-                             pcs,
-                             sb_org_x,
-                             sb_org_y,
-                             scs->sb_size,
-                             scs->sb_size);
+        store16bit_input_src(
+            ctx->input_sample16bit_buffer, pcs, sb_org_x, sb_org_y, scs->sb_size, scs->sb_size);
 
         ctx->hbd_pack_done = 1;
     }
@@ -10913,7 +10909,6 @@ void check_curr_to_parent_cost(SequenceControlSet *scs, PictureControlSet *pcs,
             parent_depth_cost = MAX_MODE_COST;
         else
             compute_depth_costs_md_skip(ctx,
-                                        scs,
                                         pcs->parent_pcs_ptr,
                                         parent_depth_idx_mds,
                                         blk_geom->ns_depth_offset,

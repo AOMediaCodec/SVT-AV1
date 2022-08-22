@@ -129,77 +129,65 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
 }
 
 #if B64_RENAMING
-    extern void b64_geom_init(SequenceControlSet *scs) {
-        uint16_t    b64_idx;
-        uint16_t    raster_scan_blk_index;
-        uint8_t     b64_size = scs->b64_size;
+extern EbErrorType b64_geom_init(SequenceControlSet *scs) {
+    EbErrorType return_error = EB_ErrorNone;
+    uint16_t    b64_idx;
+    uint16_t    raster_scan_blk_index;
+    uint8_t     b64_size = scs->b64_size;
 
-        uint16_t picture_b64_width = (scs->max_input_luma_width + b64_size - 1) /
-            b64_size;
-        uint16_t picture_b64_height = (scs->max_input_luma_height + b64_size - 1) /
-            b64_size;
-        //free old one;
-        EB_FREE_ARRAY(scs->b64_geom);
-        EB_MALLOC_ARRAY(scs->b64_geom, picture_b64_width * picture_b64_height);
+    uint16_t picture_b64_width  = (scs->max_input_luma_width + b64_size - 1) / b64_size;
+    uint16_t picture_b64_height = (scs->max_input_luma_height + b64_size - 1) / b64_size;
+    //free old one;
+    EB_FREE_ARRAY(scs->b64_geom);
+    EB_MALLOC_ARRAY(scs->b64_geom, picture_b64_width * picture_b64_height);
 
-        for (b64_idx = 0; b64_idx < picture_b64_width * picture_b64_height; ++b64_idx) {
-            B64Geom *b64_geom                       = &scs->b64_geom[b64_idx];
-            b64_geom->horizontal_index = (uint8_t)(b64_idx % picture_b64_width);
-            b64_geom->vertical_index   = (uint8_t)(b64_idx / picture_b64_width);
-            b64_geom->origin_x = b64_geom->horizontal_index *
-                b64_size;
-            b64_geom->origin_y = b64_geom->vertical_index *
-                b64_size;
+    for (b64_idx = 0; b64_idx < picture_b64_width * picture_b64_height; ++b64_idx) {
+        B64Geom *b64_geom          = &scs->b64_geom[b64_idx];
+        b64_geom->horizontal_index = (uint8_t)(b64_idx % picture_b64_width);
+        b64_geom->vertical_index   = (uint8_t)(b64_idx / picture_b64_width);
+        b64_geom->origin_x         = b64_geom->horizontal_index * b64_size;
+        b64_geom->origin_y         = b64_geom->vertical_index * b64_size;
 
-            b64_geom->width = (uint8_t)(
-                ((scs->max_input_luma_width - b64_geom->origin_x) <
-                 b64_size)
-                    ? scs->max_input_luma_width - b64_geom->origin_x
-                    : b64_size);
+        b64_geom->width = (uint8_t)(((scs->max_input_luma_width - b64_geom->origin_x) < b64_size)
+                                        ? scs->max_input_luma_width - b64_geom->origin_x
+                                        : b64_size);
 
-            b64_geom->height = (uint8_t)(
-                ((scs->max_input_luma_height - b64_geom->origin_y) <
-                 b64_size)
-                    ? scs->max_input_luma_height - b64_geom->origin_y
-                    : b64_size);
+        b64_geom->height = (uint8_t)(((scs->max_input_luma_height - b64_geom->origin_y) < b64_size)
+                                         ? scs->max_input_luma_height - b64_geom->origin_y
+                                         : b64_size);
 
-            b64_geom->is_complete_sb = (uint8_t)(
-                ((b64_geom->width == b64_size) &&
-                 (b64_geom->height == b64_size))
-                    ? 1
-                    : 0);
+        b64_geom->is_complete_sb =
+            (uint8_t)(((b64_geom->width == b64_size) && (b64_geom->height == b64_size)) ? 1 : 0);
 
-            b64_geom->is_edge_sb = (b64_geom->origin_x <
-                                                      b64_size) ||
-                    (b64_geom->origin_y < b64_size) ||
-                    (b64_geom->origin_x >
-                     scs->max_input_luma_width - b64_size) ||
-                    (b64_geom->origin_y >
-                     scs->max_input_luma_height - b64_size)
-                ? 1
-                : 0;
+        b64_geom->is_edge_sb = (b64_geom->origin_x < b64_size) || (b64_geom->origin_y < b64_size) ||
+                (b64_geom->origin_x > scs->max_input_luma_width - b64_size) ||
+                (b64_geom->origin_y > scs->max_input_luma_height - b64_size)
+            ? 1
+            : 0;
 
-            for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
-                 raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
-                 raster_scan_blk_index++) {
-                b64_geom->raster_scan_blk_validity[raster_scan_blk_index] =
-                    ((b64_geom->origin_x + raster_scan_blk_x[raster_scan_blk_index] +
-                          raster_scan_blk_size[raster_scan_blk_index] >
-                      scs->max_input_luma_width) ||
-                     (b64_geom->origin_y + raster_scan_blk_y[raster_scan_blk_index] +
-                          raster_scan_blk_size[raster_scan_blk_index] >
-                      scs->max_input_luma_height))
-                    ? FALSE
-                    : TRUE;
-            }
+        for (raster_scan_blk_index = RASTER_SCAN_CU_INDEX_64x64;
+             raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
+             raster_scan_blk_index++) {
+            b64_geom->raster_scan_blk_validity[raster_scan_blk_index] =
+                ((b64_geom->origin_x + raster_scan_blk_x[raster_scan_blk_index] +
+                      raster_scan_blk_size[raster_scan_blk_index] >
+                  scs->max_input_luma_width) ||
+                 (b64_geom->origin_y + raster_scan_blk_y[raster_scan_blk_index] +
+                      raster_scan_blk_size[raster_scan_blk_index] >
+                  scs->max_input_luma_height))
+                ? FALSE
+                : TRUE;
         }
-
-        scs->pic_width_in_b64      = picture_b64_width;
-        scs->picture_height_in_b64 = picture_b64_height;
-        scs->b64_total_count       = picture_b64_width * picture_b64_height;
     }
+
+    scs->pic_width_in_b64      = picture_b64_width;
+    scs->picture_height_in_b64 = picture_b64_height;
+    scs->b64_total_count       = picture_b64_width * picture_b64_height;
+
+    return return_error;
+}
 #else
-    extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
+extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
     EbErrorType return_error = EB_ErrorNone;
     uint16_t    sb_index;
     uint16_t    raster_scan_blk_index;
@@ -214,26 +202,23 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
     EB_MALLOC_ARRAY(scs_ptr->b64_geom, picture_sb_width * picture_sb_height);
 
     for (sb_index = 0; sb_index < picture_sb_width * picture_sb_height; ++sb_index) {
-        scs_ptr->b64_geom[sb_index].horizontal_index      = (uint8_t)(sb_index %
-                                                                        picture_sb_width);
+        scs_ptr->b64_geom[sb_index].horizontal_index = (uint8_t)(sb_index % picture_sb_width);
         scs_ptr->b64_geom[sb_index].vertical_index   = (uint8_t)(sb_index / picture_sb_width);
-        scs_ptr->b64_geom[sb_index].origin_x =
-            scs_ptr->b64_geom[sb_index].horizontal_index * scs_ptr->b64_size;
-        scs_ptr->b64_geom[sb_index].origin_y =
-            scs_ptr->b64_geom[sb_index].vertical_index * scs_ptr->b64_size;
+        scs_ptr->b64_geom[sb_index].origin_x = scs_ptr->b64_geom[sb_index].horizontal_index *
+            scs_ptr->b64_size;
+        scs_ptr->b64_geom[sb_index].origin_y = scs_ptr->b64_geom[sb_index].vertical_index *
+            scs_ptr->b64_size;
 
         scs_ptr->b64_geom[sb_index].width =
-            (uint8_t)(((scs_ptr->max_input_luma_width -
-                        scs_ptr->b64_geom[sb_index].origin_x) < scs_ptr->b64_size)
-                          ? scs_ptr->max_input_luma_width -
-                              scs_ptr->b64_geom[sb_index].origin_x
+            (uint8_t)(((scs_ptr->max_input_luma_width - scs_ptr->b64_geom[sb_index].origin_x) <
+                       scs_ptr->b64_size)
+                          ? scs_ptr->max_input_luma_width - scs_ptr->b64_geom[sb_index].origin_x
                           : scs_ptr->b64_size);
 
         scs_ptr->b64_geom[sb_index].height =
-            (uint8_t)(((scs_ptr->max_input_luma_height -
-                        scs_ptr->b64_geom[sb_index].origin_y) < scs_ptr->b64_size)
-                          ? scs_ptr->max_input_luma_height -
-                              scs_ptr->b64_geom[sb_index].origin_y
+            (uint8_t)(((scs_ptr->max_input_luma_height - scs_ptr->b64_geom[sb_index].origin_y) <
+                       scs_ptr->b64_size)
+                          ? scs_ptr->max_input_luma_height - scs_ptr->b64_geom[sb_index].origin_y
                           : scs_ptr->b64_size);
 
         scs_ptr->b64_geom[sb_index].is_complete_sb =
@@ -242,8 +227,8 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
                           ? 1
                           : 0);
 
-        scs_ptr->b64_geom[sb_index].is_edge_sb =
-            (scs_ptr->b64_geom[sb_index].origin_x < scs_ptr->b64_size) ||
+        scs_ptr->b64_geom[sb_index].is_edge_sb = (scs_ptr->b64_geom[sb_index].origin_x <
+                                                  scs_ptr->b64_size) ||
                 (scs_ptr->b64_geom[sb_index].origin_y < scs_ptr->b64_size) ||
                 (scs_ptr->b64_geom[sb_index].origin_x >
                  scs_ptr->max_input_luma_width - scs_ptr->b64_size) ||
@@ -256,12 +241,10 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
              raster_scan_blk_index <= RASTER_SCAN_CU_INDEX_8x8_63;
              raster_scan_blk_index++) {
             scs_ptr->b64_geom[sb_index].raster_scan_blk_validity[raster_scan_blk_index] =
-                ((scs_ptr->b64_geom[sb_index].origin_x +
-                      raster_scan_blk_x[raster_scan_blk_index] +
+                ((scs_ptr->b64_geom[sb_index].origin_x + raster_scan_blk_x[raster_scan_blk_index] +
                       raster_scan_blk_size[raster_scan_blk_index] >
                   scs_ptr->max_input_luma_width) ||
-                 (scs_ptr->b64_geom[sb_index].origin_y +
-                      raster_scan_blk_y[raster_scan_blk_index] +
+                 (scs_ptr->b64_geom[sb_index].origin_y + raster_scan_blk_y[raster_scan_blk_index] +
                       raster_scan_blk_size[raster_scan_blk_index] >
                   scs_ptr->max_input_luma_height))
                 ? FALSE

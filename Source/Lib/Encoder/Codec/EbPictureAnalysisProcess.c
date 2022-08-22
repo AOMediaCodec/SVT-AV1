@@ -2059,9 +2059,9 @@ static void sub_sample_luma_generate_pixel_intensity_histogram_bins(
  ** Compute Block Mean for all blocks in the picture
  ************************************************/
 #if B64_RENAMING
-void compute_picture_spatial_statistics(SequenceControlSet *     scs_ptr,
+void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
                                         PictureParentControlSet *pcs_ptr,
-                                        EbPictureBufferDesc *    input_padded_picture_ptr) {
+                                        EbPictureBufferDesc     *input_padded_picture_ptr) {
     // Variance
     uint64_t pic_tot_variance = 0;
     uint16_t b64_total_count  = pcs_ptr->b64_total_count;
@@ -2118,50 +2118,49 @@ void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
  ** Computing Picture Variance
  ************************************************/
 #if B64_RENAMING
-    void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
-                                      EbPictureBufferDesc *input_padded_picture_ptr,
-                                      EbPictureBufferDesc *sixteenth_decimated_picture_ptr) {
-        uint64_t sum_avg_intensity_ttl_regions_luma = 0;
-        // Histogram bins
-        if (scs_ptr->static_config.scene_change_detection ||
-            scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
-            // Use 1/16 Luma for Histogram generation
-            // 1/16 input ready
-            sub_sample_luma_generate_pixel_intensity_histogram_bins(
-                scs_ptr, pcs_ptr, sixteenth_decimated_picture_ptr, &sum_avg_intensity_ttl_regions_luma);
-        }
-
-        if (scs_ptr->calculate_variance)
-            compute_picture_spatial_statistics(
-                scs_ptr, pcs_ptr, input_padded_picture_ptr);
-        else
-            pcs_ptr->pic_avg_variance = 0;
-
-        return;
+void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
+                                  EbPictureBufferDesc *input_padded_picture_ptr,
+                                  EbPictureBufferDesc *sixteenth_decimated_picture_ptr) {
+    uint64_t sum_avg_intensity_ttl_regions_luma = 0;
+    // Histogram bins
+    if (scs_ptr->static_config.scene_change_detection ||
+        scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
+        // Use 1/16 Luma for Histogram generation
+        // 1/16 input ready
+        sub_sample_luma_generate_pixel_intensity_histogram_bins(
+            scs_ptr, pcs_ptr, sixteenth_decimated_picture_ptr, &sum_avg_intensity_ttl_regions_luma);
     }
+
+    if (scs_ptr->calculate_variance)
+        compute_picture_spatial_statistics(scs_ptr, pcs_ptr, input_padded_picture_ptr);
+    else
+        pcs_ptr->pic_avg_variance = 0;
+
+    return;
+}
 #else
-    void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
-                                      EbPictureBufferDesc *input_padded_picture_ptr,
-                                      EbPictureBufferDesc *sixteenth_decimated_picture_ptr,
-                                      uint32_t             sb_total_count) {
-        uint64_t sum_avg_intensity_ttl_regions_luma = 0;
-        // Histogram bins
-        if (scs_ptr->static_config.scene_change_detection ||
-            scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
-            // Use 1/16 Luma for Histogram generation
-            // 1/16 input ready
-            sub_sample_luma_generate_pixel_intensity_histogram_bins(
-                scs_ptr, pcs_ptr, sixteenth_decimated_picture_ptr, &sum_avg_intensity_ttl_regions_luma);
-        }
-
-        if (scs_ptr->calculate_variance)
-            compute_picture_spatial_statistics(
-                scs_ptr, pcs_ptr, input_padded_picture_ptr, sb_total_count);
-        else
-            pcs_ptr->pic_avg_variance = 0;
-
-        return;
+void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
+                                  EbPictureBufferDesc *input_padded_picture_ptr,
+                                  EbPictureBufferDesc *sixteenth_decimated_picture_ptr,
+                                  uint32_t             sb_total_count) {
+    uint64_t sum_avg_intensity_ttl_regions_luma = 0;
+    // Histogram bins
+    if (scs_ptr->static_config.scene_change_detection ||
+        scs_ptr->vq_ctrls.sharpness_ctrls.scene_transition) {
+        // Use 1/16 Luma for Histogram generation
+        // 1/16 input ready
+        sub_sample_luma_generate_pixel_intensity_histogram_bins(
+            scs_ptr, pcs_ptr, sixteenth_decimated_picture_ptr, &sum_avg_intensity_ttl_regions_luma);
     }
+
+    if (scs_ptr->calculate_variance)
+        compute_picture_spatial_statistics(
+            scs_ptr, pcs_ptr, input_padded_picture_ptr, sb_total_count);
+    else
+        pcs_ptr->pic_avg_variance = 0;
+
+    return;
+}
 #endif
 
 /*

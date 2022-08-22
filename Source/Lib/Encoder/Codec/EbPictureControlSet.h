@@ -231,7 +231,7 @@ typedef struct EncDecSet {
     EbObjectWrapper                *enc_dec_wrapper_ptr;
     struct PictureParentControlSet *parent_pcs_ptr; //The parent of this PCS.
     EbObjectWrapper                *picture_parent_control_set_wrapper_ptr;
-    uint16_t b64_total_count;
+    uint16_t                        b64_total_count;
 } EncDecSet;
 typedef struct CdefDirData {
     uint8_t dir[CDEF_NBLOCKS][CDEF_NBLOCKS];
@@ -1026,8 +1026,8 @@ typedef struct PictureParentControlSet {
     uint16_t tile_group_index;
     uint16_t tpl_disp_coded_sb_count;
 
- #if !B64_RENAMING
-    uint16_t         sb_total_count_pix;
+#if !B64_RENAMING
+    uint16_t sb_total_count_pix;
 #endif
     EncDecSegments **tpl_disp_segment_ctrl;
     // the offsets for STATS_BUFFER_CTX

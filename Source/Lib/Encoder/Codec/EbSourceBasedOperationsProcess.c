@@ -524,7 +524,7 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
     mb_plane.dequant_qtx     = scs_ptr->deq_8bit.y_dequant_qtx[qIndex];
 
     const uint32_t src_stride      = pcs_ptr->enhanced_picture_ptr->stride_y;
-    B64Geom *      b64_geom        = &scs_ptr->b64_geom[sb_index];
+    B64Geom       *b64_geom        = &scs_ptr->b64_geom[sb_index];
     const int      aligned16_width = (pcs_ptr->aligned_width + 15) >> 4;
 
     const uint8_t disable_intra_pred = (pcs_ptr->tpl_ctrls.disable_intra_pred_nref &&
@@ -539,8 +539,8 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
                       : bsize == 16                       ? BLOCK_16X16
                       : bsize == 32                       ? BLOCK_32X32
                                                           : BLOCK_64X64;
-        const uint32_t mb_origin_x = b64_geom->origin_x + blk_stats_ptr->origin_x;
-        const uint32_t mb_origin_y = b64_geom->origin_y + blk_stats_ptr->origin_y;
+        const uint32_t         mb_origin_x   = b64_geom->origin_x + blk_stats_ptr->origin_x;
+        const uint32_t         mb_origin_y   = b64_geom->origin_y + blk_stats_ptr->origin_y;
 
         // at least half of the block inside
         if (mb_origin_x + (size >> 1) > pcs_ptr->enhanced_picture_ptr->width ||
@@ -1673,13 +1673,13 @@ static void generate_r0beta(PictureParentControlSet *pcs_ptr) {
     generate_lambda_scaling_factor(pcs_ptr, mc_dep_cost_base);
 
     // If superres scale down is on, should use scaled width instead of full size
-    const int32_t  sb_mi_sz = (int32_t)(scs_ptr->sb_size >> 2);
-    const uint32_t picture_sb_width =
-        (uint32_t)((pcs_ptr->aligned_width + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
-    const uint32_t picture_sb_height =
-        (uint32_t)((pcs_ptr->aligned_height + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
-    const int32_t mi_high = sb_mi_sz; // sb size in 4x4 units
-    const int32_t mi_wide = sb_mi_sz;
+    const int32_t  sb_mi_sz          = (int32_t)(scs_ptr->sb_size >> 2);
+    const uint32_t picture_sb_width  = (uint32_t)((pcs_ptr->aligned_width + scs_ptr->sb_size - 1) /
+                                                 scs_ptr->sb_size);
+    const uint32_t picture_sb_height = (uint32_t)((pcs_ptr->aligned_height + scs_ptr->sb_size - 1) /
+                                                  scs_ptr->sb_size);
+    const int32_t  mi_high           = sb_mi_sz; // sb size in 4x4 units
+    const int32_t  mi_wide           = sb_mi_sz;
     for (uint32_t sb_y = 0; sb_y < picture_sb_height; ++sb_y) {
         for (uint32_t sb_x = 0; sb_x < picture_sb_width; ++sb_x) {
             uint16_t  mi_row = pcs_ptr->sb_geom[sb_y * picture_sb_width + sb_x].origin_y >> 2;
@@ -2028,9 +2028,9 @@ void *tpl_disp_kernel(void *input_ptr) {
         // Segments
         uint16_t segment_index;
 
-        uint8_t  b64_size           = (uint8_t)scs_ptr->b64_size;
+        uint8_t  b64_size        = (uint8_t)scs_ptr->b64_size;
         uint8_t  sb_size_log2    = (uint8_t)svt_log2f(b64_size);
-        uint32_t pic_width_in_sb    = (pcs_ptr->aligned_width + b64_size - 1) >> sb_size_log2;
+        uint32_t pic_width_in_sb = (pcs_ptr->aligned_width + b64_size - 1) >> sb_size_log2;
 
         segment_index = 0;
         // no Tiles path
@@ -2206,7 +2206,7 @@ void *source_based_operations_kernel(void *input_ptr) {
             sb_cnt = pcs_ptr->b64_total_count;
         uint32_t sb_index;
         for (sb_index = 0; sb_index < sb_cnt; ++sb_index) {
-            B64Geom *b64_geom      = &pcs_ptr->b64_geom[sb_index];
+            B64Geom *b64_geom       = &pcs_ptr->b64_geom[sb_index];
             Bool     is_complete_sb = b64_geom->is_complete_sb;
             if (is_complete_sb) {
                 context_ptr->complete_sb_count++;
