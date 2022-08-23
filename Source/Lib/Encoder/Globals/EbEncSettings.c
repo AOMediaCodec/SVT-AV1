@@ -177,7 +177,7 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
             channel_number + 1);
 #endif
     if (config->force_key_frames &&
-        (config->rate_control_mode != SVT_AV1_RC_MODE_VBR ||
+        (config->rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF ||
          config->pred_structure != SVT_AV1_PRED_RANDOM_ACCESS)) {
         SVT_ERROR("Instance %u: Force key frame is only supported with RA CRF/CQP mode\n",
                   channel_number + 1);
