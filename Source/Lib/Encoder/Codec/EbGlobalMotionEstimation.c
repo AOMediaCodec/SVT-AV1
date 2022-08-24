@@ -56,10 +56,10 @@ void global_motion_estimation(PictureParentControlSet *pcs_ptr,
     uint32_t total_me_sad        = 0;
     uint32_t total_stationary_sb = 0;
     uint32_t total_gm_sbs        = 0;
-    for (uint16_t sb_index = 0; sb_index < pcs_ptr->b64_total_count; ++sb_index) {
-        total_me_sad += pcs_ptr->rc_me_distortion[sb_index];
-        total_stationary_sb += pcs_ptr->stationary_block_present_sb[sb_index];
-        total_gm_sbs += pcs_ptr->rc_me_allow_gm[sb_index];
+    for (uint16_t b64_index = 0; b64_index < pcs_ptr->b64_total_count; ++b64_index) {
+        total_me_sad += pcs_ptr->rc_me_distortion[b64_index];
+        total_stationary_sb += pcs_ptr->stationary_block_present_sb[b64_index];
+        total_gm_sbs += pcs_ptr->rc_me_allow_gm[b64_index];
     }
     uint32_t average_me_sad = total_me_sad / (input_picture_ptr->width * input_picture_ptr->height);
     // Derive global_motion_estimation level

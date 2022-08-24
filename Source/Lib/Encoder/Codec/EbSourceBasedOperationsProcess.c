@@ -43,8 +43,10 @@ typedef struct SourceBasedOperationsContext {
     EbFifo *initial_rate_control_results_input_fifo_ptr;
     EbFifo *picture_demux_results_output_fifo_ptr;
     EbFifo *sbo_output_fifo_ptr;
+#if !B64_RENAMING
     // local zz cost array
     uint32_t complete_sb_count;
+#endif
     uint8_t *y_mean_ptr;
     uint8_t *cr_mean_ptr;
     uint8_t *cb_mean_ptr;
@@ -2169,8 +2171,10 @@ void *source_based_operations_kernel(void *input_ptr) {
                                                         in_results_wrapper_ptr->object_ptr;
         PictureParentControlSet *pcs_ptr = (PictureParentControlSet *)
                                                in_results_ptr->pcs_wrapper_ptr->object_ptr;
-        SequenceControlSet *scs_ptr    = pcs_ptr->scs_ptr;
+        SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
+#if !B64_RENAMING
         context_ptr->complete_sb_count = 0;
+#endif
 
         if (in_results_ptr->superres_recode) {
             if (pcs_ptr->tpl_ctrls.enable) {
@@ -2199,7 +2203,7 @@ void *source_based_operations_kernel(void *input_ptr) {
                 // printf ("\n PIC \t %d\n",pcs_ptr->picture_number);
             }
         }
-
+#if !B64_RENAMING
         /***********************************************SB-based operations************************************************************/
         uint16_t sb_cnt = scs_ptr->sb_total_count;
         if (pcs_ptr->frame_superres_enabled || pcs_ptr->frame_resize_enabled)
@@ -2207,11 +2211,12 @@ void *source_based_operations_kernel(void *input_ptr) {
         uint32_t sb_index;
         for (sb_index = 0; sb_index < sb_cnt; ++sb_index) {
             B64Geom *b64_geom       = &pcs_ptr->b64_geom[sb_index];
-            Bool     is_complete_sb = b64_geom->is_complete_sb;
+            Bool     is_complete_sb = b64_geom->is_complete_b64;
             if (is_complete_sb) {
                 context_ptr->complete_sb_count++;
             }
         }
+#endif
         /*********************************************Picture-based operations**********************************************************/
         sbo_send_picture_out(context_ptr, pcs_ptr, FALSE);
 

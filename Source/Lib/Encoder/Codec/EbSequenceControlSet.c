@@ -156,7 +156,7 @@ extern EbErrorType b64_geom_init(SequenceControlSet *scs) {
                                          ? scs->max_input_luma_height - b64_geom->origin_y
                                          : b64_size);
 
-        b64_geom->is_complete_sb =
+        b64_geom->is_complete_b64 =
             (uint8_t)(((b64_geom->width == b64_size) && (b64_geom->height == b64_size)) ? 1 : 0);
 
         b64_geom->is_edge_sb = (b64_geom->origin_x < b64_size) || (b64_geom->origin_y < b64_size) ||

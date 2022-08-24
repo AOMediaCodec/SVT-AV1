@@ -478,7 +478,7 @@ typedef struct B64Geom {
     uint16_t origin_y;
     uint8_t  width;
     uint8_t  height;
-    uint8_t  is_complete_sb;
+    uint8_t  is_complete_b64;
     Bool     raster_scan_blk_validity[CU_MAX_COUNT];
     uint8_t  is_edge_sb;
     uint32_t tile_start_x;

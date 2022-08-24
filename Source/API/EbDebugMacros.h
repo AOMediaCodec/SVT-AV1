@@ -35,6 +35,7 @@ extern "C" {
 
 #define FTR_GOP_CONST_RC        1 // When enabled, the rate control matches the target rate for each GoP
                                   // Currently, only applicable for VBR and  when GoP size is greater than 119 frames.
+#define B64_RENAMING            1 // Use b64 where appropriate rather than sb variant
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
@@ -49,7 +50,6 @@ extern "C" {
 #define LAD_MG_PRINT            0 // Report LAD
 #define RC_NO_R2R               0 // This is a debugging flag for RC and makes encoder to run with no R2R in RC mode
                                   // Note that the speed might impacted significantly
-#define B64_RENAMING            1 // Use b64 where appropriate rather than sb variant
 #if RC_NO_R2R
 #define REMOVE_LP1_LPN_DIFF     1 // Disallow single-thread/multi-thread differences
 #else

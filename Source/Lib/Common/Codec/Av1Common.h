@@ -22,9 +22,9 @@ extern "C" {
 // Segment Macros
 #define SEGMENT_ROW_COMPLETION_TEST(mask, row_index, width) \
     ((((mask) >> ((row_index) * (width))) & ((1ull << (width)) - 1)) == ((1ull << (width)) - 1))
-#define SEGMENT_CONVERT_IDX_TO_XY(index, x, y, pic_width_in_b64)    \
-    MULTI_LINE_MACRO_BEGIN(y) = (index) / (pic_width_in_b64);       \
-    (x)                       = (index) - (y) * (pic_width_in_b64); \
+#define SEGMENT_CONVERT_IDX_TO_XY(index, x, y, pic_width_in_sb)    \
+    MULTI_LINE_MACRO_BEGIN(y) = (index) / (pic_width_in_sb);       \
+    (x)                       = (index) - (y) * (pic_width_in_sb); \
     MULTI_LINE_MACRO_END
 #define SEGMENT_START_IDX(index, pic_size_in_sb, num_of_seg) \
     (((index) * (pic_size_in_sb)) / (num_of_seg))

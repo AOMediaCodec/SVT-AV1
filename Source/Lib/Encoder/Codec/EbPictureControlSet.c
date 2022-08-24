@@ -1629,7 +1629,7 @@ EbErrorType b64_geom_init_pcs(SequenceControlSet *scs, PictureParentControlSet *
                                          ? encoding_height - b64_geom->origin_y
                                          : b64_size);
 
-        b64_geom->is_complete_sb =
+        b64_geom->is_complete_b64 =
             (uint8_t)(((b64_geom->width == b64_size) && (b64_geom->height == b64_size)) ? 1 : 0);
 
         b64_geom->is_edge_sb = (b64_geom->origin_x < b64_size) || (b64_geom->origin_y < b64_size) ||

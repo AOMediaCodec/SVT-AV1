@@ -1943,6 +1943,7 @@ void set_depth_removal_level_controls(PictureControlSet *pcs_ptr, ModeDecisionCo
     DepthRemovalCtrls *depth_removal_ctrls = &mdctxt->depth_removal_ctrls;
 
     if (pcs_ptr->slice_type == I_SLICE) {
+        // Use b64_geom here because feature is only enabled when 64x64 SB size is used
         B64Geom *b64_geom = &pcs_ptr->parent_pcs_ptr->b64_geom[mdctxt->sb_index];
 
         uint16_t disallow_below_16x16_variance_th = 0;
@@ -2004,6 +2005,7 @@ void set_depth_removal_level_controls(PictureControlSet *pcs_ptr, ModeDecisionCo
         uint32_t me_8x8_cost_variance =
             pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[mdctxt->sb_index];
 
+        // Use b64_geom here because feature is only enabled when 64x64 SB size is used
         B64Geom *b64_geom = &pcs_ptr->parent_pcs_ptr->b64_geom[mdctxt->sb_index];
 
         // me_distortion => EB_8_BIT_MD
@@ -5508,11 +5510,12 @@ void signal_derivation_enc_dec_kernel_oq_light_pd0(SequenceControlSet *scs, Pict
     } else {
         subres_level = 0;
 
-        B64Geom *sb_params_ptr = &pcs->parent_pcs_ptr->b64_geom[ctx->sb_index];
+        // Use b64_geom here because LPD0 is only enabled when 64x64 SB size is used
+        B64Geom *b64_geom = &pcs->parent_pcs_ptr->b64_geom[ctx->sb_index];
 
         // The controls checks the deviation between: (1) the pred-to-src SAD of even rows and (2) the pred-to-src SAD of odd rows for each 64x64 to decide whether to use subres or not
         // then applies the result to the 64x64 block and to all children, therefore if incomplete 64x64 then shut subres
-        if (sb_params_ptr->is_complete_sb) {
+        if (b64_geom->is_complete_b64) {
             // Use ME distortion and variance detector to enable subres
             uint64_t use_subres_th = compute_subres_th(scs, pcs, ctx);
             uint32_t fast_lambda   = ctx->hbd_mode_decision ? ctx->fast_lambda_md[EB_10_BIT_MD]
@@ -6449,9 +6452,8 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs_ptr, PictureCo
                     int8_t e_depth = context_ptr->depth_ctrls.e_depth;
 
                     if (context_ptr->skip_pd0) {
-                        B64Geom *b64_geom =
-                            &pcs_ptr->parent_pcs_ptr->b64_geom[context_ptr->sb_index];
-                        if ((b64_geom->width % 32 == 0) && (b64_geom->height % 32 == 0)) {
+                        SbGeom *sb_geom = &pcs_ptr->parent_pcs_ptr->sb_geom[context_ptr->sb_index];
+                        if ((sb_geom->width % 32 == 0) && (sb_geom->height % 32 == 0)) {
                             s_depth = 0;
                             e_depth = 0;
                         }
@@ -7513,7 +7515,11 @@ void *mode_decision_kernel(void *input_ptr) {
                                 pcs_ptr,
                                 context_ptr->md_context,
                                 sb_index,
-                                pcs_ptr->parent_pcs_ptr->b64_geom[sb_index].is_complete_sb);
+#if B64_RENAMING
+                                pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].is_complete_sb);
+#else
+                                pcs_ptr->parent_pcs_ptr->b64_geom[sb_index].is_complete_b64);
+#endif
                         else
                             // Build the t=0 cand_block_array
                             build_starting_cand_block_array(
