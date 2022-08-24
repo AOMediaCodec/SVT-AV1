@@ -128,7 +128,7 @@ EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetInstance 
     return EB_ErrorNone;
 }
 
-#if B64_RENAMING
+#if CLN_B64_RENAMING
 extern EbErrorType b64_geom_init(SequenceControlSet *scs) {
     EbErrorType return_error = EB_ErrorNone;
     uint16_t    b64_idx;
@@ -221,7 +221,7 @@ extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
                           ? scs_ptr->max_input_luma_height - scs_ptr->b64_geom[sb_index].origin_y
                           : scs_ptr->b64_size);
 
-        scs_ptr->b64_geom[sb_index].is_complete_sb =
+        scs_ptr->b64_geom[sb_index].is_complete_b64 =
             (uint8_t)(((scs_ptr->b64_geom[sb_index].width == scs_ptr->b64_size) &&
                        (scs_ptr->b64_geom[sb_index].height == scs_ptr->b64_size))
                           ? 1
@@ -252,8 +252,8 @@ extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
         }
     }
 
-    scs_ptr->pic_width_in_sb      = picture_sb_width;
-    scs_ptr->picture_height_in_sb = picture_sb_height;
+    scs_ptr->pic_width_in_b64 = picture_sb_width;
+    scs_ptr->picture_height_in_b64 = picture_sb_height;
     scs_ptr->sb_total_count       = picture_sb_width * picture_sb_height;
 
     return return_error;

@@ -4897,7 +4897,7 @@ static void av1_generate_rps_ref_poc_from_user_config(
 /***************************************************************************************************
 // Perform Required Picture Analysis Processing for the Overlay frame
 ***************************************************************************************************/
-#if B64_RENAMING
+#if CLN_B64_RENAMING
     void perform_simple_picture_analysis_for_overlay(PictureParentControlSet     *pcs_ptr) {
         EbPictureBufferDesc           *input_padded_picture_ptr;
         EbPictureBufferDesc           *input_picture_ptr;

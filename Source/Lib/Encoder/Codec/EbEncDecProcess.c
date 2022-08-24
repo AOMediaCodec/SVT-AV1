@@ -7515,7 +7515,7 @@ void *mode_decision_kernel(void *input_ptr) {
                                 pcs_ptr,
                                 context_ptr->md_context,
                                 sb_index,
-#if B64_RENAMING
+#if CLN_B64_RENAMING
                                 pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].is_complete_sb);
 #else
                                 pcs_ptr->parent_pcs_ptr->b64_geom[sb_index].is_complete_b64);

@@ -43,7 +43,7 @@ typedef struct SourceBasedOperationsContext {
     EbFifo *initial_rate_control_results_input_fifo_ptr;
     EbFifo *picture_demux_results_output_fifo_ptr;
     EbFifo *sbo_output_fifo_ptr;
-#if !B64_RENAMING
+#if !CLN_B64_RENAMING
     // local zz cost array
     uint32_t complete_sb_count;
 #endif
@@ -2172,7 +2172,7 @@ void *source_based_operations_kernel(void *input_ptr) {
         PictureParentControlSet *pcs_ptr = (PictureParentControlSet *)
                                                in_results_ptr->pcs_wrapper_ptr->object_ptr;
         SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
-#if !B64_RENAMING
+#if !CLN_B64_RENAMING
         context_ptr->complete_sb_count = 0;
 #endif
 
@@ -2203,7 +2203,7 @@ void *source_based_operations_kernel(void *input_ptr) {
                 // printf ("\n PIC \t %d\n",pcs_ptr->picture_number);
             }
         }
-#if !B64_RENAMING
+#if !CLN_B64_RENAMING
         /***********************************************SB-based operations************************************************************/
         uint16_t sb_cnt = scs_ptr->sb_total_count;
         if (pcs_ptr->frame_superres_enabled || pcs_ptr->frame_resize_enabled)

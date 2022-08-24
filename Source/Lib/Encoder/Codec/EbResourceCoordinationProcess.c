@@ -562,7 +562,7 @@ static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs_ptr) {
 
     pcs_ptr->me_segments_total_count = (uint16_t)(pcs_ptr->me_segments_column_count *
                                                   pcs_ptr->me_segments_row_count);
-#if !B64_RENAMING
+#if !CLN_B64_RENAMING
     pcs_ptr->sb_total_count_pix = pcs_ptr->b64_total_count;
 #endif
     pcs_ptr->tpl_disp_coded_sb_count = 0;
@@ -837,7 +837,7 @@ void *resource_coordination_kernel(void *input_ptr) {
                 scs_ptr->max_input_luma_height;
             derive_input_resolution(&scs_ptr->input_resolution, input_size);
 
-#if B64_RENAMING
+#if CLN_B64_RENAMING
             b64_geom_init(scs_ptr);
 #else
             sb_params_init(scs_ptr);

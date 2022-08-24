@@ -1439,7 +1439,7 @@ EbErrorType downscaled_source_buffer_desc_ctor(EbPictureBufferDesc **picture_ptr
 
 EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
 
-#if B64_RENAMING
+#if CLN_B64_RENAMING
 EbErrorType b64_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
 #else
 EbErrorType sb_params_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr);
@@ -1512,7 +1512,7 @@ void scale_pcs_params(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_
                             spr_params.encoding_width * spr_params.encoding_height);
 
     // create new picture level sb_params and sb_geom
-#if B64_RENAMING
+#if CLN_B64_RENAMING
     b64_geom_init_pcs(scs_ptr, pcs_ptr);
 #else
     sb_params_init_pcs(scs_ptr, pcs_ptr);

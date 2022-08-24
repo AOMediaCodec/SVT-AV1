@@ -1599,7 +1599,7 @@ EbErrorType me_ctor(MotionEstimationData *object_ptr, EbPtr object_init_data_ptr
     return return_error;
 }
 
-#if B64_RENAMING
+#if CLN_B64_RENAMING
 EbErrorType b64_geom_init_pcs(SequenceControlSet *scs, PictureParentControlSet *pcs) {
     EbErrorType return_error = EB_ErrorNone;
     uint16_t    b64_idx;
@@ -1695,7 +1695,7 @@ EbErrorType sb_params_init_pcs(SequenceControlSet *scs_ptr, PictureParentControl
                           ? encoding_height - pcs_ptr->b64_geom[sb_index].origin_y
                           : scs_ptr->b64_size);
 
-        pcs_ptr->b64_geom[sb_index].is_complete_sb =
+        pcs_ptr->b64_geom[sb_index].is_complete_b64 =
             (uint8_t)(((pcs_ptr->b64_geom[sb_index].width == scs_ptr->b64_size) &&
                        (pcs_ptr->b64_geom[sb_index].height == scs_ptr->b64_size))
                           ? 1

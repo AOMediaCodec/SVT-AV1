@@ -2058,7 +2058,7 @@ static void sub_sample_luma_generate_pixel_intensity_histogram_bins(
  ** Compute Picture Variance
  ** Compute Block Mean for all blocks in the picture
  ************************************************/
-#if B64_RENAMING
+#if CLN_B64_RENAMING
 void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
                                         PictureParentControlSet *pcs_ptr,
                                         EbPictureBufferDesc     *input_padded_picture_ptr) {
@@ -2117,7 +2117,7 @@ void compute_picture_spatial_statistics(SequenceControlSet      *scs_ptr,
  ** Calculating the pixel intensity histogram bins per picture needed for SCD
  ** Computing Picture Variance
  ************************************************/
-#if B64_RENAMING
+#if CLN_B64_RENAMING
 void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
                                   EbPictureBufferDesc *input_padded_picture_ptr,
                                   EbPictureBufferDesc *sixteenth_decimated_picture_ptr) {
@@ -2824,11 +2824,20 @@ void *picture_analysis_kernel(void *input_ptr) {
             }
             // Gathering statistics of input picture, including Variance Calculation, Histogram Bins
             if (scs_ptr->static_config.pass != ENC_FIRST_PASS)
+#if CLN_B64_RENAMING
                 gathering_picture_statistics(
                     scs_ptr,
                     pcs_ptr,
                     input_padded_picture_ptr,
                     (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
+#else
+                gathering_picture_statistics(
+                    scs_ptr,
+                    pcs_ptr,
+                    input_padded_picture_ptr,
+                    (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr,
+                    pcs_ptr->b64_total_count);
+#endif
 
             // If running multi-threaded mode, perform SC detection in picture_analysis_kernel, else in picture_decision_kernel
             if (scs_ptr->static_config.logical_processors != 1) {

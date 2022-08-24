@@ -35,7 +35,7 @@ extern "C" {
 
 #define FTR_GOP_CONST_RC        1 // When enabled, the rate control matches the target rate for each GoP
                                   // Currently, only applicable for VBR and  when GoP size is greater than 119 frames.
-#define B64_RENAMING            1 // Use b64 where appropriate rather than sb variant
+#define CLN_B64_RENAMING        1 // Use b64 where appropriate rather than sb variant
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

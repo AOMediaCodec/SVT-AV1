@@ -1026,7 +1026,7 @@ typedef struct PictureParentControlSet {
     uint16_t tile_group_index;
     uint16_t tpl_disp_coded_sb_count;
 
-#if !B64_RENAMING
+#if !CLN_B64_RENAMING
     uint16_t sb_total_count_pix;
 #endif
     EncDecSegments **tpl_disp_segment_ctrl;
