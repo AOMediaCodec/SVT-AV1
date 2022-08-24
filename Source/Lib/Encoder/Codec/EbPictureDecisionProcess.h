@@ -45,7 +45,7 @@ void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentCont
 void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
                                   EbPictureBufferDesc *input_padded_picture_ptr,
                                   EbPictureBufferDesc *sixteenth_decimated_picture_ptr,
-                                  uint32_t sb_total_count);
+                                  uint32_t             sb_total_count);
 #endif
 
 void down_sample_chroma(EbPictureBufferDesc *input_picture_ptr,
