@@ -891,7 +891,7 @@ void *resource_coordination_kernel(void *input_ptr) {
             }
             pcs_ptr->input_resolution  = scs_ptr->input_resolution;
             pcs_ptr->picture_sb_width  = scs_ptr->pic_width_in_b64;
-            pcs_ptr->picture_sb_height = scs_ptr->picture_height_in_b64;
+            pcs_ptr->picture_sb_height = scs_ptr->pic_height_in_b64;
 
             pcs_ptr->overlay_ppcs_ptr   = NULL;
             pcs_ptr->is_alt_ref         = 0;

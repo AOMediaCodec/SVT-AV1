@@ -180,9 +180,9 @@ extern EbErrorType b64_geom_init(SequenceControlSet *scs) {
         }
     }
 
-    scs->pic_width_in_b64      = picture_b64_width;
-    scs->picture_height_in_b64 = picture_b64_height;
-    scs->b64_total_count       = picture_b64_width * picture_b64_height;
+    scs->pic_width_in_b64   = picture_b64_width;
+    scs->pic_height_in_b64  = picture_b64_height;
+    scs->b64_total_count    = picture_b64_width * picture_b64_height;
 
     return return_error;
 }
@@ -253,7 +253,7 @@ extern EbErrorType sb_params_init(SequenceControlSet *scs_ptr) {
     }
 
     scs_ptr->pic_width_in_b64 = picture_sb_width;
-    scs_ptr->picture_height_in_b64 = picture_sb_height;
+    scs_ptr->pic_height_in_b64 = picture_sb_height;
     scs_ptr->sb_total_count       = picture_sb_width * picture_sb_height;
 
     return return_error;

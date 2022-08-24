@@ -164,7 +164,7 @@ typedef struct SequenceControlSet {
     /*!< Super block parameters set for the stream */
     uint8_t  b64_size;
     uint16_t pic_width_in_b64;
-    uint16_t picture_height_in_b64;
+    uint16_t pic_height_in_b64;
     uint16_t b64_total_count;
     uint16_t sb_size;
     uint16_t sb_total_count;
