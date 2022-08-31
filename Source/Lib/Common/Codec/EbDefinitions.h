@@ -2227,6 +2227,15 @@ typedef enum DistCalcType
     DIST_CALC_TOTAL = 2
 } DistCalcType;
 
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+typedef enum DistType
+{
+    DIST_SSD = 0,
+    DIST_SSIM = 1,
+    DIST_TOTAL = 2
+} DistType;
+#endif
+
 typedef enum EbPtrType
 {
     EB_N_PTR        = 0,     // malloc'd pointer

@@ -532,12 +532,38 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
+#if TUNE_SSIM
+    if (config->tune > 2) {
+        SVT_ERROR(
+            "Instance %u: Invalid tune flag [0 - 2, 0 for VQ, 1 for PSNR and 2 for SSIM], your "
+            "input: %d\n",
+            channel_number + 1,
+            config->tune);
+        return_error = EB_ErrorBadParameter;
+    }
+    if (config->tune == 2) {
+        if (config->encoder_bit_depth > 8) {
+            SVT_ERROR("Instance %u: tune SSIM only supports 8-bit input currently\n",
+                      channel_number + 1,
+                      config->tune);
+            return_error = EB_ErrorBadParameter;
+        }
+        if (config->rate_control_mode != 0 ||
+            config->pred_structure != SVT_AV1_PRED_RANDOM_ACCESS) {
+            SVT_ERROR("Instance %u: tune SSIM only supports CRF rate control mode currently\n",
+                      channel_number + 1,
+                      config->tune);
+            return_error = EB_ErrorBadParameter;
+        }
+    }
+#else
     if (config->tune > 1) {
         SVT_ERROR("Instance %u: Invalid tune flag [0 - 1, 0 for VQ and 1 for PSNR], your input: %d\n",
                   channel_number + 1,
                   config->tune);
         return_error = EB_ErrorBadParameter;
     }
+#endif
 
     if (config->superres_mode > SUPERRES_AUTO) {
         SVT_ERROR("Instance %u: invalid superres-mode %d, should be in the range [%d - %d]\n",
@@ -1039,12 +1065,23 @@ void svt_av1_print_lib_params(SequenceControlSet *scs) {
                 : config->encoder_color_format == EB_YUV444 ? "YUV444"
                                                             : "Unknown color format");
 
+#if TUNE_SSIM
+        SVT_INFO("SVT [config]: preset / tune / pred struct \t\t\t\t\t: %d / %s / %s\n",
+                 config->enc_mode,
+                 config->tune == 0       ? "VQ"
+                     : config->tune == 1 ? "PSNR"
+                                         : "SSIM",
+                 config->pred_structure == 1       ? "low delay"
+                     : config->pred_structure == 2 ? "random access"
+                                                   : "Unknown pred structure");
+#else
         SVT_INFO("SVT [config]: preset / tune / pred struct \t\t\t\t\t: %d / %s / %s\n",
                  config->enc_mode,
                  config->tune == 0 ? "VQ" : "PSNR",
                  config->pred_structure == 1       ? "low delay"
                      : config->pred_structure == 2 ? "random access"
                                                    : "Unknown pred structure");
+#endif
         SVT_INFO(
             "SVT [config]: gop size / mini-gop size / key-frame type \t\t\t: "
             "%d / %d / %s\n",
