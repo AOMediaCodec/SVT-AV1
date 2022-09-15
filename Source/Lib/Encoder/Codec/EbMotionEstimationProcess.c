@@ -419,9 +419,18 @@ void set_skip_frame_in_ipp(PictureParentControlSet * pcs,MeContext *ctx) {
         if (pcs->scs_ptr->static_config.enc_mode < ENC_M8)
             ctx->skip_frame = 0;
         else if (pcs->scs_ptr->static_config.pass == ENC_SINGLE_PASS)
+#if FTR_HL2_RC
+            // SINGLE PASS
+            if (pcs->scs_ptr->max_heirachical_level <= 2)
+                ctx->skip_frame = ((pcs->scs_ptr->static_config.enc_mode >= ENC_M10) && (pcs->picture_number > 1 && pcs->picture_number % 2 > 0)) ? 1 : 0;
+            else if ((pcs->scs_ptr->static_config.enc_mode < ENC_M10 && (pcs->picture_number > 3 && pcs->picture_number % 4 > 0)) ||
+                (pcs->scs_ptr->static_config.enc_mode >= ENC_M10 && (pcs->picture_number > 5 && pcs->picture_number % 6 > 0)))
+                ctx->skip_frame = 1;
+#else
             if ((pcs->scs_ptr->static_config.enc_mode < ENC_M10 && (pcs->picture_number > 3 && pcs->picture_number % 4 > 0)) ||
                 (pcs->scs_ptr->static_config.enc_mode >= ENC_M10 && (pcs->picture_number > 5 && pcs->picture_number % 6 > 0)) )
                 ctx->skip_frame = 1;
+#endif
     }
     else {
         if ((pcs->scs_ptr->ipp_pass_ctrls.skip_frame_first_pass == 1) &&

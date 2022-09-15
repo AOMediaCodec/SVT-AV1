@@ -33,6 +33,7 @@
 extern "C" {
 #endif // __cplusplus
 
+#define FTR_HL2_RC    1
 #define FTR_GOP_CONST_RC        1 // When enabled, the rate control matches the target rate for each GoP
                                   // Currently, only applicable for VBR and  when GoP size is greater than 119 frames.
 #define CLN_B64_RENAMING        1 // Use b64 where appropriate rather than sb variant
