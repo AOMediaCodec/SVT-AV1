@@ -2938,6 +2938,9 @@ void tf_controls(SequenceControlSet* scs_ptr, uint8_t tf_level) {
         // BASE TF Params
         scs_ptr->tf_params_per_type[1].num_future_pics = 0;
         scs_ptr->tf_params_per_type[1].max_num_future_pics = 0;
+#if FIX_LD_R2R
+        scs_ptr->tf_params_per_type[1].max_num_past_pics = 1;
+#endif
 
         scs_ptr->tf_params_per_type[1].use_intra_for_noise_est = 0; //I frame not TF-ed
 
