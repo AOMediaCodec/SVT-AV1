@@ -260,7 +260,7 @@ EbErrorType signal_derivation_pre_analysis_oq_scs(SequenceControlSet *scs_ptr) {
             }
         }
         else
-            scs_ptr->seq_header.enable_warped_motion = 1;       
+            scs_ptr->seq_header.enable_warped_motion = 1;
 #else
         scs_ptr->seq_header.enable_warped_motion = 1;
 #endif
