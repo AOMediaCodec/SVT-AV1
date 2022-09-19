@@ -915,7 +915,9 @@ static int crf_qindex_calc(PictureControlSet *pcs, RATE_CONTROL *rc, int qindex)
                     int w1 = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
                     int w2 = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
                     while (tmp_layer_delta--)
-                        active_best_quality = (w1 * active_best_quality + (w2 * cq_level) + ((w1 + w2) / 2)) / (w1 + w2);
+                        active_best_quality = (w1 * active_best_quality + (w2 * cq_level) +
+                                               ((w1 + w2) / 2)) /
+                            (w1 + w2);
 #else
                     while (tmp_layer_delta--)
                         active_best_quality = (active_best_quality + cq_level + 1) / 2;
@@ -2168,7 +2170,9 @@ static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
 #if EN_HL2
             int w1              = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
             int w2              = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
-            active_best_quality = (w1 * active_best_quality + (w2 * active_worst_quality) + ((w1 + w2) / 2)) / (w1 + w2);
+            active_best_quality = (w1 * active_best_quality + (w2 * active_worst_quality) +
+                                   ((w1 + w2) / 2)) /
+                (w1 + w2);
 #else
             active_best_quality = AOMMIN(active_best_quality, active_worst_quality);
             active_best_quality += (active_worst_quality - active_best_quality) / 2;

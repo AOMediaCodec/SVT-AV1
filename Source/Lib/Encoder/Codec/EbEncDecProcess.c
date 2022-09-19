@@ -4471,8 +4471,7 @@ uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_le
         else
             nic_level = 14;
 #if TUNE_HL2
-    }
-    else if (enc_mode <= ENC_M10)
+    } else if (enc_mode <= ENC_M10)
         nic_level = 15;
     else if (enc_mode <= ENC_M11)
         nic_level = hierarchical_levels <= 2 ? 16 : 15;

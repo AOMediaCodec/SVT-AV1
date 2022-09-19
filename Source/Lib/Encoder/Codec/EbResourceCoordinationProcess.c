@@ -251,9 +251,10 @@ EbErrorType signal_derivation_pre_analysis_oq_scs(SequenceControlSet *scs_ptr) {
 
     if (scs_ptr->enable_warped_motion == DEFAULT) {
 #if TUNE_HL2
-        scs_ptr->seq_header.enable_warped_motion = scs_ptr->static_config.enc_mode < ENC_M8 ? 1 :
-            scs_ptr->static_config.hierarchical_levels <= 2 ? 0 : 1;
-        scs_ptr->enable_warped_motion = scs_ptr->seq_header.enable_warped_motion;
+        scs_ptr->seq_header.enable_warped_motion = scs_ptr->static_config.enc_mode < ENC_M8 ? 1
+            : scs_ptr->static_config.hierarchical_levels <= 2                               ? 0
+                                                                                            : 1;
+        scs_ptr->enable_warped_motion            = scs_ptr->seq_header.enable_warped_motion;
 #else
         scs_ptr->seq_header.enable_warped_motion = 1;
 #endif
