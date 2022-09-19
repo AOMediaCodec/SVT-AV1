@@ -1,6 +1,6 @@
 // clang-format off
 /*
- * Copyright (c) 2016, Alliance for Open Media. All rights reserved
+ * Copyright (c) `016, Alliance for Open Media. All rights reserved
  *
  * This source code is subject to the terms of the BSD 2 Clause License and
  * the Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License
@@ -279,7 +279,7 @@ static void update_firstpass_stats(PictureParentControlSet *pcs_ptr, const FRAME
         fps.intra_error     = (double)(stats->intra_error >> 8) + min_err;
 #if EN_HL2
         // if blocks are skipped, the errors need to be updated
-        if (bypass_blk_step) {
+        if (bypass_blk_step == 2) {
             fps.coded_error *= 3;
             fps.sr_coded_error *= 3;
             fps.intra_error *= 3;
