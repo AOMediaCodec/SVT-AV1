@@ -3176,7 +3176,7 @@ void set_ipp_pass_ctrls(
         assert(0);
         break;
     }
-#if FTR_HL2_RC
+#if EN_HL2
     if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->max_heirachical_level <= 2 && scs_ptr->static_config.enc_mode >= ENC_M8)
         ipp_pass_ctrls->bypass_blk_step = 1;
 #endif

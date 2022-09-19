@@ -277,7 +277,7 @@ static void update_firstpass_stats(PictureParentControlSet *pcs_ptr, const FRAME
         fps.coded_error    = (double)(stats->coded_error >> 8) + min_err;
         fps.sr_coded_error = (double)(stats->sr_coded_error >> 8) + min_err;
         fps.intra_error     = (double)(stats->intra_error >> 8) + min_err;
-#if FTR_HL2_RC
+#if EN_HL2
         // if blocks are skipped, the errors need to be updated
         if (bypass_blk_step) {
             fps.coded_error *= 3;

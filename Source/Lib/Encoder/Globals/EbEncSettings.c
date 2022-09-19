@@ -704,8 +704,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-#if FTR_HL2_RC
-	if (config->hierarchical_levels < 2 || config->hierarchical_levels > 5) {
+#if EN_HL2
+    if (config->hierarchical_levels < 2 || config->hierarchical_levels > 5) {
         SVT_ERROR("Instance %u: Only hierarchical levels 2-5 is currently supported.\n",
                   channel_number + 1);
         return_error = EB_ErrorBadParameter;

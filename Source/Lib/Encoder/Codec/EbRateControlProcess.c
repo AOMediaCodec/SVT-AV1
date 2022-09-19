@@ -38,7 +38,7 @@
 #include "EbPictureDecisionResults.h"
 #include "EbResize.h"
 
-#if FTR_HL2_RC
+#if EN_HL2
 // Specifies the weights of the ref frame in calculating qindex of non base layer frames
 static const int non_base_qindex_weight_ref[EB_MAX_TEMPORAL_LAYERS] = {1, 1, 1, 1, 1, 1};
 // Specifies the weights of the worst quality in calculating qindex of non base layer frames
@@ -911,7 +911,7 @@ static int crf_qindex_calc(PictureControlSet *pcs, RATE_CONTROL *rc, int qindex)
                 int8_t tmp_layer_delta = (int8_t)ppcs->temporal_layer_index - (int8_t)ref_tmp_layer;
                 // active_best_quality is updated with the q index of the reference
                 if (rf_level == GF_ARF_LOW) {
-#if FTR_HL2_RC
+#if EN_HL2
                     int w1 = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
                     int w2 = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
                     while (tmp_layer_delta--)
@@ -2165,7 +2165,7 @@ static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
             active_best_quality = get_active_best_quality(pcs_ptr, active_worst_quality);
         } else {
             active_best_quality = rc->active_best_quality[pyramid_level - 1] + 1;
-#if FTR_HL2_RC
+#if EN_HL2
             int w1              = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
             int w2              = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
             active_best_quality = (w1 * active_best_quality + (w2 * active_worst_quality) + ((w1 + w2) / 2)) / (w1 + w2);
