@@ -3160,6 +3160,14 @@ void set_mrp_ctrl(SequenceControlSet* scs_ptr, uint8_t mrp_level) {
         assert(0);
         break;
     }
+#if OPT_LD_MRP
+    if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+        mrp_ctrl->sc_base_ref_list1_count = 0;
+        mrp_ctrl->sc_non_base_ref_list1_count = 0;
+        mrp_ctrl->base_ref_list1_count = 0;
+        mrp_ctrl->non_base_ref_list1_count = 0;
+    }
+#endif
 }
 
 void set_ipp_pass_ctrls(
@@ -3742,7 +3750,12 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     else if (scs_ptr->static_config.enc_mode <= ENC_M5) {
         mrp_level = 4;
     }
+#endif
+#if OPT_LD_MRP
+    if (scs_ptr->static_config.enc_mode <= ENC_M6 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+#else
     else if (scs_ptr->static_config.enc_mode <= ENC_M6) {
+#endif
         mrp_level = 5;
     }
     else if (scs_ptr->static_config.enc_mode <= ENC_M7) {
@@ -4053,12 +4066,14 @@ void copy_api_from_app(
                 ? 4
                 : 5;
     }
+#if !OPT_LD
     if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (scs_ptr->static_config.hierarchical_levels != 3) {
             scs_ptr->static_config.hierarchical_levels = 3;
             SVT_WARN("Forced Low delay mode to use HierarchicalLevels = 3\n");
         }
     }
+#endif
     scs_ptr->max_temporal_layers = scs_ptr->static_config.hierarchical_levels;
     scs_ptr->static_config.look_ahead_distance = ((EbSvtAv1EncConfiguration*)config_struct)->look_ahead_distance;
     scs_ptr->static_config.frame_rate_denominator = ((EbSvtAv1EncConfiguration*)config_struct)->frame_rate_denominator;

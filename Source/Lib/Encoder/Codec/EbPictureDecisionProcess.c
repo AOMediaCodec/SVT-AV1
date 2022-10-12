@@ -5089,6 +5089,10 @@ void update_count_try(SequenceControlSet* scs_ptr, PictureParentControlSet* pcs_
             pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, mrp_ctrl->base_ref_list0_count);
             pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, mrp_ctrl->base_ref_list1_count);
         }
+     /*   else if (!pcs_ptr->is_used_as_reference_flag) {
+            pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, 1);
+            pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, 1);
+        }*/
         else {
             pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, mrp_ctrl->non_base_ref_list0_count);
             pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, mrp_ctrl->non_base_ref_list1_count);
