@@ -635,6 +635,18 @@ void tf_set_me_hme_params_oq(MeContext *me_context_ptr, PictureParentControlSet 
         me_context_ptr->me_sa.sa_min     = (SearchArea){8, 4};
         me_context_ptr->me_sa.sa_max     = (SearchArea){16, 8};
         break;
+#if OPT_LD_TF
+    case 3:
+        me_context_ptr->num_hme_sa_w = 2;
+        me_context_ptr->num_hme_sa_h = 2;
+        me_context_ptr->hme_l0_sa.sa_min = (SearchArea) { 4, 4 };
+        me_context_ptr->hme_l0_sa.sa_max = (SearchArea) { 4, 4 };
+        me_context_ptr->hme_l1_sa = (SearchArea) { 8, 8 };
+        me_context_ptr->hme_l2_sa = (SearchArea) { 8, 8 };
+        me_context_ptr->me_sa.sa_min = (SearchArea) { 8, 8 };
+        me_context_ptr->me_sa.sa_max = (SearchArea) { 8, 8 };
+        break;
+#endif
 
     default: assert(0); break;
     }

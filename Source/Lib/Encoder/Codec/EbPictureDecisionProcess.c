@@ -1821,6 +1821,9 @@ EbErrorType signal_derivation_multi_processes_oq(
         break;
 
     case 2:
+#if OPT_LD_TF
+    case 3:
+#endif
         pcs_ptr->tf_enable_hme_flag       =  1;
         pcs_ptr->tf_enable_hme_level0_flag = 1;
         pcs_ptr->tf_enable_hme_level1_flag = 0;

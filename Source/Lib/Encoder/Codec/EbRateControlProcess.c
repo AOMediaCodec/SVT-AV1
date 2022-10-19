@@ -1220,6 +1220,28 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
     SuperBlock              *sb;
     uint32_t                 sb_addr;
+#if OPT_LD_QPM
+    uint16_t sb_cnt = scs->sb_total_count;
+    if (scs->static_config.superres_mode > SUPERRES_NONE)
+        sb_cnt = ppcs->b64_total_count;
+    uint64_t avg_me_dist = 0;
+    if (ppcs->slice_type != I_SLICE) {
+        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
+            avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
+        }
+        avg_me_dist /= ppcs->b64_total_count;
+    }
+
+    pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
+    if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
+        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
+    else if (ppcs->slice_type != I_SLICE) {
+        if (avg_me_dist < 3000)
+            pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
+    }
+    else
+        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
+#else
     if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
     else
@@ -1228,12 +1250,15 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     uint16_t sb_cnt = scs->sb_total_count;
     if (scs->static_config.superres_mode > SUPERRES_NONE)
         sb_cnt = ppcs->b64_total_count;
+#endif
     if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
+#if !OPT_LD_QPM
         uint64_t avg_me_dist = 0;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
         }
         avg_me_dist /= ppcs->b64_total_count;
+#endif
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             sb               = pcs->sb_ptr_array[sb_addr];
             double diff_dist = (double)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
