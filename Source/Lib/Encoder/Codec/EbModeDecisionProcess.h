@@ -948,7 +948,11 @@ extern EbErrorType mode_decision_context_ctor(
     ModeDecisionContext *context_ptr, EbColorFormat color_format, uint8_t sb_size, uint8_t enc_mode,
     uint16_t max_block_cnt, uint32_t encoder_bit_depth,
     EbFifo *mode_decision_configuration_input_fifo_ptr, EbFifo *mode_decision_output_fifo_ptr,
+#if OPT_LD_M11
+    uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, Bool rtc_tune, uint32_t hierarchical_levels);
+#else
     uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, uint32_t hierarchical_levels);
+#endif
 
 extern const EbAv1LambdaAssignFunc av1_lambda_assignment_function_table[4];
 

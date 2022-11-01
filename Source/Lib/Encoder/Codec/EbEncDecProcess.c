@@ -183,7 +183,23 @@ EbErrorType enc_dec_context_ctor(EbThreadContext   *thread_context_ptr,
                .bot_padding        = 0,
                .split_mode         = FALSE,
            });
-
+#if OPT_LD_M9
+    Bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_P || static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    // Mode Decision Context
+    EB_NEW(context_ptr->md_context,
+        mode_decision_context_ctor,
+        color_format,
+        enc_handle_ptr->scs_instance_array[0]->scs_ptr->super_block_size,
+        static_config->enc_mode,
+        enc_handle_ptr->scs_instance_array[0]->scs_ptr->max_block_cnt,
+        static_config->encoder_bit_depth,
+        0,
+        0,
+        enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
+        static_config->screen_content_mode,
+        rtc_tune,
+        static_config->hierarchical_levels);
+#else
     // Mode Decision Context
     EB_NEW(context_ptr->md_context,
            mode_decision_context_ctor,
@@ -197,6 +213,8 @@ EbErrorType enc_dec_context_ctor(EbThreadContext   *thread_context_ptr,
            enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
            static_config->screen_content_mode,
            static_config->hierarchical_levels);
+#endif
+
     if (enable_hbd_mode_decision)
         context_ptr->md_context->input_sample16bit_buffer = context_ptr->input_sample16bit_buffer;
 
@@ -3936,7 +3954,11 @@ void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
 }
 // Get the nic_level used for each preset (to be passed to setting function: set_nic_controls())
 // hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
+#if OPT_LD_M11
+uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, Bool rtc_tune) {
+#else
 uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels) {
+#endif
     uint8_t nic_level;
 
     if (enc_mode <= ENC_MRS)
@@ -3962,7 +3984,14 @@ uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_le
     } else if (enc_mode <= ENC_M10)
         nic_level = 15;
     else if (enc_mode <= ENC_M11)
+#if OPT_LD_M11
+        if(rtc_tune)
+            nic_level = is_base ? 15 : 16;
+        else
+            nic_level = hierarchical_levels <= 2 ? 16 : 15;
+#else
         nic_level = hierarchical_levels <= 2 ? 16 : 15;
+#endif
     else
         nic_level = 16;
 
@@ -5136,13 +5165,23 @@ static void set_detect_high_freq_ctrls(ModeDecisionContext *ctx, uint8_t detect_
 }
 
 // use this function to set the disallow_below_16x16 level in MD. ME 8x8 blocks are controlled by get_enable_me_8x8()
+#if OPT_LD_M9
+uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
+    EbInputResolution resolution, Bool is_islice,
+    Bool sc_class1, Bool is_ref, Bool rtc_tune) {
+#else
 uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
                                                        EbInputResolution resolution, Bool is_islice,
                                                        Bool sc_class1, Bool is_ref) {
+#endif
     uint8_t disallow_below_16x16 = 0;
     if (sc_class1)
         disallow_below_16x16 = 0;
+#if OPT_LD_M9
+    else if ((enc_mode <= ENC_M8) ||(rtc_tune && (enc_mode <= ENC_M9)))
+#else
     else if (enc_mode <= ENC_M8)
+#endif
         disallow_below_16x16 = 0;
     else if (enc_mode <= ENC_M12) {
         if (resolution <= INPUT_SIZE_1080p_RANGE)
@@ -5167,6 +5206,10 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
     SuperBlock *sb_ptr = pcs_ptr->sb_ptr_array[ctx->sb_index];
     set_detect_high_freq_ctrls(ctx, pcs_ptr->vq_ctrls.detect_high_freq_lvl);
     ctx->high_freq_present = 0;
+#if OPT_LD_M9
+    const Bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+        scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#endif
     if (ctx->detect_high_freq_ctrls.enabled) {
         svt_aom_check_high_freq(pcs_ptr, sb_ptr, ctx);
     }
@@ -5182,19 +5225,45 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
         else if (enc_mode <= ENC_M4)
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+#if OPT_LD_M9
+        else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
+#else
         else if (enc_mode <= ENC_M8)
-            depth_level = 3;
+#endif
+            depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
         else
             depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
     } else if (enc_mode <= ENC_M0)
         depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
     else if (enc_mode <= ENC_M4)
         depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+#if OPT_LD_M9
+    else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
+#else
     else if (enc_mode <= ENC_M8)
+#endif
         depth_level = 3;
+#if OPT_LD_M10
+    else if (rtc_tune && enc_mode <= ENC_M10)
+        depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
+#endif
     else
         depth_level = 0;
-
+#if OPT_LD_M9
+    if (rtc_tune) {
+        if (enc_mode <= ENC_M8) {
+            depth_level = depth_level;
+        }
+        else {
+            if (pcs_ptr->slice_type != I_SLICE) {
+                int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
+                int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
+                if (me_8x8 < th)
+                    depth_level = 0;
+            }
+        }
+    }
+#endif
     set_depth_ctrls(ctx, depth_level);
 
     // pic_pred_depth_only shouldn't be changed after this point
@@ -5256,6 +5325,27 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
                    ctx->high_freq_present
                        ? MIN(pcs_ptr->pic_lpd1_lvl, ctx->detect_high_freq_ctrls.max_pic_lpd1_lvl)
                        : pcs_ptr->pic_lpd1_lvl);
+#if OPT_LD_M13
+    if (rtc_tune) {
+        int pic_lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
+        if (enc_mode <= ENC_M8) {
+            pic_lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
+        }
+        else {
+
+            if (pcs_ptr->slice_type != I_SLICE) {
+                int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
+                int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 500 * ctx->qp_index;
+                if (me_8x8 < th)
+                    pic_lpd1_lvl += 2;
+                else if (me_8x8 < 2*th)
+                    pic_lpd1_lvl += 1;
+            }
+            pic_lpd1_lvl = MAX(0, MIN(pic_lpd1_lvl, 6));
+            set_lpd1_ctrls(ctx, pic_lpd1_lvl);
+        }
+    }
+#endif
 
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     set_nsq_ctrls(ctx, pcs_ptr->nsq_level);
@@ -6330,6 +6420,11 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
             }
         }
     }
+#if OPT_LD_M13
+    const Bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    if(rtc_tune)
+        context_ptr->lpd1_skip_inter_tx_level = 0;
+#endif
     uint8_t rate_est_level = 0;
     if (lpd1_level <= LPD1_LVL_0)
         rate_est_level = 4;
@@ -6409,6 +6504,11 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
 
     // 2nd call as set_nsq_ctrls() has a PD_PASS check
     set_nsq_ctrls(context_ptr, pcs_ptr->nsq_level);
+
+#if OPT_LD_M11
+    const Bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+        || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#endif
 
     set_cand_reduction_ctrls(pcs_ptr,
                              context_ptr,
@@ -6572,6 +6672,10 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
     } else {
         if (enc_mode <= ENC_M10)
             rate_est_level = 1;
+#if OPT_LD_M11
+        else if (rtc_tune && enc_mode <= ENC_M12)
+            rate_est_level = is_islice ? 1 : is_ref ? 3 : 4;
+#endif
         else if (enc_mode <= ENC_M12)
             rate_est_level = is_islice ? 3 : 4;
         else

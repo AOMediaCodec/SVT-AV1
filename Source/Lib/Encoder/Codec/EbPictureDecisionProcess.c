@@ -1486,7 +1486,11 @@ void set_list0_only_base(PictureParentControlSet* pcs_ptr, uint8_t list0_only_ba
 * 2 -- SB-Based DLF
 * 3 -- SB-Based DLF + skip DLF if SB has 0 coeffs
 */
+#if OPT_LD_M9
+static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit, Bool fast_decode, EbInputResolution resolution, Bool rtc_tune) {
+#else
 static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit, Bool fast_decode, EbInputResolution resolution) {
+#endif
 
     uint8_t dlf_level;
     // Don't disable DLF for low resolutions when fast-decode is used
@@ -1495,7 +1499,15 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
         dlf_level = 1;
         else if (enc_mode <= ENC_M7)
             dlf_level = 2;
-        else if (enc_mode <= ENC_M9)
+#if OPT_LD_M9
+#if OPT_LD_M10
+        else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M10)))
+#else
+        else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
+#endif
+#else
+        else if (enc_mode <= ENC_M8)
+#endif
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_used_as_reference_flag ? 2 : 4);
         else if (enc_mode <= ENC_M11)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_used_as_reference_flag ? 3 : 0);
@@ -1788,7 +1800,10 @@ EbErrorType signal_derivation_multi_processes_oq(
     const uint32_t           bit_depth = scs_ptr->static_config.encoder_bit_depth;
     const Bool               fast_decode = scs_ptr->static_config.fast_decode;
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
-
+#if OPT_LD_M13
+    const Bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+        || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#endif
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
     pcs_ptr->enable_hme_flag        = 1;
@@ -1889,7 +1904,11 @@ EbErrorType signal_derivation_multi_processes_oq(
     set_palette_level(pcs_ptr, pcs_ptr->palette_level);
     uint8_t dlf_level = 0;
     if (pcs_ptr->scs_ptr->static_config.enable_dlf_flag && frm_hdr->allow_intrabc == 0) {
+#if OPT_LD_M9
+        dlf_level = get_dlf_level(enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution,rtc_tune);
+#else
         dlf_level = get_dlf_level(enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution);
+#endif
     }
     svt_aom_set_dlf_controls(pcs_ptr, dlf_level, bit_depth);
 

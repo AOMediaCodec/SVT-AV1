@@ -113,8 +113,12 @@ extern "C" {
 
 #if OPT_LD
 #define OPT_LD_MRP              1
-#define OPT_LD_QPM              0
-#define OPT_LD_TF               0
+#define OPT_LD_QPM              1
+#define OPT_LD_TF               1
+#define OPT_LD_M13              1
+#define OPT_LD_M9               1
+#define OPT_LD_M10              1
+#define OPT_LD_M11              1
 #endif
 
 //FOR DEBUGGING - Do not remove

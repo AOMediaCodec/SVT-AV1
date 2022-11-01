@@ -97,8 +97,11 @@ static uint8_t get_enable_me_8x8(EncMode enc_mode) {
 }
 uint8_t get_enable_me_16x16(EncMode enc_mode) {
     uint8_t enable_me_16x16;
-
+#if OPT_LD_M13 // to be reviwed
+    if (enc_mode <= ENC_M13)
+#else
     if (enc_mode <= ENC_M12)
+#endif
         enable_me_16x16 = 1;
     else
         enable_me_16x16 = 0;
