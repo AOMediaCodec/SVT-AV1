@@ -648,6 +648,95 @@ typedef struct PaletteCtrls {
     // block involves 7 colors, then only 3 candidates with palettes based on the most dominant 7, 5 and 3 colors are tested. Range: [1 (test all), 7 (test one)]
 } PaletteCtrls;
 
+#if OPT_LD_QPM2
+/*!
+ * \brief The stucture of Cyclic_Refresh.
+ * \ingroup cyclic_refresh
+ */
+typedef struct CyclicRefresh {
+    /*!
+     * Percentage of blocks per frame that are targeted as candidates
+     * for cyclic refresh.
+     */
+    int percent_refresh;
+    /*!
+     * Maximum q-delta as percentage of base q.
+     */
+    int max_qdelta_perc;
+    /*!
+     *Superblock starting index for cycling through the frame.
+     */
+    uint32_t sb_start;
+    /*!
+     *Superblock end index for cycling through the frame.
+     */
+    uint32_t sb_end;
+#if 0
+    /*!
+     * Controls how long block will need to wait to be refreshed again, in
+     * excess of the cycle time, i.e., in the case of all zero motion, block
+     * will be refreshed every (100/percent_refresh + time_for_refresh) frames.
+     */
+    int time_for_refresh;
+    /*!
+     * Target number of (4x4) blocks that are set for delta-q.
+     */
+    int target_num_seg_blocks;
+    /*!
+     * Actual number of (4x4) blocks that were applied delta-q,
+     * for segment 1.
+     */
+    int actual_num_seg1_blocks;
+    /*!
+     * Actual number of (4x4) blocks that were applied delta-q,
+     * for segment 2.
+     */
+    int actual_num_seg2_blocks;
+    /*!
+     * RD mult. parameters for segment 1.
+     */
+    int rdmult;
+    /*!
+     * Cyclic refresh map.
+     */
+    int8_t *map;
+    /*!
+     * Threshold applied to the projected rate of the coding block,
+     * when deciding whether block should be refreshed.
+     */
+    int64_t thresh_rate_sb;
+    /*!
+     * Threshold applied to the projected distortion of the coding block,
+     * when deciding whether block should be refreshed.
+     */
+    int64_t thresh_dist_sb;
+    /*!
+     * Threshold applied to the motion vector (in units of 1/8 pel) of the
+     * coding block, when deciding whether block should be refreshed.
+     */
+    int16_t motion_thresh;
+#endif
+    /*!
+     * Rate target ratio to set q delta.
+     */
+    double rate_ratio_qdelta;
+#if 0
+    /*!
+     * Boost factor for rate target ratio, for segment CR_SEGMENT_ID_BOOST2.
+     */
+    int rate_boost_fac;
+
+    int qindex_delta[3];
+    double weight_segment;
+#endif
+    int apply_cyclic_refresh;
+#if 0 
+    int skip_over4x4;
+    int counter_encode_maxq_scene_change;
+    int use_block_sad_scene_det;
+#endif
+} CyclicRefresh;
+#endif
 //CHKN
 // Add the concept of PictureParentControlSet which is a subset of the old PictureControlSet.
 // It actually holds only high level Picture based control data:(GOP management,when to start a picture, when to release the PCS, ....).
@@ -1030,6 +1119,9 @@ typedef struct PictureParentControlSet {
     uint8_t                         is_new_gf_group;
     struct PictureParentControlSet *gf_group[MAX_TPL_GROUP_SIZE];
     StatStruct                      stat_struct;
+#if OPT_LD_QPM2
+    CyclicRefresh                   cyclic_refresh;
+#endif
     uint8_t                         partition_contexts;
     uint8_t                         bypass_cost_table_gen;
     uint16_t                        max_can_count;

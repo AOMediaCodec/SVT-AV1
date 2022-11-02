@@ -5203,7 +5203,11 @@ static void set_frame_update_type(PictureParentControlSet *ppcs) {
             ppcs->update_type = SVT_AV1_INTNL_ARF_UPDATE;
         }
     }
+#if 0//OPT_LD_QPM2
+    else if (ppcs->pred_structure == SVT_AV1_PRED_LOW_DELAY_B && ppcs->temporal_layer_index == 0) {
+#else
     else if (ppcs->pred_structure == SVT_AV1_PRED_LOW_DELAY_B && (ppcs->frame_offset % MAX_GF_INTERVAL) == 0) {
+#endif
         ppcs->update_type = SVT_AV1_GF_UPDATE;
     }
     else {
@@ -5838,7 +5842,9 @@ static void process_pics(SequenceControlSet* scs, PictureDecisionContext* ctx) {
             send_picture_out(scs, pcs, ctx);
         }
     }
+
     ctx->mg_progress_id++;
+
 }
 
 /* Picture Decision Kernel */

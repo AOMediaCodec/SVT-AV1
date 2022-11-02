@@ -183,6 +183,10 @@ typedef struct EncodeContext {
     EbHandle                          rc_param_queue_mutex;
     // reference scaling random access event
     EbRefFrameScale resize_evt;
+#if OPT_LD_QPM2
+    //Superblock end index for cycling refresh through the frame.
+    uint32_t cr_sb_end;
+#endif
 } EncodeContext;
 
 typedef struct EncodeContextInitData {

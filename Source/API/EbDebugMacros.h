@@ -119,6 +119,8 @@ extern "C" {
 #define OPT_LD_M9               1
 #define OPT_LD_M10              1
 #define OPT_LD_M11              1
+#define OPT_LD_QPM2              1
+#define OPT_LD_QPM2_PRINT       0
 #endif
 
 //FOR DEBUGGING - Do not remove
