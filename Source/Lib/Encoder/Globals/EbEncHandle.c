@@ -3088,7 +3088,11 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
 #if OPT_LD_TF
     if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (do_tf == 0) tf_level = 0;
+#if OPT_LD_M12_13
+        else tf_level = enc_mode <= ENC_M11 ? 1 : 0;
+#else
         else tf_level = 1;
+#endif
         tf_ld_controls(scs_ptr, tf_level);
         return;
     }

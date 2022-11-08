@@ -6271,7 +6271,9 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
     uint32_t       me_64x64_distortion  = (uint32_t)~0;
     uint8_t        l0_was_skip = 0, l1_was_skip = 0;
     uint8_t        l0_was_64x64_mvp = 0, l1_was_64x64_mvp = 0;
-
+#if OPT_LD_M13
+    const Bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#endif
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
@@ -6372,6 +6374,10 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
             (me_8x8_cost_variance < (100 * picture_qp) && me_64x64_distortion < (100 * picture_qp)))
             lpd1_tx_level = 6;
     }
+#if OPT_LD_M12_13
+    if(rtc_tune)
+        lpd1_tx_level = 4;
+#endif
     set_lpd1_tx_ctrls(pcs_ptr, context_ptr, lpd1_tx_level);
 
     /* In modes below M13, only use level 1-3 for chroma detector, as more aggressive levels will cause
@@ -6421,7 +6427,6 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
         }
     }
 #if OPT_LD_M13
-    const Bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     if(rtc_tune)
         context_ptr->lpd1_skip_inter_tx_level = 0;
 #endif
