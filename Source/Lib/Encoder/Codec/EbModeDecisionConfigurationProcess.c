@@ -726,6 +726,10 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         pcs_ptr->cfl_level = is_islice ? 2 : 0;
     else
         pcs_ptr->cfl_level = 0;
+#if OPT_LD_LATENCY_MD
+    if (pcs_ptr->scs_ptr->low_latency_kf && is_islice)
+        pcs_ptr->cfl_level = 0;
+#endif
     // Set the level for new/nearest/near injection
     if (scs_ptr->new_nearest_comb_inject == DEFAULT)
         if (enc_mode <= ENC_M0)
@@ -847,7 +851,10 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
             pcs_ptr->txs_level = is_islice ? 3 : 0;
     } else
         pcs_ptr->txs_level = is_islice ? 5 : 0;
-
+#if OPT_LD_LATENCY_MD
+    if (pcs_ptr->scs_ptr->low_latency_kf && pcs_ptr->slice_type == I_SLICE)
+        pcs_ptr->txs_level = 5;
+#endif
     // Set tx_mode for the frame header
     frm_hdr->tx_mode = (pcs_ptr->txs_level) ? TX_MODE_SELECT : TX_MODE_LARGEST;
     // Set the level for nic

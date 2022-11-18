@@ -3859,6 +3859,13 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
                                                 scs_ptr->static_config.rate_control_mode != SVT_AV1_RC_MODE_CBR
         ? 1
         : 0;
+#if OPT_LD_LATENCY_MD
+    scs_ptr->low_latency_kf = scs_ptr->static_config.pred_structure == 
+        ((SVT_AV1_PRED_LOW_DELAY_P || SVT_AV1_PRED_LOW_DELAY_B) &&
+        scs_ptr->static_config.enc_mode <= ENC_M10) // anaghdin add a check for intra refresh?
+        ? 1
+        : 0;
+#endif
 }
 /******************************************************
  * Read Stat from File

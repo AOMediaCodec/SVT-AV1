@@ -6582,6 +6582,11 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
             context_ptr->rdoq_level = 1;
         else
             context_ptr->rdoq_level = 0;
+#if OPT_LD_LATENCY_MD
+    }
+    else if (pcs_ptr->scs_ptr->low_latency_kf && pcs_ptr->slice_type == I_SLICE) {
+        context_ptr->rdoq_level = 0;
+#endif
     } else if (enc_mode <= ENC_M12)
         context_ptr->rdoq_level = 1;
     else
@@ -6714,6 +6719,10 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
         intra_level = (is_islice || ppcs->transition_present == 1) ? 1 : 4;
     else
         intra_level = (is_islice || ppcs->transition_present == 1) ? 3 : 4;
+#if OPT_LD_LATENCY_MD
+    if (pcs_ptr->scs_ptr->low_latency_kf && is_islice)
+        intra_level = 4;
+#endif
     set_intra_ctrls(pcs_ptr, context_ptr, intra_level);
 
     set_mds0_controls(context_ptr, pd_pass == PD_PASS_0 ? 2 : pcs_ptr->mds0_level);

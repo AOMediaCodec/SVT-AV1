@@ -364,16 +364,31 @@ static void print_performance(const EncContext* const enc_context) {
                      (config->config.pass == 2 &&
                       config->config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) ||
                      config->config.pass == 3))
+#if OPT_LD_LATENCY_PRINT
                     fprintf(stderr,
                             "\nChannel %u\nAverage Speed:\t\t%.3f fps\nTotal Encoding Time:\t%.0f "
-                            "ms\nTotal Execution Time:\t%.0f ms\nAverage Latency:\t%.0f ms\nMax "
-                            "Latency:\t\t%u ms\n",
+                            "ms\nSpeed\tTotal Execution Time:\t%.0f ms\nAverage Latency\tMax "
+                            "Latency\tMaxInterLatency:\n%.3f\t%.0f\t%u\t%u\n",
                             (uint32_t)(inst_cnt + 1),
                             config->performance_context.average_speed,
                             config->performance_context.total_encode_time * 1000,
                             config->performance_context.total_execution_time * 1000,
+                            config->performance_context.average_speed,
                             config->performance_context.average_latency,
-                            (uint32_t)(config->performance_context.max_latency));
+                            (uint32_t)(config->performance_context.max_latency),
+                            (uint32_t)(config->performance_context.max_inter_latency));
+#else
+                    fprintf(stderr,
+                        "\nChannel %u\nAverage Speed:\t\t%.3f fps\nTotal Encoding Time:\t%.0f "
+                        "ms\nTotal Execution Time:\t%.0f ms\nAverage Latency:\t%.0f ms\nMax "
+                        "Latency:\t\t%u ms\n",
+                        (uint32_t)(inst_cnt + 1),
+                        config->performance_context.average_speed,
+                        config->performance_context.total_encode_time * 1000,
+                        config->performance_context.total_execution_time * 1000,
+                        config->performance_context.average_latency,
+                        (uint32_t)(config->performance_context.max_latency));
+#endif
             } else
                 fprintf(stderr, "\nChannel %u Encoding Interrupted\n", (uint32_t)(inst_cnt + 1));
         } else if (c->return_error == EB_ErrorInsufficientResources)
