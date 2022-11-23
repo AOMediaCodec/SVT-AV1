@@ -981,13 +981,23 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         }
 #endif
     } else {
-        if (pcs_ptr->coeff_lvl == LOW_LVL) {
-            pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-        } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
-            pcs_ptr->pic_lpd0_lvl = 7;
-        } else { // regular
-            pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+#if OPT_LD_SPEED2
+        if (rtc_tune)
+            pcs_ptr->pic_lpd0_lvl = enc_mode <= ENC_M12 || is_islice ? 4 : 7;
+        else {
+#endif
+            if (pcs_ptr->coeff_lvl == LOW_LVL) {
+                pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
+            }
+            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+                pcs_ptr->pic_lpd0_lvl = 7;
+            }
+            else { // regular
+                pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+            }
+#if OPT_LD_SPEED2
         }
+#endif
     }
 
     if (pcs_ptr->parent_pcs_ptr->sc_class1 || scs_ptr->static_config.pass == ENC_MIDDLE_PASS)

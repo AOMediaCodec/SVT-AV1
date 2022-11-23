@@ -5254,7 +5254,11 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
         if (enc_mode <= ENC_M8) {
             depth_level = depth_level;
         }
-        else {
+#if OPT_LD_SPEED2
+        else if(enc_mode <= ENC_M11) {
+#else
+        else{
+#endif
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
                 int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
@@ -5262,6 +5266,10 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
                     depth_level = 0;
             }
         }
+#if OPT_LD_SPEED2
+        else
+            depth_level = 0;
+#endif
     }
 #endif
     set_depth_ctrls(ctx, depth_level);
@@ -7610,6 +7618,17 @@ void lpd1_detector_post_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx)
 not performed, this detector is used (else lpd1_detector_post_pd0() is used). */
 void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
                             uint32_t pic_width_in_sb) {
+
+#if OPT_LD_SPEED2
+    const Bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+        pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    if (rtc_tune) {
+        uint32_t me_8x8_cost_variance =
+            pcs->parent_pcs_ptr->me_8x8_cost_variance[md_ctx->sb_index];
+        md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? 2 : me_8x8_cost_variance < 3000 ? 1 : -1;
+        return;
+    }
+#endif
     const uint16_t left_sb_index = md_ctx->sb_index - 1;
     const uint16_t top_sb_index  = md_ctx->sb_index - (uint16_t)pic_width_in_sb;
 
@@ -8124,9 +8143,17 @@ void *mode_decision_kernel(void *input_ptr) {
                                 skip_pd_pass_0 = 1;
 
                         // If LPD0 is used, a more conservative level can be set for complex SBs
-                        if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
-                            lpd0_detector(pcs_ptr, md_ctx);
+#if OPT_LD_SPEED2
+                        const Bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+                            scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+                        if (!rtc_tune) {
+#endif
+                            if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
+                                lpd0_detector(pcs_ptr, md_ctx);
+                            }
+#if OPT_LD_SPEED2
                         }
+#endif
 
                         // PD0 is only skipped if there is a single depth to test
                         if (skip_pd_pass_0)

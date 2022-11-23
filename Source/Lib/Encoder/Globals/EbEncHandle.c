@@ -3124,7 +3124,11 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
         if (do_tf == 0) tf_level = 0;
 #if OPT_LD_SPEED //TF
         else 
+#if OPT_LD_SPEED2
+            tf_level = enc_mode <= ENC_M11 ? 1 : enc_mode <= ENC_M12 && (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+#else
             tf_level = enc_mode <= ENC_M11 ? 1 : (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+#endif
 #else
 #if OPT_LD_M12_13
         else tf_level = enc_mode <= ENC_M11 ? 1 : 0;
