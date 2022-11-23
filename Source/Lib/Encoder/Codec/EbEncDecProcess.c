@@ -5332,10 +5332,15 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
             pic_lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
         }
         else {
-
             if (pcs_ptr->slice_type != I_SLICE) {
+
+#if OPT_LD_SPEED
+                int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
+                int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
+#else
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
                 int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 500 * ctx->qp_index;
+#endif
                 if (me_8x8 < th)
                     pic_lpd1_lvl += 2;
                 else if (me_8x8 < 2*th)
@@ -6589,6 +6594,10 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
 #endif
     } else if (enc_mode <= ENC_M12)
         context_ptr->rdoq_level = 1;
+#if OPT_LD_M13
+    else if (rtc_tune)
+        context_ptr->rdoq_level = 1;
+#endif
     else
         context_ptr->rdoq_level = 5;
     set_rdoq_controls(context_ptr, context_ptr->rdoq_level);

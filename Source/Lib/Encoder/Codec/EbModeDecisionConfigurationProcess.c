@@ -1224,7 +1224,12 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         } else { // Regular
             pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 2;
         }
-    } else if (enc_mode <= ENC_M11) {
+#if OPT_LD_SPEED && OPT_LD_M12_13
+    } else if ((enc_mode <= ENC_M11) || (rtc_tune && (enc_mode <= ENC_M12))) {
+#else
+    }
+    else if (enc_mode <= ENC_M11) {
+#endif
 #if OPT_LD_M11
         if (rtc_tune) {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {

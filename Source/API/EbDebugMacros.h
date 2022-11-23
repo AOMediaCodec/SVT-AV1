@@ -125,6 +125,7 @@ extern "C" {
 #define OPT_LD_LATENCY          1 // optimize for low latency
 #define OPT_LD_LATENCY_MD       1 // optimize MD for low latency KF
 #define OPT_LD_LATENCY_PRINT     0 // print latency data
+#define OPT_LD_SPEED             1
 #endif
 
 //FOR DEBUGGING - Do not remove

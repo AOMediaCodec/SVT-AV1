@@ -1511,7 +1511,11 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_used_as_reference_flag ? 2 : 4);
         else if (enc_mode <= ENC_M11)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_used_as_reference_flag ? 3 : 0);
+#if OPT_LD_M13
+        else if (enc_mode <= ENC_M12 || rtc_tune)
+#else
         else if (enc_mode <= ENC_M12)
+#endif
             dlf_level = is_used_as_reference_flag ? 4 : 0;
         else
             dlf_level = (is_16bit && is_used_as_reference_flag) ? 4 : 0;
@@ -5078,7 +5082,6 @@ void copy_tf_params(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_pt
             pcs_ptr->tf_ctrls = scs_ptr->tf_params_per_type[1];
         else
             pcs_ptr->tf_ctrls.enabled = 0;
-
         return;
    }
     if (is_delayed_intra(pcs_ptr))
