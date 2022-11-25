@@ -105,8 +105,8 @@ typedef struct WedgeCodeType {
 typedef struct WedgeParamsType {
     int32_t              bits;
     const WedgeCodeType *codebook;
-    uint8_t             *signflip;
-    WedgeMasksType      *masks;
+    uint8_t *            signflip;
+    WedgeMasksType *     masks;
 } WedgeParamsType;
 
 void svt_inter_predictor_light_pd0(const uint8_t *src, int32_t src_stride, uint8_t *dst,

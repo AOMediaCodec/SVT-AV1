@@ -27,7 +27,7 @@ void read_and_skip_y4m_header(FILE *input_file) {
 EbErrorType read_y4m_header(EbConfig *cfg) {
 #define CHROMA_MAX 4
     char          buffer[YFM_HEADER_MAX];
-    char         *tokstart = buffer;
+    char *        tokstart = buffer;
     uint32_t      bitdepth = 8;
     unsigned long width = 0, height = 0;
     long          fr_n = 0, fr_d = 0, aspect_n = 0, aspect_d = 0;

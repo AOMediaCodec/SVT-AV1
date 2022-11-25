@@ -465,7 +465,7 @@ typedef struct {
     int       cols;
     int       n_colors;
     int       plane_width;
-    uint8_t  *color_map;
+    uint8_t * color_map;
     MapCdf    map_cdf;
     ColorCost color_cost;
 } Av1ColorMapParam;
@@ -492,7 +492,7 @@ static void get_color_map_params(FRAME_CONTEXT *frame_context, BlkStruct *blk_pt
     default: assert(0 && "Invalid color map type"); return;
     }
 }
-static void get_palette_params_rate(ModeDecisionCandidate   *candidate_ptr,
+static void get_palette_params_rate(ModeDecisionCandidate *  candidate_ptr,
                                     MdRateEstimationContext *rate_table, BlkStruct *blk_ptr,
                                     int plane, BlockSize bsize, Av1ColorMapParam *params) {
     PaletteInfo *palette_info = candidate_ptr->palette_info;
@@ -507,8 +507,8 @@ static void get_palette_params_rate(ModeDecisionCandidate   *candidate_ptr,
         bsize, plane, xd, &params->plane_width, NULL, &params->rows, &params->cols);
 }
 
-static void get_color_map_params_rate(ModeDecisionCandidate                   *candidate_ptr,
-                                      MdRateEstimationContext                 *rate_table,
+static void get_color_map_params_rate(ModeDecisionCandidate *                  candidate_ptr,
+                                      MdRateEstimationContext *                rate_table,
                                       /*const MACROBLOCK *const x*/ BlkStruct *blk_ptr, int plane,
                                       BlockSize bsize, COLOR_MAP_TYPE type,
                                       Av1ColorMapParam *params) {
@@ -577,7 +577,7 @@ void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr
                               : frame_context->palette_y_color_index_cdf;
     cost_and_tokenize_map(&color_map_params, t, plane, 0, allow_update_cdf, map_pb_cdf);
 }
-int svt_av1_cost_color_map(ModeDecisionCandidate   *candidate_ptr,
+int svt_av1_cost_color_map(ModeDecisionCandidate *  candidate_ptr,
                            MdRateEstimationContext *rate_table, BlkStruct *blk_ptr, int plane,
                            BlockSize bsize, COLOR_MAP_TYPE type) {
     assert(plane == 0 || plane == 1);

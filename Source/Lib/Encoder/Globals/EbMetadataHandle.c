@@ -100,13 +100,13 @@ EB_API int svt_add_metadata(EbBufferHeaderType *buffer, const uint32_t type, con
     return 0;
 }
 
-EbErrorType svt_aom_copy_metadata_buffer(EbBufferHeaderType                  *dst,
+EbErrorType svt_aom_copy_metadata_buffer(EbBufferHeaderType *                 dst,
                                          const struct SvtMetadataArray *const src) {
     if (!dst || !src)
         return EB_ErrorBadParameter;
     EbErrorType return_error = EB_ErrorNone;
     for (size_t i = 0; i < src->sz; ++i) {
-        SvtMetadataT  *current_metadata = src->metadata_array[i];
+        SvtMetadataT * current_metadata = src->metadata_array[i];
         const uint32_t type             = current_metadata->type;
         const uint8_t *payload          = current_metadata->payload;
         const size_t   sz               = current_metadata->sz;
@@ -157,7 +157,7 @@ static inline char *parse_double(const char *p, double *d1, double *d2) {
 }
 
 EB_API int svt_aom_parse_mastering_display(struct EbSvtAv1MasteringDisplayInfo *mdi,
-                                           const char                          *md_str) {
+                                           const char *                         md_str) {
     if (!mdi || !md_str)
         return 0;
     double gx = 0, gy = 0, bx = 0, by = 0, rx = 0, ry = 0, wx = 0, wy = 0, max_luma = 0,
@@ -218,7 +218,7 @@ EB_API int svt_aom_parse_mastering_display(struct EbSvtAv1MasteringDisplayInfo *
 EB_API int svt_aom_parse_content_light_level(struct EbContentLightLevel *cll, const char *cll_str) {
     if (!cll || !cll_str)
         return 0;
-    char  *endptr;
+    char * endptr;
     double max_cll = strtod(cll_str, &endptr);
     if (*endptr != ',')
         goto fail;

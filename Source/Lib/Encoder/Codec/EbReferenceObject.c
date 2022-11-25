@@ -77,7 +77,7 @@ void initialize_samples_neighboring_reference_picture_8bit(EbByte   recon_sample
 }
 
 void initialize_samples_neighboring_reference_picture(
-    EbReferenceObject           *reference_object,
+    EbReferenceObject *          reference_object,
     EbPictureBufferDescInitData *picture_buffer_desc_init_data_ptr, EbBitDepth bit_depth) {
     UNUSED(bit_depth);
     {
@@ -226,7 +226,7 @@ EbErrorType svt_reference_object_creator(EbPtr *object_dbl_ptr, EbPtr object_ini
     return EB_ErrorNone;
 }
 
-EbErrorType svt_reference_object_reset(EbReferenceObject  *reference_object,
+EbErrorType svt_reference_object_reset(EbReferenceObject * reference_object,
                                        SequenceControlSet *scs_ptr) {
     reference_object->mi_rows = scs_ptr->max_input_luma_height >> MI_SIZE_LOG2;
     reference_object->mi_cols = scs_ptr->max_input_luma_width >> MI_SIZE_LOG2;

@@ -92,7 +92,7 @@ void svt_av1_highbd_jnt_convolve_y_sse4_1(const uint16_t *src, int32_t src_strid
                                         bd);
         return;
     }
-    CONV_BUF_TYPE        *dst        = conv_params->dst;
+    CONV_BUF_TYPE *       dst        = conv_params->dst;
     int                   dst_stride = conv_params->dst_stride;
     const int             fo_vert    = filter_params_y->taps / 2 - 1;
     const uint16_t *const src_ptr    = src - fo_vert * src_stride;
@@ -318,7 +318,7 @@ void svt_av1_highbd_jnt_convolve_x_sse4_1(const uint16_t *src, int32_t src_strid
                                         bd);
         return;
     }
-    CONV_BUF_TYPE        *dst        = conv_params->dst;
+    CONV_BUF_TYPE *       dst        = conv_params->dst;
     int                   dst_stride = conv_params->dst_stride;
     const int             fo_horiz   = filter_params_x->taps / 2 - 1;
     const uint16_t *const src_ptr    = src - fo_horiz;

@@ -2107,7 +2107,7 @@ static INLINE void compute_stats_win5_avx2(const int16_t *const d, const int32_t
         do {
             const int16_t *const d_j                                                  = d + j;
             __m256i              deltas[WIENER_WIN_CHROMA - 1][WIENER_WIN_CHROMA - 1] = {
-                             {_mm256_setzero_si256()}, {_mm256_setzero_si256()}};
+                {_mm256_setzero_si256()}, {_mm256_setzero_si256()}};
             __m256i d_is[WIENER_WIN_CHROMA - 1], d_ie[WIENER_WIN_CHROMA - 1];
             __m256i d_js[WIENER_WIN_CHROMA - 1], d_je[WIENER_WIN_CHROMA - 1];
 
@@ -2878,7 +2878,7 @@ static INLINE void compute_stats_win7_avx2(const int16_t *const d, const int32_t
         do {
             const int16_t *const d_j                                    = d + j;
             __m256i              deltas[WIENER_WIN - 1][WIENER_WIN - 1] = {{_mm256_setzero_si256()},
-                                                                           {_mm256_setzero_si256()}};
+                                                              {_mm256_setzero_si256()}};
             __m256i              d_is[WIENER_WIN - 1], d_ie[WIENER_WIN - 1];
             __m256i              d_js[WIENER_WIN - 1], d_je[WIENER_WIN - 1];
 
@@ -3098,7 +3098,7 @@ void svt_av1_compute_stats_avx2(int32_t wiener_win, const uint8_t *dgd, const ui
     const int32_t height   = v_end - v_start;
     const int32_t d_stride = (width + 2 * wiener_halfwin + 15) & ~15;
     const int32_t s_stride = (width + 15) & ~15;
-    int16_t      *d, *s;
+    int16_t *     d, *s;
 
     // The maximum input size is width * height, which is
     // (9 / 4) * RESTORATION_UNITSIZE_MAX * RESTORATION_UNITSIZE_MAX. Enlarge to
@@ -3148,7 +3148,7 @@ void svt_av1_compute_stats_highbd_avx2(int32_t wiener_win, const uint8_t *dgd8, 
     const int32_t d_stride = (width + 2 * wiener_halfwin + 15) & ~15;
     const int32_t s_stride = (width + 15) & ~15;
     int32_t       k;
-    int16_t      *d, *s;
+    int16_t *     d, *s;
 
     // The maximum input size is width * height, which is
     // (9 / 4) * RESTORATION_UNITSIZE_MAX * RESTORATION_UNITSIZE_MAX. Enlarge to

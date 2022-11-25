@@ -140,7 +140,7 @@ static INLINE void obmc_variance_w4(const uint8_t *pre, const int pre_stride, co
                                                          int            pre_stride, \
                                                          const int32_t *wsrc,       \
                                                          const int32_t *mask,       \
-                                                         unsigned int  *sse) {       \
+                                                         unsigned int * sse) {       \
         int sum;                                                                    \
         if (W == 4) {                                                               \
             obmc_variance_w4(pre, pre_stride, wsrc, mask, sse, &sum, H);            \
@@ -180,7 +180,7 @@ OBMCVARWXH(64, 16)
                                                                int            yoffset,    \
                                                                const int32_t *wsrc,       \
                                                                const int32_t *mask,       \
-                                                               unsigned int  *sse) {       \
+                                                               unsigned int * sse) {       \
         uint16_t fdata3[(H + 1) * W];                                                     \
         uint8_t  temp2[H * W];                                                            \
                                                                                           \

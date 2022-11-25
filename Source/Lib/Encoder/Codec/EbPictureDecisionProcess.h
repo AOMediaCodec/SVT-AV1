@@ -20,22 +20,22 @@
 /***************************************
  * Extern Function Declaration
  ***************************************/
-EbErrorType  picture_decision_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType  picture_decision_context_ctor(EbThreadContext *  thread_context_ptr,
                                            const EbEncHandle *enc_handle_ptr,
                                            uint8_t            scene_change_detection);
 extern void *picture_decision_kernel(void *input_ptr);
 
 void downsample_decimation_input_picture(PictureParentControlSet *pcs_ptr,
-                                         EbPictureBufferDesc     *inputPaddedPicturePtr,
-                                         EbPictureBufferDesc     *quarterDecimatedPicturePtr,
-                                         EbPictureBufferDesc     *sixteenthDecimatedPicturePtr);
+                                         EbPictureBufferDesc *    inputPaddedPicturePtr,
+                                         EbPictureBufferDesc *    quarterDecimatedPicturePtr,
+                                         EbPictureBufferDesc *    sixteenthDecimatedPicturePtr);
 
-void pad_picture_to_multiple_of_min_blk_size_dimensions(SequenceControlSet  *scs_ptr,
+void pad_picture_to_multiple_of_min_blk_size_dimensions(SequenceControlSet * scs_ptr,
                                                         EbPictureBufferDesc *input_picture_ptr);
 void pad_picture_to_multiple_of_min_blk_size_dimensions_16bit(
     SequenceControlSet *scs_ptr, EbPictureBufferDesc *input_picture_ptr);
 void picture_pre_processing_operations(PictureParentControlSet *pcs_ptr,
-                                       SequenceControlSet      *scs_ptr);
+                                       SequenceControlSet *     scs_ptr);
 void pad_picture_to_multiple_of_sb_dimensions(EbPictureBufferDesc *input_padded_picture_ptr);
 void gathering_picture_statistics(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
                                   EbPictureBufferDesc *input_padded_picture_ptr,
@@ -53,10 +53,10 @@ void svt_aom_set_dlf_controls(PictureParentControlSet *pcs_ptr, uint8_t dlf_leve
  * Context
  **************************************/
 typedef struct PictureDecisionContext {
-    EbDctor  dctor;
-    EbFifo  *picture_analysis_results_input_fifo_ptr;
-    EbFifo  *picture_decision_results_output_fifo_ptr;
-    EbFifo  *me_fifo_ptr;
+    EbDctor dctor;
+    EbFifo *picture_analysis_results_input_fifo_ptr;
+    EbFifo *picture_decision_results_output_fifo_ptr;
+    EbFifo *me_fifo_ptr;
 
     Bool        reset_running_avg;
     int8_t      tf_motion_direction; // -1: invalid   0: horz  1: vert

@@ -37,7 +37,7 @@ typedef struct PictureDemuxResults {
     EbObjectWrapper *pcs_wrapper_ptr;
 
     // Only valid for reference pictures
-    EbObjectWrapper           *reference_picture_wrapper_ptr;
+    EbObjectWrapper *          reference_picture_wrapper_ptr;
     struct SequenceControlSet *scs_ptr;
     uint64_t                   picture_number;
     uint64_t                   decode_order;

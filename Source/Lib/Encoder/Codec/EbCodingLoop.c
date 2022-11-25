@@ -29,8 +29,8 @@
 #include "EbFullLoop.h"
 #include "EbPackUnPack_C.h"
 
-void get_recon_pic(PictureControlSet *pcs_ptr, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
-int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+void     get_recon_pic(PictureControlSet *pcs_ptr, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
+int      svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 uint32_t get_tot_1d_blks(struct ModeDecisionContext *context_ptr, const int32_t sq_size,
                          const uint8_t disallow_nsq);
 
@@ -294,7 +294,7 @@ static void encode_pass_update_recon_sample_neighbour_arrays(
 *
 **********************************************************/
 static void av1_encode_loop(PictureControlSet *pcs_ptr, EncDecContext *context_ptr,
-                            SuperBlock          *sb_ptr,
+                            SuperBlock *         sb_ptr,
                             uint32_t             origin_x, //pic based tx org x
                             uint32_t             origin_y, //pic based tx org y
                             EbPictureBufferDesc *pred_samples, // no basis/offset
@@ -305,7 +305,7 @@ static void av1_encode_loop(PictureControlSet *pcs_ptr, EncDecContext *context_p
                             uint32_t *count_non_zero_coeffs, uint32_t component_mask,
                             uint16_t *eob) {
     //    uint32_t                 chroma_qp = cb_qp;
-    BlkStruct     *blk_ptr = context_ptr->blk_ptr;
+    BlkStruct *    blk_ptr = context_ptr->blk_ptr;
     TransformUnit *txb_ptr = &blk_ptr->txb_array[context_ptr->txb_itr];
     //    SliceType               slice_type = sb_ptr->pcs_ptr->slice_type;
     //    uint32_t                 temporal_layer_index = sb_ptr->pcs_ptr->temporal_layer_index;
@@ -676,7 +676,7 @@ static void av1_encode_loop_16bit(PictureControlSet *pcs_ptr, EncDecContext *con
                                   uint16_t *eob)
 
 {
-    BlkStruct     *blk_ptr = context_ptr->blk_ptr;
+    BlkStruct *    blk_ptr = context_ptr->blk_ptr;
     TransformUnit *txb_ptr = &blk_ptr->txb_array[context_ptr->txb_itr];
     //    SliceType               slice_type = sb_ptr->pcs_ptr->slice_type;
     //    uint32_t                 temporal_layer_index = sb_ptr->pcs_ptr->temporal_layer_index;
@@ -1065,7 +1065,7 @@ static void av1_encode_generate_recon(EncDecContext *context_ptr, uint32_t origi
                                       EbPictureBufferDesc *pred_samples, // no basis/offset
                                       EbPictureBufferDesc *residual16bit, // no basis/offset
                                       uint32_t component_mask, uint16_t *eob) {
-    BlkStruct     *blk_ptr = context_ptr->blk_ptr;
+    BlkStruct *    blk_ptr = context_ptr->blk_ptr;
     TransformUnit *txb_ptr = &blk_ptr->txb_array[context_ptr->txb_itr];
 
     // *Note - The prediction is built in-place in the Recon buffer. It is overwritten with Reconstructed
@@ -1184,7 +1184,7 @@ static void av1_encode_generate_recon_16bit(EncDecContext *context_ptr, uint32_t
                                             EbPictureBufferDesc *pred_samples, // no basis/offset
                                             EbPictureBufferDesc *residual16bit, // no basis/offset
                                             uint32_t component_mask, uint16_t *eob) {
-    BlkStruct     *blk_ptr = context_ptr->blk_ptr;
+    BlkStruct *    blk_ptr = context_ptr->blk_ptr;
     TransformUnit *txb_ptr = &blk_ptr->txb_array[context_ptr->txb_itr];
 
     //**********************************
@@ -1914,7 +1914,7 @@ static void av1_copy_frame_mvs(PictureControlSet *pcs_ptr, const Av1Common *cons
                                int mi_row, int mi_col, int x_mis, int y_mis,
                                EbReferenceObject *object_ptr) {
     const int frame_mvs_stride = ROUND_POWER_OF_TWO(cm->mi_cols, 1);
-    MV_REF   *frame_mvs        = object_ptr->mvs + (mi_row >> 1) * frame_mvs_stride + (mi_col >> 1);
+    MV_REF *  frame_mvs        = object_ptr->mvs + (mi_row >> 1) * frame_mvs_stride + (mi_col >> 1);
     x_mis                      = ROUND_POWER_OF_TWO(x_mis, 1);
     y_mis                      = ROUND_POWER_OF_TWO(y_mis, 1);
     int w, h;
@@ -2026,8 +2026,8 @@ void convert_recon_16bit_to_8bit(PictureControlSet *pcs, EncDecContext *ctx) {
 void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet *pcs, EncDecContext *ctx,
                                SuperBlock *sb_ptr, uint32_t sb_addr) {
     const BlockGeom *blk_geom = ctx->blk_geom;
-    BlkStruct       *blk_ptr  = ctx->blk_ptr;
-    PredictionUnit  *pu_ptr   = blk_ptr->prediction_unit_array;
+    BlkStruct *      blk_ptr  = ctx->blk_ptr;
+    PredictionUnit * pu_ptr   = blk_ptr->prediction_unit_array;
 
     EbPictureBufferDesc *residual_buffer      = ctx->residual_buffer;
     EbPictureBufferDesc *transform_buffer     = ctx->transform_buffer;
@@ -2415,7 +2415,7 @@ void prepare_input_picture(SequenceControlSet *scs, PictureControlSet *pcs, EncD
 
         // PACK Y
         uint16_t *buf_16bit = (uint16_t *)ctx->input_sample16bit_buffer->buffer_y;
-        uint8_t  *buf_8bit  = input_pic->buffer_y + input_luma_offset;
+        uint8_t * buf_8bit  = input_pic->buffer_y + input_luma_offset;
         svt_convert_8bit_to_16bit(buf_8bit,
                                   input_pic->stride_y,
                                   buf_16bit,
@@ -2505,7 +2505,7 @@ EB_EXTERN void av1_encode_decode(SequenceControlSet *scs, PictureControlSet *pcs
     // CU Loop
     uint32_t blk_it = 0;
     while (blk_it < scs->max_block_cnt) {
-        BlkStruct       *blk_ptr = ctx->blk_ptr = &md_ctx->md_blk_arr_nsq[blk_it];
+        BlkStruct *      blk_ptr = ctx->blk_ptr = &md_ctx->md_blk_arr_nsq[blk_it];
         const BlockGeom *blk_geom = ctx->blk_geom = get_blk_geom_mds(blk_it);
 
         //At the boundary when it's not a complete super block.
@@ -2668,7 +2668,7 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
     while (blk_it < scs->max_block_cnt) {
         sb_ptr->cu_partition_array[blk_it] = md_ctx->md_blk_arr_nsq[blk_it].part;
 
-        BlkStruct       *blk_ptr = ctx->blk_ptr = &md_ctx->md_blk_arr_nsq[blk_it];
+        BlkStruct *      blk_ptr = ctx->blk_ptr = &md_ctx->md_blk_arr_nsq[blk_it];
         const BlockGeom *blk_geom = ctx->blk_geom = get_blk_geom_mds(blk_it);
 
         //At the boundary when it's not a complete super block.
@@ -3083,7 +3083,7 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
                 int32_t            mi_row    = ctx->blk_origin_y >> MI_SIZE_LOG2;
                 int32_t            mi_col    = ctx->blk_origin_x >> MI_SIZE_LOG2;
                 const int32_t      offset    = mi_row * mi_stride + mi_col;
-                ModeInfo          *mi_ptr    = *(pcs->mi_grid_base + offset);
+                ModeInfo *         mi_ptr    = *(pcs->mi_grid_base + offset);
                 const int          x_mis     = AOMMIN(ctx->blk_geom->bwidth >> MI_SIZE_LOG2,
                                          pcs->parent_pcs_ptr->av1_cm->mi_cols - mi_col);
                 const int          y_mis     = AOMMIN(ctx->blk_geom->bheight >> MI_SIZE_LOG2,
@@ -3125,8 +3125,7 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
             if (pcs->parent_pcs_ptr->sb_geom[sb_addr].block_is_inside_md_scan[blk_index]) {
                 const uint32_t tot_d1_blocks = !md_ctx->nsq_ctrls.enabled
                     ? 1
-                    : get_tot_1d_blks(
-                          md_ctx, blk_geom->sq_size, md_ctx->md_disallow_nsq);
+                    : get_tot_1d_blks(md_ctx, blk_geom->sq_size, md_ctx->md_disallow_nsq);
 
                 for (uint32_t idx = blk_index; idx < (tot_d1_blocks + blk_index); ++idx) {
                     if (md_ctx->md_blk_arr_nsq[idx].palette_mem) {

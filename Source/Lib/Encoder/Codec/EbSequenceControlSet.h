@@ -429,7 +429,7 @@ typedef struct SequenceControlSet {
 } SequenceControlSet;
 typedef struct EbSequenceControlSetInstance {
     EbDctor             dctor;
-    EncodeContext      *encode_context_ptr;
+    EncodeContext *     encode_context_ptr;
     SequenceControlSet *scs_ptr;
 } EbSequenceControlSetInstance;
 

@@ -53,7 +53,7 @@ static INLINE void write_qcoeff(const __m128i *qc0, const __m128i *qc1, TranLow 
 
 static INLINE void write_zero(TranLow *qcoeff, intptr_t offset) {
     const __m128i zero = _mm_setzero_si128();
-    TranLow      *addr = qcoeff + offset;
+    TranLow *     addr = qcoeff + offset;
     if (sizeof(TranLow) == 4) {
         _mm_storeu_si128((__m128i *)addr, zero);
         _mm_storeu_si128((__m128i *)addr + 1, zero);
@@ -435,8 +435,8 @@ void svt_av1_highbd_quantize_fp_sse4_1(const TranLow *coeff_ptr, intptr_t n_coef
     __m128i        coeff[2], qcoeff[3], dequant[2], qparam[4], coeff_sign;
     __m128i        eob          = _mm_setzero_si128();
     const TranLow *src          = coeff_ptr;
-    TranLow       *quanAddr     = qcoeff_ptr;
-    TranLow       *dquanAddr    = dqcoeff_ptr;
+    TranLow *      quanAddr     = qcoeff_ptr;
+    TranLow *      dquanAddr    = dqcoeff_ptr;
     const int      shift        = 16 - log_scale;
     const int      coeff_stride = 4;
     const int      quan_stride  = coeff_stride;

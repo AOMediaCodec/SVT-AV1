@@ -6892,7 +6892,7 @@ void svt_av1_inv_txfm2d_add_4x8_sse4_1(const int32_t *input, uint16_t *output_r,
                                        uint16_t *output_w, int32_t stride_w, TxType tx_type,
                                        TxSize tx_size, int32_t bd) {
     __m128i                buf1[8];
-    const int8_t          *shift         = eb_inv_txfm_shift_ls[tx_size];
+    const int8_t *         shift         = eb_inv_txfm_shift_ls[tx_size];
     const int32_t          txw_idx       = get_txw_idx(tx_size);
     const int32_t          txh_idx       = get_txh_idx(tx_size);
     const int32_t          txfm_size_col = tx_size_wide[tx_size];
@@ -6911,7 +6911,7 @@ void svt_av1_inv_txfm2d_add_4x8_sse4_1(const int32_t *input, uint16_t *output_r,
     // 1st stage: column transform
     __m128i        buf0[8];
     const int32_t *input_row = input;
-    __m128i       *buf0_cur  = buf0;
+    __m128i *      buf0_cur  = buf0;
     load_buffer_32bit_input(input_row, input_stride, buf0_cur, txfm_size_row);
     av1_round_shift_rect_array_32_sse4_1(buf0, buf0, txfm_size_row, 0, new_inv_sqrt2);
     row_txfm(buf0, buf0, inv_cos_bit_row[txw_idx][txh_idx], 0, bd, -shift[0]);
@@ -6975,7 +6975,7 @@ void svt_av1_inv_txfm2d_add_8x4_sse4_1(const int32_t *input, uint16_t *output_r,
                                        uint16_t *output_w, int32_t stride_w, TxType tx_type,
                                        TxSize tx_size, int32_t bd) {
     __m128i                buf1[8];
-    const int8_t          *shift         = eb_inv_txfm_shift_ls[tx_size];
+    const int8_t *         shift         = eb_inv_txfm_shift_ls[tx_size];
     const int32_t          txw_idx       = get_txw_idx(tx_size);
     const int32_t          txh_idx       = get_txh_idx(tx_size);
     const int32_t          txfm_size_col = tx_size_wide[tx_size];
@@ -7027,7 +7027,7 @@ void svt_av1_inv_txfm2d_add_4x16_sse4_1(const int32_t *input, uint16_t *output_r
                                         uint16_t *output_w, int32_t stride_w, TxType tx_type,
                                         TxSize tx_size, int32_t bd) {
     __m128i                buf1[16];
-    const int8_t          *shift           = eb_inv_txfm_shift_ls[tx_size];
+    const int8_t *         shift           = eb_inv_txfm_shift_ls[tx_size];
     const int32_t          txw_idx         = get_txw_idx(tx_size);
     const int32_t          txh_idx         = get_txh_idx(tx_size);
     const int32_t          txfm_size_col   = tx_size_wide[tx_size];
@@ -7047,7 +7047,7 @@ void svt_av1_inv_txfm2d_add_4x16_sse4_1(const int32_t *input, uint16_t *output_r
     // 1st stage: column transform
     __m128i        buf0[16];
     const int32_t *input_row = input;
-    __m128i       *buf0_cur  = buf0;
+    __m128i *      buf0_cur  = buf0;
     load_buffer_32bit_input(input_row, input_stride, buf0_cur, txfm_size_row);
     for (int32_t i = 0; i < (txfm_size_row >> 2); i++) {
         row_txfm(
@@ -7093,7 +7093,7 @@ void svt_av1_inv_txfm2d_add_16x4_sse4_1(const int32_t *input, uint16_t *output_r
                                         uint16_t *output_w, int32_t stride_w, TxType tx_type,
                                         TxSize tx_size, int32_t bd) {
     __m128i                buf1[16];
-    const int8_t          *shift           = eb_inv_txfm_shift_ls[tx_size];
+    const int8_t *         shift           = eb_inv_txfm_shift_ls[tx_size];
     const int32_t          txw_idx         = get_txw_idx(tx_size);
     const int32_t          txh_idx         = get_txh_idx(tx_size);
     const int32_t          txfm_size_col   = tx_size_wide[tx_size];
@@ -7279,7 +7279,7 @@ static void svt_highbd_inv_txfm2d_add_v_identity_ssse41(const int32_t *input, ui
     __m128i buf1[64];
     int     eobx, eoby;
     get_eobx_eoby_scan_v_identity(&eobx, &eoby, tx_size, eob);
-    const int8_t             *shift           = svt_av1_inv_txfm_shift_ls[tx_size];
+    const int8_t *            shift           = svt_av1_inv_txfm_shift_ls[tx_size];
     const int                 txw_idx         = get_txw_idx(tx_size);
     const int                 txh_idx         = get_txh_idx(tx_size);
     const int                 txfm_size_col   = tx_size_wide[tx_size];
@@ -7350,7 +7350,7 @@ static void svt_highbd_inv_txfm2d_add_h_identity_ssse41(const int32_t *input, ui
     __m128i buf1[64];
     int     eobx, eoby;
     get_eobx_eoby_scan_h_identity(&eobx, &eoby, tx_size, eob);
-    const int8_t             *shift                   = svt_av1_inv_txfm_shift_ls[tx_size];
+    const int8_t *            shift                   = svt_av1_inv_txfm_shift_ls[tx_size];
     const int                 txw_idx                 = get_txw_idx(tx_size);
     const int                 txh_idx                 = get_txh_idx(tx_size);
     const int                 txfm_size_col           = tx_size_wide[tx_size];
@@ -7448,7 +7448,7 @@ static void svt_highbd_inv_txfm2d_add_idtx_ssse41(const int32_t *input, uint16_t
                                                   int32_t eob, const int8_t bd) {
     (void)eob;
     __m128i                   buf1[64 * 4];
-    const int8_t             *shift         = svt_av1_inv_txfm_shift_ls[tx_size];
+    const int8_t *            shift         = svt_av1_inv_txfm_shift_ls[tx_size];
     const int                 txw_idx       = get_txw_idx(tx_size);
     const int                 txh_idx       = get_txh_idx(tx_size);
     const int                 txfm_size_col = tx_size_wide[tx_size];

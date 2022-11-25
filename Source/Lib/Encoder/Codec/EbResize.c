@@ -175,14 +175,14 @@ const InterpKernel av1_filteredinterp_filters875[(1 << RS_SUBPEL_BITS)] = {
 };
 
 void downsample_decimation_input_picture(PictureParentControlSet *pcs_ptr,
-                                         EbPictureBufferDesc     *input_padded_picture_ptr,
-                                         EbPictureBufferDesc     *quarter_decimated_picture_ptr,
-                                         EbPictureBufferDesc     *sixteenth_decimated_picture_ptr);
+                                         EbPictureBufferDesc *    input_padded_picture_ptr,
+                                         EbPictureBufferDesc *    quarter_decimated_picture_ptr,
+                                         EbPictureBufferDesc *    sixteenth_decimated_picture_ptr);
 
 void downsample_filtering_input_picture(PictureParentControlSet *pcs_ptr,
-                                        EbPictureBufferDesc     *input_padded_picture_ptr,
-                                        EbPictureBufferDesc     *quarter_picture_ptr,
-                                        EbPictureBufferDesc     *sixteenth_picture_ptr);
+                                        EbPictureBufferDesc *    input_padded_picture_ptr,
+                                        EbPictureBufferDesc *    quarter_picture_ptr,
+                                        EbPictureBufferDesc *    sixteenth_picture_ptr);
 
 void calculate_scaled_size_helper(uint16_t *dim, uint8_t denom);
 
@@ -214,7 +214,7 @@ void svt_av1_down2_symeven_c(const uint8_t *const input, int length, uint8_t *ou
     const int16_t *filter          = av1_down2_symeven_half_filter;
     const int      filter_len_half = sizeof(av1_down2_symeven_half_filter) / 2;
     int            i, j;
-    uint8_t       *optr = output;
+    uint8_t *      optr = output;
     int            l1   = filter_len_half;
     int            l2   = (length - filter_len_half);
     l1 += (l1 & 1);
@@ -265,7 +265,7 @@ static void down2_symodd(const uint8_t *const input, int length, uint8_t *output
     const int16_t *filter          = av1_down2_symodd_half_filter;
     const int      filter_len_half = sizeof(av1_down2_symodd_half_filter) / 2;
     int            i, j;
-    uint8_t       *optr = output;
+    uint8_t *      optr = output;
     int            l1   = filter_len_half - 1;
     int            l2   = (length - filter_len_half + 1);
     l1 += (l1 & 1);
@@ -336,7 +336,7 @@ void svt_av1_interpolate_core_c(const uint8_t *const input, int in_length, uint8
             out_length
         : -(((int32_t)(out_length - in_length) << (RS_SCALE_SUBPEL_BITS - 1)) + out_length / 2) /
             out_length;
-    uint8_t      *optr   = output;
+    uint8_t *     optr   = output;
     int           x, x1, x2, sum, k, int_pel, sub_pel;
     int32_t       y;
 
@@ -532,7 +532,7 @@ void svt_av1_highbd_interpolate_core_c(const uint16_t *const input, int in_lengt
             out_length
         : -(((int32_t)(out_length - in_length) << (RS_SCALE_SUBPEL_BITS - 1)) + out_length / 2) /
             out_length;
-    uint16_t     *optr   = output;
+    uint16_t *    optr   = output;
     int           x, x1, x2, sum, k, int_pel, sub_pel;
     int32_t       y;
 
@@ -610,7 +610,7 @@ void svt_av1_highbd_down2_symeven_c(const uint16_t *const input, int length, uin
     static const int16_t *filter          = av1_down2_symeven_half_filter;
     const int             filter_len_half = sizeof(av1_down2_symeven_half_filter) / 2;
     int                   i, j;
-    uint16_t             *optr = output;
+    uint16_t *            optr = output;
     int                   l1   = filter_len_half;
     int                   l2   = (length - filter_len_half);
     l1 += (l1 & 1);
@@ -661,7 +661,7 @@ static void highbd_down2_symodd(const uint16_t *const input, int length, uint16_
     static const int16_t *filter          = av1_down2_symodd_half_filter;
     const int             filter_len_half = sizeof(av1_down2_symodd_half_filter) / 2;
     int                   i, j;
-    uint16_t             *optr = output;
+    uint16_t *            optr = output;
     int                   l1   = filter_len_half - 1;
     int                   l2   = (length - filter_len_half + 1);
     l1 += (l1 & 1);
@@ -1180,7 +1180,7 @@ static void analyze_hor_freq(PictureParentControlSet *pcs_ptr, double *energy) {
     uint64_t freq_energy[16] = {0};
 
     EbPictureBufferDesc *input_picture_ptr = pcs_ptr->enhanced_picture_ptr;
-    uint8_t             *in = input_picture_ptr->buffer_y + input_picture_ptr->origin_x +
+    uint8_t *            in = input_picture_ptr->buffer_y + input_picture_ptr->origin_x +
         input_picture_ptr->origin_y * input_picture_ptr->stride_y;
     const int width  = input_picture_ptr->width;
     const int height = input_picture_ptr->height;
@@ -1282,7 +1282,7 @@ int32_t get_frame_update_type(SequenceControlSet *scs_ptr, PictureParentControlS
     }
 }
 
-static uint8_t get_superres_denom_for_qindex(SequenceControlSet      *scs_ptr,
+static uint8_t get_superres_denom_for_qindex(SequenceControlSet *     scs_ptr,
                                              PictureParentControlSet *pcs_ptr, int qindex,
                                              int sr_kf, int sr_arf) {
     // Use superres for Key-frames and Alt-ref frames only.
@@ -1336,7 +1336,7 @@ static void calc_superres_params(superres_params_type *spr_params, SequenceContr
     pcs_ptr->superres_recode_loop       = 0;
     spr_params->superres_denom          = SCALE_NUMERATOR;
     static unsigned int seed            = 34567;
-    FrameHeader        *frm_hdr         = &pcs_ptr->frm_hdr;
+    FrameHeader *       frm_hdr         = &pcs_ptr->frm_hdr;
 
     uint8_t superres_mode      = scs_ptr->static_config.superres_mode;
     uint8_t cfg_denom          = scs_ptr->static_config.superres_denom;
@@ -1413,7 +1413,7 @@ static void calc_superres_params(superres_params_type *spr_params, SequenceContr
 }
 
 EbErrorType downscaled_source_buffer_desc_ctor(EbPictureBufferDesc **picture_ptr,
-                                               EbPictureBufferDesc  *picture_ptr_for_reference,
+                                               EbPictureBufferDesc * picture_ptr_for_reference,
                                                superres_params_type  spr_params) {
     EbPictureBufferDescInitData initData;
 
@@ -1812,7 +1812,7 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
     EbReferenceObject *reference_object;
 
     PictureParentControlSet *ppcs_ptr = pcs_ptr->parent_pcs_ptr;
-    SequenceControlSet      *scs_ptr  = ppcs_ptr->scs_ptr;
+    SequenceControlSet *     scs_ptr  = ppcs_ptr->scs_ptr;
 
     uint8_t        sr_denom_idx     = get_denom_idx(ppcs_ptr->superres_denom);
     uint8_t        resize_denom_idx = get_denom_idx(ppcs_ptr->resize_denom);
@@ -1904,7 +1904,7 @@ void scale_rec_references(PictureControlSet *pcs_ptr, EbPictureBufferDesc *input
  * Check if width of input and reference <reconstructed> pictures match.
  * if not, return pointers to downscaled reference picture of the correct resolution
  */
-void use_scaled_rec_refs_if_needed(PictureControlSet   *pcs_ptr,
+void use_scaled_rec_refs_if_needed(PictureControlSet *  pcs_ptr,
                                    EbPictureBufferDesc *input_picture_ptr,
                                    EbReferenceObject *ref_obj, EbPictureBufferDesc **ref_pic,
                                    uint8_t hbd_mode_decision) {
@@ -1926,11 +1926,11 @@ void use_scaled_rec_refs_if_needed(PictureControlSet   *pcs_ptr,
  * These are used in the open-loop stage.
  */
 void use_scaled_source_refs_if_needed(PictureParentControlSet *pcs_ptr,
-                                      EbPictureBufferDesc     *input_picture_ptr,
-                                      EbPaReferenceObject     *ref_obj,
-                                      EbPictureBufferDesc    **ref_pic_ptr,
-                                      EbPictureBufferDesc    **quarter_ref_pic_ptr,
-                                      EbPictureBufferDesc    **sixteenth_ref_pic_ptr) {
+                                      EbPictureBufferDesc *    input_picture_ptr,
+                                      EbPaReferenceObject *    ref_obj,
+                                      EbPictureBufferDesc **   ref_pic_ptr,
+                                      EbPictureBufferDesc **   quarter_ref_pic_ptr,
+                                      EbPictureBufferDesc **   sixteenth_ref_pic_ptr) {
     if ((*ref_pic_ptr)->width != input_picture_ptr->width) {
         uint8_t sr_denom_idx     = get_denom_idx(pcs_ptr->superres_denom);
         uint8_t resize_denom_idx = get_denom_idx(pcs_ptr->resize_denom);
@@ -1966,7 +1966,7 @@ void reset_resized_picture(SequenceControlSet *scs_ptr, PictureParentControlSet 
     EB_DELETE(pcs_ptr->enhanced_downscaled_picture_ptr);
 }
 
-static uint8_t calculate_next_resize_scale(const SequenceControlSet      *scs_ptr,
+static uint8_t calculate_next_resize_scale(const SequenceControlSet *     scs_ptr,
                                            const PictureParentControlSet *pcs_ptr) {
     // Choose an arbitrary random number
     static unsigned int seed = 56789;

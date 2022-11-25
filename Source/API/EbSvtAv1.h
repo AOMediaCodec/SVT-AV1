@@ -121,8 +121,8 @@ typedef struct EbBufferHeaderType {
 
 typedef struct EbComponentType {
     uint32_t size;
-    void    *p_component_private;
-    void    *p_application_private;
+    void *   p_component_private;
+    void *   p_application_private;
 } EbComponentType;
 
 typedef enum EbErrorType {
@@ -300,7 +300,7 @@ typedef enum {
 } PrivDataType;
 typedef struct EbPrivDataNode {
     PrivDataType           node_type;
-    void                  *data; // pointer to data structure e.g. EbRefFrameScale or AomFilmGrain
+    void *                 data; // pointer to data structure e.g. EbRefFrameScale or AomFilmGrain
     uint32_t               size; // size of data being sent for the library to know how much to copy
     struct EbPrivDataNode *next; // pointer to the next node, NULL if done.
 } EbPrivDataNode;

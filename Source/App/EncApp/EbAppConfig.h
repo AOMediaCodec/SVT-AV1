@@ -65,8 +65,8 @@ typedef struct EbMemoryMapEntry {
 } EbMemoryMapEntry;
 
 extern EbMemoryMapEntry *app_memory_map; // App Memory table
-extern uint32_t         *app_memory_map_index; // App Memory index
-extern uint64_t         *total_app_memory; // App Memory malloc'd
+extern uint32_t *        app_memory_map_index; // App Memory index
+extern uint64_t *        total_app_memory; // App Memory malloc'd
 extern uint32_t          app_malloc_count;
 
 #define MAX_APP_NUM_PTR (0x186A0 << 2) // Maximum number of pointers to be allocated for the app
@@ -175,7 +175,7 @@ typedef struct MemMapFile {
 // list of frames that are forced to be key frames
 // pairs with force_key_frames
 struct forced_key_frames {
-    char    **specifiers; // list of specifiers to use to convert into frames
+    char **   specifiers; // list of specifiers to use to convert into frames
     uint64_t *frames;
     size_t    count;
 };
@@ -184,20 +184,20 @@ typedef struct EbConfig {
     /****************************************
      * File I/O
      ****************************************/
-    FILE      *input_file;
+    FILE *     input_file;
     MemMapFile mmap; //memory mapped file handler
     Bool       input_file_is_fifo;
-    FILE      *bitstream_file;
-    FILE      *recon_file;
-    FILE      *error_log_file;
-    FILE      *stat_file;
-    FILE      *qp_file;
+    FILE *     bitstream_file;
+    FILE *     recon_file;
+    FILE *     error_log_file;
+    FILE *     stat_file;
+    FILE *     qp_file;
     /* two pass */
     const char *stats;
-    FILE       *input_stat_file;
-    FILE       *output_stat_file;
-    Bool y4m_input;
-    char y4m_buf[9];
+    FILE *      input_stat_file;
+    FILE *      output_stat_file;
+    Bool        y4m_input;
+    char        y4m_buf[9];
 
     uint8_t progress; // 0 = no progress output, 1 = normal, 2 = aomenc style verbose progress
     /****************************************
@@ -235,8 +235,8 @@ typedef struct EbConfig {
 } EbConfig;
 
 typedef struct EncChannel {
-    EbConfig            *config; // Encoder Configuration
-    EbAppContext        *app_callback; // Instances App callback date
+    EbConfig *           config; // Encoder Configuration
+    EbAppContext *       app_callback; // Instances App callback date
     EbErrorType          return_error; // Error Handling
     AppExitConditionType exit_cond_output; // Processing loop exit condition
     AppExitConditionType exit_cond_recon; // Processing loop exit condition

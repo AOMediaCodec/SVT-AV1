@@ -29,7 +29,7 @@ void get_recon_pic(PictureControlSet *pcs_ptr, EbPictureBufferDesc **recon_ptr, 
  *************************************************************************************************/
 void svt_av1_loop_filter_init(PictureControlSet *pcs_ptr) {
     //assert(MB_MODE_COUNT == n_elements(mode_lf_lut));
-    LoopFilterInfoN   *lfi = &pcs_ptr->parent_pcs_ptr->lf_info;
+    LoopFilterInfoN *  lfi = &pcs_ptr->parent_pcs_ptr->lf_info;
     struct LoopFilter *lf  = &pcs_ptr->parent_pcs_ptr->frm_hdr.loop_filter_params;
     int32_t            lvl;
 
@@ -168,7 +168,7 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
                                  const PictureControlSet *const pcs_ptr, const EdgeDir edge_dir,
                                  const uint32_t x, const uint32_t y, const int32_t plane,
                                  const struct MacroblockdPlane *const plane_ptr) {
-    FrameHeader           *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+    FrameHeader *          frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
     const LoopFilterInfoN *lfi_n   = &pcs_ptr->parent_pcs_ptr->lf_info;
 
     // reset to initial values
@@ -193,7 +193,7 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
     const int32_t mi_col    = scale_horz | ((x << scale_horz) >> MI_SIZE_LOG2);
     uint32_t      mi_stride = pcs_ptr->mi_stride;
     const int32_t offset    = mi_row * mi_stride + mi_col;
-    ModeInfo    **mi        = (pcs_ptr->mi_grid_base + offset);
+    ModeInfo **   mi        = (pcs_ptr->mi_grid_base + offset);
     //MbModeInfo **mi = cm->mi_grid_visible + mi_row * cm->mi_stride + mi_col;
     const MbModeInfo *mbmi = &mi[0]->mbmi;
 
@@ -584,7 +584,7 @@ void loop_filter_sb(EbPictureBufferDesc *frame_buffer, //reconpicture,
                     //Yv12BufferConfig *frame_buffer,
                     PictureControlSet *pcs_ptr, int32_t mi_row, int32_t mi_col, int32_t plane_start,
                     int32_t plane_end, uint8_t last_col) {
-    FrameHeader            *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+    FrameHeader *           frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
     struct MacroblockdPlane pd[3];
     int32_t                 plane;
 
@@ -994,7 +994,7 @@ static int32_t search_filter_level(
     int32_t       filt_direction   = 0;
     int64_t       best_err;
     int32_t       filt_best;
-    FrameHeader  *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+    FrameHeader * frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
     //Macroblock *x = &cpi->td.mb;
 
     // Start the search at the previous frame filter level unless it is now out of
@@ -1091,7 +1091,7 @@ static int32_t search_filter_level(
 EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source input
                                       PictureControlSet *pcs_ptr, LpfPickMethod method) {
     SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
-    FrameHeader        *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+    FrameHeader *       frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
 
     (void)srcBuffer;
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;

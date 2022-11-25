@@ -315,8 +315,8 @@ the filter strength pairs chosen in finish_cdef_search().
 */
 void svt_av1_cdef_frame(SequenceControlSet *scs, PictureControlSet *pcs) {
     struct PictureParentControlSet *ppcs     = pcs->parent_pcs_ptr;
-    Av1Common                      *cm       = ppcs->av1_cm;
-    FrameHeader                    *frm_hdr  = &ppcs->frm_hdr;
+    Av1Common *                     cm       = ppcs->av1_cm;
+    FrameHeader *                   frm_hdr  = &ppcs->frm_hdr;
     Bool                            is_16bit = scs->is_16bit_pipeline;
 
     EbPictureBufferDesc *recon_pic;
@@ -333,10 +333,10 @@ void svt_av1_cdef_frame(SequenceControlSet *scs, PictureControlSet *pcs) {
 
     const int32_t num_planes = av1_num_planes(&scs->seq_header.color_config);
     DECLARE_ALIGNED(16, uint16_t, src[CDEF_INBUF_SIZE]);
-    uint16_t      *linebuf[3];
-    uint16_t      *colbuf[3];
+    uint16_t *     linebuf[3];
+    uint16_t *     colbuf[3];
     CdefList       dlist[MI_SIZE_64X64 * MI_SIZE_64X64];
-    uint8_t       *row_cdef, *prev_row_cdef, *curr_row_cdef;
+    uint8_t *      row_cdef, *prev_row_cdef, *curr_row_cdef;
     int32_t        cdef_count;
     const uint32_t sb_size = scs->super_block_size;
     int32_t        mi_wide_l2[3];
@@ -444,7 +444,7 @@ void svt_av1_cdef_frame(SequenceControlSet *scs, PictureControlSet *pcs) {
             if (sb_size == 128) {
                 const uint32_t    lc      = MI_SIZE_64X64 * fbc;
                 const uint32_t    lr      = MI_SIZE_64X64 * fbr;
-                ModeInfo        **mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
+                ModeInfo **       mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
                 const MbModeInfo *mbmi    = &mi[0]->mbmi;
                 const BlockSize   sb_type = mbmi->block_mi.sb_type;
                 if (((fbc & 1) && (sb_type == BLOCK_128X128 || sb_type == BLOCK_128X64)) ||
@@ -797,8 +797,8 @@ static uint64_t joint_strength_search_dual(int32_t *best_lev0, int32_t *best_lev
 }
 void finish_cdef_search(PictureControlSet *pcs_ptr) {
     struct PictureParentControlSet *ppcs    = pcs_ptr->parent_pcs_ptr;
-    FrameHeader                    *frm_hdr = &ppcs->frm_hdr;
-    Av1Common                      *cm      = ppcs->av1_cm;
+    FrameHeader *                   frm_hdr = &ppcs->frm_hdr;
+    Av1Common *                     cm      = ppcs->av1_cm;
     int32_t                         mi_rows = ppcs->av1_cm->mi_rows;
     int32_t                         mi_cols = ppcs->av1_cm->mi_cols;
 

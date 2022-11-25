@@ -156,8 +156,8 @@ extern EbErrorType b64_geom_init(SequenceControlSet *scs) {
                                          ? scs->max_input_luma_height - b64_geom->origin_y
                                          : b64_size);
 
-        b64_geom->is_complete_b64 =
-            (uint8_t)(((b64_geom->width == b64_size) && (b64_geom->height == b64_size)) ? 1 : 0);
+        b64_geom->is_complete_b64 = (uint8_t)(
+            ((b64_geom->width == b64_size) && (b64_geom->height == b64_size)) ? 1 : 0);
 
         b64_geom->is_edge_sb = (b64_geom->origin_x < b64_size) || (b64_geom->origin_y < b64_size) ||
                 (b64_geom->origin_x > scs->max_input_luma_width - b64_size) ||
@@ -210,23 +210,23 @@ EbErrorType sb_geom_init(SequenceControlSet *scs_ptr) {
         scs_ptr->sb_geom[sb_index].origin_y = scs_ptr->sb_geom[sb_index].vertical_index *
             scs_ptr->sb_size;
 
-        scs_ptr->sb_geom[sb_index].width =
-            (uint8_t)(((scs_ptr->max_input_luma_width - scs_ptr->sb_geom[sb_index].origin_x) <
-                       scs_ptr->sb_size)
-                          ? scs_ptr->max_input_luma_width - scs_ptr->sb_geom[sb_index].origin_x
-                          : scs_ptr->sb_size);
+        scs_ptr->sb_geom[sb_index].width = (uint8_t)(
+            ((scs_ptr->max_input_luma_width - scs_ptr->sb_geom[sb_index].origin_x) <
+             scs_ptr->sb_size)
+                ? scs_ptr->max_input_luma_width - scs_ptr->sb_geom[sb_index].origin_x
+                : scs_ptr->sb_size);
 
-        scs_ptr->sb_geom[sb_index].height =
-            (uint8_t)(((scs_ptr->max_input_luma_height - scs_ptr->sb_geom[sb_index].origin_y) <
-                       scs_ptr->sb_size)
-                          ? scs_ptr->max_input_luma_height - scs_ptr->sb_geom[sb_index].origin_y
-                          : scs_ptr->sb_size);
+        scs_ptr->sb_geom[sb_index].height = (uint8_t)(
+            ((scs_ptr->max_input_luma_height - scs_ptr->sb_geom[sb_index].origin_y) <
+             scs_ptr->sb_size)
+                ? scs_ptr->max_input_luma_height - scs_ptr->sb_geom[sb_index].origin_y
+                : scs_ptr->sb_size);
 
-        scs_ptr->sb_geom[sb_index].is_complete_sb =
-            (uint8_t)(((scs_ptr->sb_geom[sb_index].width == scs_ptr->sb_size) &&
-                       (scs_ptr->sb_geom[sb_index].height == scs_ptr->sb_size))
-                          ? 1
-                          : 0);
+        scs_ptr->sb_geom[sb_index].is_complete_sb = (uint8_t)(
+            ((scs_ptr->sb_geom[sb_index].width == scs_ptr->sb_size) &&
+             (scs_ptr->sb_geom[sb_index].height == scs_ptr->sb_size))
+                ? 1
+                : 0);
 
         uint16_t max_block_count = scs_ptr->max_block_cnt;
 

@@ -100,9 +100,9 @@ Iterator svt_aom_vector_iterator(Vector *vector, size_t index) {
 
 void *iterator_get(Iterator *iterator) { return iterator->pointer; }
 void  iterator_increment(Iterator *iterator) {
-     assert(iterator != NULL);
-     // iterator->pointer += iterator->element_size;
-     iterator->pointer = (unsigned char *)iterator->pointer + iterator->element_size;
+    assert(iterator != NULL);
+    // iterator->pointer += iterator->element_size;
+    iterator->pointer = (unsigned char *)iterator->pointer + iterator->element_size;
 }
 
 /***** PRIVATE *****/
@@ -128,7 +128,7 @@ int _vector_adjust_capacity(Vector *vector) {
 
 int _vector_reallocate(Vector *vector, uint32_t new_capacity) {
     size_t new_capacity_in_bytes;
-    void  *old;
+    void * old;
     assert(vector != NULL);
 
     if (new_capacity < VECTOR_MINIMUM_CAPACITY) {

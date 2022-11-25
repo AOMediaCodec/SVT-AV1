@@ -42,11 +42,11 @@ typedef struct EbPPSConfig {
  **************************************/
 typedef struct PacketizationContext {
     EbDctor      dctor;
-    EbFifo      *entropy_coding_input_fifo_ptr;
-    EbFifo      *rate_control_tasks_output_fifo_ptr;
-    EbFifo      *picture_decision_results_output_fifo_ptr; // to motion estimation process
+    EbFifo *     entropy_coding_input_fifo_ptr;
+    EbFifo *     rate_control_tasks_output_fifo_ptr;
+    EbFifo *     picture_decision_results_output_fifo_ptr; // to motion estimation process
     EbPPSConfig *pps_config;
-    EbFifo      *picture_demux_fifo_ptr; // to picture manager process
+    EbFifo *     picture_demux_fifo_ptr; // to picture manager process
     uint64_t     dpb_disp_order[8], dpb_dec_order[8];
     uint64_t     tot_shown_frames;
     uint64_t     disp_order_continuity_count;
@@ -71,13 +71,13 @@ static EbLinkedListNode *extract_passthrough_data(EbLinkedListNode **ll_ptr_ptr)
 }
 
 static void packetization_context_dctor(EbPtr p) {
-    EbThreadContext      *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *     thread_context_ptr = (EbThreadContext *)p;
     PacketizationContext *obj                = (PacketizationContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj->pps_config);
     EB_FREE_ARRAY(obj);
 }
 
-EbErrorType packetization_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType packetization_context_ctor(EbThreadContext *  thread_context_ptr,
                                        const EbEncHandle *enc_handle_ptr, int rate_control_index,
                                        int demux_index, int me_port_index) {
     PacketizationContext *context_ptr;
@@ -110,7 +110,7 @@ static inline PacketizationReorderEntry *get_reorder_queue_entry(
 }
 
 static uint32_t count_frames_in_next_tu(const EncodeContext *encode_context_ptr,
-                                        uint32_t            *data_size) {
+                                        uint32_t *           data_size) {
     int i      = 0;
     *data_size = 0;
     do {
@@ -133,8 +133,8 @@ static uint32_t count_frames_in_next_tu(const EncodeContext *encode_context_ptr,
 }
 
 static int pts_descend(const void *pa, const void *pb) {
-    EbObjectWrapper    *a  = *(EbObjectWrapper **)pa;
-    EbObjectWrapper    *b  = *(EbObjectWrapper **)pb;
+    EbObjectWrapper *   a  = *(EbObjectWrapper **)pa;
+    EbObjectWrapper *   b  = *(EbObjectWrapper **)pb;
     EbBufferHeaderType *ba = (EbBufferHeaderType *)(a->object_ptr);
     EbBufferHeaderType *bb = (EbBufferHeaderType *)(b->object_ptr);
     return (int)(bb->pts - ba->pts);
@@ -170,7 +170,7 @@ static void sort_undisplayed_frame(EncodeContext *encode_context_ptr) {
 }
 
 #if DETAILED_FRAME_OUTPUT
-static void print_detailed_frame_info(PacketizationContext            *context_ptr,
+static void print_detailed_frame_info(PacketizationContext *           context_ptr,
                                       const PacketizationReorderEntry *queue_entry_ptr) {
     int32_t i;
     uint8_t showTab[] = {'H', 'V'};
@@ -282,7 +282,7 @@ static void collect_frames_info(PacketizationContext *context_ptr,
                                 const EncodeContext *encode_context_ptr, int frames) {
     for (int i = 0; i < frames; i++) {
         PacketizationReorderEntry *queue_entry_ptr = get_reorder_queue_entry(encode_context_ptr, i);
-        EbBufferHeaderType        *output_stream_ptr =
+        EbBufferHeaderType *       output_stream_ptr =
             (EbBufferHeaderType *)queue_entry_ptr->output_stream_wrapper_ptr->object_ptr;
 #if DETAILED_FRAME_OUTPUT
         print_detailed_frame_info(context_ptr, queue_entry_ptr);
@@ -331,8 +331,8 @@ static EbErrorType encode_tu(EncodeContext *encode_context_ptr, int frames, uint
     //we use last frame's output_stream_ptr to hold entire tu, so we need copy backward.
     for (int i = frames - 1; i >= 0; i--) {
         PacketizationReorderEntry *queue_entry_ptr = get_reorder_queue_entry(encode_context_ptr, i);
-        EbObjectWrapper           *wrapper         = queue_entry_ptr->output_stream_wrapper_ptr;
-        EbBufferHeaderType        *src_stream_ptr  = (EbBufferHeaderType *)wrapper->object_ptr;
+        EbObjectWrapper *          wrapper         = queue_entry_ptr->output_stream_wrapper_ptr;
+        EbBufferHeaderType *       src_stream_ptr  = (EbBufferHeaderType *)wrapper->object_ptr;
         uint32_t                   size            = src_stream_ptr->n_filled_len;
         dst -= size;
         memmove(dst, src_stream_ptr->p_buffer, size);
@@ -355,8 +355,8 @@ static EbErrorType encode_tu(EncodeContext *encode_context_ptr, int frames, uint
     return EB_ErrorNone;
 }
 
-static EbErrorType copy_data_from_bitstream(EncodeContext      *encode_context_ptr,
-                                            Bitstream          *bitstream_ptr,
+static EbErrorType copy_data_from_bitstream(EncodeContext *     encode_context_ptr,
+                                            Bitstream *         bitstream_ptr,
                                             EbBufferHeaderType *output_stream_ptr) {
     EbErrorType return_error = EB_ErrorNone;
     int         size         = bitstream_get_bytes_count(bitstream_ptr);
@@ -372,9 +372,9 @@ static EbErrorType copy_data_from_bitstream(EncodeContext      *encode_context_p
     return return_error;
 }
 
-static void encode_show_existing(EncodeContext             *encode_context_ptr,
+static void encode_show_existing(EncodeContext *            encode_context_ptr,
                                  PacketizationReorderEntry *queue_entry_ptr,
-                                 EbBufferHeaderType        *output_stream_ptr) {
+                                 EbBufferHeaderType *       output_stream_ptr) {
     uint8_t *dst = output_stream_ptr->p_buffer;
 
     encode_td_av1(dst);
@@ -425,7 +425,7 @@ static EbErrorType realloc_output_bitstream(Bitstream *bitstream_ptr, uint32_t s
 }
 void *packetization_kernel(void *input_ptr) {
     // Context
-    EbThreadContext      *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *     thread_context_ptr = (EbThreadContext *)input_ptr;
     PacketizationContext *context_ptr        = (PacketizationContext *)thread_context_ptr->priv;
 
     // Input
@@ -447,9 +447,9 @@ void *packetization_kernel(void *input_ptr) {
             (EntropyCodingResults *)entropy_coding_results_wrapper_ptr->object_ptr;
         PictureControlSet *pcs_ptr = (PictureControlSet *)
                                          entropy_coding_results_ptr->pcs_wrapper_ptr->object_ptr;
-        SequenceControlSet      *scs_ptr            = pcs_ptr->scs_ptr;
-        EncodeContext           *encode_context_ptr = scs_ptr->encode_context_ptr;
-        FrameHeader             *frm_hdr            = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+        SequenceControlSet *     scs_ptr            = pcs_ptr->scs_ptr;
+        EncodeContext *          encode_context_ptr = scs_ptr->encode_context_ptr;
+        FrameHeader *            frm_hdr            = &pcs_ptr->parent_pcs_ptr->frm_hdr;
         Av1Common *const         cm                 = pcs_ptr->parent_pcs_ptr->av1_cm;
         uint16_t                 tile_cnt = cm->tiles_info.tile_rows * cm->tiles_info.tile_cols;
         PictureParentControlSet *parent_pcs_ptr = (PictureParentControlSet *)
@@ -618,7 +618,7 @@ void *packetization_kernel(void *input_ptr) {
                 }
 
                 if (parent_pcs_ptr->is_used_as_reference_flag) {
-                    EbObjectWrapper     *picture_demux_results_wrapper_ptr;
+                    EbObjectWrapper *    picture_demux_results_wrapper_ptr;
                     PictureDemuxResults *picture_demux_results_rtr;
 
                     // Get Empty PicMgr Results
@@ -796,8 +796,8 @@ void *packetization_kernel(void *input_ptr) {
 
         write_frame_header_av1(pcs_ptr->bitstream_ptr, scs_ptr, pcs_ptr, 0);
 
-        output_stream_ptr->n_alloc_len =
-            (uint32_t)(bitstream_get_bytes_count(pcs_ptr->bitstream_ptr) + TD_SIZE + metadata_sz);
+        output_stream_ptr->n_alloc_len = (uint32_t)(
+            bitstream_get_bytes_count(pcs_ptr->bitstream_ptr) + TD_SIZE + metadata_sz);
         malloc_p_buffer(output_stream_ptr);
 
         assert(output_stream_ptr->p_buffer != NULL && "bit-stream memory allocation failure");

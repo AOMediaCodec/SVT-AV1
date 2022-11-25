@@ -26,8 +26,8 @@ extern "C" {
 extern aom_highbd_convolve_fn_t convolveHbd[/*subX*/ 2][/*subY*/ 2][/*bi*/ 2];
 
 struct calc_target_weighted_pred_ctxt {
-    int32_t       *mask_buf;
-    int32_t       *wsrc_buf;
+    int32_t *      mask_buf;
+    int32_t *      wsrc_buf;
     const uint8_t *tmp;
     int            tmp_stride;
     int            overlap;
@@ -74,16 +74,16 @@ Bool calc_pred_masked_compound(PictureControlSet *pcs_ptr, struct ModeDecisionCo
                                ModeDecisionCandidate *candidate_ptr);
 
 EbErrorType inter_pu_prediction_av1_light_pd0(uint8_t                      hbd_mode_decision,
-                                              struct ModeDecisionContext  *md_context_ptr,
-                                              PictureControlSet           *pcs_ptr,
+                                              struct ModeDecisionContext * md_context_ptr,
+                                              PictureControlSet *          pcs_ptr,
                                               ModeDecisionCandidateBuffer *candidate_buffer_ptr);
 EbErrorType inter_pu_prediction_av1_light_pd1(uint8_t                      hbd_mode_decision,
-                                              struct ModeDecisionContext  *md_context_ptr,
-                                              PictureControlSet           *pcs_ptr,
+                                              struct ModeDecisionContext * md_context_ptr,
+                                              PictureControlSet *          pcs_ptr,
                                               ModeDecisionCandidateBuffer *candidate_buffer_ptr);
 EbErrorType inter_pu_prediction_av1(uint8_t                      hbd_mode_decision,
-                                    struct ModeDecisionContext  *md_context_ptr,
-                                    PictureControlSet           *pcs_ptr,
+                                    struct ModeDecisionContext * md_context_ptr,
+                                    PictureControlSet *          pcs_ptr,
                                     ModeDecisionCandidateBuffer *candidate_buffer_ptr);
 
 EbErrorType warped_motion_prediction(

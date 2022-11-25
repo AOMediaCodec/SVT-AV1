@@ -31,7 +31,7 @@ extern void get_recon_pic(PictureControlSet *pcs_ptr, EbPictureBufferDesc **reco
 
 static void dlf_context_dctor(EbPtr p) {
     EbThreadContext *thread_context_ptr = (EbThreadContext *)p;
-    DlfContext      *obj                = (DlfContext *)thread_context_ptr->priv;
+    DlfContext *     obj                = (DlfContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj);
 }
 /******************************************************
@@ -57,17 +57,17 @@ EbErrorType dlf_context_ctor(EbThreadContext *thread_context_ptr, const EbEncHan
  ******************************************************/
 void *dlf_kernel(void *input_ptr) {
     // Context & SCS & PCS
-    EbThreadContext    *thread_context_ptr = (EbThreadContext *)input_ptr;
-    DlfContext         *context_ptr        = (DlfContext *)thread_context_ptr->priv;
-    PictureControlSet  *pcs_ptr;
+    EbThreadContext *   thread_context_ptr = (EbThreadContext *)input_ptr;
+    DlfContext *        context_ptr        = (DlfContext *)thread_context_ptr->priv;
+    PictureControlSet * pcs_ptr;
     SequenceControlSet *scs_ptr;
 
     //// Input
     EbObjectWrapper *enc_dec_results_wrapper_ptr;
-    EncDecResults   *enc_dec_results_ptr;
+    EncDecResults *  enc_dec_results_ptr;
 
     //// Output
-    EbObjectWrapper   *dlf_results_wrapper_ptr;
+    EbObjectWrapper *  dlf_results_wrapper_ptr;
     struct DlfResults *dlf_results_ptr;
 
     // SB Loop variables

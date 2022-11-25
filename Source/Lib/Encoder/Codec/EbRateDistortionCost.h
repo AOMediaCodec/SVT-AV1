@@ -27,14 +27,14 @@
 extern "C" {
 #endif
 extern uint64_t svt_av1_cost_coeffs_txb(struct ModeDecisionContext *ctx, uint8_t allow_update_cdf,
-                                        FRAME_CONTEXT                      *ec_ctx,
+                                        FRAME_CONTEXT *                     ec_ctx,
                                         struct ModeDecisionCandidateBuffer *candidate_buffer_ptr,
                                         const TranLow *const qcoeff, uint16_t eob,
                                         PlaneType plane_type, TxSize transform_size,
                                         TxType transform_type, int16_t txb_skip_ctx,
                                         int16_t dc_sign_ctx, Bool reduced_transform_set_flag);
 
-extern void        coding_loop_context_generation(PictureControlSet   *pcs_ptr,
+extern void        coding_loop_context_generation(PictureControlSet *  pcs_ptr,
                                                   ModeDecisionContext *context_ptr, BlkStruct *blk_ptr,
                                                   uint32_t blk_origin_x, uint32_t blk_origin_y,
                                                   NeighborArrayUnit *skip_coeff_neighbor_array,
@@ -82,7 +82,7 @@ extern uint64_t av1_inter_fast_cost(struct ModeDecisionContext *context_ptr, Blk
                                     uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
                                     uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
 
-EbErrorType        av1_full_cost_light_pd0(ModeDecisionContext                *context_ptr,
+EbErrorType        av1_full_cost_light_pd0(ModeDecisionContext *               context_ptr,
                                            struct ModeDecisionCandidateBuffer *candidate_buffer_ptr,
                                            uint64_t *y_distortion, uint64_t lambda,
                                            uint64_t *y_coeff_bits);

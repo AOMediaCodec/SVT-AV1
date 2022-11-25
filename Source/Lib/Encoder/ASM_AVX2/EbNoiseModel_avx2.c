@@ -126,7 +126,7 @@ void svt_aom_noise_tx_filter_avx2(int32_t block_size, float *block_ptr, const fl
     const float psd_mul_k_beta       = k_beta * psd;
     const float k_eps                = 1e-6f;
     const float p_cmp                = psd_mul_k_beta > k_eps ? psd_mul_k_beta : k_eps;
-    float      *tx_block             = block_ptr;
+    float *     tx_block             = block_ptr;
 
     const __m256  p_cmp_ps = _mm256_set1_ps(p_cmp);
     const __m256  psd_ps   = _mm256_set1_ps(psd);

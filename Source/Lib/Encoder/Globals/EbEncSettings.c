@@ -922,7 +922,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     config_ptr->enable_restoration_filtering = DEFAULT;
     config_ptr->enable_mfmv                  = DEFAULT;
     config_ptr->fast_decode                  = 0;
-    config_ptr->encoder_color_format = EB_YUV420;
+    config_ptr->encoder_color_format         = EB_YUV420;
     // Rate control options
     // Set the default value toward more flexible rate allocation
     config_ptr->vbr_bias_pct             = 100;
@@ -1160,7 +1160,7 @@ void svt_av1_print_lib_params(SequenceControlSet *scs) {
 //assume the input list of values are in the format of "[v1,v2,v3,...]"
 static EbErrorType parse_list(const char *nptr, int32_t *list, size_t n) {
     const char *ptr = nptr;
-    char       *endptr;
+    char *      endptr;
     size_t      i = 0;
     memset(list, 0, n);
     while (*ptr) {
@@ -1184,7 +1184,7 @@ static EbErrorType parse_list(const char *nptr, int32_t *list, size_t n) {
 }
 
 static EbErrorType str_to_int64(const char *nptr, int64_t *out) {
-    char   *endptr;
+    char *  endptr;
     int64_t val;
 
     val = strtoll(nptr, &endptr, 0);
@@ -1197,7 +1197,7 @@ static EbErrorType str_to_int64(const char *nptr, int64_t *out) {
 }
 
 static EbErrorType str_to_int(const char *nptr, int32_t *out) {
-    char   *endptr;
+    char *  endptr;
     int32_t val;
 
     val = strtol(nptr, &endptr, 0);
@@ -1210,7 +1210,7 @@ static EbErrorType str_to_int(const char *nptr, int32_t *out) {
 }
 
 static EbErrorType str_to_uint(const char *nptr, uint32_t *out) {
-    char    *endptr;
+    char *   endptr;
     uint32_t val;
 
     val = strtoul(nptr, &endptr, 0);
@@ -1256,7 +1256,7 @@ static EbErrorType str_to_crf(const char *nptr, EbSvtAv1EncConfiguration *config
 }
 
 static EbErrorType str_to_keyint(const char *nptr, int32_t *out, Bool *multi) {
-    char      *suff;
+    char *     suff;
     const long keyint = strtol(nptr, &suff, 0);
 
     if (keyint > INT32_MAX || keyint < -2)
@@ -1278,7 +1278,7 @@ static EbErrorType str_to_keyint(const char *nptr, int32_t *out, Bool *multi) {
 }
 
 static EbErrorType str_to_bitrate(const char *nptr, uint32_t *out) {
-    char        *suff;
+    char *       suff;
     const double bitrate = strtod(nptr, &suff);
 
     if (bitrate < 0 || bitrate > UINT32_MAX) {
@@ -1303,7 +1303,7 @@ static EbErrorType str_to_bitrate(const char *nptr, uint32_t *out) {
 
 static EbErrorType str_to_profile(const char *nptr, EbAv1SeqProfile *out) {
     const struct {
-        const char     *name;
+        const char *    name;
         EbAv1SeqProfile profile;
     } profiles[] = {
         {"main", MAIN_PROFILE},
@@ -1324,7 +1324,7 @@ static EbErrorType str_to_profile(const char *nptr, EbAv1SeqProfile *out) {
 
 static EbErrorType str_to_color_fmt(const char *nptr, EbColorFormat *out) {
     const struct {
-        const char   *name;
+        const char *  name;
         EbColorFormat fmt;
     } color_formats[] = {
         {"mono", EB_YUV400},
@@ -1347,7 +1347,7 @@ static EbErrorType str_to_color_fmt(const char *nptr, EbColorFormat *out) {
 
 static EbErrorType str_to_intra_rt(const char *nptr, SvtAv1IntraRefreshType *out) {
     const struct {
-        const char            *name;
+        const char *           name;
         SvtAv1IntraRefreshType type;
     } refresh_types[] = {
         {"cra", SVT_AV1_FWDKF_REFRESH},
@@ -1416,7 +1416,7 @@ static EbErrorType str_to_asm(const char *nptr, EbCpuFlags *out) {
 
 static EbErrorType str_to_color_primaries(const char *nptr, EbColorPrimaries *out) {
     const struct {
-        const char      *name;
+        const char *     name;
         EbColorPrimaries primaries;
     } color_primaries[] = {
         {"bt709", EB_CICP_CP_BT_709},
@@ -1443,10 +1443,10 @@ static EbErrorType str_to_color_primaries(const char *nptr, EbColorPrimaries *ou
     return EB_ErrorBadParameter;
 }
 
-static EbErrorType str_to_transfer_characteristics(const char                *nptr,
+static EbErrorType str_to_transfer_characteristics(const char *               nptr,
                                                    EbTransferCharacteristics *out) {
     const struct {
-        const char               *name;
+        const char *              name;
         EbTransferCharacteristics tfc;
     } transfer_characteristics[] = {
         {"bt709", EB_CICP_TC_BT_709},
@@ -1481,7 +1481,7 @@ static EbErrorType str_to_transfer_characteristics(const char                *np
 
 static EbErrorType str_to_matrix_coefficients(const char *nptr, EbMatrixCoefficients *out) {
     const struct {
-        const char          *name;
+        const char *         name;
         EbMatrixCoefficients coeff;
     } matrix_coefficients[] = {
         {"identity", EB_CICP_MC_IDENTITY},
@@ -1513,7 +1513,7 @@ static EbErrorType str_to_matrix_coefficients(const char *nptr, EbMatrixCoeffici
 
 static EbErrorType str_to_color_range(const char *nptr, EbColorRange *out) {
     const struct {
-        const char  *name;
+        const char * name;
         EbColorRange range;
     } color_range[] = {
         {"studio", EB_CR_STUDIO_RANGE},
@@ -1533,7 +1533,7 @@ static EbErrorType str_to_color_range(const char *nptr, EbColorRange *out) {
 
 static EbErrorType str_to_chroma_sample_position(const char *nptr, EbChromaSamplePosition *out) {
     const struct {
-        const char            *name;
+        const char *           name;
         EbChromaSamplePosition pos;
     } chroma_sample_positions[] = {
         {"unknown", EB_CSP_UNKNOWN},
@@ -1557,7 +1557,7 @@ static EbErrorType str_to_chroma_sample_position(const char *nptr, EbChromaSampl
 
 static EbErrorType str_to_sframe_mode(const char *nptr, EbSFrameMode *out) {
     const struct {
-        const char  *name;
+        const char * name;
         EbSFrameMode mode;
     } sframe_mode[] = {
         {"strict", SFRAME_STRICT_BASE},
@@ -1721,7 +1721,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // uint32_t fields
     const struct {
         const char *name;
-        uint32_t   *out;
+        uint32_t *  out;
     } uint_opts[] = {
         {"width", &config_struct->source_width},
         {"height", &config_struct->source_height},
@@ -1763,7 +1763,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // uint8_t fields
     const struct {
         const char *name;
-        uint8_t    *out;
+        uint8_t *   out;
     } uint8_opts[] = {
         {"pred-struct", &config_struct->pred_structure},
         {"enable-tpl-la", &config_struct->enable_tpl_la},
@@ -1798,7 +1798,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // int64_t fields
     const struct {
         const char *name;
-        int64_t    *out;
+        int64_t *   out;
     } int64_opts[] = {
         {"buf-initial-sz", &config_struct->starting_buffer_level_ms},
         {"buf-optimal-sz", &config_struct->optimal_buffer_level_ms},
@@ -1815,7 +1815,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // int32_t fields
     const struct {
         const char *name;
-        int32_t    *out;
+        int32_t *   out;
     } int_opts[] = {
         {"key-frame-chroma-qindex-offset", &config_struct->key_frame_chroma_qindex_offset},
         {"key-frame-qindex-offset", &config_struct->key_frame_qindex_offset},
@@ -1845,7 +1845,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // int8_t fields
     const struct {
         const char *name;
-        int8_t     *out;
+        int8_t *    out;
     } int8_opts[] = {
         {"preset", &config_struct->enc_mode},
     };
@@ -1864,7 +1864,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
     // Bool fields
     const struct {
         const char *name;
-        Bool       *out;
+        Bool *      out;
     } bool_opts[] = {
         {"use-q-file", &config_struct->use_qp_file},
         {"enable-dlf", &config_struct->enable_dlf_flag},

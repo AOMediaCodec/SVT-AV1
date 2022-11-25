@@ -82,7 +82,7 @@ static AOM_FORCE_INLINE void get_squared_error_16x16_avx2(
     (void)block_width;
     const uint8_t *src1 = frame1;
     const uint8_t *src2 = frame2;
-    uint16_t      *dst  = frame_sse;
+    uint16_t *     dst  = frame_sse;
     for (int i = 0; i < block_height; i++) {
         __m128i vf1_128, vf2_128;
         __m256i vf1, vf2, vdiff1, vsqdiff1;
@@ -110,7 +110,7 @@ static AOM_FORCE_INLINE void get_squared_error_32x32_avx2(
     (void)block_width;
     const uint8_t *src1 = frame1;
     const uint8_t *src2 = frame2;
-    uint16_t      *dst  = frame_sse;
+    uint16_t *     dst  = frame_sse;
     for (int i = 0; i < block_height; i++) {
         __m256i vsrc1, vsrc2, vmin, vmax, vdiff, vdiff1, vdiff2, vres1, vres2;
 
@@ -355,16 +355,16 @@ static void apply_temporal_filter_planewise(struct MeContext *context_ptr, const
                               (distance_threshold_fp16)),
                     1 << 12);
 
-                int32_t scaled_diff_B_fp4 =
-                    (int32_t)((((int64_t)d_factor_fp12) *
-                               ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
-                                (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
-                              ((context_ptr->tf_decay_factor_fp16[plane])));
+                int32_t scaled_diff_B_fp4 = (int32_t)(
+                    (((int64_t)d_factor_fp12) *
+                     ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
+                      (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
+                    ((context_ptr->tf_decay_factor_fp16[plane])));
 
-                int32_t scaled_diff_A1_factor_fp14 =
-                    (int32_t)(((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
-                               (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
-                              (context_ptr->tf_decay_factor_fp16[plane] >> 2));
+                int32_t scaled_diff_A1_factor_fp14 = (int32_t)(
+                    ((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
+                     (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
+                    (context_ptr->tf_decay_factor_fp16[plane] >> 2));
 
                 int32_t scaled_diff_A2_factor_fp10 =
                     ((1 << 10) + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) * num_ref_pixels) / 2) /
@@ -420,16 +420,16 @@ static void apply_temporal_filter_planewise(struct MeContext *context_ptr, const
                           (distance_threshold_fp16)),
                 1 << 12);
 
-            int32_t scaled_diff_B_fp4 = (int32_t)((((int64_t)d_factor_fp12) *
-                                                   ((block_error_fp8 +
-                                                     ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
-                                                    (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
-                                                  ((context_ptr->tf_decay_factor_fp16[plane])));
+            int32_t scaled_diff_B_fp4 = (int32_t)(
+                (((int64_t)d_factor_fp12) *
+                 ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
+                  (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
+                ((context_ptr->tf_decay_factor_fp16[plane])));
 
-            int32_t scaled_diff_A1_factor_fp14 =
-                (int32_t)(((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
-                           (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
-                          (context_ptr->tf_decay_factor_fp16[plane] >> 2));
+            int32_t scaled_diff_A1_factor_fp14 = (int32_t)(
+                ((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
+                 (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
+                (context_ptr->tf_decay_factor_fp16[plane] >> 2));
 
             int32_t scaled_diff_A2_factor_fp10 =
                 ((1 << 10) + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) * num_ref_pixels) / 2) /
@@ -642,7 +642,7 @@ static AOM_FORCE_INLINE void get_squared_error_16x16_hbd_avx2(
     (void)block_width;
     const uint16_t *src1 = frame1;
     const uint16_t *src2 = frame2;
-    uint32_t       *dst  = frame_sse;
+    uint32_t *      dst  = frame_sse;
     for (int i = 0; i < block_height; i++) {
         __m128i vf1_128, vf2_128;
         __m256i vf1, vf2, vdiff1, vsqdiff1;
@@ -677,7 +677,7 @@ static AOM_FORCE_INLINE void get_squared_error_32x32_hbd_avx2(
     (void)block_width;
     const uint16_t *src1 = frame1;
     const uint16_t *src2 = frame2;
-    uint32_t       *dst  = frame_sse;
+    uint32_t *      dst  = frame_sse;
     for (int i = 0; i < block_height; i++) {
         __m128i vf1_128, vf2_128;
         __m256i vf1, vf2, vdiff1, vsqdiff1;
@@ -863,8 +863,8 @@ static void apply_temporal_filter_planewise_hbd(struct MeContext *context_ptr,
     if (context_ptr->tf_32x32_block_split_flag[idx_32x32]) {
         for (int i = 0; i < 4; i++) {
             if (context_ptr->tf_ctrls.use_fixed_point) {
-                uint32_t block_error_fp8 =
-                    (uint32_t)(context_ptr->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
+                uint32_t block_error_fp8 = (uint32_t)(
+                    context_ptr->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
                 int32_t  col          = context_ptr->tf_16x16_mv_x[idx_32x32 * 4 + i];
                 int32_t  row          = context_ptr->tf_16x16_mv_y[idx_32x32 * 4 + i];
                 uint32_t distance_fp4 = sqrt_fast(((uint32_t)(col * col + row * row)) << 8);
@@ -876,16 +876,16 @@ static void apply_temporal_filter_planewise_hbd(struct MeContext *context_ptr,
                               (distance_threshold_fp16)),
                     1 << 12);
 
-                int32_t scaled_diff_B_fp4 =
-                    (int32_t)((((int64_t)d_factor_fp12) *
-                               ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
-                                (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
-                              ((context_ptr->tf_decay_factor_fp16[plane])));
+                int32_t scaled_diff_B_fp4 = (int32_t)(
+                    (((int64_t)d_factor_fp12) *
+                     ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
+                      (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
+                    ((context_ptr->tf_decay_factor_fp16[plane])));
 
-                int32_t scaled_diff_A1_factor_fp14 =
-                    (int32_t)(((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
-                               (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
-                              (context_ptr->tf_decay_factor_fp16[plane] >> 2));
+                int32_t scaled_diff_A1_factor_fp14 = (int32_t)(
+                    ((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
+                     (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
+                    (context_ptr->tf_decay_factor_fp16[plane] >> 2));
 
                 int32_t scaled_diff_A2_factor_fp10 =
                     ((1 << 10) + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) * num_ref_pixels) / 2) /
@@ -942,16 +942,16 @@ static void apply_temporal_filter_planewise_hbd(struct MeContext *context_ptr,
                           (distance_threshold_fp16)),
                 1 << 12);
 
-            int32_t scaled_diff_B_fp4 = (int32_t)((((int64_t)d_factor_fp12) *
-                                                   ((block_error_fp8 +
-                                                     ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
-                                                    (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
-                                                  ((context_ptr->tf_decay_factor_fp16[plane])));
+            int32_t scaled_diff_B_fp4 = (int32_t)(
+                (((int64_t)d_factor_fp12) *
+                 ((block_error_fp8 + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) / 2)) /
+                  (TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1))) /
+                ((context_ptr->tf_decay_factor_fp16[plane])));
 
-            int32_t scaled_diff_A1_factor_fp14 =
-                (int32_t)(((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
-                           (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
-                          (context_ptr->tf_decay_factor_fp16[plane] >> 2));
+            int32_t scaled_diff_A1_factor_fp14 = (int32_t)(
+                ((((int64_t)d_factor_fp12) << 16) * TF_WINDOW_BLOCK_BALANCE_WEIGHT +
+                 (context_ptr->tf_decay_factor_fp16[plane] >> 3)) /
+                (context_ptr->tf_decay_factor_fp16[plane] >> 2));
 
             int32_t scaled_diff_A2_factor_fp10 =
                 ((1 << 10) + ((TF_WINDOW_BLOCK_BALANCE_WEIGHT + 1) * num_ref_pixels) / 2) /
@@ -1984,7 +1984,7 @@ static void apply_filtering_central_loop_hbd(uint16_t w, uint16_t h, uint16_t *s
 }
 
 // Apply filtering to the central picture
-void apply_filtering_central_avx2(MeContext           *context_ptr,
+void apply_filtering_central_avx2(MeContext *          context_ptr,
                                   EbPictureBufferDesc *input_picture_ptr_central, EbByte *src,
                                   uint32_t **accum, uint16_t **count, uint16_t blk_width,
                                   uint16_t blk_height, uint32_t ss_x, uint32_t ss_y) {
@@ -2007,7 +2007,7 @@ void apply_filtering_central_avx2(MeContext           *context_ptr,
 }
 
 // Apply filtering to the central picture
-void apply_filtering_central_highbd_avx2(MeContext           *context_ptr,
+void apply_filtering_central_highbd_avx2(MeContext *          context_ptr,
                                          EbPictureBufferDesc *input_picture_ptr_central,
                                          uint16_t **src_16bit, uint32_t **accum, uint16_t **count,
                                          uint16_t blk_width, uint16_t blk_height, uint32_t ss_x,

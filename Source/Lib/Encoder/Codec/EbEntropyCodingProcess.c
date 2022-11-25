@@ -24,7 +24,7 @@
 void svt_av1_reset_loop_restoration(PictureControlSet *piCSetPtr, uint16_t tile_idx);
 
 static void rest_context_dctor(EbPtr p) {
-    EbThreadContext      *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *     thread_context_ptr = (EbThreadContext *)p;
     EntropyCodingContext *obj                = (EntropyCodingContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj);
 }
@@ -32,7 +32,7 @@ static void rest_context_dctor(EbPtr p) {
 /******************************************************
  * Enc Dec Context Constructor
  ******************************************************/
-EbErrorType entropy_coding_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType entropy_coding_context_ctor(EbThreadContext *  thread_context_ptr,
                                         const EbEncHandle *enc_handle_ptr, int index,
                                         int rate_control_index) {
     EntropyCodingContext *context_ptr;
@@ -40,9 +40,9 @@ EbErrorType entropy_coding_context_ctor(EbThreadContext   *thread_context_ptr,
     thread_context_ptr->priv  = context_ptr;
     thread_context_ptr->dctor = rest_context_dctor;
 
-    context_ptr->is_16bit =
-        (Bool)(enc_handle_ptr->scs_instance_array[0]->scs_ptr->static_config.encoder_bit_depth >
-               EB_EIGHT_BIT);
+    context_ptr->is_16bit = (Bool)(
+        enc_handle_ptr->scs_instance_array[0]->scs_ptr->static_config.encoder_bit_depth >
+        EB_EIGHT_BIT);
     ;
 
     // Input/Output System Resource Manager FIFOs
@@ -241,21 +241,21 @@ static void reset_entropy_coding_picture(EntropyCodingContext *context_ptr,
 ********************************************************************************/
 void *entropy_coding_kernel(void *input_ptr) {
     // Context & SCS & PCS
-    EbThreadContext      *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *     thread_context_ptr = (EbThreadContext *)input_ptr;
     EntropyCodingContext *context_ptr        = (EntropyCodingContext *)thread_context_ptr->priv;
 
     // Input
     EbObjectWrapper *rest_results_wrapper_ptr;
 
     // Output
-    EbObjectWrapper      *entropy_coding_results_wrapper_ptr;
+    EbObjectWrapper *     entropy_coding_results_wrapper_ptr;
     EntropyCodingResults *entropy_coding_results_ptr;
 
     for (;;) {
         // Get Mode Decision Results
         EB_GET_FULL_OBJECT(context_ptr->enc_dec_input_fifo_ptr, &rest_results_wrapper_ptr);
 
-        RestResults       *rest_results_ptr = (RestResults *)rest_results_wrapper_ptr->object_ptr;
+        RestResults *      rest_results_ptr = (RestResults *)rest_results_wrapper_ptr->object_ptr;
         PictureControlSet *pcs_ptr          = (PictureControlSet *)
                                          rest_results_ptr->pcs_wrapper_ptr->object_ptr;
         SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;

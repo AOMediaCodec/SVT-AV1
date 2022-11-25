@@ -133,8 +133,8 @@ uint16_t get_max_can_count(EncMode enc_mode) {
 EbErrorType mode_decision_context_ctor(ModeDecisionContext *context_ptr, EbColorFormat color_format,
                                        uint8_t sb_size, uint8_t enc_mode, uint16_t max_block_cnt,
                                        uint32_t encoder_bit_depth,
-                                       EbFifo  *mode_decision_configuration_input_fifo_ptr,
-                                       EbFifo  *mode_decision_output_fifo_ptr,
+                                       EbFifo * mode_decision_configuration_input_fifo_ptr,
+                                       EbFifo * mode_decision_output_fifo_ptr,
                                        uint8_t enable_hbd_mode_decision, uint8_t cfg_palette,
                                        uint32_t hierarchical_levels) {
     uint32_t buffer_index;

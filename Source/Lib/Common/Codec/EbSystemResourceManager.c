@@ -235,7 +235,7 @@ static EbErrorType svt_muxing_queue_ctor(EbMuxingQueue *queue_ptr, uint32_t obje
  **************************************/
 static EbErrorType svt_muxing_queue_assignation(EbMuxingQueue *queue_ptr) {
     EbErrorType      return_error = EB_ErrorNone;
-    EbFifo          *process_fifo_ptr;
+    EbFifo *         process_fifo_ptr;
     EbObjectWrapper *wrapper_ptr;
 
     // while loop
@@ -266,7 +266,7 @@ static EbErrorType svt_muxing_queue_assignation(EbMuxingQueue *queue_ptr) {
 /**************************************
  * svt_muxing_queue_object_push_back
  **************************************/
-static EbErrorType svt_muxing_queue_object_push_back(EbMuxingQueue   *queue_ptr,
+static EbErrorType svt_muxing_queue_object_push_back(EbMuxingQueue *  queue_ptr,
                                                      EbObjectWrapper *object_ptr) {
     EbErrorType return_error = EB_ErrorNone;
 
@@ -280,7 +280,7 @@ static EbErrorType svt_muxing_queue_object_push_back(EbMuxingQueue   *queue_ptr,
 /**************************************
 * svt_muxing_queue_object_push_front
 **************************************/
-static EbErrorType svt_muxing_queue_object_push_front(EbMuxingQueue   *queue_ptr,
+static EbErrorType svt_muxing_queue_object_push_front(EbMuxingQueue *  queue_ptr,
                                                       EbObjectWrapper *object_ptr) {
     EbErrorType return_error = EB_ErrorNone;
 
@@ -766,7 +766,7 @@ static Bool svt_fifo_peak_front(EbFifo *fifoPtr) {
         return FALSE;
 }
 
-EbErrorType svt_get_full_object_non_blocking(EbFifo           *full_fifo_ptr,
+EbErrorType svt_get_full_object_non_blocking(EbFifo *          full_fifo_ptr,
                                              EbObjectWrapper **wrapper_dbl_ptr) {
     EbErrorType return_error = EB_ErrorNone;
     Bool        fifo_empty;

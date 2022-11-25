@@ -266,7 +266,7 @@ static INLINE void svt_warp_horizontal_filter_alpha0_beta0(const uint8_t *ref, _
 static INLINE void svt_unpack_weights_and_set_round_const(ConvolveParams *conv_params,
                                                           const int       round_bits,
                                                           const int       offset_bits,
-                                                          __m128i        *res_sub_const,
+                                                          __m128i *       res_sub_const,
                                                           __m128i *round_bits_const, __m128i *wt) {
     *res_sub_const    = _mm_set1_epi16(-(1 << (offset_bits - conv_params->round_1)) -
                                     (1 << (offset_bits - conv_params->round_1 - 1)));

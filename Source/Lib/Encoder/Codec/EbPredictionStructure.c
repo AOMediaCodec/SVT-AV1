@@ -600,7 +600,7 @@ typedef struct PredictionStructureConfigArray {
 
 static void prediction_structure_config_array_dctor(EbPtr p) {
     PredictionStructureConfigArray *obj    = (PredictionStructureConfigArray *)p;
-    PredictionStructureConfig      *config = obj->prediction_structure_config_array;
+    PredictionStructureConfig *     config = obj->prediction_structure_config_array;
     if (!config)
         return;
     for (int i = 0; config[i].entry_count; i++) { EB_FREE_ARRAY(config[i].entry_array); }
@@ -614,7 +614,7 @@ static EbErrorType prediction_structure_config_array_ctor(
     EB_CALLOC_ARRAY(array_ptr->prediction_structure_config_array,
                     DIM(g_prediction_structure_config_array));
     const PredictionStructureConfig *src  = &g_prediction_structure_config_array[0];
-    PredictionStructureConfig       *dest = &array_ptr->prediction_structure_config_array[0];
+    PredictionStructureConfig *      dest = &array_ptr->prediction_structure_config_array[0];
     for (; src->entry_count; src++, dest++) {
         const uint32_t count = src->entry_count;
 
@@ -647,7 +647,7 @@ PredictionStructure *get_prediction_structure(PredictionStructureGroup *pred_str
 }
 
 static void prediction_structure_dctor(EbPtr p) {
-    PredictionStructure       *obj   = (PredictionStructure *)p;
+    PredictionStructure *      obj   = (PredictionStructure *)p;
     PredictionStructureEntry **pe    = obj->pred_struct_entry_ptr_array;
     uint32_t                   count = obj->pred_struct_entry_count;
     if (pe) {
@@ -835,7 +835,7 @@ static void prediction_structure_dctor(EbPtr p) {
  *
  *  The RPS Ctor code follows these construction steps.
  ******************************************************************************************/
-static EbErrorType prediction_structure_ctor(PredictionStructure             *pred_struct,
+static EbErrorType prediction_structure_ctor(PredictionStructure *            pred_struct,
                                              const PredictionStructureConfig *pred_struct_cfg,
                                              const SvtAv1PredStructure        pred_type,
                                              const uint32_t                   num_refs) {
@@ -911,7 +911,7 @@ static EbErrorType prediction_structure_ctor(PredictionStructure             *pr
         pred_struct->pred_struct_entry_count = init_pic_count + steady_state_pic_count;
 
         // Set the Section Indices
-        pred_struct->init_pic_index = 0;
+        pred_struct->init_pic_index     = 0;
         pred_struct->steady_state_index = pred_struct->init_pic_index + init_pic_count;
     }
 
@@ -1358,13 +1358,13 @@ static void prediction_structure_group_dctor(EbPtr p) {
  *      # Random Access
  *
  *************************************************/
-EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr,
+EbErrorType prediction_structure_group_ctor(PredictionStructureGroup * pred_struct_group_ptr,
                                             struct SequenceControlSet *scs_ptr) {
-    uint32_t                  pred_struct_index = 0;
-    uint32_t                  ref_idx;
-    uint32_t                  hierarchical_level_idx;
-    uint32_t                  pred_type_idx;
-    uint32_t                  number_of_references;
+    uint32_t pred_struct_index = 0;
+    uint32_t ref_idx;
+    uint32_t hierarchical_level_idx;
+    uint32_t pred_type_idx;
+    uint32_t number_of_references;
 
     pred_struct_group_ptr->dctor = prediction_structure_group_dctor;
     MrpCtrls *mrp_ctrl           = &(scs_ptr->mrp_ctrls);
@@ -1456,7 +1456,6 @@ EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_stru
 
     PredictionStructureConfig *prediction_structure_config_array =
         config_array->prediction_structure_config_array;
-
 
     if (ref_count_used < MAX_REF_IDX) {
         for (int gop_i = 0; gop_i < 1; ++gop_i) {

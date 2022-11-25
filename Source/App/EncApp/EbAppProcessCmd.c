@@ -168,7 +168,7 @@ static void release_memory_mapped_file(EbConfig *config, uint8_t is_16bit,
 void read_input_frames(EbConfig *config, uint8_t is_16bit, EbBufferHeaderType *header_ptr) {
     const uint32_t input_padded_width  = config->input_padded_width;
     const uint32_t input_padded_height = config->input_padded_height;
-    FILE          *input_file          = config->input_file;
+    FILE *         input_file          = config->input_file;
     EbSvtIOFormat *input_ptr           = (EbSvtIOFormat *)header_ptr->p_buffer;
 
     const uint8_t color_format  = config->config.encoder_color_format;
@@ -391,11 +391,11 @@ static bool is_forced_keyframe(const EbConfig *config, uint64_t pts) {
 // them into the input buffer
 /************************************/
 void process_input_buffer(EncChannel *channel) {
-    EbConfig           *config           = channel->config;
-    EbAppContext       *app_call_back    = channel->app_callback;
+    EbConfig *          config           = channel->config;
+    EbAppContext *      app_call_back    = channel->app_callback;
     uint8_t             is_16bit         = (uint8_t)(config->config.encoder_bit_depth > 8);
     EbBufferHeaderType *header_ptr       = app_call_back->input_buffer_pool;
-    EbComponentType    *component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
+    EbComponentType *   component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
 
     AppExitConditionType return_value = APP_ExitConditionNone;
 
@@ -559,11 +559,11 @@ void process_output_statistics_buffer(EbBufferHeaderType *header_ptr, EbConfig *
 }
 
 void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t *frame_count) {
-    EbConfig            *config        = channel->config;
-    EbAppContext        *app_call_back = channel->app_callback;
-    AppPortActiveType   *port_state    = &app_call_back->output_stream_port_active;
-    EbBufferHeaderType  *header_ptr;
-    EbComponentType     *component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
+    EbConfig *           config        = channel->config;
+    EbAppContext *       app_call_back = channel->app_callback;
+    AppPortActiveType *  port_state    = &app_call_back->output_stream_port_active;
+    EbBufferHeaderType * header_ptr;
+    EbComponentType *    component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
     AppExitConditionType return_value     = APP_ExitConditionNone;
     // Per channel variables
     FILE *stream_file = config->bitstream_file;
@@ -715,11 +715,11 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
     channel->exit_cond_output = return_value;
 }
 void process_output_recon_buffer(EncChannel *channel) {
-    EbConfig           *config        = channel->config;
-    EbAppContext       *app_call_back = channel->app_callback;
+    EbConfig *          config        = channel->config;
+    EbAppContext *      app_call_back = channel->app_callback;
     EbBufferHeaderType *header_ptr =
         app_call_back->recon_buffer; // needs to change for buffered input
-    EbComponentType     *component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
+    EbComponentType *    component_handle = (EbComponentType *)app_call_back->svt_encoder_handle;
     AppExitConditionType return_value     = APP_ExitConditionNone;
     int32_t              fseek_return_val;
     if (channel->exit_cond_recon != APP_ExitConditionNone) {

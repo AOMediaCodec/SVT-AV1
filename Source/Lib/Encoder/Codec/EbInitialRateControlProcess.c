@@ -44,8 +44,8 @@ EbErrorType lad_queue_entry_ctor(LadQueueEntry *entry_ptr) {
 }
 
 typedef struct InitialRateControlContext {
-    EbFifo   *motion_estimation_results_input_fifo_ptr;
-    EbFifo   *initialrate_control_results_output_fifo_ptr;
+    EbFifo *  motion_estimation_results_input_fifo_ptr;
+    EbFifo *  initialrate_control_results_output_fifo_ptr;
     LadQueue *lad_queue;
 
 } InitialRateControlContext;
@@ -54,7 +54,7 @@ typedef struct InitialRateControlContext {
 * Macros
 **************************************/
 static void initial_rate_control_context_dctor(EbPtr p) {
-    EbThreadContext           *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *          thread_context_ptr = (EbThreadContext *)p;
     InitialRateControlContext *obj = (InitialRateControlContext *)thread_context_ptr->priv;
 
     EB_DELETE_PTR_ARRAY(obj->lad_queue->cir_buf, REFERENCE_QUEUE_MAX_DEPTH);
@@ -65,7 +65,7 @@ static void initial_rate_control_context_dctor(EbPtr p) {
 /************************************************
 * Initial Rate Control Context Constructor
 ************************************************/
-EbErrorType initial_rate_control_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType initial_rate_control_context_ctor(EbThreadContext *  thread_context_ptr,
                                               const EbEncHandle *enc_handle_ptr) {
     InitialRateControlContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
@@ -113,7 +113,7 @@ uint32_t get_lad_q_size(InitialRateControlContext *ctx) {
 */
 void print_lad_queue(InitialRateControlContext *ctx, uint8_t log) {
     if (log) {
-        LadQueue      *queue       = ctx->lad_queue;
+        LadQueue *     queue       = ctx->lad_queue;
         uint32_t       idx         = queue->head;
         LadQueueEntry *queue_entry = queue->cir_buf[idx];
 
@@ -132,7 +132,7 @@ void print_lad_queue(InitialRateControlContext *ctx, uint8_t log) {
  store pictures in the lad queue
 */
 void push_to_lad_queue(PictureParentControlSet *pcs, InitialRateControlContext *ctx) {
-    LadQueue      *queue       = ctx->lad_queue;
+    LadQueue *     queue       = ctx->lad_queue;
     uint32_t       entry_idx   = pcs->decode_order % REFERENCE_QUEUE_MAX_DEPTH;
     LadQueueEntry *queue_entry = queue->cir_buf[entry_idx];
     assert_err(queue_entry->pcs == NULL, "lad queue overflow");
@@ -190,7 +190,7 @@ void validate_pic_for_tpl(PictureParentControlSet *pcs, uint32_t pic_index) {
 */
 void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContext *ctx,
                           uint32_t start_idx, int64_t end_mg) {
-    LadQueue      *queue = ctx->lad_queue;
+    LadQueue *     queue = ctx->lad_queue;
     uint32_t       pic_i = 0;
     uint32_t       q_idx = start_idx;
     LadQueueEntry *entry = queue->cir_buf[q_idx];
@@ -287,7 +287,7 @@ void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContex
  only base pictures are hold. the rest including LDP ones are pass-thru
 */
 void process_lad_queue(InitialRateControlContext *ctx, uint8_t pass_thru) {
-    LadQueue      *queue      = ctx->lad_queue;
+    LadQueue *     queue      = ctx->lad_queue;
     LadQueueEntry *head_entry = queue->cir_buf[queue->head];
 
     while (head_entry->pcs != NULL) {
@@ -427,7 +427,7 @@ void process_lad_queue(InitialRateControlContext *ctx, uint8_t pass_thru) {
 *
 ********************************************************************************/
 void *initial_rate_control_kernel(void *input_ptr) {
-    EbThreadContext           *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *          thread_context_ptr = (EbThreadContext *)input_ptr;
     InitialRateControlContext *context_ptr = (InitialRateControlContext *)thread_context_ptr->priv;
 
     EbObjectWrapper *in_results_wrapper_ptr;

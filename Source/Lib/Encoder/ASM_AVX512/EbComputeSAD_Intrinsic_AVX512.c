@@ -1714,9 +1714,9 @@ static INLINE __m128i complement_4_to_6(uint8_t *ref, uint32_t ref_stride, uint8
  * General version for SAD computing that support any block width and height
 *******************************************************************************/
 void sad_loop_kernel_generalized_avx512(
-    uint8_t  *src, // input parameter, source samples Ptr
+    uint8_t * src, // input parameter, source samples Ptr
     uint32_t  src_stride, // input parameter, source stride
-    uint8_t  *ref, // input parameter, reference samples Ptr
+    uint8_t * ref, // input parameter, reference samples Ptr
     uint32_t  ref_stride, // input parameter, reference stride
     uint32_t  block_height, // input parameter, block height (M)
     uint32_t  block_width, // input parameter, block width (N)
@@ -1960,9 +1960,9 @@ void sad_loop_kernel_generalized_avx512(
 * Requirement: height % 2 = 0
 *******************************************************************************/
 void svt_sad_loop_kernel_avx512_intrin(
-    uint8_t  *src, // input parameter, source samples Ptr
+    uint8_t * src, // input parameter, source samples Ptr
     uint32_t  src_stride, // input parameter, source stride
-    uint8_t  *ref, // input parameter, reference samples Ptr
+    uint8_t * ref, // input parameter, reference samples Ptr
     uint32_t  ref_stride, // input parameter, reference stride
     uint32_t  height, // input parameter, block height (M)
     uint32_t  width, // input parameter, block width (N)

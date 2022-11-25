@@ -50,7 +50,7 @@ static void *get_actual_malloc_address(void *const mem) {
 }
 
 void *svt_aom_memalign(size_t align, size_t size) {
-    void        *x            = NULL;
+    void *       x            = NULL;
     const size_t aligned_size = get_aligned_malloc_size(size, align);
 #if defined(AOM_MAX_ALLOCABLE_MEMORY)
     if (!check_size_argument_overflow(1, aligned_size))

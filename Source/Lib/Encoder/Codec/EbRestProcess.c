@@ -71,7 +71,7 @@ void save_YUV_to_file(char *filename, EbByte buffer_y, EbByte buffer_u, EbByte b
 
 static void rest_context_dctor(EbPtr p) {
     EbThreadContext *thread_context_ptr = (EbThreadContext *)p;
-    RestContext     *obj                = (RestContext *)thread_context_ptr->priv;
+    RestContext *    obj                = (RestContext *)thread_context_ptr->priv;
     EB_DELETE(obj->trial_frame_rst);
     // buffer only malloc'd if boundaries are used in rest. search.
     // see scs_ptr->seq_header.use_boundaries_in_rest_search
@@ -84,13 +84,13 @@ static void rest_context_dctor(EbPtr p) {
 /******************************************************
  * Rest Context Constructor
  ******************************************************/
-EbErrorType rest_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType rest_context_ctor(EbThreadContext *  thread_context_ptr,
                               const EbEncHandle *enc_handle_ptr, EbPtr object_init_data_ptr,
                               int index, int demux_index) {
-    const SequenceControlSet       *scs_ptr       = enc_handle_ptr->scs_instance_array[0]->scs_ptr;
+    const SequenceControlSet *      scs_ptr       = enc_handle_ptr->scs_instance_array[0]->scs_ptr;
     const EbSvtAv1EncConfiguration *config        = &scs_ptr->static_config;
     EbColorFormat                   color_format  = config->encoder_color_format;
-    EbPictureBufferDescInitData    *init_data_ptr = (EbPictureBufferDescInitData *)
+    EbPictureBufferDescInitData *   init_data_ptr = (EbPictureBufferDescInitData *)
         object_init_data_ptr;
     RestContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
@@ -197,7 +197,7 @@ EbPictureBufferDesc *get_own_recon(SequenceControlSet *scs_ptr, PictureControlSe
             recon_picture_ptr->origin_y / 2 * recon_picture_ptr->stride_cr;
 
         EbPictureBufferDesc *org_rec = context_ptr->org_rec_frame;
-        uint16_t            *org_ptr = (uint16_t *)org_rec->buffer_y + org_rec->origin_x +
+        uint16_t *           org_ptr = (uint16_t *)org_rec->buffer_y + org_rec->origin_x +
             org_rec->origin_y * org_rec->stride_y;
         uint16_t *org_ptr_cb = (uint16_t *)org_rec->buffer_cb + org_rec->origin_x / 2 +
             org_rec->origin_y / 2 * org_rec->stride_cb;
@@ -240,7 +240,7 @@ EbPictureBufferDesc *get_own_recon(SequenceControlSet *scs_ptr, PictureControlSe
                                                                    recon_picture_ptr->stride_cr]);
 
         EbPictureBufferDesc *org_rec = context_ptr->org_rec_frame;
-        uint8_t             *org_ptr = &(
+        uint8_t *            org_ptr = &(
             (org_rec->buffer_y)[org_rec->origin_x + org_rec->origin_y * org_rec->stride_y]);
         uint8_t *org_ptr_cb = &((org_rec->buffer_cb)[org_rec->origin_x / 2 +
                                                      org_rec->origin_y / 2 * org_rec->stride_cb]);
@@ -267,7 +267,7 @@ EbPictureBufferDesc *get_own_recon(SequenceControlSet *scs_ptr, PictureControlSe
 void svt_convert_pic_8bit_to_16bit(EbPictureBufferDesc *src_8bit, EbPictureBufferDesc *dst_16bit,
                                    uint16_t ss_x, uint16_t ss_y) {
     //copy input from 8bit to 16bit
-    uint8_t  *buffer_8bit;
+    uint8_t * buffer_8bit;
     int32_t   stride_8bit;
     uint16_t *buffer_16bit;
     int32_t   stride_16bit;
@@ -543,7 +543,7 @@ static void copy_statistics_to_ref_obj_ect(PictureControlSet *pcs, SequenceContr
     obj->intra_coded_area                   = (uint8_t)(pcs->intra_coded_area);
     obj->skip_coded_area                    = (uint8_t)(pcs->skip_coded_area);
     struct PictureParentControlSet *ppcs    = pcs->parent_pcs_ptr;
-    FrameHeader                    *frm_hdr = &ppcs->frm_hdr;
+    FrameHeader *                   frm_hdr = &ppcs->frm_hdr;
 
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;
 
@@ -595,19 +595,19 @@ static void copy_statistics_to_ref_obj_ect(PictureControlSet *pcs, SequenceContr
  ******************************************************/
 void *rest_kernel(void *input_ptr) {
     // Context & SCS & PCS
-    EbThreadContext    *thread_context_ptr = (EbThreadContext *)input_ptr;
-    RestContext        *context_ptr        = (RestContext *)thread_context_ptr->priv;
-    PictureControlSet  *pcs_ptr;
+    EbThreadContext *   thread_context_ptr = (EbThreadContext *)input_ptr;
+    RestContext *       context_ptr        = (RestContext *)thread_context_ptr->priv;
+    PictureControlSet * pcs_ptr;
     SequenceControlSet *scs_ptr;
 
     //// Input
     EbObjectWrapper *cdef_results_wrapper_ptr;
-    CdefResults     *cdef_results_ptr;
+    CdefResults *    cdef_results_ptr;
 
     //// Output
-    EbObjectWrapper     *rest_results_wrapper_ptr;
-    RestResults         *rest_results_ptr;
-    EbObjectWrapper     *picture_demux_results_wrapper_ptr;
+    EbObjectWrapper *    rest_results_wrapper_ptr;
+    RestResults *        rest_results_ptr;
+    EbObjectWrapper *    picture_demux_results_wrapper_ptr;
     PictureDemuxResults *picture_demux_results_rtr;
     // SB Loop variables
     uint8_t tile_cols;
@@ -625,7 +625,7 @@ void *rest_kernel(void *input_ptr) {
         scs_ptr                       = pcs_ptr->scs_ptr;
         FrameHeader *frm_hdr          = &pcs_ptr->parent_pcs_ptr->frm_hdr;
         Bool         is_16bit         = scs_ptr->is_16bit_pipeline;
-        Av1Common   *cm               = pcs_ptr->parent_pcs_ptr->av1_cm;
+        Av1Common *  cm               = pcs_ptr->parent_pcs_ptr->av1_cm;
         if (ppcs->enable_restoration && frm_hdr->allow_intrabc == 0) {
             // If using boundaries during the filter search, copy the recon pic to a new buffer (to
             // avoid race condition from many threads modifying the same recon pic).
@@ -754,7 +754,7 @@ void *rest_kernel(void *input_ptr) {
                             pcs_ptr->parent_pcs_ptr->enc_dec_ptr->recon_picture16bit_ptr;
                         //Y
                         uint16_t *buf_16bit = (uint16_t *)(ref_pic_16bit_ptr->buffer_y);
-                        uint8_t  *buf_8bit  = ref_pic_ptr->buffer_y;
+                        uint8_t * buf_8bit  = ref_pic_ptr->buffer_y;
                         svt_convert_16bit_to_8bit(
                             buf_16bit,
                             ref_pic_16bit_ptr->stride_y,

@@ -29,9 +29,9 @@
 void copy_sb8_16(uint16_t *dst, int32_t dstride, const uint8_t *src, int32_t src_voffset,
                  int32_t src_hoffset, int32_t sstride, int32_t vsize, int32_t hsize, Bool is_16bit);
 
-void   *svt_aom_memalign(size_t align, size_t size);
+void *  svt_aom_memalign(size_t align, size_t size);
 void    svt_aom_free(void *memblk);
-void   *svt_aom_malloc(size_t size);
+void *  svt_aom_malloc(size_t size);
 int32_t svt_sb_all_skip(PictureControlSet *pcs_ptr, const Av1Common *const cm, int32_t mi_row,
                         int32_t mi_col);
 int32_t svt_sb_compute_cdef_list(PictureControlSet *pcs_ptr, const Av1Common *const cm,
@@ -56,14 +56,14 @@ typedef struct CdefContext {
 
 static void cdef_context_dctor(EbPtr p) {
     EbThreadContext *thread_context_ptr = (EbThreadContext *)p;
-    CdefContext     *obj                = (CdefContext *)thread_context_ptr->priv;
+    CdefContext *    obj                = (CdefContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj);
 }
 
 /******************************************************
  * Cdef Context Constructor
  ******************************************************/
-EbErrorType cdef_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType cdef_context_ctor(EbThreadContext *  thread_context_ptr,
                               const EbEncHandle *enc_handle_ptr, int index) {
     CdefContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
@@ -118,8 +118,8 @@ static uint64_t compute_cdef_dist(const EbByte dst, int32_t doffset, int32_t dst
 static void cdef_seg_search(PictureControlSet *pcs, SequenceControlSet *scs,
                             uint32_t segment_index) {
     struct PictureParentControlSet *ppcs     = pcs->parent_pcs_ptr;
-    FrameHeader                    *frm_hdr  = &ppcs->frm_hdr;
-    Av1Common                      *cm       = ppcs->av1_cm;
+    FrameHeader *                   frm_hdr  = &ppcs->frm_hdr;
+    Av1Common *                     cm       = ppcs->av1_cm;
     const Bool                      is_16bit = scs->is_16bit_pipeline;
     uint32_t                        x_seg_idx;
     uint32_t                        y_seg_idx;
@@ -196,7 +196,7 @@ static void cdef_seg_search(PictureControlSet *pcs, SequenceControlSet *scs,
             int               hb_step = 1; //these should be all time with 64x64 SBs
             int               vb_step = 1;
             BlockSize         bs      = BLOCK_64X64;
-            ModeInfo        **mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
+            ModeInfo **       mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
             const MbModeInfo *mbmi    = &mi[0]->mbmi;
             const BlockSize   sb_type = mbmi->block_mi.sb_type;
             if (((fbc & 1) && (sb_type == BLOCK_128X128 || sb_type == BLOCK_128X64)) ||
@@ -381,18 +381,18 @@ static void cdef_seg_search(PictureControlSet *pcs, SequenceControlSet *scs,
  ******************************************************/
 void *cdef_kernel(void *input_ptr) {
     // Context & SCS & PCS
-    EbThreadContext    *thread_context_ptr = (EbThreadContext *)input_ptr;
-    CdefContext        *context_ptr        = (CdefContext *)thread_context_ptr->priv;
-    PictureControlSet  *pcs_ptr;
+    EbThreadContext *   thread_context_ptr = (EbThreadContext *)input_ptr;
+    CdefContext *       context_ptr        = (CdefContext *)thread_context_ptr->priv;
+    PictureControlSet * pcs_ptr;
     SequenceControlSet *scs_ptr;
 
     //// Input
     EbObjectWrapper *dlf_results_wrapper_ptr;
-    DlfResults      *dlf_results_ptr;
+    DlfResults *     dlf_results_ptr;
 
     //// Output
     EbObjectWrapper *cdef_results_wrapper_ptr;
-    CdefResults     *cdef_results_ptr;
+    CdefResults *    cdef_results_ptr;
 
     // SB Loop variables
 

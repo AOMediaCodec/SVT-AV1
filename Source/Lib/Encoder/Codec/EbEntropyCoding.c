@@ -51,8 +51,8 @@ int32_t svt_av1_loop_restoration_corners_in_sb(Av1Common *cm, SeqHeader *seq_hea
                                                int32_t *tile_tl_idx);
 int     has_second_ref(const MbModeInfo *mbmi) { return mbmi->block_mi.ref_frame[1] > INTRA_FRAME; }
 int     has_uni_comp_refs(const MbModeInfo *mbmi) {
-        return has_second_ref(mbmi) &&
-            (!((mbmi->block_mi.ref_frame[0] >= BWDREF_FRAME) ^
+    return has_second_ref(mbmi) &&
+        (!((mbmi->block_mi.ref_frame[0] >= BWDREF_FRAME) ^
            (mbmi->block_mi.ref_frame[1] >= BWDREF_FRAME)));
 }
 int32_t is_inter_block(const BlockModeInfoEnc *mbmi);
@@ -475,7 +475,7 @@ void get_txb_ctx(PictureControlSet *pcs_ptr, const int32_t plane,
 static void av1_write_tx_type(PictureParentControlSet *pcs_ptr, FRAME_CONTEXT *frame_context,
                               AomWriter *ec_writer, BlkStruct *blk_ptr, uint32_t intraDir,
                               TxType tx_type, TxSize tx_size) {
-    FrameHeader  *frm_hdr  = &pcs_ptr->frm_hdr;
+    FrameHeader * frm_hdr  = &pcs_ptr->frm_hdr;
     const int32_t is_inter = blk_ptr->use_intrabc || (blk_ptr->prediction_mode_flag == INTER_MODE);
 
     if (get_ext_tx_types(tx_size, is_inter, frm_hdr->reduced_tx_set) > 1 &&
@@ -753,13 +753,13 @@ static EbErrorType av1_encode_tx_coef_y(
 
     return return_error;
 }
-static EbErrorType av1_encode_tx_coef_uv(PictureControlSet    *pcs_ptr,
+static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *   pcs_ptr,
                                          EntropyCodingContext *context_ptr,
                                          FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                          BlkStruct *blk_ptr, uint32_t blk_origin_x,
                                          uint32_t blk_origin_y, uint32_t intraLumaDir,
                                          EbPictureBufferDesc *coeff_ptr,
-                                         NeighborArrayUnit   *cr_dc_sign_level_coeff_neighbor_array,
+                                         NeighborArrayUnit *  cr_dc_sign_level_coeff_neighbor_array,
                                          NeighborArrayUnit *cb_dc_sign_level_coeff_neighbor_array) {
     EbErrorType return_error = EB_ErrorNone;
     int32_t     is_inter     = (blk_ptr->prediction_mode_flag == INTER_MODE || blk_ptr->use_intrabc)
@@ -885,7 +885,7 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet    *pcs_ptr,
 /************************************
 ******* Av1EncodeTuCoeff
 **************************************/
-static EbErrorType av1_encode_coeff_1d(PictureControlSet    *pcs_ptr,
+static EbErrorType av1_encode_coeff_1d(PictureControlSet *   pcs_ptr,
                                        EntropyCodingContext *context_ptr,
                                        FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                        BlkStruct *blk_ptr, uint32_t blk_origin_x,
@@ -933,7 +933,7 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet    *pcs_ptr,
         for (txb_itr = 0; txb_itr < txb_count; txb_itr++) {
             const TxSize tx_size        = blk_geom->txsize[blk_ptr->tx_depth][txb_itr];
             const TxSize chroma_tx_size = blk_geom->txsize_uv[blk_ptr->tx_depth][txb_itr];
-            int32_t     *coeff_buffer;
+            int32_t *    coeff_buffer;
 
             const uint32_t coeff1d_offset = context_ptr->coded_area_sb;
 
@@ -1255,18 +1255,15 @@ static void encode_intra_luma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *
 
     uint32_t top_context = 0, left_context = 0;
 
-    uint32_t left_neighbor_mode =
-        (uint32_t)((mode_type_neighbor_array->left_array[mode_type_left_neighbor_index] !=
-                    INTRA_MODE)
-                       ? (uint32_t)DC_PRED
-                       : intra_luma_mode_neighbor_array
-                             ->left_array[intra_luma_mode_left_neighbor_index]);
+    uint32_t left_neighbor_mode = (uint32_t)(
+        (mode_type_neighbor_array->left_array[mode_type_left_neighbor_index] != INTRA_MODE)
+            ? (uint32_t)DC_PRED
+            : intra_luma_mode_neighbor_array->left_array[intra_luma_mode_left_neighbor_index]);
 
-    uint32_t top_neighbor_mode =
-        (uint32_t)((mode_type_neighbor_array->top_array[mode_type_top_neighbor_index] != INTRA_MODE)
-                       ? (uint32_t)DC_PRED
-                       : intra_luma_mode_neighbor_array
-                             ->top_array[intra_luma_mode_top_neighbor_index]);
+    uint32_t top_neighbor_mode = (uint32_t)(
+        (mode_type_neighbor_array->top_array[mode_type_top_neighbor_index] != INTRA_MODE)
+            ? (uint32_t)DC_PRED
+            : intra_luma_mode_neighbor_array->top_array[intra_luma_mode_top_neighbor_index]);
 
     top_context  = intra_mode_context[top_neighbor_mode];
     left_context = intra_mode_context[left_neighbor_mode];
@@ -1577,7 +1574,7 @@ void bitstream_copy(const Bitstream *bitstream_ptr, void *dest, int size) {
 }
 
 static void entropy_coder_dctor(EbPtr p) {
-    EntropyCoder        *obj                  = (EntropyCoder *)p;
+    EntropyCoder *       obj                  = (EntropyCoder *)p;
     OutputBitstreamUnit *output_bitstream_ptr = (OutputBitstreamUnit *)obj->ec_output_bitstream_ptr;
     EB_DELETE(output_bitstream_ptr);
 
@@ -2443,7 +2440,7 @@ int32_t svt_av1_get_pred_context_single_ref_p6(const MacroBlockD *xd) {
 
 static void write_ref_frames(FRAME_CONTEXT *frame_context, PictureParentControlSet *pcs_ptr,
                              const MacroBlockD *xd, AomWriter *w) {
-    FrameHeader            *frm_hdr     = &pcs_ptr->frm_hdr;
+    FrameHeader *           frm_hdr     = &pcs_ptr->frm_hdr;
     const MbModeInfo *const mbmi        = &xd->mi[0]->mbmi;
     const int               is_compound = has_second_ref(mbmi);
     UNUSED(frame_context);
@@ -2524,7 +2521,7 @@ static void write_ref_frames(FRAME_CONTEXT *frame_context, PictureParentControlS
         }
     }
 }
-static void encode_restoration_mode(PictureParentControlSet  *pcs_ptr,
+static void encode_restoration_mode(PictureParentControlSet * pcs_ptr,
                                     struct AomWriteBitBuffer *wb) {
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
     //SVT_ERROR("encode_restoration_mode might not work. Double check the reference code\n");
@@ -2723,7 +2720,7 @@ static void write_delta_q(struct AomWriteBitBuffer *wb, int32_t delta_q) {
 }
 
 static void encode_quantization(const PictureParentControlSet *const pcs_ptr,
-                                struct AomWriteBitBuffer            *wb) {
+                                struct AomWriteBitBuffer *           wb) {
     const FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
     svt_aom_wb_write_literal(wb, frm_hdr->quantization_params.base_q_idx, QINDEX_BITS);
     write_delta_q(wb, frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y]);
@@ -2754,7 +2751,7 @@ static void encode_quantization(const PictureParentControlSet *const pcs_ptr,
 }
 
 static void write_tile_info_max_tile(const PictureParentControlSet *const pcs_ptr,
-                                     struct AomWriteBitBuffer            *wb) {
+                                     struct AomWriteBitBuffer *           wb) {
     Av1Common *cm = pcs_ptr->av1_cm;
     svt_aom_wb_write_bit(wb, cm->tiles_info.uniform_tile_spacing_flag);
 
@@ -2969,7 +2966,7 @@ static void write_tile_info(const PictureParentControlSet *const pcs_ptr,
 }
 
 static AOM_INLINE void write_render_size(struct AomWriteBitBuffer *wb,
-                                         PictureParentControlSet  *ppcs) {
+                                         PictureParentControlSet * ppcs) {
     int render_and_frame_size_different = 0;
     if (ppcs->frame_resize_enabled)
         render_and_frame_size_different = 1;
@@ -2983,9 +2980,9 @@ static AOM_INLINE void write_render_size(struct AomWriteBitBuffer *wb,
 }
 
 static AOM_INLINE void write_superres_scale(struct AomWriteBitBuffer *wb,
-                                            PictureParentControlSet  *pcs_ptr) {
+                                            PictureParentControlSet * pcs_ptr) {
     SequenceControlSet *scs_ptr        = pcs_ptr->scs_ptr;
-    Av1Common          *cm             = pcs_ptr->av1_cm;
+    Av1Common *         cm             = pcs_ptr->av1_cm;
     uint8_t             superres_denom = cm->frm_size.superres_denominator;
 
     if (!scs_ptr->seq_header.enable_superres) {
@@ -3010,7 +3007,7 @@ static void write_frame_size(PictureParentControlSet *pcs_ptr, int32_t frame_siz
     SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
     (void)(*pcs_ptr);
     (void)frame_size_override;
-    Av1Common    *cm           = pcs_ptr->av1_cm;
+    Av1Common *   cm           = pcs_ptr->av1_cm;
     const int32_t coded_width  = cm->frm_size.superres_upscaled_width - 1;
     const int32_t coded_height = cm->frm_size.superres_upscaled_height - 1;
 
@@ -3031,7 +3028,7 @@ static void write_profile(BitstreamProfile profile, struct AomWriteBitBuffer *wb
 }
 
 static AOM_INLINE void write_bitdepth(const SequenceControlSet *const scs_ptr,
-                                      struct AomWriteBitBuffer       *wb) {
+                                      struct AomWriteBitBuffer *      wb) {
     // Profile 0/1: [0] for 8 bit, [1]  10-bit
     // Profile   2: [0] for 8 bit, [10] 10-bit, [11] - 12-bit
     svt_aom_wb_write_bit(wb, scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT ? 0 : 1);
@@ -3043,7 +3040,7 @@ static AOM_INLINE void write_bitdepth(const SequenceControlSet *const scs_ptr,
 }
 
 static AOM_INLINE void write_color_config(const SequenceControlSet *const scs_ptr,
-                                          struct AomWriteBitBuffer       *wb) {
+                                          struct AomWriteBitBuffer *      wb) {
     write_bitdepth(scs_ptr, wb);
     const int is_monochrome = 0; // monochrome is not supported yet
     // monochrome bit
@@ -3453,9 +3450,9 @@ static void write_global_motion(PictureParentControlSet *pcs_ptr, struct AomWrit
     }
 }
 
-static void write_film_grain_params(PictureParentControlSet  *pcs_ptr,
+static void write_film_grain_params(PictureParentControlSet * pcs_ptr,
                                     struct AomWriteBitBuffer *wb) {
-    FrameHeader  *frm_hdr = &pcs_ptr->frm_hdr;
+    FrameHeader * frm_hdr = &pcs_ptr->frm_hdr;
     AomFilmGrain *pars    = &frm_hdr->film_grain_params;
 
     svt_aom_wb_write_bit(wb, pars->apply_grain);
@@ -3576,7 +3573,7 @@ static uint32_t get_ref_order_hint(PictureParentControlSet *pcs_ptr, MvReference
     return pcs_ptr->dpb_order_hint[ref_idx];
 }
 
-static void write_frame_size_with_refs(PictureParentControlSet  *pcs_ptr,
+static void write_frame_size_with_refs(PictureParentControlSet * pcs_ptr,
                                        struct AomWriteBitBuffer *wb) {
 #if DEBUG_SFRAME
     fprintf(stderr,
@@ -3639,7 +3636,7 @@ static void write_frame_size_with_refs(PictureParentControlSet  *pcs_ptr,
 }
 
 // New function based on HLS R18
-static void write_uncompressed_header_obu(SequenceControlSet      *scs_ptr /*Av1Comp *cpi*/,
+static void write_uncompressed_header_obu(SequenceControlSet *     scs_ptr /*Av1Comp *cpi*/,
                                           PictureParentControlSet *pcs_ptr,
                                           //struct AomWriteBitBuffer *saved_wb,
                                           struct AomWriteBitBuffer *wb, uint8_t show_existing) {
@@ -4145,7 +4142,7 @@ static uint32_t write_tile_group_header(uint8_t *const dst, int startTile, int e
     return size;
 }
 
-static uint32_t write_frame_header_obu(SequenceControlSet      *scs_ptr,
+static uint32_t write_frame_header_obu(SequenceControlSet *     scs_ptr,
                                        PictureParentControlSet *pcs_ptr, uint8_t *const dst,
                                        uint8_t show_existing, int32_t appendTrailingBits) {
     struct AomWriteBitBuffer wb         = {dst, 0};
@@ -4211,7 +4208,7 @@ EbErrorType write_frame_header_av1(Bitstream *bitstream_ptr, SequenceControlSet 
     PictureParentControlSet *parent_pcs_ptr  = pcs_ptr->parent_pcs_ptr;
     Av1Common *const         cm              = parent_pcs_ptr->av1_cm;
     uint16_t                 tile_cnt        = cm->tiles_info.tile_rows * cm->tiles_info.tile_cols;
-    uint8_t                 *data            = output_bitstream_ptr->buffer_av1;
+    uint8_t *                data            = output_bitstream_ptr->buffer_av1;
     uint32_t                 obu_header_size = 0;
 
     int32_t curr_data_size = 0;
@@ -4284,7 +4281,7 @@ EbErrorType encode_sps_av1(Bitstream *bitstream_ptr, SequenceControlSet *scs_ptr
     EbErrorType          return_error         = EB_ErrorNone;
     OutputBitstreamUnit *output_bitstream_ptr = (OutputBitstreamUnit *)
                                                     bitstream_ptr->output_bitstream_ptr;
-    uint8_t      *data                     = output_bitstream_ptr->buffer_av1;
+    uint8_t *     data                     = output_bitstream_ptr->buffer_av1;
     uint32_t      obu_header_size          = 0;
     uint32_t      obu_payload_size         = 0;
     const uint8_t enhancement_layers_count = 0; // cm->enhancement_layers_count;
@@ -4339,7 +4336,7 @@ static void write_cdef(SequenceControlSet *seqCSetPtr, PictureControlSet *p_pcs_
                        uint16_t tile_idx, MacroBlockD *const xd, AomWriter *w, int32_t skip,
                        int32_t mi_col, int32_t mi_row) {
     (void)xd;
-    Av1Common   *cm      = p_pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *  cm      = p_pcs_ptr->parent_pcs_ptr->av1_cm;
     FrameHeader *frm_hdr = &p_pcs_ptr->parent_pcs_ptr->frm_hdr;
 
     if (frm_hdr->coded_lossless || frm_hdr->allow_intrabc) {
@@ -4476,8 +4473,8 @@ static void loop_restoration_write_sb_coeffs(PictureControlSet     *piCSetPtr, F
     //    assert(!cm->all_lossless);
 
     const int32_t   wiener_win   = (plane > 0) ? WIENER_WIN_CHROMA : WIENER_WIN;
-    WienerInfo     *wiener_info  = piCSetPtr->wiener_info[tile_idx] + plane;
-    SgrprojInfo    *sgrproj_info = piCSetPtr->sgrproj_info[tile_idx] + plane;
+    WienerInfo *    wiener_info  = piCSetPtr->wiener_info[tile_idx] + plane;
+    SgrprojInfo *   sgrproj_info = piCSetPtr->sgrproj_info[tile_idx] + plane;
     RestorationType unit_rtype   = rui->restoration_type;
 
     assert(unit_rtype < CDF_SIZE(RESTORE_SWITCHABLE_TYPES));
@@ -5008,8 +5005,8 @@ static INLINE int tx_size_to_depth(TxSize tx_size, BlockSize bsize) {
 // left of the entries corresponding to real blocks.
 // The prediction flags in these dummy entries are initialized to 0.
 static INLINE int get_tx_size_context(const MacroBlockD *xd) {
-    const ModeInfo         *mi          = xd->mi[0];
-    const MbModeInfo       *mbmi        = &mi->mbmi;
+    const ModeInfo *        mi          = xd->mi[0];
+    const MbModeInfo *      mbmi        = &mi->mbmi;
     const MbModeInfo *const above_mbmi  = xd->above_mbmi;
     const MbModeInfo *const left_mbmi   = xd->left_mbmi;
     const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.sb_type];
@@ -5138,9 +5135,9 @@ void code_tx_size(PictureControlSet *pcsPtr, uint32_t blk_origin_x, uint32_t blk
     uint32_t      txfm_context_above_index = get_neighbor_array_unit_top_index(txfm_context_array,
                                                                           blk_origin_x);
     TxMode        tx_mode                  = pcsPtr->parent_pcs_ptr->frm_hdr.tx_mode;
-    Av1Common    *cm                       = pcsPtr->parent_pcs_ptr->av1_cm;
-    MacroBlockD  *xd                       = blk_ptr->av1xd;
-    TileInfo     *tile                     = &xd->tile;
+    Av1Common *   cm                       = pcsPtr->parent_pcs_ptr->av1_cm;
+    MacroBlockD * xd                       = blk_ptr->av1xd;
+    TileInfo *    tile                     = &xd->tile;
     int32_t       mi_row                   = blk_origin_y >> MI_SIZE_LOG2;
     int32_t       mi_col                   = blk_origin_x >> MI_SIZE_LOG2;
     BlockSize     bsize                    = blk_geom->bsize;
@@ -5187,7 +5184,7 @@ int get_spatial_seg_prediction(PictureControlSet *pcs_ptr, uint32_t blk_origin_x
 
     Bool                     left_available   = mi_col > 0 ? TRUE : FALSE;
     Bool                     up_available     = mi_row > 0 ? TRUE : FALSE;
-    Av1Common               *cm               = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *              cm               = pcs_ptr->parent_pcs_ptr->av1_cm;
     SegmentationNeighborMap *segmentation_map = pcs_ptr->segmentation_neighbor_map;
 
     //    SVT_LOG("Left available = %d, Up Available = %d ", left_available, up_available);
@@ -5249,7 +5246,7 @@ static INLINE void update_segmentation_map(PictureControlSet *pcs_ptr, BlockSize
                                            uint32_t blk_origin_x, uint32_t blk_origin_y,
                                            uint8_t segment_id) {
     Av1Common *cm          = pcs_ptr->parent_pcs_ptr->av1_cm;
-    uint8_t   *segment_ids = pcs_ptr->segmentation_neighbor_map->data;
+    uint8_t *  segment_ids = pcs_ptr->segmentation_neighbor_map->data;
     uint32_t   mi_col      = blk_origin_x >> MI_SIZE_LOG2;
     uint32_t   mi_row      = blk_origin_y >> MI_SIZE_LOG2;
     const int  mi_offset   = mi_row * cm->mi_cols + mi_col;
@@ -5281,7 +5278,7 @@ void write_segment_id(PictureControlSet *pcs_ptr, FRAME_CONTEXT *frame_context, 
     const int coded_id = svt_av1_neg_interleave(
         blk_ptr->segment_id, spatial_pred, segmentation_params->last_active_seg_id + 1);
     struct segmentation_probs *segp     = &frame_context->seg;
-    AomCdfProb                *pred_cdf = segp->spatial_pred_seg_cdf[cdf_num];
+    AomCdfProb *               pred_cdf = segp->spatial_pred_seg_cdf[cdf_num];
     aom_write_symbol(ecWriter, coded_id, pred_cdf, MAX_SEGMENTS);
     update_segmentation_map(pcs_ptr, bsize, blk_origin_x, blk_origin_y, blk_ptr->segment_id);
     //    SVT_LOG("BlockY = %d, BlockX = %d, Segmentation  spatial_pred = %d, skip_coeff = %d, coded_id = %d, pred_cdf = %d \n", blk_origin_y>>2, blk_origin_x>>2, spatial_pred, skip_coeff, coded_id, *pred_cdf);
@@ -5360,10 +5357,10 @@ EbErrorType write_modes_b(PictureControlSet *pcs_ptr, EntropyCodingContext *cont
                           uint16_t tile_idx, EbPictureBufferDesc *coeff_ptr) {
     UNUSED(tb_ptr);
     EbErrorType         return_error  = EB_ErrorNone;
-    FRAME_CONTEXT      *frame_context = entropy_coder_ptr->fc;
-    AomWriter          *ec_writer     = &entropy_coder_ptr->ec_writer;
+    FRAME_CONTEXT *     frame_context = entropy_coder_ptr->fc;
+    AomWriter *         ec_writer     = &entropy_coder_ptr->ec_writer;
     SequenceControlSet *scs_ptr       = pcs_ptr->scs_ptr;
-    FrameHeader        *frm_hdr       = &pcs_ptr->parent_pcs_ptr->frm_hdr;
+    FrameHeader *       frm_hdr       = &pcs_ptr->parent_pcs_ptr->frm_hdr;
 
     NeighborArrayUnit *mode_type_neighbor_array = pcs_ptr->mode_type_neighbor_array[tile_idx];
     NeighborArrayUnit *intra_luma_mode_neighbor_array =
@@ -5381,7 +5378,7 @@ EbErrorType write_modes_b(PictureControlSet *pcs_ptr, EntropyCodingContext *cont
     NeighborArrayUnit32 *interpolation_type_neighbor_array =
         pcs_ptr->interpolation_type_neighbor_array[tile_idx];
     NeighborArrayUnit *txfm_context_array = pcs_ptr->txfm_context_array[tile_idx];
-    const BlockGeom   *blk_geom           = get_blk_geom_mds(blk_ptr->mds_idx);
+    const BlockGeom *  blk_geom           = get_blk_geom_mds(blk_ptr->mds_idx);
     uint32_t           blk_origin_x       = context_ptr->sb_origin_x + blk_geom->origin_x;
     uint32_t           blk_origin_y       = context_ptr->sb_origin_y + blk_geom->origin_y;
     BlockSize          bsize              = blk_geom->bsize;
@@ -6032,10 +6029,10 @@ EB_EXTERN EbErrorType write_sb(EntropyCodingContext *context_ptr, SuperBlock *tb
                                PictureControlSet *pcs_ptr, uint16_t tile_idx,
                                EntropyCoder *entropy_coder_ptr, EbPictureBufferDesc *coeff_ptr) {
     EbErrorType         return_error  = EB_ErrorNone;
-    FRAME_CONTEXT      *frame_context = entropy_coder_ptr->fc;
-    AomWriter          *ec_writer     = &entropy_coder_ptr->ec_writer;
+    FRAME_CONTEXT *     frame_context = entropy_coder_ptr->fc;
+    AomWriter *         ec_writer     = &entropy_coder_ptr->ec_writer;
     SequenceControlSet *scs_ptr       = pcs_ptr->scs_ptr;
-    NeighborArrayUnit  *partition_context_neighbor_array =
+    NeighborArrayUnit * partition_context_neighbor_array =
         pcs_ptr->partition_context_neighbor_array[tile_idx];
 
     // CU Varaiables
@@ -6077,7 +6074,7 @@ EB_EXTERN EbErrorType write_sb(EntropyCodingContext *context_ptr, SuperBlock *tb
         if (code_blk_cond) {
             const int32_t hbs          = mi_size_wide[bsize] >> 1;
             const int32_t quarter_step = mi_size_wide[bsize] >> 2;
-            Av1Common    *cm           = pcs_ptr->parent_pcs_ptr->av1_cm;
+            Av1Common *   cm           = pcs_ptr->parent_pcs_ptr->av1_cm;
             int32_t       mi_row       = blk_origin_y >> MI_SIZE_LOG2;
             int32_t       mi_col       = blk_origin_x >> MI_SIZE_LOG2;
 

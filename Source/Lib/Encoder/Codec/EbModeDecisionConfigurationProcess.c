@@ -51,55 +51,55 @@ static MeshPattern intrabc_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
 };
 static uint8_t intrabc_max_mesh_pct[MAX_MESH_SPEED + 1] = {100, 100, 100, 25, 25, 10};
 void           set_global_motion_field(PictureControlSet *pcs_ptr) {
-              // Init Global Motion Vector
+    // Init Global Motion Vector
     uint8_t frame_index;
     for (frame_index = INTRA_FRAME; frame_index <= ALTREF_FRAME; ++frame_index) {
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmtype   = IDENTITY;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].alpha    = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].beta     = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].delta    = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].gamma    = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].invalid  = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[0] = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[1] = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[2] = (1 << WARPEDMODEL_PREC_BITS);
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[3] = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[4] = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[5] = (1 << WARPEDMODEL_PREC_BITS);
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[6] = 0;
-                  pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[7] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmtype   = IDENTITY;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].alpha    = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].beta     = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].delta    = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].gamma    = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].invalid  = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[0] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[1] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[2] = (1 << WARPEDMODEL_PREC_BITS);
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[3] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[4] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[5] = (1 << WARPEDMODEL_PREC_BITS);
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[6] = 0;
+        pcs_ptr->parent_pcs_ptr->global_motion[frame_index].wmmat[7] = 0;
     }
 
     //Update MV
     PictureParentControlSet *parent_pcs_ptr = pcs_ptr->parent_pcs_ptr;
     for (frame_index = INTRA_FRAME; frame_index <= ALTREF_FRAME; ++frame_index) {
-                  if (parent_pcs_ptr
+        if (parent_pcs_ptr
                 ->is_global_motion[get_list_idx(frame_index)][get_ref_frame_idx(frame_index)])
             parent_pcs_ptr->global_motion[frame_index] =
                 parent_pcs_ptr->global_motion_estimation[get_list_idx(frame_index)]
                                                         [get_ref_frame_idx(frame_index)];
 
         // Upscale the translation parameters by 2, because the search is done on a down-sampled
-                  // version of the source picture (with a down-sampling factor of 2 in each dimension).
-                  if (parent_pcs_ptr->gm_downsample_level == GM_DOWN16) {
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[0] *= 4;
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[1] *= 4;
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[0] = (int32_t)clamp(
+        // version of the source picture (with a down-sampling factor of 2 in each dimension).
+        if (parent_pcs_ptr->gm_downsample_level == GM_DOWN16) {
+            parent_pcs_ptr->global_motion[frame_index].wmmat[0] *= 4;
+            parent_pcs_ptr->global_motion[frame_index].wmmat[1] *= 4;
+            parent_pcs_ptr->global_motion[frame_index].wmmat[0] = (int32_t)clamp(
                 parent_pcs_ptr->global_motion[frame_index].wmmat[0],
                 GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
                 GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[1] = (int32_t)clamp(
+            parent_pcs_ptr->global_motion[frame_index].wmmat[1] = (int32_t)clamp(
                 parent_pcs_ptr->global_motion[frame_index].wmmat[1],
                 GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
                 GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
         } else if (parent_pcs_ptr->gm_downsample_level == GM_DOWN) {
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[0] *= 2;
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[1] *= 2;
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[0] = (int32_t)clamp(
+            parent_pcs_ptr->global_motion[frame_index].wmmat[0] *= 2;
+            parent_pcs_ptr->global_motion[frame_index].wmmat[1] *= 2;
+            parent_pcs_ptr->global_motion[frame_index].wmmat[0] = (int32_t)clamp(
                 parent_pcs_ptr->global_motion[frame_index].wmmat[0],
                 GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
                 GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
-                      parent_pcs_ptr->global_motion[frame_index].wmmat[1] = (int32_t)clamp(
+            parent_pcs_ptr->global_motion[frame_index].wmmat[1] = (int32_t)clamp(
                 parent_pcs_ptr->global_motion[frame_index].wmmat[1],
                 GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
                 GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
@@ -234,7 +234,7 @@ void svt_av1_qm_init(PictureParentControlSet *pcs_ptr) {
 * Set the reference sg ep for a given picture
 ******************************************************/
 void set_reference_sg_ep(PictureControlSet *pcs_ptr) {
-    Av1Common         *cm = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *        cm = pcs_ptr->parent_pcs_ptr->av1_cm;
     EbReferenceObject *ref_obj_l0, *ref_obj_l1;
     memset(cm->sg_frame_ep_cnt, 0, SGRPROJ_PARAMS * sizeof(int32_t));
     cm->sg_frame_ep = 0;
@@ -303,7 +303,7 @@ void mode_decision_configuration_init_qp_update(PictureControlSet *pcs_ptr) {
 ******************************************************/
 
 static void mode_decision_configuration_context_dctor(EbPtr p) {
-    EbThreadContext                  *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *                 thread_context_ptr = (EbThreadContext *)p;
     ModeDecisionConfigurationContext *obj                = (ModeDecisionConfigurationContext *)
                                                 thread_context_ptr->priv;
 
@@ -312,7 +312,7 @@ static void mode_decision_configuration_context_dctor(EbPtr p) {
 /******************************************************
  * Mode Decision Configuration Context Constructor
  ******************************************************/
-EbErrorType mode_decision_configuration_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType mode_decision_configuration_context_ctor(EbThreadContext *  thread_context_ptr,
                                                      const EbEncHandle *enc_handle_ptr,
                                                      int input_index, int output_index) {
     ModeDecisionConfigurationContext *context_ptr;
@@ -398,13 +398,13 @@ uint8_t svt_aom_get_chroma_level(EncMode enc_mode) {
 }
 
 EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet *scs_ptr,
-                                                             PictureControlSet  *pcs_ptr) {
+                                                             PictureControlSet * pcs_ptr) {
     EbErrorType              return_error        = EB_ErrorNone;
     PictureParentControlSet *ppcs                = pcs_ptr->parent_pcs_ptr;
     const EncMode            enc_mode            = pcs_ptr->enc_mode;
     const uint8_t            is_ref              = ppcs->is_used_as_reference_flag;
     const uint8_t            is_base             = ppcs->temporal_layer_index == 0;
-    const uint8_t is_layer1 = ppcs->temporal_layer_index == 1;
+    const uint8_t            is_layer1           = ppcs->temporal_layer_index == 1;
     const EbInputResolution  input_resolution    = ppcs->input_resolution;
     const uint8_t            is_islice           = pcs_ptr->slice_type == I_SLICE;
     const SliceType          slice_type          = pcs_ptr->slice_type;
@@ -698,8 +698,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
             pcs_ptr->cfl_level = 1;
         else
             pcs_ptr->cfl_level = is_base ? 2 : 0;
-    }
-    else if (enc_mode <= ENC_M4)
+    } else if (enc_mode <= ENC_M4)
         pcs_ptr->cfl_level = 1;
     else if (enc_mode <= ENC_M9)
         pcs_ptr->cfl_level = is_base ? 2 : 0;
@@ -721,7 +720,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     else
         pcs_ptr->new_nearest_near_comb_injection = scs_ptr->new_nearest_comb_inject;
 
-        // Set the level for unipred3x3 injection
+    // Set the level for unipred3x3 injection
     if (enc_mode <= ENC_M0)
         pcs_ptr->unipred3x3_injection = 1;
     else
@@ -855,8 +854,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
             pcs_ptr->md_pme_level = 6;
         else
             pcs_ptr->md_pme_level = 3;
-    }
-    else if (enc_mode <= ENC_M7)
+    } else if (enc_mode <= ENC_M7)
         pcs_ptr->md_pme_level = 5;
     else
         pcs_ptr->md_pme_level = 6;
@@ -892,7 +890,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     } else
         pcs_ptr->pic_bypass_encdec = 0;
 
-        /*
+    /*
         set lpd0_level
     */
     if (enc_mode <= ENC_M2)
@@ -1393,7 +1391,7 @@ static void av1_setup_motion_field(Av1Common *cm, PictureControlSet *pcs_ptr) {
         motion_field_projection(cm, pcs_ptr, LAST2_FRAME, 2);
 }
 EbErrorType svt_av1_hash_table_create(HashTable *p_hash_table);
-void *rtime_alloc_block_hash_block_is_same(size_t size) { return malloc(size); }
+void *      rtime_alloc_block_hash_block_is_same(size_t size) { return malloc(size); }
 
 // Use me_8x8_distortion and QP to predict the coeff level per frame
 static void predict_frame_coeff_lvl(struct PictureControlSet *pcs) {
@@ -1442,7 +1440,7 @@ static void predict_frame_coeff_lvl(struct PictureControlSet *pcs) {
 ********************************************************************************/
 void *mode_decision_configuration_kernel(void *input_ptr) {
     // Context & SCS & PCS
-    EbThreadContext                  *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *                 thread_context_ptr = (EbThreadContext *)input_ptr;
     ModeDecisionConfigurationContext *context_ptr        = (ModeDecisionConfigurationContext *)
                                                         thread_context_ptr->priv;
     // Input
@@ -1572,7 +1570,7 @@ void *mode_decision_configuration_kernel(void *input_ptr) {
                 const int pic_height = pcs_ptr->parent_pcs_ptr->aligned_height;
 
                 uint32_t *block_hash_values[2][2];
-                int8_t   *is_block_same[2][3];
+                int8_t *  is_block_same[2][3];
                 int       k, j;
 
                 for (k = 0; k < 2; k++) {

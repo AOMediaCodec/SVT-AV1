@@ -223,7 +223,7 @@ MV32 svt_av1_scale_mv(const MV *mvq4, int x, int y, const ScaleFactors *sf) {
     const int  x_off_q4 = scaled_x(x << SUBPEL_BITS, sf);
     const int  y_off_q4 = scaled_y(y << SUBPEL_BITS, sf);
     const MV32 res      = {scaled_y((y << SUBPEL_BITS) + mvq4->row, sf) - y_off_q4,
-                           scaled_x((x << SUBPEL_BITS) + mvq4->col, sf) - x_off_q4};
+                      scaled_x((x << SUBPEL_BITS) + mvq4->col, sf) - x_off_q4};
     return res;
 }
 
@@ -386,7 +386,7 @@ void svt_av1_convolve_2d_sr_c(const uint8_t *src, int32_t src_stride, uint8_t *d
     }
 
     // vertical filter
-    int16_t       *src_vert    = im_block + fo_vert * im_stride;
+    int16_t *      src_vert    = im_block + fo_vert * im_stride;
     const int16_t *y_filter    = av1_get_interp_filter_subpel_kernel(*filter_params_y,
                                                                   subpel_y_q4 & SUBPEL_MASK);
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
@@ -517,7 +517,7 @@ void svt_av1_convolve_2d_scale_c(const uint8_t *src, int src_stride, uint8_t *ds
     }
 
     // vertical filter
-    int16_t  *src_vert    = im_block + fo_vert * im_stride;
+    int16_t * src_vert    = im_block + fo_vert * im_stride;
     const int offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
     for (int x = 0; x < w; ++x) {
         int y_qn = subpel_y_qn;
@@ -568,7 +568,7 @@ void svt_av1_jnt_convolve_2d_c(const uint8_t *src, int32_t src_stride, uint8_t *
                                InterpFilterParams *filter_params_x,
                                InterpFilterParams *filter_params_y, const int32_t subpel_x_q4,
                                const int32_t subpel_y_q4, ConvolveParams *conv_params) {
-    ConvBufType  *dst        = conv_params->dst;
+    ConvBufType * dst        = conv_params->dst;
     int32_t       dst_stride = conv_params->dst_stride;
     int16_t       im_block[(MAX_SB_SIZE + MAX_FILTER_TAP - 1) * MAX_SB_SIZE];
     int32_t       im_h       = h + filter_params_y->taps - 1;
@@ -593,7 +593,7 @@ void svt_av1_jnt_convolve_2d_c(const uint8_t *src, int32_t src_stride, uint8_t *
     }
 
     // vertical filter
-    int16_t       *src_vert    = im_block + fo_vert * im_stride;
+    int16_t *      src_vert    = im_block + fo_vert * im_stride;
     const int16_t *y_filter    = av1_get_interp_filter_subpel_kernel(*filter_params_y,
                                                                   subpel_y_q4 & SUBPEL_MASK);
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
@@ -628,7 +628,7 @@ void svt_av1_jnt_convolve_y_c(const uint8_t *src, int32_t src_stride, uint8_t *d
                               InterpFilterParams *filter_params_x,
                               InterpFilterParams *filter_params_y, const int32_t subpel_x_q4,
                               const int32_t subpel_y_q4, ConvolveParams *conv_params) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t fo_vert      = filter_params_y->taps / 2 - 1;
     const int32_t bits         = FILTER_BITS - conv_params->round_0;
@@ -674,7 +674,7 @@ void svt_av1_jnt_convolve_x_c(const uint8_t *src, int32_t src_stride, uint8_t *d
                               InterpFilterParams *filter_params_x,
                               InterpFilterParams *filter_params_y, const int32_t subpel_x_q4,
                               const int32_t subpel_y_q4, ConvolveParams *conv_params) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t fo_horiz     = filter_params_x->taps / 2 - 1;
     const int32_t bits         = FILTER_BITS - conv_params->round_1;
@@ -720,7 +720,7 @@ void svt_av1_jnt_convolve_2d_copy_c(const uint8_t *src, int32_t src_stride, uint
                                     InterpFilterParams *filter_params_x,
                                     InterpFilterParams *filter_params_y, const int32_t subpel_x_q4,
                                     const int32_t subpel_y_q4, ConvolveParams *conv_params) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t bits         = FILTER_BITS * 2 - conv_params->round_1 - conv_params->round_0;
     const int32_t bd           = 8;
@@ -846,7 +846,7 @@ void svt_av1_highbd_convolve_2d_sr_c(const uint16_t *src, int32_t src_stride, ui
 
     // horizontal filter
     const uint16_t *src_horiz = src - fo_vert * src_stride;
-    const int16_t  *x_filter  = av1_get_interp_filter_subpel_kernel(*filter_params_x,
+    const int16_t * x_filter  = av1_get_interp_filter_subpel_kernel(*filter_params_x,
                                                                   subpel_x_q4 & SUBPEL_MASK);
     for (int32_t y = 0; y < im_h; ++y) {
         for (int32_t x = 0; x < w; ++x) {
@@ -860,7 +860,7 @@ void svt_av1_highbd_convolve_2d_sr_c(const uint16_t *src, int32_t src_stride, ui
     }
 
     // vertical filter
-    int16_t       *src_vert    = im_block + fo_vert * im_stride;
+    int16_t *      src_vert    = im_block + fo_vert * im_stride;
     const int16_t *y_filter    = av1_get_interp_filter_subpel_kernel(*filter_params_y,
                                                                   subpel_y_q4 & SUBPEL_MASK);
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
@@ -915,7 +915,7 @@ void svt_av1_highbd_convolve_2d_scale_c(const uint16_t *src, int src_stride, uin
     }
 
     // vertical filter
-    int16_t  *src_vert    = im_block + fo_vert * im_stride;
+    int16_t * src_vert    = im_block + fo_vert * im_stride;
     const int offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
     for (int x = 0; x < w; ++x) {
         int y_qn = subpel_y_qn;
@@ -967,7 +967,7 @@ void svt_av1_highbd_jnt_convolve_x_c(const uint16_t *src, int32_t src_stride, ui
                                      const InterpFilterParams *filter_params_y,
                                      const int32_t subpel_x_q4, const int32_t subpel_y_q4,
                                      ConvolveParams *conv_params, int32_t bd) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t fo_horiz     = filter_params_x->taps / 2 - 1;
     const int32_t bits         = FILTER_BITS - conv_params->round_1;
@@ -1014,7 +1014,7 @@ void svt_av1_highbd_jnt_convolve_y_c(const uint16_t *src, int32_t src_stride, ui
                                      const InterpFilterParams *filter_params_y,
                                      const int32_t subpel_x_q4, const int32_t subpel_y_q4,
                                      ConvolveParams *conv_params, int32_t bd) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t fo_vert      = filter_params_y->taps / 2 - 1;
     const int32_t bits         = FILTER_BITS - conv_params->round_0;
@@ -1061,7 +1061,7 @@ void svt_av1_highbd_jnt_convolve_2d_copy_c(const uint16_t *src, int32_t src_stri
                                            const InterpFilterParams *filter_params_y,
                                            const int32_t subpel_x_q4, const int32_t subpel_y_q4,
                                            ConvolveParams *conv_params, int32_t bd) {
-    ConvBufType  *dst          = conv_params->dst;
+    ConvBufType * dst          = conv_params->dst;
     int32_t       dst_stride   = conv_params->dst_stride;
     const int32_t bits         = FILTER_BITS * 2 - conv_params->round_1 - conv_params->round_0;
     const int32_t offset_bits  = bd + 2 * FILTER_BITS - conv_params->round_0;
@@ -1103,7 +1103,7 @@ void svt_av1_highbd_jnt_convolve_2d_c(const uint16_t *src, int32_t src_stride, u
 
 {
     int16_t       im_block[(MAX_SB_SIZE + MAX_FILTER_TAP - 1) * MAX_SB_SIZE];
-    ConvBufType  *dst        = conv_params->dst;
+    ConvBufType * dst        = conv_params->dst;
     int32_t       dst_stride = conv_params->dst_stride;
     int32_t       im_h       = h + filter_params_y->taps - 1;
     int32_t       im_stride  = w;
@@ -1115,7 +1115,7 @@ void svt_av1_highbd_jnt_convolve_2d_c(const uint16_t *src, int32_t src_stride, u
 
     // horizontal filter
     const uint16_t *src_horiz = src - fo_vert * src_stride;
-    const int16_t  *x_filter  = av1_get_interp_filter_subpel_kernel(*filter_params_x,
+    const int16_t * x_filter  = av1_get_interp_filter_subpel_kernel(*filter_params_x,
                                                                   subpel_x_q4 & SUBPEL_MASK);
     for (int y = 0; y < im_h; ++y) {
         for (int x = 0; x < w; ++x) {
@@ -1129,7 +1129,7 @@ void svt_av1_highbd_jnt_convolve_2d_c(const uint16_t *src, int32_t src_stride, u
     }
 
     // vertical filter
-    int16_t       *src_vert    = im_block + fo_vert * im_stride;
+    int16_t *      src_vert    = im_block + fo_vert * im_stride;
     const int32_t  offset_bits = bd + 2 * FILTER_BITS - conv_params->round_0;
     const int16_t *y_filter    = av1_get_interp_filter_subpel_kernel(*filter_params_y,
                                                                   subpel_y_q4 & SUBPEL_MASK);

@@ -186,8 +186,8 @@ uint64_t svt_full_distortion_kernel16_bits_sse4_1(uint8_t *input, uint32_t input
     const uint32_t leftover    = area_width & 7;
     __m128i        sum32       = _mm_setzero_si128();
     __m128i        sum64       = _mm_setzero_si128();
-    uint16_t      *input_16bit = (uint16_t *)input;
-    uint16_t      *recon_16bit = (uint16_t *)recon;
+    uint16_t *     input_16bit = (uint16_t *)input;
+    uint16_t *     recon_16bit = (uint16_t *)recon;
     input_16bit += input_offset;
     recon_16bit += recon_offset;
 

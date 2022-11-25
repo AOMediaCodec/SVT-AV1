@@ -40,23 +40,23 @@
 
 typedef struct SourceBasedOperationsContext {
     EbDctor  dctor;
-    EbFifo  *initial_rate_control_results_input_fifo_ptr;
-    EbFifo  *picture_demux_results_output_fifo_ptr;
-    EbFifo  *sbo_output_fifo_ptr;
+    EbFifo * initial_rate_control_results_input_fifo_ptr;
+    EbFifo * picture_demux_results_output_fifo_ptr;
+    EbFifo * sbo_output_fifo_ptr;
     uint8_t *y_mean_ptr;
     uint8_t *cr_mean_ptr;
     uint8_t *cb_mean_ptr;
 } SourceBasedOperationsContext;
 typedef struct TplDispenserContext {
     EbDctor  dctor;
-    EbFifo  *tpl_disp_input_fifo_ptr;
-    EbFifo  *tpl_disp_fb_fifo_ptr;
+    EbFifo * tpl_disp_input_fifo_ptr;
+    EbFifo * tpl_disp_fb_fifo_ptr;
     uint32_t sb_index;
     uint32_t coded_sb_count;
 } TplDispenserContext;
 
 static void source_based_operations_context_dctor(EbPtr p) {
-    EbThreadContext              *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *             thread_context_ptr = (EbThreadContext *)p;
     SourceBasedOperationsContext *obj = (SourceBasedOperationsContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj);
 }
@@ -68,7 +68,7 @@ static INLINE int coded_to_superres_mi(int mi_col, int denom) {
 /************************************************
 * Source Based Operation Context Constructor
 ************************************************/
-EbErrorType source_based_operations_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType source_based_operations_context_ctor(EbThreadContext *  thread_context_ptr,
                                                  const EbEncHandle *enc_handle_ptr, int tpl_index,
                                                  int index) {
     SourceBasedOperationsContext *context_ptr;
@@ -90,14 +90,14 @@ EbErrorType source_based_operations_context_ctor(EbThreadContext   *thread_conte
      TPL dispenser context dctor
 */
 static void tpl_disp_context_dctor(EbPtr p) {
-    EbThreadContext     *thread_context_ptr = (EbThreadContext *)p;
+    EbThreadContext *    thread_context_ptr = (EbThreadContext *)p;
     TplDispenserContext *obj                = (TplDispenserContext *)thread_context_ptr->priv;
     EB_FREE_ARRAY(obj);
 }
 /*
      TPL dispenser context cctor
 */
-EbErrorType tpl_disp_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType tpl_disp_context_ctor(EbThreadContext *  thread_context_ptr,
                                   const EbEncHandle *enc_handle_ptr, int index, int tasks_index) {
     TplDispenserContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
@@ -188,7 +188,7 @@ static void tpl_prep_info(PictureParentControlSet *pcs) {
 
 // Generate lambda factor to tune lambda based on TPL stats
 void generate_lambda_scaling_factor(PictureParentControlSet *pcs_ptr, int64_t mc_dep_cost_base) {
-    Av1Common   *cm                    = pcs_ptr->av1_cm;
+    Av1Common *  cm                    = pcs_ptr->av1_cm;
     uint8_t      tpl_synth_size_offset = pcs_ptr->tpl_ctrls.synth_blk_size == 8 ? 1
              : pcs_ptr->tpl_ctrls.synth_blk_size == 16                          ? 2
                                                                                 : 3;
@@ -548,7 +548,7 @@ static void tpl_subpel_search(SequenceControlSet *scs, PictureParentControlSet *
     best_mv->row = best_sp_mv.as_mv.row;
 }
 
-void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
+void tpl_mc_flow_dispenser_sb_generic(EncodeContext *     encode_context_ptr,
                                       SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr,
                                       int32_t frame_idx, uint32_t sb_index, int32_t qIndex,
                                       uint8_t dispenser_search_level) {
@@ -591,7 +591,7 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
     mb_plane.dequant_qtx     = scs_ptr->deq_8bit.y_dequant_qtx[qIndex];
 
     const uint32_t src_stride      = pcs_ptr->enhanced_picture_ptr->stride_y;
-    B64Geom       *b64_geom        = &scs_ptr->b64_geom[sb_index];
+    B64Geom *      b64_geom        = &scs_ptr->b64_geom[sb_index];
     const int      aligned16_width = (pcs_ptr->aligned_width + 15) >> 4;
 
     const uint8_t disable_intra_pred = (pcs_ptr->tpl_ctrls.disable_intra_pred_nref &&
@@ -1573,7 +1573,7 @@ static AOM_INLINE void tpl_model_update_b(PictureParentControlSet *ref_pcs_ptr,
                                           PictureParentControlSet *pcs_ptr, TplStats *tpl_stats_ptr,
                                           int mi_row, int mi_col, const int /*BLOCK_SIZE*/ bsize) {
     Av1Common *ref_cm = ref_pcs_ptr->av1_cm;
-    TplStats  *ref_tpl_stats_ptr;
+    TplStats * ref_tpl_stats_ptr;
 
     const FULLPEL_MV full_mv     = get_fullmv_from_mv(&tpl_stats_ptr->mv);
     const int        ref_pos_row = mi_row * MI_SIZE + full_mv.row;
@@ -1678,7 +1678,7 @@ static AOM_INLINE void tpl_model_update(PictureParentControlSet *pcs_array[MAX_T
 
 void tpl_mc_flow_synthesizer(PictureParentControlSet *pcs_array[MAX_TPL_LA_SW], int32_t frame_idx,
                              uint8_t frames_in_sw) {
-    Av1Common               *cm        = pcs_array[frame_idx]->av1_cm;
+    Av1Common *              cm        = pcs_array[frame_idx]->av1_cm;
     const int /*BLOCK_SIZE*/ bsize     = pcs_array[frame_idx]->tpl_ctrls.synth_blk_size == 32
             ? BLOCK_32X32
             : BLOCK_16X16;
@@ -1693,7 +1693,7 @@ void tpl_mc_flow_synthesizer(PictureParentControlSet *pcs_array[MAX_TPL_LA_SW], 
     return;
 }
 void generate_r0beta(PictureParentControlSet *pcs_ptr) {
-    Av1Common          *cm                    = pcs_ptr->av1_cm;
+    Av1Common *         cm                    = pcs_ptr->av1_cm;
     SequenceControlSet *scs_ptr               = pcs_ptr->scs_ptr;
     int64_t             recrf_dist_base_sum   = 0;
     int64_t             mc_dep_delta_base_sum = 0;
@@ -1898,7 +1898,7 @@ typedef struct TplRefList {
 * Genrate TPL MC Flow Based on frames in the tpl group
 ************************************************/
 EbErrorType tpl_mc_flow(EncodeContext *encode_context_ptr, SequenceControlSet *scs_ptr,
-                        PictureParentControlSet      *pcs_ptr,
+                        PictureParentControlSet *     pcs_ptr,
                         SourceBasedOperationsContext *context_ptr) {
     int32_t  frames_in_sw         = MIN(MAX_TPL_LA_SW, pcs_ptr->tpl_group_size);
     uint32_t picture_width_in_mb  = (pcs_ptr->enhanced_picture_ptr->width + 16 - 1) / 16;
@@ -2004,7 +2004,7 @@ EbErrorType tpl_mc_flow(EncodeContext *encode_context_ptr, SequenceControlSet *s
 
         for (int32_t frame_idx = 0; frame_idx < frames_in_sw; frame_idx++) {
             PictureParentControlSet *pcs_ptr_tmp      = pcs_ptr->tpl_group[frame_idx];
-            Av1Common               *cm               = pcs_ptr->av1_cm;
+            Av1Common *              cm               = pcs_ptr->av1_cm;
             int64_t                  intra_cost_base  = 0;
             int64_t                  mc_dep_cost_base = 0;
 #if FIX_R2R_TPL_IXX
@@ -2087,10 +2087,10 @@ EbErrorType tpl_mc_flow(EncodeContext *encode_context_ptr, SequenceControlSet *s
 */
 
 void *tpl_disp_kernel(void *input_ptr) {
-    EbThreadContext     *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *    thread_context_ptr = (EbThreadContext *)input_ptr;
     TplDispenserContext *context_ptr        = (TplDispenserContext *)thread_context_ptr->priv;
-    EbObjectWrapper     *in_results_wrapper_ptr;
-    TplDispResults      *in_results_ptr;
+    EbObjectWrapper *    in_results_wrapper_ptr;
+    TplDispResults *     in_results_ptr;
     for (;;) {
         // Get Input Full Object
         EB_GET_FULL_OBJECT(context_ptr->tpl_disp_input_fifo_ptr, &in_results_wrapper_ptr);
@@ -2221,7 +2221,7 @@ void *tpl_disp_kernel(void *input_ptr) {
 
 static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
                                  PictureParentControlSet *pcs, Bool superres_recode) {
-    EbObjectWrapper *out_results_wrapper_ptr;
+    EbObjectWrapper *   out_results_wrapper_ptr;
     SequenceControlSet *scs = pcs->scs_ptr;
     // NB: overlay frames should be non-ref
     // Before sending pics out to pic mgr, ensure that pic mgr can handle them
@@ -2247,7 +2247,7 @@ static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
  * to identify spatiotemporal characteristics of the input pictures.
  ************************************************/
 void *source_based_operations_kernel(void *input_ptr) {
-    EbThreadContext              *thread_context_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *             thread_context_ptr = (EbThreadContext *)input_ptr;
     SourceBasedOperationsContext *context_ptr        = (SourceBasedOperationsContext *)
                                                     thread_context_ptr->priv;
     EbObjectWrapper *in_results_wrapper_ptr;

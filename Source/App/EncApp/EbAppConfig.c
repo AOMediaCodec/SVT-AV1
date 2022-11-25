@@ -256,7 +256,6 @@ static void set_cfg_input_file(const char *filename, EbConfig *cfg) {
     cfg->y4m_input = check_if_y4m(cfg);
 };
 
-
 static void set_cfg_stream_file(const char *value, EbConfig *cfg) {
     if (cfg->bitstream_file && cfg->bitstream_file != stdout) {
         fclose(cfg->bitstream_file);
@@ -293,7 +292,7 @@ static void set_two_pass_stats(const char *value, EbConfig *cfg) {
 #ifndef _WIN32
     cfg->stats = strdup(value);
 #else
-    cfg->stats                      = _strdup(value);
+    cfg->stats = _strdup(value);
 #endif
 }
 
@@ -341,7 +340,7 @@ static void set_cfg_force_key_frames(const char *value, EbConfig *cfg) {
     const char *p = value;
     while (p) {
         const size_t len       = strcspn(p, ",");
-        char        *specifier = (char *)calloc(sizeof(*specifier), len + 1);
+        char *       specifier = (char *)calloc(sizeof(*specifier), len + 1);
         if (!specifier)
             goto err;
         memcpy(specifier, p, len);
@@ -428,7 +427,7 @@ struct ParseOpt {
 };
 
 static struct ParseOpt split_colon_keyequalval_pairs(const char **p) {
-    const char     *str        = *p;
+    const char *    str        = *p;
     struct ParseOpt opt        = {NULL, NULL};
     const size_t    string_len = strcspn(str, ":");
 
@@ -544,7 +543,7 @@ static void set_cfg_chroma_v_ac_qindex_offset(const char *value, EbConfig *cfg) 
 //assume the input list of values are in the format of "[v1,v2,v3,...]"
 int arg_parse_list(const char *value, int *list, int n) {
     const char *ptr = value;
-    char       *endptr;
+    char *      endptr;
     int         i = 0;
     memset(list, 0, n);
     while (ptr[0] != '\0') {
@@ -830,8 +829,8 @@ enum CfgType {
  **********************************/
 typedef struct config_entry_s {
     enum CfgType type;
-    const char  *token;
-    const char  *name;
+    const char * token;
+    const char * name;
     void (*scf)(const char *, EbConfig *);
 } ConfigEntry;
 
@@ -1672,7 +1671,6 @@ void svt_config_dtor(EbConfig *config_ptr) {
         config_ptr->recon_file = (FILE *)NULL;
     }
 
-
     if (config_ptr->error_log_file && config_ptr->error_log_file != stderr) {
         fclose(config_ptr->error_log_file);
         config_ptr->error_log_file = (FILE *)NULL;
@@ -1797,7 +1795,7 @@ static void set_config_value(EbConfig *config, const char *name, const char *val
 **********************************/
 static void parse_config_file(EbConfig *config, char *buffer, int32_t size) {
     uint32_t argc;
-    char    *argv[CONFIG_FILE_MAX_ARG_COUNT];
+    char *   argv[CONFIG_FILE_MAX_ARG_COUNT];
     uint32_t arg_len[CONFIG_FILE_MAX_ARG_COUNT];
 
     char var_name[CONFIG_FILE_MAX_VAR_LEN];
@@ -1912,7 +1910,7 @@ static int32_t read_config_file(EbConfig *config, char *config_path, uint32_t in
 
     if (config_file) {
         int32_t config_file_size   = find_file_size(config_file);
-        char   *config_file_buffer = (char *)malloc(config_file_size);
+        char *  config_file_buffer = (char *)malloc(config_file_size);
 
         if (config_file_buffer) {
             int32_t result_size = (int32_t)fread(
@@ -1950,9 +1948,9 @@ Bool load_twopass_stats_in(EbConfig *cfg) {
     struct _stat file_stat;
     int          ret = _fstat(fd, &file_stat);
 #else
-    int         fd                  = fileno(cfg->input_stat_file);
+    int         fd = fileno(cfg->input_stat_file);
     struct stat file_stat;
-    int         ret         = fstat(fd, &file_stat);
+    int         ret = fstat(fd, &file_stat);
 #endif
     if (ret) {
         return FALSE;
@@ -2252,7 +2250,7 @@ int get_version(int argc, char *argv[]) {
 #ifdef NDEBUG
     static int debug_build = 1;
 #else
-    static int  debug_build = 0;
+    static int debug_build = 0;
 #endif
     if (find_token(argc, argv, VERSION_TOKEN, NULL))
         return 0;
@@ -2656,7 +2654,6 @@ int32_t compute_frames_to_be_encoded(EbConfig *config) {
     return frame_count;
 }
 
-
 static Bool warn_legacy_token(const char *const token) {
     static struct warn_set {
         const char *old_token;
@@ -2696,7 +2693,7 @@ EbErrorType read_command_line(int32_t argc, char *const argv[], EncChannel *chan
                               uint32_t num_channels) {
     EbErrorType return_error = EB_ErrorNone;
     char        config_string[COMMAND_LINE_MAX_SIZE]; // for one input options
-    char       *config_strings[MAX_CHANNEL_NUMBER]; // for multiple input options
+    char *      config_strings[MAX_CHANNEL_NUMBER]; // for multiple input options
     const char *cmd_copy[MAX_NUM_TOKENS]; // keep track of extra tokens
     const char *arg_copy[MAX_NUM_TOKENS]; // keep track of extra arguments
     uint32_t    index = 0;

@@ -29,11 +29,11 @@
 #include "EbResize.h"
 #include "EbMetadataHandle.h"
 typedef struct ResourceCoordinationContext {
-    EbFifo                        *input_cmd_fifo_ptr;
-    EbFifo                        *resource_coordination_results_output_fifo_ptr;
-    EbFifo                       **picture_control_set_fifo_ptr_array;
+    EbFifo *                       input_cmd_fifo_ptr;
+    EbFifo *                       resource_coordination_results_output_fifo_ptr;
+    EbFifo **                      picture_control_set_fifo_ptr_array;
     EbSequenceControlSetInstance **scs_instance_array;
-    EbCallback                   **app_callback_ptr_array;
+    EbCallback **                  app_callback_ptr_array;
 
     // Compute Segments
     uint32_t compute_segments_total_count_array;
@@ -78,7 +78,7 @@ static void resource_coordination_context_dctor(EbPtr p) {
  * Resource Coordination Context Constructor
  ************************************************/
 EbErrorType resource_coordination_context_ctor(EbThreadContext *thread_contxt_ptr,
-                                               EbEncHandle     *enc_handle_ptr) {
+                                               EbEncHandle *    enc_handle_ptr) {
     ResourceCoordinationContext *context_ptr;
     EB_CALLOC_ARRAY(context_ptr, 1);
     thread_contxt_ptr->priv  = context_ptr;
@@ -443,15 +443,15 @@ static void assign_film_grain_random_seed(PictureParentControlSet *pcs) {
 }
 static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs_ptr) {
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
-    Av1Common   *cm      = pcs_ptr->av1_cm;
+    Av1Common *  cm      = pcs_ptr->av1_cm;
 
     pcs_ptr->gf_interval = 0;
 
-    pcs_ptr->reference_released = 0;
+    pcs_ptr->reference_released                 = 0;
     frm_hdr->skip_mode_params.skip_mode_allowed = 0;
     frm_hdr->skip_mode_params.skip_mode_flag    = 0;
-    frm_hdr->frame_type     = KEY_FRAME;
-    frm_hdr->show_frame     = 1;
+    frm_hdr->frame_type                         = KEY_FRAME;
+    frm_hdr->show_frame                         = 1;
     frm_hdr->showable_frame = 1; // frame can be used as show existing frame in future
     // Flag for a frame used as a reference - not written to the Bitstream
     pcs_ptr->is_reference_frame = 0;
@@ -738,7 +738,7 @@ static EbErrorType realloc_sb_param(SequenceControlSet *scs_ptr, PictureParentCo
 
 static void update_frame_event(PictureParentControlSet *pcs_ptr) {
     SequenceControlSet *scs_ptr = pcs_ptr->scs_ptr;
-    EbPrivDataNode     *node    = (EbPrivDataNode *)pcs_ptr->input_ptr->p_app_private;
+    EbPrivDataNode *    node    = (EbPrivDataNode *)pcs_ptr->input_ptr->p_app_private;
     while (node) {
         if (node->node_type == REF_FRAME_SCALING_EVENT) {
             // update resize denominator by input event
@@ -785,22 +785,22 @@ static void update_frame_event(PictureParentControlSet *pcs_ptr) {
 *
 ********************************************************************************/
 void *resource_coordination_kernel(void *input_ptr) {
-    EbThreadContext             *enc_contxt_ptr = (EbThreadContext *)input_ptr;
+    EbThreadContext *            enc_contxt_ptr = (EbThreadContext *)input_ptr;
     ResourceCoordinationContext *context_ptr = (ResourceCoordinationContext *)enc_contxt_ptr->priv;
 
     EbObjectWrapper *pcs_wrapper_ptr;
 
     PictureParentControlSet *pcs_ptr;
-    SequenceControlSet      *scs_ptr;
+    SequenceControlSet *     scs_ptr;
 
-    EbObjectWrapper             *eb_input_wrapper_ptr;
-    EbBufferHeaderType          *eb_input_ptr;
-    EbObjectWrapper             *output_wrapper_ptr;
+    EbObjectWrapper *            eb_input_wrapper_ptr;
+    EbBufferHeaderType *         eb_input_ptr;
+    EbObjectWrapper *            output_wrapper_ptr;
     ResourceCoordinationResults *out_results_ptr;
-    EbObjectWrapper             *eb_input_cmd_wrapper;
-    InputCommand                *input_cmd_obj;
-    EbObjectWrapper             *input_picture_wrapper_ptr;
-    EbObjectWrapper             *reference_picture_wrapper_ptr;
+    EbObjectWrapper *            eb_input_cmd_wrapper;
+    InputCommand *               input_cmd_obj;
+    EbObjectWrapper *            input_picture_wrapper_ptr;
+    EbObjectWrapper *            reference_picture_wrapper_ptr;
 
     Bool             end_of_sequence_flag = FALSE;
     EbObjectWrapper *prev_pcs_wrapper_ptr = 0;
@@ -813,9 +813,9 @@ void *resource_coordination_kernel(void *input_ptr) {
 
         input_cmd_obj = (InputCommand *)eb_input_cmd_wrapper->object_ptr;
 
-        EbObjectWrapper    *eb_y8b_wrapper_ptr = input_cmd_obj->eb_y8b_wrapper_ptr;
+        EbObjectWrapper *   eb_y8b_wrapper_ptr = input_cmd_obj->eb_y8b_wrapper_ptr;
         EbBufferHeaderType *y8b_header = (EbBufferHeaderType *)eb_y8b_wrapper_ptr->object_ptr;
-        uint8_t            *buff_y8b   = ((EbPictureBufferDesc *)y8b_header->p_buffer)->buffer_y;
+        uint8_t *           buff_y8b   = ((EbPictureBufferDesc *)y8b_header->p_buffer)->buffer_y;
         eb_input_wrapper_ptr           = input_cmd_obj->eb_input_wrapper_ptr;
         eb_input_ptr                   = (EbBufferHeaderType *)eb_input_wrapper_ptr->object_ptr;
 
@@ -1050,10 +1050,10 @@ void *resource_coordination_kernel(void *input_ptr) {
                 svt_object_inc_live_count(pcs_ptr->eb_y8b_wrapper_ptr, 1);
             }
             if (scs_ptr->static_config.restricted_motion_vector) {
-                struct PictureParentControlSet *ppcs_ptr = pcs_ptr;
-                Av1Common *const                cm       = ppcs_ptr->av1_cm;
-                uint8_t                         pic_width_in_sb =
-                    (uint8_t)((pcs_ptr->aligned_width + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
+                struct PictureParentControlSet *ppcs_ptr        = pcs_ptr;
+                Av1Common *const                cm              = ppcs_ptr->av1_cm;
+                uint8_t                         pic_width_in_sb = (uint8_t)(
+                    (pcs_ptr->aligned_width + scs_ptr->sb_size - 1) / scs_ptr->sb_size);
                 int       tile_row, tile_col;
                 uint32_t  x_sb_index, y_sb_index;
                 const int tile_cols = cm->tiles_info.tile_cols;

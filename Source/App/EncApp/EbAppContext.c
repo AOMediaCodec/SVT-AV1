@@ -23,9 +23,9 @@
  * Variables Defining a memory table
  *  hosting all allocated pointers
  ***************************************/
-EbMemoryMapEntry        *app_memory_map;
-uint32_t                *app_memory_map_index;
-uint64_t                *total_app_memory;
+EbMemoryMapEntry *       app_memory_map;
+uint32_t *               app_memory_map_index;
+uint64_t *               total_app_memory;
 uint32_t                 app_malloc_count = 0;
 static EbMemoryMapEntry *app_memory_map_all_channels[MAX_CHANNEL_NUMBER];
 static uint32_t          app_memory_map_index_all_channels[MAX_CHANNEL_NUMBER];

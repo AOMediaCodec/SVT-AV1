@@ -88,10 +88,10 @@ static inline bool compare_image(const VideoFrame *recon,
 
     // cb
     index = 0;
-    for (uint32_t l = 0; l < (height + subsample_y) >> subsample_y; l++) {
+    for (uint32_t l = 0; l<(height + subsample_y)> > subsample_y; l++) {
         const uint8_t *s = recon->planes[1] + l * recon->stride[1];
         const uint8_t *d = ref_frame->planes[1] + l * ref_frame->stride[1];
-        for (uint32_t r = 0; r < (width + subsample_x) >> subsample_x; r++) {
+        for (uint32_t r = 0; r<(width + subsample_x)> > subsample_x; r++) {
             const uint16_t s_pixel = recon->bits_per_sample == 8
                                          ? s[r]
                                          : (((uint16_t *)s)[r] & 0x3FF);
@@ -108,10 +108,10 @@ static inline bool compare_image(const VideoFrame *recon,
 
     // cr
     index = 0;
-    for (uint32_t l = 0; l < (height + subsample_y) >> subsample_y; l++) {
+    for (uint32_t l = 0; l<(height + subsample_y)> > subsample_y; l++) {
         const uint8_t *s = recon->planes[2] + l * recon->stride[2];
         const uint8_t *d = ref_frame->planes[2] + l * ref_frame->stride[2];
-        for (uint32_t r = 0; r < (width + subsample_x) >> subsample_x; r++) {
+        for (uint32_t r = 0; r<(width + subsample_x)> > subsample_x; r++) {
             const uint16_t s_pixel = recon->bits_per_sample == 8
                                          ? s[r]
                                          : (((uint16_t *)s)[r] & 0x3FF);

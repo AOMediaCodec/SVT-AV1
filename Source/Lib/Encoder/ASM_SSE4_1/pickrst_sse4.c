@@ -1598,7 +1598,7 @@ static void compute_stats_win3_sse4_1(const int16_t *const d, const int32_t d_st
     const int32_t h4          = height & ~3;
     const int32_t h8          = height & ~7;
     const __m128i mask[2]     = {_mm_loadu_si128((__m128i *)(mask_16bit[width - w16])),
-                                 _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
+                             _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
     int32_t       i, j, x, y;
 
     if (bit_depth == EB_EIGHT_BIT) {
@@ -2041,7 +2041,7 @@ static void compute_stats_win3_sse4_1(const int16_t *const d, const int32_t d_st
         do {
             const int16_t *const d_j                                   = d + j;
             __m128i              deltas[WIENER_WIN_3TAP - 1][WIN_3TAP] = {{_mm_setzero_si128()},
-                                                                          {_mm_setzero_si128()}};
+                                                             {_mm_setzero_si128()}};
             __m128i              d_is[WIN_3TAP], d_ie[WIN_3TAP];
             __m128i              d_js[WIN_3TAP], d_je[WIN_3TAP];
             __m128i              delta64[2];
@@ -2131,7 +2131,7 @@ static void compute_stats_win5_sse4_1(const int16_t *const d, const int32_t d_st
     const int32_t w16         = width & ~15;
     const int32_t h8          = height & ~7;
     const __m128i mask[2]     = {_mm_loadu_si128((__m128i *)(mask_16bit[width - w16])),
-                                 _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
+                             _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
     int32_t       i, j, x, y;
 
     if (bit_depth == EB_EIGHT_BIT) {
@@ -2680,7 +2680,7 @@ static void compute_stats_win5_sse4_1(const int16_t *const d, const int32_t d_st
         do {
             const int16_t *const d_j                                       = d + j;
             __m128i              deltas[WIENER_WIN_CHROMA - 1][WIN_CHROMA] = {{_mm_setzero_si128()},
-                                                                              {_mm_setzero_si128()}};
+                                                                 {_mm_setzero_si128()}};
             __m128i              d_is[WIN_CHROMA], d_ie[WIN_CHROMA];
             __m128i              d_js[WIN_CHROMA], d_je[WIN_CHROMA];
 
@@ -2798,7 +2798,7 @@ static void compute_stats_win7_sse4_1(const int16_t *const d, const int32_t d_st
     const int32_t w16         = width & ~15;
     const int32_t h8          = height & ~7;
     const __m128i mask[2]     = {_mm_loadu_si128((__m128i *)(mask_16bit[width - w16])),
-                                 _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
+                             _mm_loadu_si128((__m128i *)(mask_16bit[width - w16] + 8))};
     int32_t       i, j, x, y;
 
     if (bit_depth == EB_EIGHT_BIT) {
@@ -3526,7 +3526,7 @@ void svt_av1_compute_stats_sse4_1(int32_t wiener_win, const uint8_t *dgd, const 
     const int32_t height   = v_end - v_start;
     const int32_t d_stride = (width + 2 * wiener_halfwin + 15) & ~15;
     const int32_t s_stride = (width + 15) & ~15;
-    int16_t      *d, *s;
+    int16_t *     d, *s;
 
     // The maximum input size is width * height, which is
     // (9 / 4) * RESTORATION_UNITSIZE_MAX * RESTORATION_UNITSIZE_MAX. Enlarge to
@@ -3592,7 +3592,7 @@ void svt_av1_compute_stats_highbd_sse4_1(int32_t wiener_win, const uint8_t *dgd8
     const int32_t height   = v_end - v_start;
     const int32_t d_stride = (width + 2 * wiener_halfwin + 15) & ~15;
     const int32_t s_stride = (width + 15) & ~15;
-    int16_t      *d, *s;
+    int16_t *     d, *s;
 
     // The maximum input size is width * height, which is
     // (9 / 4) * RESTORATION_UNITSIZE_MAX * RESTORATION_UNITSIZE_MAX. Enlarge to

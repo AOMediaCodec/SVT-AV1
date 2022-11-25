@@ -348,11 +348,11 @@ typedef struct MeContext {
     uint8_t *b64_src_ptr;
     uint32_t b64_src_stride;
 
-    uint8_t  *quarter_b64_buffer;
+    uint8_t * quarter_b64_buffer;
     uint32_t  quarter_b64_buffer_stride;
-    uint8_t  *sixteenth_b64_buffer;
+    uint8_t * sixteenth_b64_buffer;
     uint32_t  sixteenth_b64_buffer_stride;
-    uint8_t  *integer_buffer_ptr[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX];
+    uint8_t * integer_buffer_ptr[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX];
     uint32_t *p_best_sad_8x8;
     uint32_t *p_best_sad_16x16;
     uint32_t *p_best_sad_32x32;
@@ -375,7 +375,7 @@ typedef struct MeContext {
     EB_ALIGN(64) uint32_t p_eight_sad32x32[4][8];
     EB_ALIGN(64) uint32_t p_eight_sad16x16[16][8];
     EB_ALIGN(64) uint32_t p_eight_sad8x8[64][8];
-    EbBitFraction     *mvd_bits_array;
+    EbBitFraction *    mvd_bits_array;
     uint8_t            hme_search_method;
     uint8_t            me_search_method;
     Bool               enable_hme_flag;
@@ -431,7 +431,7 @@ typedef struct MeContext {
     // ------- Context for Alt-Ref ME ------
     uint16_t adj_search_area_width;
     uint16_t adj_search_area_height;
-    void    *alt_ref_reference_ptr;
+    void *   alt_ref_reference_ptr;
     // Open Loop ME
     EbMeType                    me_type;
     EbDownScaledBufDescPtrArray mctf_ref_desc_ptr_array;

@@ -22,8 +22,8 @@ extern "C" {
 // transformed data and a temporary working buffer to use during the
 // transform.
 struct aom_noise_tx_t {
-    float  *tx_block;
-    float  *temp;
+    float * tx_block;
+    float * temp;
     int32_t block_size;
     void (*fft)(const float *, float *, float *);
     void (*ifft)(const float *, float *, float *);

@@ -164,7 +164,7 @@ typedef enum {
  * This structure is able to hold a reference to any fixed size buffer.
  */
 typedef struct SvtAv1FixedBuf {
-    void    *buf; /**< Pointer to the data. Does NOT own the data! */
+    void *   buf; /**< Pointer to the data. Does NOT own the data! */
     uint64_t sz; /**< Length of the buffer, in chars */
 } SvtAv1FixedBuf; /**< alias for struct aom_fixed_buf */
 
@@ -929,7 +929,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component);
      * Parameter:
      * @ *svt_enc_component   Encoder handler.
      * @ **output_stream_ptr  Output buffer. */
-EB_API EbErrorType svt_av1_enc_stream_header(EbComponentType     *svt_enc_component,
+EB_API EbErrorType svt_av1_enc_stream_header(EbComponentType *    svt_enc_component,
                                              EbBufferHeaderType **output_stream_ptr);
 
 /* OPTIONAL: Release stream headers at init time.
@@ -943,7 +943,7 @@ EB_API EbErrorType svt_av1_enc_stream_header_release(EbBufferHeaderType *stream_
      * Parameter:
      * @ *svt_enc_component  Encoder handler.
      * @ *p_buffer           Header pointer, picture buffer. */
-EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType    *svt_enc_component,
+EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType *   svt_enc_component,
                                             EbBufferHeaderType *p_buffer);
 
 /* STEP 5: Receive packet.
@@ -952,7 +952,7 @@ EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType    *svt_enc_componen
      * @ **p_buffer          Header pointer to return packet with.
      * @ pic_send_done       Flag to signal that all input pictures have been sent, this call becomes locking one this signal is 1.
      * Non-locking call, returns EB_ErrorMax for an encode error, EB_NoErrorEmptyQueue when the library does not have any available packets.*/
-EB_API EbErrorType svt_av1_enc_get_packet(EbComponentType     *svt_enc_component,
+EB_API EbErrorType svt_av1_enc_get_packet(EbComponentType *    svt_enc_component,
                                           EbBufferHeaderType **p_buffer, uint8_t pic_send_done);
 
 /* STEP 5-1: Release output buffer back into the pool.
@@ -966,7 +966,7 @@ EB_API void svt_av1_enc_release_out_buffer(EbBufferHeaderType **p_buffer);
      * Parameter:
      * @ *svt_enc_component  Encoder handler.
      * @ *p_buffer           Output buffer. */
-EB_API EbErrorType svt_av1_get_recon(EbComponentType    *svt_enc_component,
+EB_API EbErrorType svt_av1_get_recon(EbComponentType *   svt_enc_component,
                                      EbBufferHeaderType *p_buffer);
 
 /* OPTIONAL: get stream information

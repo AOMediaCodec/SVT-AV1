@@ -141,10 +141,10 @@ int64_t svt_av1_refine_integerized_param(EbWarpedMotionParams *wm, Transformatio
     const int        border                              = ERRORADV_BORDER;
     int              i                                   = 0, p;
     int              n_params                            = max_trans_model_params[wmtype];
-    int32_t         *param_mat                           = wm->wmmat;
+    int32_t *        param_mat                           = wm->wmmat;
     int64_t          step_error, best_error;
     int32_t          step;
-    int32_t         *param;
+    int32_t *        param;
     int32_t          curr_param;
     int32_t          best_param;
 
@@ -279,14 +279,14 @@ static int compute_global_motion_feature_based(TransformationType type, unsigned
                                                int frm_width, int frm_height, int frm_stride,
                                                int *frm_corners, int num_frm_corners, uint8_t *ref,
                                                int ref_stride, int bit_depth,
-                                               int         *num_inliers_by_motion,
+                                               int *        num_inliers_by_motion,
                                                MotionModel *params_by_motion, int num_motions) {
     (void)bit_depth;
     assert(bit_depth == EB_EIGHT_BIT);
     int            i;
     int            num_ref_corners;
     int            num_correspondences;
-    int           *correspondences;
+    int *          correspondences;
     int            ref_corners[2 * MAX_CORNERS];
     unsigned char *ref_buffer = ref;
     RansacFunc     ransac     = svt_av1_get_ransac_type(type);

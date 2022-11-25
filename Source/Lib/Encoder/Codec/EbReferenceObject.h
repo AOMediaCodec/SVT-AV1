@@ -20,13 +20,13 @@
 
 typedef struct EbReferenceObject {
     EbDctor                     dctor;
-    EbPictureBufferDesc        *reference_picture;
-    EbPictureBufferDesc        *quarter_reference_picture;
-    EbPictureBufferDesc        *sixteenth_reference_picture;
+    EbPictureBufferDesc *       reference_picture;
+    EbPictureBufferDesc *       quarter_reference_picture;
+    EbPictureBufferDesc *       sixteenth_reference_picture;
     EbDownScaledBufDescPtrArray ds_pics; // Pointer array for down scaled pictures
-    EbPictureBufferDesc        *input_picture;
-    EbPictureBufferDesc        *quarter_input_picture;
-    EbPictureBufferDesc        *sixteenth_input_picture;
+    EbPictureBufferDesc *       input_picture;
+    EbPictureBufferDesc *       quarter_input_picture;
+    EbPictureBufferDesc *       sixteenth_input_picture;
     EbPictureBufferDesc *downscaled_reference_picture[NUM_SR_SCALES + 1][NUM_RESIZE_SCALES + 1];
     uint64_t
         downscaled_picture_number[NUM_SR_SCALES + 1]
@@ -45,7 +45,7 @@ typedef struct EbReferenceObject {
     int8_t               sg_frame_ep;
     FRAME_CONTEXT        frame_context;
     EbWarpedMotionParams global_motion[TOTAL_REFS_PER_FRAME];
-    MV_REF              *mvs;
+    MV_REF *             mvs;
     FrameType            frame_type;
     uint32_t             order_hint;
     uint32_t             ref_order_hint[7];
@@ -55,11 +55,11 @@ typedef struct EbReferenceObject {
     int32_t              filter_level_v;
     uint32_t             ref_cdef_strengths_num;
     uint8_t              ref_cdef_strengths[2][TOTAL_STRENGTHS];
-    uint8_t             *sb_intra;
-    uint8_t             *sb_skip;
-    uint8_t             *sb_64x64_mvp;
-    uint32_t            *sb_me_64x64_dist;
-    uint32_t            *sb_me_8x8_cost_var;
+    uint8_t *            sb_intra;
+    uint8_t *            sb_skip;
+    uint8_t *            sb_64x64_mvp;
+    uint32_t *           sb_me_64x64_dist;
+    uint32_t *           sb_me_8x8_cost_var;
     int32_t              mi_cols;
     int32_t              mi_rows;
     WienerUnitInfo *

@@ -390,7 +390,7 @@ void svt_av1_build_nmv_cost_table(int32_t *mvjoint, int32_t *mvcost[2], const Nm
 * Estimate the rate of motion vectors
 * based on the frame CDF
 ***************************************************************************/
-void av1_estimate_mv_rate(PictureControlSet       *pcs_ptr,
+void av1_estimate_mv_rate(PictureControlSet *      pcs_ptr,
                           MdRateEstimationContext *md_rate_estimation_array, FRAME_CONTEXT *fc)
 
 {
@@ -404,8 +404,8 @@ void av1_estimate_mv_rate(PictureControlSet       *pcs_ptr,
             &pcs_ptr->parent_pcs_ptr->scs_ptr->nmv_costs[1][MV_MAX];
         return;
     }
-    int32_t     *nmvcost[2];
-    int32_t     *nmvcost_hp[2];
+    int32_t *    nmvcost[2];
+    int32_t *    nmvcost_hp[2];
     FrameHeader *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
 
     nmvcost[0]                      = &md_rate_estimation_array->nmv_costs[0][MV_MAX];
@@ -492,7 +492,7 @@ void copy_mv_rate(PictureControlSet *pcs, MdRateEstimationContext *dst_rate) {
 * based on the frame CDF
 ***************************************************************************/
 void av1_estimate_coefficients_rate(MdRateEstimationContext *md_rate_estimation_array,
-                                    FRAME_CONTEXT           *fc) {
+                                    FRAME_CONTEXT *          fc) {
     const int32_t num_planes = 3; // NM - Hardcoded to 3
     const int32_t nplanes    = AOMMIN(num_planes, PLANE_TYPES);
 
@@ -826,7 +826,7 @@ static AOM_INLINE void update_inter_mode_stats(FRAME_CONTEXT *fc, PredictionMode
  ******************************************************************************/
 static AOM_INLINE void update_palette_cdf(MacroBlockD *xd, const MbModeInfo *const mbmi,
                                           BlkStruct *blk_ptr, const int mi_row, const int mi_col) {
-    FRAME_CONTEXT   *fc                = xd->tile_ctx;
+    FRAME_CONTEXT *  fc                = xd->tile_ctx;
     const BlockGeom *blk_geom          = get_blk_geom_mds(blk_ptr->mds_idx);
     const BlockSize  bsize             = blk_geom->bsize;
     const int        palette_bsize_ctx = av1_get_palette_bsize_ctx(bsize);
@@ -860,11 +860,11 @@ static AOM_INLINE void update_palette_cdf(MacroBlockD *xd, const MbModeInfo *con
 static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs_ptr, BlkStruct *blk_ptr,
                                        const MbModeInfo *above_mi, const MbModeInfo *left_mi,
                                        const int intraonly, const int mi_row, const int mi_col) {
-    MacroBlockD            *xd       = blk_ptr->av1xd;
+    MacroBlockD *           xd       = blk_ptr->av1xd;
     const MbModeInfo *const mbmi     = &xd->mi[0]->mbmi;
-    FRAME_CONTEXT          *fc       = xd->tile_ctx;
+    FRAME_CONTEXT *         fc       = xd->tile_ctx;
     const PredictionMode    y_mode   = mbmi->block_mi.mode;
-    const BlockGeom        *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
+    const BlockGeom *       blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
     const BlockSize         bsize    = mbmi->block_mi.sb_type;
     assert(bsize < BlockSizeS_ALL);
     assert(y_mode < 13);
@@ -929,7 +929,7 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs_ptr, BlkStruct *bl
  ******************************************************************************/
 void update_stats(PictureControlSet *pcs_ptr, BlkStruct *blk_ptr, int mi_row, int mi_col) {
     //    const AV1_COMMON *const cm   = pcs_ptr->parent_pcs_ptr->av1_cm;
-    MacroBlockD            *xd   = blk_ptr->av1xd;
+    MacroBlockD *           xd   = blk_ptr->av1xd;
     const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;
 
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
@@ -1189,10 +1189,10 @@ void update_stats(PictureControlSet *pcs_ptr, BlkStruct *blk_ptr, int mi_row, in
 void update_part_stats(PictureControlSet *pcs_ptr, BlkStruct *blk_ptr, uint16_t tile_idx,
                        int mi_row, int mi_col) {
     const AV1_COMMON *const cm       = pcs_ptr->parent_pcs_ptr->av1_cm;
-    MacroBlockD            *xd       = blk_ptr->av1xd;
-    const BlockGeom        *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
+    MacroBlockD *           xd       = blk_ptr->av1xd;
+    const BlockGeom *       blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
     BlockSize               bsize    = blk_geom->bsize;
-    FRAME_CONTEXT          *fc       = xd->tile_ctx;
+    FRAME_CONTEXT *         fc       = xd->tile_ctx;
     assert(bsize < BlockSizeS_ALL);
 
     if (mi_row >= cm->mi_rows || mi_col >= cm->mi_cols)

@@ -120,9 +120,9 @@ void svt_ext_sad_calculation_8x8_16x16_avx2_intrin(uint8_t *src, uint32_t src_st
  * General version for SAD computing that support any block width and height
 *******************************************************************************/
 void sad_loop_kernel_generalized_avx2(
-    uint8_t  *src, // input parameter, source samples Ptr
+    uint8_t * src, // input parameter, source samples Ptr
     uint32_t  src_stride, // input parameter, source stride
-    uint8_t  *ref, // input parameter, reference samples Ptr
+    uint8_t * ref, // input parameter, reference samples Ptr
     uint32_t  ref_stride, // input parameter, reference stride
     uint32_t  block_height, // input parameter, block height (M)
     uint32_t  block_width, // input parameter, block width (N)
@@ -409,9 +409,9 @@ void sad_loop_kernel_generalized_avx2(
  * Requirement: block_height % 2 = 0 when width = 4, 6 or 8
 *******************************************************************************/
 void svt_sad_loop_kernel_avx2_intrin(
-    uint8_t  *src, // input parameter, source samples Ptr
+    uint8_t * src, // input parameter, source samples Ptr
     uint32_t  src_stride, // input parameter, source stride
-    uint8_t  *ref, // input parameter, reference samples Ptr
+    uint8_t * ref, // input parameter, reference samples Ptr
     uint32_t  ref_stride, // input parameter, reference stride
     uint32_t  block_height, // input parameter, block height (M)
     uint32_t  block_width, // input parameter, block width (N)
@@ -4995,9 +4995,9 @@ int fp_mv_err_cost(const MV *mv, const MV_COST_PARAMS *mv_cost_params);
     }
 
 void svt_pme_sad_loop_kernel_avx2(const struct svt_mv_cost_param *mv_cost_params,
-                                  uint8_t  *src, // input parameter, source samples Ptr
+                                  uint8_t * src, // input parameter, source samples Ptr
                                   uint32_t  src_stride, // input parameter, source stride
-                                  uint8_t  *ref, // input parameter, reference samples Ptr
+                                  uint8_t * ref, // input parameter, reference samples Ptr
                                   uint32_t  ref_stride, // input parameter, reference stride
                                   uint32_t  block_height, // input parameter, block height (M)
                                   uint32_t  block_width, // input parameter, block width (N)

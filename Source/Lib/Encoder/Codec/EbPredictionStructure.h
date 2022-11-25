@@ -65,11 +65,11 @@ typedef struct PredictionStructureConfig {
 typedef struct PredictionStructureEntry {
     ReferenceList ref_list0;
     ReferenceList ref_list1;
-    uint32_t dep_list0_count;
-    uint32_t dep_list1_count;
-    uint32_t temporal_layer_index;
-    uint32_t decode_order;
-    Bool     is_referenced;
+    uint32_t      dep_list0_count;
+    uint32_t      dep_list1_count;
+    uint32_t      temporal_layer_index;
+    uint32_t      decode_order;
+    Bool          is_referenced;
 } PredictionStructureEntry;
 
 /************************************************
@@ -100,7 +100,7 @@ typedef struct PredictionStructureGroup {
     EbDctor               dctor;
     PredictionStructure **prediction_structure_ptr_array;
     uint32_t              prediction_structure_count;
-    void                 *priv; /* private member*/
+    void *                priv; /* private member*/
     uint8_t               ref_count_used;
 } PredictionStructureGroup;
 

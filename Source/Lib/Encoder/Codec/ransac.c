@@ -212,9 +212,9 @@ static int find_translation(int np, double *pts1, double *pts2, double *mat) {
 
 static int find_rotzoom(int np, double *pts1, double *pts2, double *mat) {
     const int np2  = np * 2;
-    double   *a    = (double *)malloc(sizeof(*a) * (np2 * 5 + 20));
-    double   *b    = a + np2 * 4;
-    double   *temp = b + np2;
+    double *  a    = (double *)malloc(sizeof(*a) * (np2 * 5 + 20));
+    double *  b    = a + np2 * 4;
+    double *  temp = b + np2;
 
     double t1[9], t2[9];
     normalize_homography(pts1, np, t1);
@@ -250,7 +250,7 @@ static int find_rotzoom(int np, double *pts1, double *pts2, double *mat) {
 static int find_affine(int np, double *pts1, double *pts2, double *mat) {
     assert(np > 0);
     const int np2 = np * 2;
-    double   *a   = (double *)malloc(sizeof(*a) * (np2 * 7 + 42));
+    double *  a   = (double *)malloc(sizeof(*a) * (np2 * 7 + 42));
     if (a == NULL)
         return 1;
     double *b    = a + np2 * 6;
@@ -318,7 +318,7 @@ static int get_rand_indices(int npoints, int minpts, int *indices, unsigned int 
 typedef struct {
     int    num_inliers;
     double variance;
-    int   *inlier_indices;
+    int *  inlier_indices;
 } RANSAC_MOTION;
 
 // Return -1 if 'a' is a better motion, 1 if 'b' is better, 0 otherwise.

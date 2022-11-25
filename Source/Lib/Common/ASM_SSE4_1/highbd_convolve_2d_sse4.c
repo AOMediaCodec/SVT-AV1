@@ -204,7 +204,7 @@ void svt_av1_highbd_jnt_convolve_2d_sse4_1(const uint16_t *src, int32_t src_stri
     }
 
     DECLARE_ALIGNED(16, int16_t, im_block[(MAX_SB_SIZE + MAX_FILTER_TAP - 1) * MAX_SB_SIZE]);
-    ConvBufType          *dst        = conv_params->dst;
+    ConvBufType *         dst        = conv_params->dst;
     int                   dst_stride = conv_params->dst_stride;
     int                   im_h       = h + filter_params_y->taps - 1;
     int                   im_stride  = MAX_SB_SIZE;

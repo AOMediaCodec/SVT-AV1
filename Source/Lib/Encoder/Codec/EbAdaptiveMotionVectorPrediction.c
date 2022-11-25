@@ -62,7 +62,7 @@ static INLINE void clamp_mv_ref(MV *mv, int32_t bw, int32_t bh, const MacroBlock
 static void add_ref_mv_candidate(const ModeInfo *const   candidate_mi,
                                  const MbModeInfo *const candidate, const MvReferenceFrame rf[2],
                                  uint8_t *refmv_count, uint8_t *ref_match_count,
-                                 uint8_t    *newmv_count,
+                                 uint8_t *   newmv_count,
                                  CandidateMv ref_mv_stack[MAX_REF_MV_STACK_SIZE], int32_t len,
                                  IntMv *gm_mv_candidates, const EbWarpedMotionParams *gm_params,
                                  int32_t col, int32_t weight) {
@@ -1071,8 +1071,8 @@ void init_xd(PictureControlSet *pcs_ptr, ModeDecisionContext *context_ptr) {
 
     int32_t       mi_row = context_ptr->blk_origin_y >> MI_SIZE_LOG2;
     int32_t       mi_col = context_ptr->blk_origin_x >> MI_SIZE_LOG2;
-    Av1Common    *cm     = pcs_ptr->parent_pcs_ptr->av1_cm;
-    MacroBlockD  *xd     = context_ptr->blk_ptr->av1xd;
+    Av1Common *   cm     = pcs_ptr->parent_pcs_ptr->av1_cm;
+    MacroBlockD * xd     = context_ptr->blk_ptr->av1xd;
     BlockSize     bsize  = context_ptr->blk_geom->bsize;
     const int32_t bw     = mi_size_wide[bsize];
     const int32_t bh     = mi_size_high[bsize];
@@ -1161,7 +1161,7 @@ void generate_av1_mvp_table(ModeDecisionContext *context_ptr, BlkStruct *blk_ptr
                             PictureControlSet *pcs_ptr) {
     int32_t      mi_row  = blk_origin_y >> MI_SIZE_LOG2;
     int32_t      mi_col  = blk_origin_x >> MI_SIZE_LOG2;
-    Av1Common   *cm      = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *  cm      = pcs_ptr->parent_pcs_ptr->av1_cm;
     FrameHeader *frm_hdr = &pcs_ptr->parent_pcs_ptr->frm_hdr;
     MacroBlockD *xd      = blk_ptr->av1xd;
     BlockSize    bsize   = blk_geom->bsize;
@@ -1389,7 +1389,7 @@ void update_mi_map(BlkStruct *blk_ptr, uint32_t blk_origin_x, uint32_t blk_origi
 
     ModeInfo *mi_ptr = *(pcs_ptr->mi_grid_base + offset);
     // use idx 0 as that's the first mbmmi in the block
-    MbModeInfo       *mbmi     = &mi_ptr[0].mbmi;
+    MbModeInfo *      mbmi     = &mi_ptr[0].mbmi;
     BlockModeInfoEnc *block_mi = &mi_ptr[0].mbmi.block_mi;
 
     // copy mbmi data
@@ -1593,7 +1593,7 @@ int av1_find_samples(const Av1Common *cm, const BlockSize sb_size, MacroBlockD *
 void wm_count_samples(BlkStruct *blk_ptr, const BlockSize sb_size, const BlockGeom *blk_geom,
                       uint16_t blk_origin_x, uint16_t blk_origin_y, uint8_t ref_frame_type,
                       PictureControlSet *pcs_ptr, uint16_t *num_samples) {
-    Av1Common   *cm = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *  cm = pcs_ptr->parent_pcs_ptr->av1_cm;
     MacroBlockD *xd = blk_ptr->av1xd;
 
     int32_t mi_row = blk_origin_y >> MI_SIZE_LOG2;
@@ -1719,7 +1719,7 @@ void wm_count_samples(BlkStruct *blk_ptr, const BlockSize sb_size, const BlockGe
 uint16_t wm_find_samples(BlkStruct *blk_ptr, const BlockGeom *blk_geom, uint16_t blk_origin_x,
                          uint16_t blk_origin_y, MvReferenceFrame rf0, PictureControlSet *pcs_ptr,
                          int32_t *pts, int32_t *pts_inref) {
-    Av1Common   *cm = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *  cm = pcs_ptr->parent_pcs_ptr->av1_cm;
     MacroBlockD *xd = blk_ptr->av1xd;
 
     int32_t mi_row = blk_origin_y >> MI_SIZE_LOG2;
@@ -1836,7 +1836,7 @@ int count_overlappable_nb_left(const Av1Common *cm, MacroBlockD *xd, int32_t mi_
 
 void svt_av1_count_overlappable_neighbors(const PictureControlSet *pcs_ptr, BlkStruct *blk_ptr,
                                           const BlockSize bsize, int32_t mi_row, int32_t mi_col) {
-    Av1Common   *cm                                             = pcs_ptr->parent_pcs_ptr->av1_cm;
+    Av1Common *  cm                                             = pcs_ptr->parent_pcs_ptr->av1_cm;
     MacroBlockD *xd                                             = blk_ptr->av1xd;
     blk_ptr->prediction_unit_array[0].overlappable_neighbors[0] = 0;
     blk_ptr->prediction_unit_array[0].overlappable_neighbors[1] = 0;

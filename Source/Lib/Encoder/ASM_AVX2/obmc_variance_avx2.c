@@ -186,7 +186,7 @@ static INLINE void obmc_variance_w16n(const uint8_t *pre, const int pre_stride, 
                                                        int            pre_stride, \
                                                        const int32_t *wsrc,       \
                                                        const int32_t *mask,       \
-                                                       unsigned int  *sse) {       \
+                                                       unsigned int * sse) {       \
         int sum;                                                                  \
         if (W == 4) {                                                             \
             obmc_variance_w4(pre, pre_stride, wsrc, mask, sse, &sum, H);          \
@@ -233,8 +233,8 @@ void svt_av1_calc_target_weighted_pred_above_avx2(uint8_t is16bit, MacroBlockD *
     const int            bw     = xd->n4_w << MI_SIZE_LOG2;
     const uint8_t *const mask1d = svt_av1_get_obmc_mask(ctxt->overlap);
     assert(mask1d != NULL);
-    int32_t       *wsrc = ctxt->wsrc_buf + (rel_mi_col * MI_SIZE);
-    int32_t       *mask = ctxt->mask_buf + (rel_mi_col * MI_SIZE);
+    int32_t *      wsrc = ctxt->wsrc_buf + (rel_mi_col * MI_SIZE);
+    int32_t *      mask = ctxt->mask_buf + (rel_mi_col * MI_SIZE);
     const uint8_t *tmp  = ctxt->tmp + rel_mi_col * MI_SIZE;
 
     uint32_t calc_w = nb_mi_width * MI_SIZE;
@@ -341,8 +341,8 @@ void svt_av1_calc_target_weighted_pred_left_avx2(uint8_t is16bit, MacroBlockD *x
     const int            bw     = xd->n4_w << MI_SIZE_LOG2;
     const uint8_t *const mask1d = svt_av1_get_obmc_mask(ctxt->overlap);
 
-    int32_t       *wsrc = ctxt->wsrc_buf + (rel_mi_row * MI_SIZE * bw);
-    int32_t       *mask = ctxt->mask_buf + (rel_mi_row * MI_SIZE * bw);
+    int32_t *      wsrc = ctxt->wsrc_buf + (rel_mi_row * MI_SIZE * bw);
+    int32_t *      mask = ctxt->mask_buf + (rel_mi_row * MI_SIZE * bw);
     const uint8_t *tmp  = ctxt->tmp + (rel_mi_row * MI_SIZE * ctxt->tmp_stride);
     assert(mask1d != NULL);
 
