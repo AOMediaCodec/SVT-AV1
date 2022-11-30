@@ -3862,7 +3862,6 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     else if (scs_ptr->static_config.enc_mode <= ENC_M5) {
         mrp_level = 4;
     }
-#endif
 #if OPT_LD_MRP
     if (scs_ptr->static_config.enc_mode <= ENC_M6 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
 #else

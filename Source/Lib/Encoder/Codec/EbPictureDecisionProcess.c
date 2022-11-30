@@ -6279,6 +6279,11 @@ void* picture_decision_kernel(void *input_ptr) {
                             // Increment the Decode Base Number
                             encode_ctx->decode_base_number += ctx->mini_gop_length[mini_gop_index] + has_overlay;
                         }
+#if OPT_LD_QPM2
+                        if (scs->static_config.enable_adaptive_quantization &&
+                            scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR)
+                            cyclic_refresh_init(pcs);
+#endif
                     }
 
                     ctx->mg_size = ctx->mini_gop_end_index[mini_gop_index] + has_overlay - ctx->mini_gop_start_index[mini_gop_index] + 1;

@@ -1157,11 +1157,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         if (rtc_tune) {
             if(enc_mode <= ENC_M8){
                 if (pcs_ptr->coeff_lvl == LOW_LVL) {
-#if OPT_M8
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 4;
-#else
-                    pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 3;
-#endif
                 }
                 else { // regular
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 2 : 5;
@@ -1177,11 +1173,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         }
         else {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
-#if OPT_M8
                 pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 4;
-#else
-                pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 3;
-#endif
             }
             else { // regular
                 pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 2 : 5;
