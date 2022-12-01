@@ -3862,14 +3862,14 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     else if (scs_ptr->static_config.enc_mode <= ENC_M5) {
         mrp_level = 4;
     }
-#if OPT_LD_MRP
-    if (scs_ptr->static_config.enc_mode <= ENC_M6 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
-#else
     else if (scs_ptr->static_config.enc_mode <= ENC_M6) {
-#endif
         mrp_level = 5;
     }
+#if OPT_LD_MRP
+    else if (scs_ptr->static_config.enc_mode <= ENC_M7 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+#else
     else if (scs_ptr->static_config.enc_mode <= ENC_M7) {
+#endif
         if (scs_ptr->static_config.hierarchical_levels <= 3)
             mrp_level = 6;
         else
