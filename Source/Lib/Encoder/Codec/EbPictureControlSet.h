@@ -648,7 +648,7 @@ typedef struct PaletteCtrls {
     // block involves 7 colors, then only 3 candidates with palettes based on the most dominant 7, 5 and 3 colors are tested. Range: [1 (test all), 7 (test one)]
 } PaletteCtrls;
 
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
 /*!
  * \brief The stucture of Cyclic_Refresh.
  * \ingroup cyclic_refresh
@@ -1119,7 +1119,7 @@ typedef struct PictureParentControlSet {
     uint8_t                         is_new_gf_group;
     struct PictureParentControlSet *gf_group[MAX_TPL_GROUP_SIZE];
     StatStruct                      stat_struct;
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
     CyclicRefresh                   cyclic_refresh;
 #endif
     uint8_t                         partition_contexts;

@@ -45,7 +45,7 @@
 #define MAX_PYRAMID_LVL 4
 
 #define MIN_GF_INTERVAL 4
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
 #define MAX_GF_INTERVAL 32
 #else
 #define MAX_GF_INTERVAL 32
@@ -221,7 +221,7 @@ typedef struct PicMgrPorts {
  **************************************/
 int32_t svt_av1_convert_qindex_to_q_fp8(int32_t qindex, EbBitDepth bit_depth);
 double  svt_av1_convert_qindex_to_q(int32_t qindex, EbBitDepth bit_depth);
-#if !OPT_LD_QPM2
+#if !OPT_LD_QPM
 int     svt_av1_rc_get_default_min_gf_interval(int width, int height, double framerate);
 int     svt_av1_rc_get_default_max_gf_interval(double framerate, int min_gf_interval);
 #endif
@@ -238,7 +238,7 @@ struct PictureControlSet;
 int svt_aom_compute_rd_mult(struct PictureControlSet *pcs, uint8_t q_index, uint8_t me_q_index,
                             uint8_t bit_depth);
 
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
 struct PictureParentControlSet;
 void cyclic_refresh_init(struct PictureParentControlSet *ppcs);
 #endif

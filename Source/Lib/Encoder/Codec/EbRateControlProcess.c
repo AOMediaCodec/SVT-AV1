@@ -1210,7 +1210,7 @@ static void sb_setup_lambda(PictureControlSet *pcs_ptr, SuperBlock *sb_ptr) {
 }
 #define QPM_MAX_BETA 1.7
 #define QPM_MIN_BETA 0.8
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
 // compute_deltaq
 // Compute delta-q for the segment.
 static int compute_deltaq(struct PictureParentControlSet *ppcs, RATE_CONTROL *rc, int q,
@@ -1428,28 +1428,6 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
     SuperBlock              *sb;
     uint32_t                 sb_addr;
-#if OPT_LD_QPM
-    uint16_t sb_cnt = scs->sb_total_count;
-    if (scs->static_config.superres_mode > SUPERRES_NONE)
-        sb_cnt = ppcs->b64_total_count;
-    uint64_t avg_me_dist = 0;
-    if (ppcs->slice_type != I_SLICE) {
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
-        }
-        avg_me_dist /= ppcs->b64_total_count;
-    }
-
-    pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
-    if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
-        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
-    else if (ppcs->slice_type != I_SLICE) {
-        if (avg_me_dist < 3000)
-            pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
-    }
-    else
-        pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
-#else
     if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
    //     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
@@ -1459,15 +1437,12 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
     uint16_t sb_cnt = scs->sb_total_count;
     if (scs->static_config.superres_mode > SUPERRES_NONE)
         sb_cnt = ppcs->b64_total_count;
-#endif
     if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
-#if !OPT_LD_QPM
         uint64_t avg_me_dist = 0;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
         }
         avg_me_dist /= ppcs->b64_total_count;
-#endif
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             sb               = pcs->sb_ptr_array[sb_addr];
             double diff_dist = (double)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
@@ -1625,7 +1600,7 @@ static int find_fp_qindex(aom_bit_depth_t bit_depth) {
 #endif
     return av1_find_qindex(FIRST_PASS_Q, bit_depth, 0, QINDEX_RANGE - 1);
 }
-#if !OPT_LD_QPM2
+#if !OPT_LD_QPM
 int svt_av1_rc_get_default_min_gf_interval(int width, int height, double framerate) {
     // Assume we do not need any constraint lower than 4K 20 fps
     static const double factor_safe = 3840 * 2160 * 20.0;
@@ -1655,7 +1630,7 @@ void set_rc_buffer_sizes(SequenceControlSet *scs_ptr) {
     rc->optimal_buffer_level  = (optimal == 0) ? bandwidth / 8 : optimal * bandwidth / 1000;
     rc->maximum_buffer_size   = (maximum == 0) ? bandwidth / 8 : maximum * bandwidth / 1000;
 }
-#if !OPT_LD_QPM2
+#if !OPT_LD_QPM
 int svt_av1_rc_get_default_max_gf_interval(double framerate, int min_gf_interval) {
     int interval = AOMMIN(MAX_GF_INTERVAL, (int)(framerate * 0.75));
     interval += (interval & 0x01); // Round to even value
@@ -1943,7 +1918,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
                            double correction_factor, int q) {
     SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
     return use_cyclic_refresh
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
         ? av1_cyclic_refresh_rc_bits_per_mb(ppcs_ptr, use_cyclic_refresh,
             correction_factor, q)
 #else
@@ -3787,7 +3762,7 @@ void *rate_control_kernel(void *input_ptr) {
             } 
             else if (scs_ptr->static_config.enable_adaptive_quantization &&
                        scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
-#if OPT_LD_QPM2
+#if OPT_LD_QPM
                 cyclic_sb_qp_derivation(pcs_ptr);
 #else
                 sb_qp_derivation(pcs_ptr);
