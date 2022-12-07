@@ -2458,14 +2458,34 @@ static void  av1_generate_rps_info(
         const uint8_t  lay1_0_idx = context_ptr->lay1_toggle == 0 ? LAY1_OFF + 1 : LAY1_OFF + 0;
         const uint8_t  lay1_1_idx = context_ptr->lay1_toggle == 0 ? LAY1_OFF + 0 : LAY1_OFF + 1;
         const uint8_t  lay2_idx = LAY2_OFF;
-
+#if OPT_LD_MRP3 || OPT_LD_MRP4
+        const uint8_t  long_base_idx = 7;
+        const uint16_t  long_base_pic = LD_BOOST_INTERVAL;
+#else
+#if OPT_LD_MRP2 || OPT_LD_MRP5
+        const uint8_t  islice_idx = 7;   // islice picture in the DPB
+#endif
+#endif
         switch (pcs_ptr->temporal_layer_index) {
         case 0:
             //{4, 12, 0, 0},     // GOP Index 0 - Ref List 0
             //{ 4, 8, 0, 0 }      // GOP Index 0 - Ref List 1
             av1_rps->ref_dpb_index[LAST] = base1_idx;
+#if OPT_LD_MRP3
+            av1_rps->ref_dpb_index[LAST2] = long_base_idx;
+#elif OPT_LD_MRP2
+            av1_rps->ref_dpb_index[LAST2] = islice_idx;
+#else
             av1_rps->ref_dpb_index[LAST2] = base2_idx;
+#endif
+#if OPT_LD_MRP5
+            av1_rps->ref_dpb_index[LAST3] = islice_idx;
+
+#elif OPT_LD_MRP4
+            av1_rps->ref_dpb_index[LAST3] = long_base_idx;
+#else
             av1_rps->ref_dpb_index[LAST3] = av1_rps->ref_dpb_index[LAST];
+#endif
             av1_rps->ref_dpb_index[GOLD] = av1_rps->ref_dpb_index[LAST];
 
             av1_rps->ref_dpb_index[BWD] = base1_idx;
@@ -2473,8 +2493,22 @@ static void  av1_generate_rps_info(
             av1_rps->ref_dpb_index[ALT] = av1_rps->ref_dpb_index[LAST];
             gop_i = 0;
             av1_rps->ref_poc_array[LAST] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[0]);
+#if OPT_LD_MRP3
+            int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
+            av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
+#elif OPT_LD_MRP2
+            av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, (int32_t)pcs_ptr->picture_number);
+#else
             av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[1]);
+#endif
+#if OPT_LD_MRP5
+            av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, (int32_t)pcs_ptr->picture_number);
+#elif OPT_LD_MRP4
+            int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
+            av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
+#else
             av1_rps->ref_poc_array[LAST3] = av1_rps->ref_poc_array[LAST];
+#endif
             av1_rps->ref_poc_array[GOLD] = av1_rps->ref_poc_array[LAST];
 
             av1_rps->ref_poc_array[BWD] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list1[0]);
@@ -2580,13 +2614,17 @@ static void  av1_generate_rps_info(
                 av1_rps->refresh_frame_mask = 1 << (lay2_idx);
             else
                 av1_rps->refresh_frame_mask = 0;
+
             break;
 
         default:
             SVT_ERROR("unexpected picture mini Gop number\n");
             break;
         }
-
+#if OPT_LD_MRP3 || OPT_LD_MRP4
+        if (pcs_ptr->picture_number % long_base_pic == 0)
+            av1_rps->refresh_frame_mask |= (1 << long_base_idx);
+#endif
         prune_refs(pred_position_ptr, av1_rps);
 
         if (!set_frame_display_params(pcs_ptr, context_ptr, mini_gop_index)) {
@@ -2655,6 +2693,7 @@ static void  av1_generate_rps_info(
         const uint8_t  lay1_1_idx = context_ptr->lay1_toggle == 0 ? LAY1_OFF + 0 : LAY1_OFF + 1;   //the newest L1 picture in the DPB
         const uint8_t  lay2_idx = LAY2_OFF;   //the newest L2 picture in the DPB
         const uint8_t  lay3_idx = LAY3_OFF;   //the newest L3 picture in the DPB
+
         switch (pcs_ptr->temporal_layer_index) {
         case 0:
             //{8, 24, 0, 0},  // GOP Index 0 - Ref List 0
@@ -5514,12 +5553,18 @@ static uint32_t get_pic_idx_in_mg(SequenceControlSet* scs, PictureParentControlS
 }
 
 static void set_ref_frame_sign_bias(SequenceControlSet* scs, PictureParentControlSet* pcs) {
+#if !OPT_LD_MRP
     //Jing: For low delay B/P case, don't alter the bias
+#endif
     memset(pcs->av1_cm->ref_frame_sign_bias, 0, 8 * sizeof(int32_t));
 
     if (scs->seq_header.order_hint_info.enable_order_hint &&
+#if OPT_LD_MRP
+        pcs->frm_hdr.reference_mode == REFERENCE_MODE_SELECT){
+#else
         pcs->frm_hdr.reference_mode == REFERENCE_MODE_SELECT &&
         scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS) {
+#endif
         for (MvReferenceFrame ref_frame = LAST_FRAME; ref_frame <= ALTREF_FRAME; ++ref_frame) {
             pcs->av1_cm->ref_frame_sign_bias[ref_frame] =
                 (get_relative_dist(&scs->seq_header.order_hint_info, pcs->ref_order_hint[ref_frame - 1],

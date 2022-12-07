@@ -51,7 +51,13 @@ extern "C" {
 #define OPT_LD_LATENCY_PRINT     0 // print latency data
 #define OPT_LD_SPEED             1
 #define OPT_LD_SPEED2            1
-#define OPT_LD_BYPASS_ENCDEC            1
+#define OPT_LD_BYPASS_ENCDEC     1
+#define OPT_LD_MRP2              0 //use I slice as ref
+#define OPT_LD_MRP3              0
+#define OPT_LD_MRP4              1
+#define OPT_LD_MRP5              0
+#define LD_BOOST_INTERVAL        128
+#define OPT_RATE_LD 1
 #endif
 
 //FOR DEBUGGING - Do not remove

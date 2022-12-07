@@ -135,7 +135,11 @@ PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
     {
         0, // GOP Index 0 - Temporal Layer
         0, // GOP Index 0 - Decode Order
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+        {4, 12, 8, 0}, // GOP Index 0 - Ref List 0
+#else
         {4, 12, 0, 0}, // GOP Index 0 - Ref List 0
+#endif
         {4, 8, 0, 0} // GOP Index 0 - Ref List 1
     },
     {
@@ -1464,13 +1468,21 @@ EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_stru
                 prediction_structure_config_array[0].entry_array[gop_i].ref_list1[i] = 0;
             }
         }
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+        for (int gop_i = 1; gop_i < 2; ++gop_i) {
+#else
         for (int gop_i = 0; gop_i < 2; ++gop_i) {
+#endif
             for (int i = ref_count_used; i < MAX_REF_IDX; ++i) {
                 prediction_structure_config_array[1].entry_array[gop_i].ref_list0[i] = 0;
                 prediction_structure_config_array[1].entry_array[gop_i].ref_list1[i] = 0;
             }
         }
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+        for (int gop_i = 1; gop_i < 4; ++gop_i) {
+#else
         for (int gop_i = 0; gop_i < 4; ++gop_i) {
+#endif
             for (int i = ref_count_used; i < MAX_REF_IDX; ++i) {
                 prediction_structure_config_array[2].entry_array[gop_i].ref_list0[i] = 0;
                 prediction_structure_config_array[2].entry_array[gop_i].ref_list1[i] = 0;
@@ -1503,6 +1515,15 @@ EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_stru
     if (ref_count_used_base < MAX_REF_IDX) {
         uint8_t gop_i = 0;
         for (int i = ref_count_used_base; i < MAX_REF_IDX; ++i) {
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+            prediction_structure_config_array[0].entry_array[gop_i].ref_list0[i] = 0;
+            prediction_structure_config_array[0].entry_array[gop_i].ref_list1[i] = 0;
+            prediction_structure_config_array[1].entry_array[gop_i].ref_list0[i] = 0;
+            prediction_structure_config_array[1].entry_array[gop_i].ref_list1[i] = 0;
+            prediction_structure_config_array[2].entry_array[gop_i].ref_list0[i] = 0;
+            prediction_structure_config_array[2].entry_array[gop_i].ref_list1[i] = 0;
+#endif
+
             prediction_structure_config_array[3].entry_array[gop_i].ref_list0[i] = 0;
             prediction_structure_config_array[3].entry_array[gop_i].ref_list1[i] = 0;
             prediction_structure_config_array[4].entry_array[gop_i].ref_list0[i] = 0;

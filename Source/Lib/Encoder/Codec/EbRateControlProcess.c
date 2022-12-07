@@ -2009,7 +2009,12 @@ static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentCon
     return (curr_bit_diff <= prev_bit_diff) ? curr_q : prev_q;
 }
 int max_delta_per_layer[MAX_HIERARCHICAL_LEVEL][MAX_TEMPORAL_LAYERS] = {//anaghdin
+#if OPT_RATE_LD
+    {60}, {60, 5}, {60, 5, 2}, {60, 5, 2, 2}, {60, 5, 2, 2, 2}, {60, 5, 2, 2, 2, 2} };
+#else
+
     {60}, {60, 5}, {60, 5, 2}, {60, 5, 2, 2}, {60, 5, 2, 2, 2}, {60, 5, 2, 2, 2, 2}};
+#endif
 static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
     SequenceControlSet *scs_ptr            = ppcs_ptr->scs_ptr;
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
@@ -3697,6 +3702,22 @@ void *rate_control_kernel(void *input_ptr) {
                             }
                         }
                     }
+#if OPT_RATE_LD
+                    else {
+                        uint32_t ref_qp = 0;
+                        if (pcs_ptr->ref_slice_type_array[0][0] != I_SLICE)
+                            ref_qp = pcs_ptr->ref_pic_qp_array[0][0];
+                        if ((pcs_ptr->slice_type == B_SLICE) &&
+                            (pcs_ptr->ref_slice_type_array[1][0] != I_SLICE))
+                            ref_qp = MAX(ref_qp, pcs_ptr->ref_pic_qp_array[1][0]);
+                            if (ref_qp > 5 && pcs_ptr->picture_qp < ref_qp) {
+                                pcs_ptr->picture_qp = (uint8_t)CLIP3(
+                                    scs_ptr->static_config.min_qp_allowed,
+                                    scs_ptr->static_config.max_qp_allowed,
+                                    (uint8_t)(ref_qp - 4));
+                            }
+                    }
+#endif
                     frm_hdr->quantization_params.base_q_idx =
                         quantizer_to_qindex[pcs_ptr->picture_qp];
                 }

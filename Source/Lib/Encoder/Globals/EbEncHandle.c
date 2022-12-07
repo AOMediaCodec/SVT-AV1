@@ -3125,7 +3125,7 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
 #if OPT_LD_SPEED //TF
         else 
 #if OPT_LD_SPEED2
-            tf_level = enc_mode <= ENC_M11 ? 1 : enc_mode <= ENC_M12 && (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+            tf_level = enc_mode <= ENC_M10 ? 1 : enc_mode <= ENC_M12 && (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
 #else
             tf_level = enc_mode <= ENC_M11 ? 1 : (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
 #endif
@@ -3244,14 +3244,54 @@ void set_mrp_ctrl(SequenceControlSet* scs_ptr, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
         break;
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+    case 6:
+        mrp_ctrl->referencing_scheme = 0;
+        mrp_ctrl->sc_base_ref_list0_count = 2;
+        mrp_ctrl->sc_base_ref_list1_count = 2;
+        mrp_ctrl->sc_non_base_ref_list0_count = 1;
+        mrp_ctrl->sc_non_base_ref_list1_count = 1;
+        mrp_ctrl->base_ref_list0_count = 3;
+        mrp_ctrl->base_ref_list1_count = 2;
+        mrp_ctrl->non_base_ref_list0_count = 2;
+        mrp_ctrl->non_base_ref_list1_count = 2;
+        break;
 
+    case 7:
+        mrp_ctrl->referencing_scheme = 0;
+        mrp_ctrl->sc_base_ref_list0_count = 2;
+        mrp_ctrl->sc_base_ref_list1_count = 2;
+        mrp_ctrl->sc_non_base_ref_list0_count = 1;
+        mrp_ctrl->sc_non_base_ref_list1_count = 1;
+        mrp_ctrl->base_ref_list0_count = 2;
+        mrp_ctrl->base_ref_list1_count = 2;
+        mrp_ctrl->non_base_ref_list0_count = 2;
+        mrp_ctrl->non_base_ref_list1_count = 2;
+        break;
+
+    case 8:
+        mrp_ctrl->referencing_scheme = 0;
+        mrp_ctrl->sc_base_ref_list0_count = 2;
+        mrp_ctrl->sc_base_ref_list1_count = 2;
+        mrp_ctrl->sc_non_base_ref_list0_count = 1;
+        mrp_ctrl->sc_non_base_ref_list1_count = 1;
+        mrp_ctrl->base_ref_list0_count = 2;
+        mrp_ctrl->base_ref_list1_count = 2;
+        mrp_ctrl->non_base_ref_list0_count = 1;
+        mrp_ctrl->non_base_ref_list1_count = 1;
+        break;
+#else
     case 6:
         mrp_ctrl->referencing_scheme          = 0;
         mrp_ctrl->sc_base_ref_list0_count     = 2;
         mrp_ctrl->sc_base_ref_list1_count     = 2;
         mrp_ctrl->sc_non_base_ref_list0_count = 1;
         mrp_ctrl->sc_non_base_ref_list1_count = 1;
-        mrp_ctrl->base_ref_list0_count        = 2;
+#if OPT_LD_MRP4 || OPT_LD_MRP5
+        mrp_ctrl->base_ref_list0_count        = 3;
+#else
+        mrp_ctrl->base_ref_list0_count = 2;
+#endif
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 2;
         mrp_ctrl->non_base_ref_list1_count    = 2;
@@ -3268,6 +3308,7 @@ void set_mrp_ctrl(SequenceControlSet* scs_ptr, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count    = 1;
         mrp_ctrl->non_base_ref_list1_count    = 1;
         break;
+#endif
     default:
         assert(0);
         break;
@@ -3829,7 +3870,14 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     if (scs_ptr->static_config.enable_mfmv == DEFAULT) {
         if (scs_ptr->static_config.enc_mode <= ENC_M5)
             scs_ptr->mfmv_enabled = 1;
+#if OPT_LD_M11
+        else if (scs_ptr->static_config.enc_mode <= ENC_M10 || 
+				(scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_P && 
+				scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B && 
+				scs_ptr->static_config.enc_mode <= ENC_M11)) {
+#else
         else if (scs_ptr->static_config.enc_mode <= ENC_M11) {
+#endif
             if (scs_ptr->input_resolution <= INPUT_SIZE_1080p_RANGE)
                 scs_ptr->mfmv_enabled = 1;
             else
@@ -3865,6 +3913,20 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     else if (scs_ptr->static_config.enc_mode <= ENC_M6) {
         mrp_level = 5;
     }
+#if OPT_LD_MRP4
+    else if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && scs_ptr->static_config.enc_mode <= ENC_M12) {
+        mrp_level = 6;
+    }
+    else if (scs_ptr->static_config.enc_mode <= ENC_M7 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+        if (scs_ptr->static_config.hierarchical_levels <= 3)
+            mrp_level = 7;
+        else
+            mrp_level = 5;
+    }
+    else if (scs_ptr->static_config.enc_mode <= ENC_M12) {
+        mrp_level = 8;
+    }
+#else
 #if OPT_LD_MRP
     else if (scs_ptr->static_config.enc_mode <= ENC_M7 || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
 #else
@@ -3878,6 +3940,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     else if (scs_ptr->static_config.enc_mode <= ENC_M12) {
         mrp_level = 7;
     }
+#endif
     else {
         mrp_level = 0;
     }
