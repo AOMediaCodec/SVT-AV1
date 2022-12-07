@@ -2646,7 +2646,6 @@ void tf_ld_controls(SequenceControlSet* scs_ptr, uint8_t tf_level) {
         // L1 TF Params
         scs_ptr->tf_params_per_type[2].enabled = 0;
         break;
-#if OPT_LD_SPEED //TF
     case 2:
         // I_SLICE TF Params
         scs_ptr->tf_params_per_type[0].enabled = 0;
@@ -2679,7 +2678,7 @@ void tf_ld_controls(SequenceControlSet* scs_ptr, uint8_t tf_level) {
         // L1 TF Params
         scs_ptr->tf_params_per_type[2].enabled = 0;
         break;
-#endif
+
     default:
         assert(0);
         break;
@@ -3122,20 +3121,9 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
 #if OPT_LD_TF
     if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (do_tf == 0) tf_level = 0;
-#if OPT_LD_SPEED //TF
         else 
-#if OPT_LD_SPEED2
             tf_level = enc_mode <= ENC_M10 ? 1 : enc_mode <= ENC_M12 && (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
-#else
-            tf_level = enc_mode <= ENC_M11 ? 1 : (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
-#endif
-#else
-#if OPT_LD_M12_13
-        else tf_level = enc_mode <= ENC_M11 ? 1 : 0;
-#else
-        else tf_level = 1;
-#endif
-#endif
+
         tf_ld_controls(scs_ptr, tf_level);
         return;
     }
@@ -4115,7 +4103,7 @@ void copy_api_from_app(
     derive_input_resolution(
         &input_resolution,
         scs_ptr->max_input_luma_width * scs_ptr->max_input_luma_height);
-#if !OPT_LD_M13
+#if !OPT_LD_M13//anaghdin add RTC
     if (scs_ptr->static_config.enc_mode > ENC_M12 && input_resolution <= INPUT_SIZE_360p_RANGE) {
         scs_ptr->static_config.enc_mode = ENC_M12;
         SVT_WARN("Setting preset to M12 as it is the highest supported preset for 360p and lower resolutions\n");
@@ -4245,7 +4233,7 @@ void copy_api_from_app(
                 ? 4
                 : 5;
     }
-#if !OPT_LD
+#if !OPT_LD //anaghdin to check
     if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (scs_ptr->static_config.hierarchical_levels != 3) {
             scs_ptr->static_config.hierarchical_levels = 3;

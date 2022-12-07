@@ -5254,11 +5254,7 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
         if (enc_mode <= ENC_M8) {
             depth_level = depth_level;
         }
-#if OPT_LD_SPEED2
         else if(enc_mode <= ENC_M11) {
-#else
-        else{
-#endif
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
                 int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
@@ -5266,10 +5262,8 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
                     depth_level = 0;
             }
         }
-#if OPT_LD_SPEED2
         else
             depth_level = 0;
-#endif
     }
 #endif
     set_depth_ctrls(ctx, depth_level);
@@ -5342,13 +5336,8 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
         else {
             if (pcs_ptr->slice_type != I_SLICE) {
 
-#if OPT_LD_SPEED
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
                 int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
-#else
-                int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-                int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 500 * ctx->qp_index;
-#endif
                 if (me_8x8 < th)
                     pic_lpd1_lvl += 2;
                 else if (me_8x8 < 2*th)

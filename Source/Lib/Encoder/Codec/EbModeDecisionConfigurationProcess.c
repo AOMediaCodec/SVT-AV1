@@ -918,7 +918,6 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     // TODO: Bypassing EncDec doesn't work if pcs_ptr->cdf_ctrl.update_coef is enabled for non-ISLICE frames (causes r2r)
 #if OPT_LD_BYPASS_ENCDEC
     if (!(pcs_ptr->temporal_layer_index == 0 && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
-    //if ( !(pcs_ptr->picture_number % 8 == 0 && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
         (scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
 #else
     if ((scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
@@ -1232,7 +1231,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         } else { // Regular
             pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 2;
         }
-#if OPT_LD_SPEED && OPT_LD_M12_13
+#if OPT_LD_M12_13
     } else if ((enc_mode <= ENC_M11) || (rtc_tune && (enc_mode <= ENC_M12))) {
 #else
     }
