@@ -486,11 +486,7 @@ void process_input_buffer(EncChannel *channel) {
 }
 
 #define LONG_ENCODE_FRAME_ENCODE 4000
-#if OPT_LD_LATENCY_PRINT
-#define SPEED_MEASUREMENT_INTERVAL 1000
-#else
 #define SPEED_MEASUREMENT_INTERVAL 2000
-#endif
 #define START_STEADY_STATE 1000
 #define OBU_FRAME_HEADER_SIZE 3
 #define TD_SIZE 2
@@ -588,9 +584,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
 
     uint64_t *total_latency = &config->performance_context.total_latency;
     uint32_t *max_latency   = &config->performance_context.max_latency;
-#if OPT_LD_LATENCY_PRINT
-    uint32_t *max_inter_latency = &config->performance_context.max_inter_latency;
-#endif
     
     // Local variables
     uint64_t finish_s_time = 0;
@@ -621,17 +614,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
             *total_latency += (uint64_t)header_ptr->n_tick_count;
             *max_latency = (header_ptr->n_tick_count > *max_latency) ? header_ptr->n_tick_count
                                                                      : *max_latency;
-#if OPT_LD_LATENCY_PRINT
-            if(config->performance_context.frame_count >1 )
-              *max_inter_latency = (header_ptr->n_tick_count > *max_inter_latency) ? header_ptr->n_tick_count
-                : *max_inter_latency;
-
-            if (config->progress == 1 && !(*frame_count % SPEED_MEASUREMENT_INTERVAL))
-                fprintf(stderr,
-                    "PTS:%u\tLatency:\t\t%u ms\n",
-                    (uint32_t)(header_ptr->pts),                
-                    (uint32_t)(header_ptr->n_tick_count));
-#endif
             app_svt_av1_get_time(&finish_s_time, &finish_u_time);
 
             // total execution time, inc init time
@@ -786,16 +768,9 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                 config->performance_context.frame_count;
 
             if (config->progress == 1 && !(*frame_count % SPEED_MEASUREMENT_INTERVAL))
-#if OPT_LD_LATENCY_PRINT
-                fprintf(stderr,
-                    "Max "
-                    "Latency:\t\t%u ms\n",
-                    (uint32_t)(config->performance_context.max_latency));
-#else
                 fprintf(stderr,
                         "\nAverage System Encoding Speed:        %.2f\n",
                         (double)*frame_count / config->performance_context.total_encode_time);
-#endif
         }
     }
     channel->exit_cond_output = return_value;

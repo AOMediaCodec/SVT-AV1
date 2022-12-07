@@ -148,9 +148,6 @@ typedef struct EbPerformanceContext {
 
     uint64_t total_latency;
     uint32_t max_latency;
-#if OPT_LD_LATENCY_PRINT
-    uint32_t max_inter_latency;
-#endif
     uint64_t starts_time;
     uint64_t startu_time;
     uint64_t frame_count;

@@ -3244,7 +3244,7 @@ void set_mrp_ctrl(SequenceControlSet* scs_ptr, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
         break;
-#if OPT_LD_MRP4 || OPT_LD_MRP5
+#if OPT_LD_MRP4
     case 6:
         mrp_ctrl->referencing_scheme = 0;
         mrp_ctrl->sc_base_ref_list0_count = 2;
@@ -3287,11 +3287,7 @@ void set_mrp_ctrl(SequenceControlSet* scs_ptr, uint8_t mrp_level) {
         mrp_ctrl->sc_base_ref_list1_count     = 2;
         mrp_ctrl->sc_non_base_ref_list0_count = 1;
         mrp_ctrl->sc_non_base_ref_list1_count = 1;
-#if OPT_LD_MRP4 || OPT_LD_MRP5
-        mrp_ctrl->base_ref_list0_count        = 3;
-#else
         mrp_ctrl->base_ref_list0_count = 2;
-#endif
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 2;
         mrp_ctrl->non_base_ref_list1_count    = 2;

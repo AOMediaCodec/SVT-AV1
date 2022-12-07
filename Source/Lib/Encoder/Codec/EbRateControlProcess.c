@@ -1304,11 +1304,6 @@ int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, int use_cyc
                 scs->static_config.encoder_bit_depth,
                 ppcs->sc_class1,
                 scs->encode_context_ptr->rc.onepass_cbr_mode));
-#if OPT_LD_QPM2_PRINT
-  /*  printf("POC:%d\t%q:%d\tBitsperMB:%d\n", ppcs->picture_number,
-        q,
-        bits_per_mb);*/
-#endif
     return bits_per_mb;
 }
 /******************************************************
@@ -1402,10 +1397,6 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
         cr->sb_start = 0;
         cr->sb_end = 0;
     }
-#if OPT_LD_QPM2_PRINT
-    printf("POC:%d\tstart:%d\tend:%d\tPerc:%.2f\n", (int)ppcs->picture_number,
-        cr->sb_start, cr->sb_end, (double)(sb_cnt - cr->sb_start) / sb_cnt);
-#endif
     // Use larger delta - qp(increase rate_ratio_qdelta) for first few(~4)
     // periods of the refresh cycle, after a key frame.
     cr->max_qdelta_perc = 60;
@@ -2052,10 +2043,6 @@ static int av1_rc_regulate_q(PictureParentControlSet *ppcs_ptr, int target_bits_
                              int height) {
     const int    MBs = ((width + 15) / 16) * ((height + 15) / 16); //av1_get_MBs(width, height);
     const double correction_factor  = get_rate_correction_factor(ppcs_ptr, width, height);
-#if 0//OPT_LD_QPM2_PRINT
-    printf("POC:%d, Cor_fact:%.2f\t[%d\t%d]\n",
-        (int)ppcs_ptr->picture_number, correction_factor, active_best_quality, active_worst_quality);
-#endif
     const int    target_bits_per_mb = (int)(((uint64_t)target_bits_per_frame << BPER_MB_NORMBITS) /
                                          MBs);
 
@@ -2329,12 +2316,6 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
                               active_worst_quality,
                               width,
                               height);
-#if 0//OPT_LD_QPM2_PRINT
-        printf("POC:%d, target:%d\tq:%d\n",
-           (int) pcs_ptr->parent_pcs_ptr->picture_number,
-            pcs_ptr->parent_pcs_ptr->this_frame_target,
-            q);
-#endif
         if (q > pcs_ptr->parent_pcs_ptr->top_index) {
             // Special case when we are targeting the max allowed rate
             if (pcs_ptr->parent_pcs_ptr->this_frame_target >= rc->max_frame_bandwidth)
