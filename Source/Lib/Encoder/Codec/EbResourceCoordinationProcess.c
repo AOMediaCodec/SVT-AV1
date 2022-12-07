@@ -1092,36 +1092,7 @@ void *resource_coordination_kernel(void *input_ptr) {
                     }
                 }
             }
-#if OPT_LD_LATENCY
-            // Get Empty Output Results Object
-            {
-                PictureParentControlSet *ppcs_out = pcs_ptr;
-                //(PictureParentControlSet *)
-                 //   prev_pcs_wrapper_ptr->object_ptr;
 
-                ppcs_out->end_of_sequence_flag = end_of_sequence_flag;
-                // since overlay frame has the end of sequence set properly, set the end of sequence to true in the alt ref picture
-                if (ppcs_out->is_overlay && end_of_sequence_flag)
-                    ppcs_out->alt_ref_ppcs_ptr->end_of_sequence_flag = TRUE;
-
-                reset_pcs_av1(ppcs_out);
-
-                svt_get_empty_object(context_ptr->resource_coordination_results_output_fifo_ptr,
-                    &output_wrapper_ptr);
-                out_results_ptr = (ResourceCoordinationResults *)output_wrapper_ptr->object_ptr;
-
-                if (scs_ptr->static_config.enable_overlays == TRUE) {
-                    // ppcs live_count + 1 for PictureAnalysis & PictureDecision, will svt_release_object(ppcs) at the end of picture_decision_kernel.
-                    svt_object_inc_live_count(pcs_wrapper_ptr, 1);
-                }
-
-                out_results_ptr->pcs_wrapper_ptr = pcs_wrapper_ptr;
-                // Post the finished Results Object
-                svt_post_full_object(output_wrapper_ptr);
-            }
-            prev_pcs_wrapper_ptr = pcs_wrapper_ptr;
-
-#else
             // Get Empty Output Results Object
             if (pcs_ptr->picture_number > 0 && (prev_pcs_wrapper_ptr != NULL)) {
                 PictureParentControlSet *ppcs_out = (PictureParentControlSet *)
@@ -1148,7 +1119,6 @@ void *resource_coordination_kernel(void *input_ptr) {
                 svt_post_full_object(output_wrapper_ptr);
             }
             prev_pcs_wrapper_ptr = pcs_wrapper_ptr;
-#endif
         }
         // Release the Input Command
         svt_release_object(eb_input_cmd_wrapper);

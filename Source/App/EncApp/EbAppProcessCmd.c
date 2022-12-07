@@ -450,12 +450,7 @@ void process_input_buffer(EncChannel *channel) {
             header_ptr->pic_type = is_forced_keyframe(config, header_ptr->pts)
                 ? EB_AV1_KEY_PICTURE
                 : EB_AV1_INVALID_PICTURE;
-#if OPT_LD_LATENCY
-            if ((config->processed_frame_count == (uint64_t)config->frames_to_be_encoded) ||
-                config->stop_encoder)
-                header_ptr->flags = EB_BUFFERFLAG_EOS;
-            else
-#endif
+
             header_ptr->flags    = 0;
             header_ptr->metadata = NULL;
             // Send the picture
@@ -464,7 +459,6 @@ void process_input_buffer(EncChannel *channel) {
             if (config->mmap.enable)
                 release_memory_mapped_file(config, is_16bit, header_ptr);
         }
-#if !OPT_LD_LATENCY
         if ((config->processed_frame_count == (uint64_t)config->frames_to_be_encoded) ||
             config->stop_encoder) {
             header_ptr->n_alloc_len   = 0;
@@ -477,7 +471,6 @@ void process_input_buffer(EncChannel *channel) {
             header_ptr->metadata      = NULL;
             svt_av1_enc_send_picture(component_handle, header_ptr);
         }
-#endif
         return_value = (header_ptr->flags == EB_BUFFERFLAG_EOS) ? APP_ExitConditionFinished
                                                                 : return_value;
     }
