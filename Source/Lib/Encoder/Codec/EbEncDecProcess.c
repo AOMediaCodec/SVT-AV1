@@ -7608,7 +7608,7 @@ not performed, this detector is used (else lpd1_detector_post_pd0() is used). */
 void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
                             uint32_t pic_width_in_sb) {
 
-#if OPT_LD_SPEED2
+#if OPT_LD_P2
     const Bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
         pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     if (rtc_tune) {
@@ -8132,7 +8132,7 @@ void *mode_decision_kernel(void *input_ptr) {
                                 skip_pd_pass_0 = 1;
 
                         // If LPD0 is used, a more conservative level can be set for complex SBs
-#if OPT_LD_SPEED2
+#if OPT_LD_P2
                         const Bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
                             scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
                         if (!rtc_tune) {
@@ -8140,7 +8140,7 @@ void *mode_decision_kernel(void *input_ptr) {
                             if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
                                 lpd0_detector(pcs_ptr, md_ctx);
                             }
-#if OPT_LD_SPEED2
+#if OPT_LD_P2
                         }
 #endif
 

@@ -33,24 +33,23 @@
 extern "C" {
 #endif // __cplusplus
 
-#define OPT_LD                  1
+#define OPT_LD                  1 // Optimize the performance of low delay mode
 
 #if OPT_LD
-#define OPT_LD_MRP              1
-#define OPT_LD_TF               1
-#define OPT_LD_M13              1
-#define OPT_LD_M9               1
-#define OPT_LD_M10              1
-#define OPT_LD_M11              1
-#define OPT_LD_QPM              1
-#define OPT_LD_M12_13           1
-#define OPT_LD_LATENCY          1 // optimize for low latency
-#define OPT_LD_LATENCY_MD       1 // optimize MD for low latency KF
-#define OPT_LD_SPEED2           1
-#define OPT_LD_BYPASS_ENCDEC    1
-#define OPT_LD_MRP4             1
+#define OPT_LD_MRP              1 // Optimize MRP in low delay mode
+#define OPT_LD_TF               1 // Optimize TF in low delay mode
+#define OPT_LD_M13              1 // Optimize M13 in low delay mode
+#define OPT_LD_M9               1 // Optimize M9 in low delay mode
+#define OPT_LD_M10              1 // Optimize M10 in low delay mode
+#define OPT_LD_M11              1 // Optimize M11 in low delay mode
+#define OPT_LD_QPM              1 // Optimize QPM for low delay mode
+#define OPT_LD_M12_13           1 // Optimize M12 and M13 in low delay mode
+#define OPT_LD_LATENCY          1 // Optimize for low latency
+#define OPT_LD_LATENCY_MD       1 // Optimize MD for low latency KF
+#define OPT_LD_P2               1 // Optimize bdrate/speed trade off for low delay mode
+#define OPT_LD_MRP4             1 // Optimize MRP in low delay mode
 #define LD_BOOST_INTERVAL       128
-#define OPT_RATE_LD				1
+#define OPT_CBR				    1 // Improve CBR by limiting the QP decrease between two base pictures
 #endif
 
 //FOR DEBUGGING - Do not remove

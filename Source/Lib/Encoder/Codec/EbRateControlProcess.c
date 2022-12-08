@@ -1981,7 +1981,7 @@ static int find_closest_qindex_by_rate(int desired_bits_per_mb, PictureParentCon
     // the desired rate.
     return (curr_bit_diff <= prev_bit_diff) ? curr_q : prev_q;
 }
-int max_delta_per_layer[MAX_HIERARCHICAL_LEVEL][MAX_TEMPORAL_LAYERS] = {//anaghdin
+int max_delta_per_layer[MAX_HIERARCHICAL_LEVEL][MAX_TEMPORAL_LAYERS] = {
     {60}, {60, 5}, {60, 5, 2}, {60, 5, 2, 2}, {60, 5, 2, 2, 2}, {60, 5, 2, 2, 2, 2}};
 static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
     SequenceControlSet *scs_ptr            = ppcs_ptr->scs_ptr;
@@ -3635,7 +3635,7 @@ void *rate_control_kernel(void *input_ptr) {
                             }
                         }
                     }
-#if OPT_RATE_LD
+#if OPT_CBR
                     else if (scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR){
                         uint32_t ref_qp = 0;
                         if (pcs_ptr->ref_slice_type_array[0][0] != I_SLICE)

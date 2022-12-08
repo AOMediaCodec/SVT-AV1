@@ -916,7 +916,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     // TODO: This signal can only be modified per picture right now, not per SB.  Per SB requires
     // neighbour array updates at EncDec for all SBs, that are currently skipped if EncDec is bypassed.
     // TODO: Bypassing EncDec doesn't work if pcs_ptr->cdf_ctrl.update_coef is enabled for non-ISLICE frames (causes r2r)
-#if OPT_LD_BYPASS_ENCDEC
+#if OPT_LD_P2
     if (!(pcs_ptr->temporal_layer_index == 0 && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
         (scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
 #else
@@ -986,7 +986,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         }
 #endif
     } else {
-#if OPT_LD_SPEED2
+#if OPT_LD_P2
         if (rtc_tune)
             pcs_ptr->pic_lpd0_lvl = enc_mode <= ENC_M12 || is_islice ? 4 : 7;
         else {
@@ -1000,7 +1000,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
             else { // regular
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
             }
-#if OPT_LD_SPEED2
+#if OPT_LD_P2
         }
 #endif
     }

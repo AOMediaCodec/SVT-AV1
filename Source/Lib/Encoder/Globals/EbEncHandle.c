@@ -3949,9 +3949,9 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
         ? 1
         : 0;
 #if OPT_LD_LATENCY_MD
-    scs_ptr->low_latency_kf = scs_ptr->static_config.pred_structure == 
-        ((SVT_AV1_PRED_LOW_DELAY_P || SVT_AV1_PRED_LOW_DELAY_B) &&
-        scs_ptr->static_config.enc_mode <= ENC_M10) // anaghdin add a check for intra refresh?
+    scs_ptr->low_latency_kf = ((scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+         || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
+        scs_ptr->static_config.enc_mode <= ENC_M10)
         ? 1
         : 0;
 #endif
@@ -4103,7 +4103,12 @@ void copy_api_from_app(
     derive_input_resolution(
         &input_resolution,
         scs_ptr->max_input_luma_width * scs_ptr->max_input_luma_height);
-#if !OPT_LD_M13//anaghdin add RTC
+#if OPT_LD_M13
+    if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS && scs_ptr->static_config.enc_mode > ENC_M12 && input_resolution <= INPUT_SIZE_360p_RANGE) {
+        scs_ptr->static_config.enc_mode = ENC_M12;
+        SVT_WARN("Setting preset to M12 as it is the highest supported preset for 360p and lower resolutions in Random Access mode\n");
+    }
+#else
     if (scs_ptr->static_config.enc_mode > ENC_M12 && input_resolution <= INPUT_SIZE_360p_RANGE) {
         scs_ptr->static_config.enc_mode = ENC_M12;
         SVT_WARN("Setting preset to M12 as it is the highest supported preset for 360p and lower resolutions\n");
@@ -4228,19 +4233,28 @@ void copy_api_from_app(
     // Set the default hierarchical levels
     if (scs_ptr->static_config.hierarchical_levels == 0) {
         scs_ptr->static_config.hierarchical_levels = scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B ?
+#if OPT_LD
+            2 :
+#else
             3 :
+#endif
             scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR || scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR || !(scs_ptr->static_config.enc_mode <= ENC_M12)
                 ? 4
                 : 5;
     }
-#if !OPT_LD //anaghdin to check
     if (scs_ptr->static_config.pass == ENC_SINGLE_PASS && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+#if OPT_LD
+        if (scs_ptr->static_config.hierarchical_levels != 2) {
+            scs_ptr->static_config.hierarchical_levels = 2;
+            SVT_WARN("Forced Low delay mode to use HierarchicalLevels = 2\n");
+        }
+#else
         if (scs_ptr->static_config.hierarchical_levels != 3) {
             scs_ptr->static_config.hierarchical_levels = 3;
             SVT_WARN("Forced Low delay mode to use HierarchicalLevels = 3\n");
         }
-    }
 #endif
+    }
     scs_ptr->max_temporal_layers = scs_ptr->static_config.hierarchical_levels;
     scs_ptr->static_config.look_ahead_distance = ((EbSvtAv1EncConfiguration*)config_struct)->look_ahead_distance;
     scs_ptr->static_config.frame_rate_denominator = ((EbSvtAv1EncConfiguration*)config_struct)->frame_rate_denominator;

@@ -45,11 +45,7 @@
 #define MAX_PYRAMID_LVL 4
 
 #define MIN_GF_INTERVAL 4
-#if OPT_LD_QPM
 #define MAX_GF_INTERVAL 32
-#else
-#define MAX_GF_INTERVAL 32
-#endif
 #define FIXED_GF_INTERVAL 8 // Used in some testing modes only
 #define MAX_GF_LENGTH_LAP 16
 #define MAX_ARF_LAYERS 6
