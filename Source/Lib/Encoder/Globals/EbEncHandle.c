@@ -1584,6 +1584,10 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
         input_data.input_resolution = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->input_resolution;
         input_data.is_scale = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.superres_mode > SUPERRES_NONE ||
                               enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.resize_mode > RESIZE_NONE;
+#if OPT_LD_M13
+		input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+							   enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#endif
 
         EB_NEW(
             enc_handle_ptr->picture_parent_control_set_pool_ptr_array[instance_index],

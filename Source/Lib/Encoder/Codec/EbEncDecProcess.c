@@ -6585,8 +6585,7 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
         else
             context_ptr->rdoq_level = 0;
 #if OPT_LD_LATENCY_MD
-    }
-    else if (pcs_ptr->scs_ptr->low_latency_kf && pcs_ptr->slice_type == I_SLICE) {
+    } else if (pcs_ptr->scs_ptr->low_latency_kf && pcs_ptr->slice_type == I_SLICE) {
         context_ptr->rdoq_level = 0;
 #endif
     } else if (enc_mode <= ENC_M12)

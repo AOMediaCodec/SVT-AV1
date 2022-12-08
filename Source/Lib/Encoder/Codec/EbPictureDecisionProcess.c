@@ -1499,12 +1499,8 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
         dlf_level = 1;
         else if (enc_mode <= ENC_M7)
             dlf_level = 2;
-#if OPT_LD_M9
 #if OPT_LD_M10
         else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M10)))
-#else
-        else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
-#endif
 #else
         else if (enc_mode <= ENC_M8)
 #endif
@@ -5527,9 +5523,6 @@ static uint32_t get_pic_idx_in_mg(SequenceControlSet* scs, PictureParentControlS
 }
 
 static void set_ref_frame_sign_bias(SequenceControlSet* scs, PictureParentControlSet* pcs) {
-#if !OPT_LD_MRP
-    //Jing: For low delay B/P case, don't alter the bias
-#endif
     memset(pcs->av1_cm->ref_frame_sign_bias, 0, 8 * sizeof(int32_t));
 
     if (scs->seq_header.order_hint_info.enable_order_hint &&

@@ -1161,6 +1161,9 @@ typedef struct PictureControlSetInitData {
     uint8_t input_resolution;
     uint8_t calculate_variance;
     Bool    is_scale;
+#if OPT_LD_M13
+    Bool rtc_tune;
+#endif
 } PictureControlSetInitData;
 
 typedef struct Av1Comp {
