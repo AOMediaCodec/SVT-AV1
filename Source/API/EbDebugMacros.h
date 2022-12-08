@@ -50,6 +50,13 @@ extern "C" {
 #define OPT_LD_MRP2             1 // Optimize MRP in low delay mode by changing the references
 #define OPT_CBR                 1 // Improve CBR by limiting the QP decrease between two base pictures
 #endif
+#define OPT_RPS_CONSTR             1 // Construct RPS in decode order; implement DPB at PD
+#if OPT_RPS_CONSTR
+#define OPT_RPS_CONSTR_2           1
+#define OPT_RPS_CONSTR_3           1
+#define FIX_INCOMP_MG_2            1 // Use 3L for incomplete MGs for all RA cases
+#define CLN_REMOVE_REF_CNT         1 // Remove scs->reference_count
+#endif
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

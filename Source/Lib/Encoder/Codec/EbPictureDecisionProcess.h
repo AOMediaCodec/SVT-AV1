@@ -49,6 +49,17 @@ Bool is_delayed_intra(PictureParentControlSet *pcs);
 void svt_aom_set_dlf_controls(PictureParentControlSet *pcs_ptr, uint8_t dlf_level,
                               uint8_t bit_depth);
 
+#if OPT_RPS_CONSTR
+typedef struct DPBEntry {
+    uint64_t         picture_number;
+    uint64_t         decode_order;
+    uint8_t          temporal_layer_index;
+    bool is_valid;
+    //Bool             is_displayed;
+    //Bool             is_used;
+    //Bool             is_alt_ref;
+} DPBEntry;
+#endif
 /**************************************
  * Context
  **************************************/
@@ -95,6 +106,10 @@ typedef struct PictureDecisionContext {
     uint32_t mini_gop_group_faded_out_pictures_count[MINI_GOP_MAX_COUNT];
     uint8_t  lay0_toggle; //3 way toggle 0->1->2
     uint8_t  lay1_toggle; //2 way toggle 0->1
+#if OPT_RPS_CONSTR
+    uint8_t  cut_short_ra_mg;
+    DPBEntry dpb[REF_FRAMES];
+#endif
     Bool mini_gop_toggle; //mini GOP toggling since last Key Frame  K-0-1-0-1-0-K-0-1-0-1-K-0-1.....
     uint8_t last_i_picture_sc_class0;
     uint8_t last_i_picture_sc_class1;
