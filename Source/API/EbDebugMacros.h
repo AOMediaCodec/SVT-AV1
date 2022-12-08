@@ -58,6 +58,11 @@ extern "C" {
 #define CLN_REMOVE_REF_CNT         1 // Remove scs->reference_count
 #endif
 
+#define FIX_LAYER_SIGNAL           1
+#define FTR_PRED_STRUCT_CLASSIFIER 1
+#define FTR_PRED_STRUCT_CLASSIFIER2 1
+#define FTR_PRED_STRUCT_5L_VS_4L   1
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

@@ -227,12 +227,16 @@ void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContex
     pcs->used_tpl_frame_num = 0;
     uint8_t  is_gop_end     = 0;
     int64_t  last_intra_mg_id;
+#if FIX_LAYER_SIGNAL
+    uint32_t mg_size = 1 << pcs->hierarchical_levels;
+#else
     uint32_t mg_size;
     if (pcs->scs_ptr->enable_adaptive_mini_gop == 0) {
         mg_size = 1 << pcs->scs_ptr->static_config.hierarchical_levels;
     } else {
         mg_size = 1 << pcs->scs_ptr->max_heirachical_level;
     }
+#endif
     uint32_t limited_tpl_group_size = pcs->slice_type == I_SLICE
         ? MIN(1 + (pcs->scs_ptr->tpl_lad_mg + 1) * mg_size, pcs->ext_group_size)
         : MIN((pcs->scs_ptr->tpl_lad_mg + 1) * mg_size, pcs->ext_group_size);

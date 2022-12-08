@@ -87,9 +87,10 @@ typedef struct PictureDecisionContext {
         // When transition_present is set to 1, different action(s) will be taken to mimic an I_SLICE (decrease the QP, better INTRA search level,
         // shut depth-removal, ..). The QP action is not applied if a P.
     // Dynamic GOP
+#if !FTR_PRED_STRUCT_CLASSIFIER
     uint32_t ttl_region_activity_cost[MAX_NUMBER_OF_REGIONS_IN_WIDTH]
                                      [MAX_NUMBER_OF_REGIONS_IN_HEIGHT];
-
+#endif
     uint32_t total_number_of_mini_gops;
 
     uint32_t mini_gop_start_index[MINI_GOP_WINDOW_MAX_COUNT];
@@ -135,6 +136,16 @@ typedef struct PictureDecisionContext {
     uint32_t ref_order_hint[REF_FRAMES]; // spec 6.8.2
     uint64_t sframe_poc;
     int32_t  sframe_due; // The flag indicates whether the next ARF will be made an s-frame
+#if FTR_PRED_STRUCT_CLASSIFIER
+    uint8_t* sixteenth_b64_buffer;
+    uint32_t sixteenth_b64_buffer_stride;
+    uint64_t norm_dist;
+    uint8_t perc_cplx;
+    uint8_t perc_active;
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    int16_t mv_in_out_count;
+#endif
+#endif
 } PictureDecisionContext;
 
 #endif // EbPictureDecision_h

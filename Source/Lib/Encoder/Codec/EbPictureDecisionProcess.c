@@ -382,12 +382,333 @@ EbErrorType release_prev_picture_from_reorder_queue(
     return return_error;
 }
 
+#if FTR_PRED_STRUCT_CLASSIFIER
+static void early_hme_b64(
+    PictureDecisionContext* context_ptr, // ME context Ptr, used to get/update ME results
+    uint8_t hme_search_method, //
+    int16_t    origin_x, // Block position in the horizontal direction- sixteenth resolution
+    int16_t    origin_y, // Block position in the vertical direction- sixteenth resolution
+    uint32_t   block_width, // Block width - sixteenth resolution
+    uint32_t   block_height, // Block height - sixteenth resolution
+    int16_t    sa_width, // search area width
+    int16_t    sa_height, // search area height
+    EbPictureBufferDesc* sixteenth_ref_pic_ptr, // sixteenth-downsampled reference picture
+    uint64_t* best_sad, // output: Level0 SAD
+    int16_t* hme_l0_sc_x, // output: Level0 xMV
+    int16_t* hme_l0_sc_y // output: Level0 yMV
+) {
+    // round up the search region width to nearest multiple of 8 because the SAD calculation performance (for
+    // intrinsic functions) is the same for search region width from 1 to 8
+    sa_width = (int16_t)((sa_width + 7) & ~0x07);
+    int16_t pad_width = (int16_t)(sixteenth_ref_pic_ptr->origin_x) - 1;
+    int16_t pad_height = (int16_t)(sixteenth_ref_pic_ptr->origin_y) - 1;
+
+    int16_t sa_origin_x = -(int16_t)(sa_width >> 1);
+    int16_t sa_origin_y = -(int16_t)(sa_height >> 1);
+
+    // Correct the left edge of the Search Area if it is not on the reference picture
+    if (((origin_x + sa_origin_x) < -pad_width)) {
+        sa_origin_x = -pad_width - origin_x;
+        sa_width = sa_width - (-pad_width - (origin_x + sa_origin_x));
+    }
+
+    // Correct the right edge of the Search Area if its not on the reference picture
+    if (((origin_x + sa_origin_x) > (int16_t)sixteenth_ref_pic_ptr->width - 1))
+        sa_origin_x = sa_origin_x -
+        ((origin_x + sa_origin_x) - ((int16_t)sixteenth_ref_pic_ptr->width - 1));
+
+    if (((origin_x + sa_origin_x + sa_width) > (int16_t)sixteenth_ref_pic_ptr->width))
+        sa_width = MAX(
+            1,
+            sa_width -
+            ((origin_x + sa_origin_x + sa_width) - (int16_t)sixteenth_ref_pic_ptr->width));
+    // Constrain x_HME_L1 to be a multiple of 8 (round down as cropping alrea performed)
+    sa_width = (sa_width < 8) ? sa_width : sa_width & ~0x07;
+    // Correct the top edge of the Search Area if it is not on the reference picture
+    if (((origin_y + sa_origin_y) < -pad_height)) {
+        sa_origin_y = -pad_height - origin_y;
+        sa_height = sa_height - (-pad_height - (origin_y + sa_origin_y));
+    }
+
+    // Correct the bottom edge of the Search Area if its not on the reference picture
+    if (((origin_y + sa_origin_y) > (int16_t)sixteenth_ref_pic_ptr->height - 1))
+        sa_origin_y = sa_origin_y -
+        ((origin_y + sa_origin_y) - ((int16_t)sixteenth_ref_pic_ptr->height - 1));
+
+    if ((origin_y + sa_origin_y + sa_height > (int16_t)sixteenth_ref_pic_ptr->height))
+        sa_height = MAX(
+            1,
+            sa_height -
+            ((origin_y + sa_origin_y + sa_height) - (int16_t)sixteenth_ref_pic_ptr->height));
+
+    // Move to the top left of the search region
+    int16_t x_top_left_search_region = ((int16_t)sixteenth_ref_pic_ptr->origin_x + origin_x) +
+        sa_origin_x;
+    int16_t y_top_left_search_region = ((int16_t)sixteenth_ref_pic_ptr->origin_y + origin_y) +
+        sa_origin_y;
+    uint32_t search_region_index = x_top_left_search_region +
+        y_top_left_search_region * sixteenth_ref_pic_ptr->stride_y;
+
+    // Put the first search location into level0 results
+    svt_sad_loop_kernel(
+        &context_ptr->sixteenth_b64_buffer[0],
+        (hme_search_method == FULL_SAD_SEARCH)
+        ? context_ptr->sixteenth_b64_buffer_stride
+        : context_ptr->sixteenth_b64_buffer_stride * 2,
+        &sixteenth_ref_pic_ptr->buffer_y[search_region_index],
+        (hme_search_method == FULL_SAD_SEARCH) ? sixteenth_ref_pic_ptr->stride_y
+        : sixteenth_ref_pic_ptr->stride_y * 2,
+        (hme_search_method == FULL_SAD_SEARCH) ? block_height : block_height >> 1,
+        block_width,
+        /* results */
+        best_sad,
+        hme_l0_sc_x,
+        hme_l0_sc_y,
+        /* range */
+        sixteenth_ref_pic_ptr->stride_y,
+        0, // skip search line
+        sa_width,
+        sa_height);
+
+    *best_sad = (hme_search_method == FULL_SAD_SEARCH)
+        ? *best_sad
+        : *best_sad * 2; // Multiply by 2 because considered only ever other line
+
+    *hme_l0_sc_x += sa_origin_x;
+    *hme_l0_sc_x *= 4; // Multiply by 4 because operating on 1/4 resolution
+    *hme_l0_sc_y += sa_origin_y;
+    *hme_l0_sc_y *= 4; // Multiply by 4 because operating on 1/4 resolution
+
+    return;
+}
+
+static void early_hme(
+    PictureDecisionContext* ctx,
+    PictureParentControlSet* src_pcs,
+    PictureParentControlSet* ref_pcs) {
+
+    EbPaReferenceObject* pa_src_obj =
+        (EbPaReferenceObject*)src_pcs->pa_reference_picture_wrapper_ptr->object_ptr;
+
+    EbPaReferenceObject* pa_ref_obj =
+        (EbPaReferenceObject*)ref_pcs->pa_reference_picture_wrapper_ptr->object_ptr;
+
+    uint64_t tot_dist = 0;
+
+    uint32_t tot_norm_mvx = 0;
+    uint32_t tot_norm_mvy = 0;
+
+    uint32_t tot_cplx = 0;
+    uint32_t tot_active = 0;
+
+    int16_t sa_width = src_pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 16 : src_pcs->input_resolution <= INPUT_SIZE_480p_RANGE ? 64 : 128;
+    int16_t sa_height = src_pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 16 : src_pcs->input_resolution <= INPUT_SIZE_480p_RANGE ? 64 : 128;
+
+    uint64_t hme_level0_sad = (uint64_t)~0;
+    int16_t x_hme_level0_search_center = 0;
+    int16_t y_hme_level0_search_center = 0;
+
+    uint8_t hme_search_method = FULL_SAD_SEARCH;
+
+    // 64x64 Block Loop
+    uint32_t pic_width_in_b64 = (src_pcs->aligned_width + 63) / 64;
+    uint32_t pic_height_in_b64 = (src_pcs->aligned_height + 63) / 64;
+
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    int sum_in_vectors = 0;
+#endif
+    for (uint32_t y_b64_index = 0; y_b64_index < pic_height_in_b64; ++y_b64_index) {
+        for (uint32_t x_b64_index = 0; x_b64_index < pic_width_in_b64; ++x_b64_index) {
+
+            uint32_t b64_origin_x = x_b64_index * 64;
+            uint32_t b64_origin_y = y_b64_index * 64;
+
+            uint32_t buffer_index = (pa_src_obj->sixteenth_downsampled_picture_ptr->origin_y +
+                (b64_origin_y >> 2)) * pa_src_obj->sixteenth_downsampled_picture_ptr->stride_y +
+                pa_src_obj->sixteenth_downsampled_picture_ptr->origin_x + (b64_origin_x >> 2);
+
+            ctx->sixteenth_b64_buffer = &pa_src_obj->sixteenth_downsampled_picture_ptr->buffer_y[buffer_index];
+            ctx->sixteenth_b64_buffer_stride = pa_src_obj->sixteenth_downsampled_picture_ptr->stride_y;
+
+            early_hme_b64(ctx,
+                hme_search_method,
+                ((int16_t)b64_origin_x) >> 2,
+                ((int16_t)b64_origin_y) >> 2,
+                16,
+                16,
+                sa_width,
+                sa_height,
+                pa_ref_obj->sixteenth_downsampled_picture_ptr,
+                &hme_level0_sad,
+                &x_hme_level0_search_center,
+                &y_hme_level0_search_center);
+
+            tot_dist += hme_level0_sad;
+            tot_norm_mvx += abs(x_hme_level0_search_center);
+            tot_norm_mvy += abs(y_hme_level0_search_center);
+
+            tot_cplx += (hme_level0_sad > (16 * 16 * 30));
+            tot_active += ((abs(x_hme_level0_search_center) > 0) || (abs(y_hme_level0_search_center) > 0));
+#if FTR_PRED_STRUCT_CLASSIFIER2
+            if (y_b64_index < pic_height_in_b64 / 2) {
+                if (y_hme_level0_search_center > 0) {
+                    --sum_in_vectors;
+                }
+                else if (y_hme_level0_search_center < 0) {
+                    ++sum_in_vectors;
+                }
+            }
+            else if (y_b64_index > pic_height_in_b64 / 2) {
+                if (y_hme_level0_search_center > 0) {
+                    ++sum_in_vectors;
+                }
+                else if (y_hme_level0_search_center < 0) {
+                    --sum_in_vectors;
+                }
+            }
+
+            // Does the col vector point inwards or outwards?
+            if (x_b64_index < pic_width_in_b64 / 2) {
+                if (x_hme_level0_search_center > 0) {
+                    --sum_in_vectors;
+                }
+                else if (x_hme_level0_search_center < 0) {
+                    ++sum_in_vectors;
+                }
+            }
+            else if (x_b64_index > pic_width_in_b64 / 2) {
+                if (x_hme_level0_search_center > 0) {
+                    ++sum_in_vectors;
+                }
+                else if (x_hme_level0_search_center < 0) {
+                    --sum_in_vectors;
+                }
+            }
+#endif
+        }
+    }
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    ctx->mv_in_out_count = sum_in_vectors * 100 / (int)(pic_height_in_b64 * pic_width_in_b64);
+#endif
+    ctx->norm_dist = tot_dist / (pic_height_in_b64 * pic_width_in_b64);
+    ctx->perc_cplx = (tot_cplx * 100) / (pic_height_in_b64 * pic_width_in_b64);
+    ctx->perc_active = (tot_active * 100) / (pic_height_in_b64 * pic_width_in_b64);
+}
+
+#define HIGH_DIST_TH 16 * 16 * 18
+#define LOW_DIST_TH  16 * 16 *  2
+
+static void calc_mini_gop_activity(
+    PictureDecisionContext* ctx,
+    EncodeContext* encode_ctx,
+    uint64_t top_layer_idx, uint64_t top_layer_dist, uint8_t top_layer_perc_active, uint8_t top_layer_perc_cplx,
+    uint64_t sub_layer_idx0, uint64_t sub_layer_dist0, uint8_t sub_layer0_perc_active, uint8_t sub_layer0_perc_cplx,
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    uint64_t sub_layer_idx1, uint64_t sub_layer_dist1, uint8_t sub_layer1_perc_active, uint8_t sub_layer1_perc_cplx,
+    int16_t top_layer_mv_in_out_count, int16_t sub_layer_mv_in_out_count1, int16_t sub_layer_mv_in_out_count2) {
+#else
+    uint64_t sub_layer_idx1, uint64_t sub_layer_dist1, uint8_t sub_layer1_perc_active, uint8_t sub_layer1_perc_cplx) {
+#endif
+    // The bias is function of the previous mini-gop structure towards less switch(es) within the same gop
+    // 6L will be maintained unless the presence of a significant change compared to the previous mini-gop
+    // To do: make the bias function of the preset; higher is the preset, higher is the bias towards less 6L
+    int bias = (encode_ctx->mini_gop_cnt_per_gop > 1 && encode_ctx->previous_mini_gop_hierarchical_levels == 5) ? 25 : 65;
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    if ((top_layer_perc_active >= 95 &&
+        top_layer_dist > LOW_DIST_TH &&
+        sub_layer_dist0 < HIGH_DIST_TH &&
+        sub_layer_dist1 < HIGH_DIST_TH &&
+        top_layer_perc_cplx >   0 &&
+        sub_layer0_perc_cplx < 25 &&
+        sub_layer1_perc_cplx < 25 &&
+        (((sub_layer_dist0 + sub_layer_dist1) / 2) < ((bias * top_layer_dist) / 100))) || (MIN(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 40 && MAX(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 55 )) {
+#else
+    if (top_layer_perc_active >= 95 &&
+        top_layer_dist > LOW_DIST_TH &&
+        sub_layer_dist0 < HIGH_DIST_TH &&
+        sub_layer_dist1 < HIGH_DIST_TH &&
+        top_layer_perc_cplx >   0 &&
+        sub_layer0_perc_cplx < 25 &&
+        sub_layer1_perc_cplx < 25 &&
+        (((sub_layer_dist0 + sub_layer_dist1) / 2) < ((bias * top_layer_dist) / 100))) {
+#endif
+
+        ctx->mini_gop_activity_array[top_layer_idx] = TRUE;
+        ctx->mini_gop_activity_array[sub_layer_idx0] = FALSE;
+        ctx->mini_gop_activity_array[sub_layer_idx1] = FALSE;
+    }
+}
+
+static void eval_sub_mini_gop(
+    PictureDecisionContext* ctx,
+    EncodeContext* encode_ctx,
+    uint64_t top_layer_idx,
+    uint64_t sub_layer_idx0,
+    uint64_t sub_layer_idx1,
+    PictureParentControlSet *start_pcs,
+    PictureParentControlSet *mid_pcs,
+    PictureParentControlSet *end_pcs) {
+
+    early_hme(
+        ctx,
+        end_pcs,
+        start_pcs);
+
+    uint64_t dist_end_start = ctx->norm_dist;
+    uint8_t perc_cplx_end_start = ctx->perc_cplx;
+    uint8_t perc_active_end_start = ctx->perc_active;
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    int16_t mv_in_out_count_end_start = ctx->mv_in_out_count;
+#endif
+    early_hme(
+        ctx,
+        end_pcs,
+        mid_pcs);
+
+    uint64_t dist_end_mid = ctx->norm_dist;
+    uint8_t perc_cplx_end_mid = ctx->perc_cplx;
+    uint8_t perc_active_end_mid = ctx->perc_active;
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    int16_t mv_in_out_count_end_mid = ctx->mv_in_out_count;
+#endif
+
+    early_hme(
+        ctx,
+        mid_pcs,
+        start_pcs);
+
+    uint64_t dist_mid_start = ctx->norm_dist;
+    uint8_t perc_cplx_mid_start = ctx->perc_cplx;
+    uint8_t perc_active_mid_start = ctx->perc_active;
+#if FTR_PRED_STRUCT_CLASSIFIER2
+    int16_t mv_in_out_count_mid_start = ctx->mv_in_out_count;
+#endif
+
+    calc_mini_gop_activity(
+        ctx,
+        encode_ctx,
+        top_layer_idx, dist_end_start, perc_active_end_start, perc_cplx_end_start,
+        sub_layer_idx0, dist_mid_start, perc_active_mid_start, perc_cplx_mid_start,
+#if FTR_PRED_STRUCT_CLASSIFIER2
+        sub_layer_idx1, dist_end_mid, perc_active_end_mid, perc_cplx_end_mid,
+        mv_in_out_count_end_start, mv_in_out_count_end_mid, mv_in_out_count_mid_start);
+#else
+        sub_layer_idx1, dist_end_mid, perc_active_end_mid, perc_cplx_end_mid);
+#endif
+}
+#endif
+
 /***************************************************************************************************
 * Initializes mini GOP activity array
 *
 ***************************************************************************************************/
+#if FTR_PRED_STRUCT_CLASSIFIER
+static void initialize_mini_gop_activity_array(SequenceControlSet* scs, PictureParentControlSet *pcs, EncodeContext* encode_ctx,
+    PictureDecisionContext* ctx) {
+#else
 static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, EncodeContext* encode_ctx,
     PictureDecisionContext* ctx) {
+#endif
 
     // Loop over all mini GOPs to initialize the activity
     for (uint32_t gopindex = 0; gopindex < MINI_GOP_MAX_COUNT; ++gopindex) {
@@ -433,6 +754,48 @@ static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, Enc
         !(encode_ctx->pre_assignment_buffer_count == 4 && pcs->idr_flag)) {
         ctx->mini_gop_activity_array[L3_0_INDEX] = FALSE;
     }
+
+#if FTR_PRED_STRUCT_CLASSIFIER
+    // 6L vs. 5L
+    if (ctx->mini_gop_activity_array[L6_INDEX] == FALSE)
+        eval_sub_mini_gop(
+            ctx,
+            encode_ctx,
+            L6_INDEX,
+            L5_0_INDEX,
+            L5_1_INDEX,
+            (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[0]->object_ptr,
+            (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr,
+            (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[31]->object_ptr);
+#if FTR_PRED_STRUCT_5L_VS_4L
+    if (ctx->mini_gop_activity_array[L6_INDEX] == TRUE) {
+
+        // 5L vs. 4L (1st segment)
+        if (ctx->mini_gop_activity_array[L5_0_INDEX] == FALSE)
+            eval_sub_mini_gop(
+                ctx,
+                encode_ctx,
+                L5_0_INDEX,
+                L4_0_INDEX,
+                L4_1_INDEX,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[0]->object_ptr,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[7]->object_ptr,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr);
+
+        // 5L vs. 4L (2nd segment)
+        if (ctx->mini_gop_activity_array[L5_1_INDEX] == FALSE)
+            eval_sub_mini_gop(
+                ctx,
+                encode_ctx,
+                L5_1_INDEX,
+                L4_2_INDEX,
+                L4_3_INDEX,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[23]->object_ptr,
+                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[31]->object_ptr);
+    }
+#endif
+#endif
 }
 
 /***************************************************************************************************
@@ -745,7 +1108,11 @@ static void set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl_
     // Derive synthesizer block size from frame size and tpl level
     tpl_ctrls->synth_blk_size = svt_aom_get_tpl_synthesizer_block_size(tpl_level, pcs->aligned_width, pcs->aligned_height);
 
+#if FIX_LAYER_SIGNAL
+    if ((int)pcs->hierarchical_levels <= tpl_ctrls->reduced_tpl_group)
+#else
     if ((int)scs->static_config.hierarchical_levels <= tpl_ctrls->reduced_tpl_group)
+#endif
         tpl_ctrls->reduced_tpl_group = -1;
 
     // TPL may only look at a subset of available pictures in tpl group, which may affect the r0 calcuation.
@@ -1803,6 +2170,13 @@ EbErrorType signal_derivation_multi_processes_oq(
     const uint8_t            is_base = pcs_ptr->temporal_layer_index == 0;
     const EbInputResolution  input_resolution = pcs_ptr->input_resolution;
     const uint32_t           bit_depth = scs_ptr->static_config.encoder_bit_depth;
+    const Bool               fast_decode = scs_ptr->static_config.fast_decode;
+#if FIX_LAYER_SIGNAL
+    const uint32_t           hierarchical_levels = pcs_ptr->hierarchical_levels;
+#else
+    const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
+#endif
+
     const Bool               fast_decode = scs_ptr->static_config.fast_decode;
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #if OPT_LD_M13
@@ -5954,6 +6328,9 @@ void process_first_pass_frame(
 }
 void pack_highbd_pic(const EbPictureBufferDesc *pic_ptr, uint16_t *buffer_16bit[3], uint32_t ss_x,
     uint32_t ss_y, Bool include_padding);
+#if FIX_LAYER_SIGNAL
+uint8_t tf_max_ref_per_struct(uint32_t hierarchical_levels, uint8_t type /*I_SLICE, BASE, L1*/, bool direction /*Past, Future*/);
+#endif
 static EbErrorType derive_tf_window_params(
     SequenceControlSet *scs_ptr,
     EncodeContext *encode_context_ptr,
@@ -6238,6 +6615,22 @@ static EbErrorType derive_tf_window_params(
             pcs_ptr->temp_filt_pcs_list[0] = pcs_ptr;
             uint32_t num_future_pics = pcs_ptr->tf_ctrls.num_future_pics + (pcs_ptr->tf_ctrls.noise_adjust_future_pics ? adjust_num : 0);
             num_future_pics = MIN(pcs_ptr->tf_ctrls.max_num_future_pics, num_future_pics);
+#if FIX_LAYER_SIGNAL
+            // Update the key frame pred structure;
+            int32_t idx = search_this_pic(context_ptr->mg_pictures_array, context_ptr->mg_size, pcs_ptr->picture_number + 1);
+
+            if (picture_control_set_ptr_central->hierarchical_levels != pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels ||
+                picture_control_set_ptr_central->hierarchical_levels != context_ptr->mg_pictures_array[idx]->hierarchical_levels) {
+                const uint8_t            is_islice = picture_control_set_ptr_central->slice_type == I_SLICE;
+                picture_control_set_ptr_central->hierarchical_levels = pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels = context_ptr->mg_pictures_array[idx]->hierarchical_levels;
+                picture_control_set_ptr_central->tpl_ctrls.reduced_tpl_group = picture_control_set_ptr_central->hierarchical_levels == 5
+                    ? (is_islice ? 4 : 3)
+                    : (is_islice ? 3 : 2);
+            }
+            num_future_pics = MIN((uint8_t)num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
+#else
+            picture_control_set_ptr_central->hierarchical_levels = pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels = context_ptr->mg_pictures_array[idx]->hierarchical_levels;
+#endif
             uint32_t pic_i;
             for (pic_i = 0; pic_i < num_future_pics; pic_i++) {
                 int32_t idx = search_this_pic(context_ptr->mg_pictures_array, context_ptr->mg_size, pcs_ptr->picture_number + pic_i + 1);
@@ -6260,6 +6653,9 @@ static EbErrorType derive_tf_window_params(
                 pcs_ptr->temp_filt_pcs_list[0] = pcs_ptr;
                 uint32_t num_future_pics = pcs_ptr->tf_ctrls.num_future_pics + (pcs_ptr->tf_ctrls.noise_adjust_future_pics ? adjust_num : 0);
                 num_future_pics = MIN(pcs_ptr->tf_ctrls.max_num_future_pics, num_future_pics);
+#if FIX_LAYER_SIGNAL
+                num_future_pics = MIN((uint8_t)num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
+#endif
                 uint32_t num_past_pics = 0;
                 uint32_t pic_i;
                 //search reord-queue to get the future pictures
@@ -6284,6 +6680,11 @@ static EbErrorType derive_tf_window_params(
 
                 int num_future_pics = pcs_ptr->tf_ctrls.num_future_pics + (pcs_ptr->tf_ctrls.noise_adjust_future_pics ? (adjust_num >> 1) : 0);
                 num_future_pics = MIN(pcs_ptr->tf_ctrls.max_num_future_pics, num_future_pics);
+
+#if FIX_LAYER_SIGNAL
+                num_past_pics = MIN(num_past_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 0));
+                num_future_pics = MIN(num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 1));
+#endif
 
                 // Initialize list
                 for (int pic_itr = 0; pic_itr < ALTREF_MAX_NFRAMES; pic_itr++)
@@ -6890,6 +7291,11 @@ static void set_mini_gop_structure(SequenceControlSet* scs, EncodeContext* encod
     encode_ctx->previous_mini_gop_hierarchical_levels = (pcs->picture_number == 0) ?
         scs->static_config.hierarchical_levels :
         encode_ctx->previous_mini_gop_hierarchical_levels;
+#if FTR_PRED_STRUCT_CLASSIFIER
+    encode_ctx->mini_gop_cnt_per_gop = (encode_ctx->pre_assignment_buffer_idr_count) ?
+        0 :
+        encode_ctx->mini_gop_cnt_per_gop + 1;
+#endif
 #if FIX_INCOMP_MG_2
     assert(IMPLIES(encode_ctx->pre_assignment_buffer_intra_count == encode_ctx->pre_assignment_buffer_count, encode_ctx->pre_assignment_buffer_count == 1));
 #endif
@@ -6910,7 +7316,11 @@ static void set_mini_gop_structure(SequenceControlSet* scs, EncodeContext* encod
 #else
     else if (encode_ctx->pre_assignment_buffer_count > 1) {
 #endif
+#if FTR_PRED_STRUCT_CLASSIFIER
+        initialize_mini_gop_activity_array(scs, pcs, encode_ctx, ctx);
+#else
         initialize_mini_gop_activity_array(pcs, encode_ctx, ctx);
+#endif
 
         generate_picture_window_split(
             ctx,
