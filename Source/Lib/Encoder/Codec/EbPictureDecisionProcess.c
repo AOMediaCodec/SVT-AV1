@@ -2456,7 +2456,7 @@ static void  av1_generate_rps_info(
         const uint8_t  lay2_idx = LAY2_OFF;
 #if OPT_LD_MRP4
         const uint8_t  long_base_idx = 7;
-        const uint16_t  long_base_pic = LD_BOOST_INTERVAL;
+        const uint16_t  long_base_pic = 128;
 #endif
         switch (pcs_ptr->temporal_layer_index) {
         case 0:
