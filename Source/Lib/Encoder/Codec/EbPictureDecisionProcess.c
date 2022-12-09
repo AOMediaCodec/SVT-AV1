@@ -2698,7 +2698,7 @@ bool is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, u
     return true;
 }
 
-void set_ref_list_counts(PictureParentControlSet* pcs) {
+static void set_ref_list_counts(PictureParentControlSet* pcs) {
 
     if (pcs->slice_type == I_SLICE) {
         pcs->ref_list0_count = 0;
@@ -6328,9 +6328,7 @@ void process_first_pass_frame(
 }
 void pack_highbd_pic(const EbPictureBufferDesc *pic_ptr, uint16_t *buffer_16bit[3], uint32_t ss_x,
     uint32_t ss_y, Bool include_padding);
-#if FIX_LAYER_SIGNAL
-uint8_t tf_max_ref_per_struct(uint32_t hierarchical_levels, uint8_t type /*I_SLICE, BASE, L1*/, bool direction /*Past, Future*/);
-#endif
+
 static EbErrorType derive_tf_window_params(
     SequenceControlSet *scs_ptr,
     EncodeContext *encode_context_ptr,

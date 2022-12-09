@@ -84,7 +84,7 @@
  *  0 1 2 3 4 5 6 7 8
  *
  ************************************************/
-PredictionStructureConfigEntry flat_pred_struct[] = {{
+static PredictionStructureConfigEntry flat_pred_struct[] = {{
         0, // GOP Index 0 - Temporal Layer
         0 // GOP Index 0 - Decode Order
     }};
@@ -102,7 +102,7 @@ PredictionStructureConfigEntry flat_pred_struct[] = {{
 * Coding Order:
 *  0 2 1 4 3 6 5 8 7
 ************************************************/
-PredictionStructureConfigEntry two_level_hierarchical_pred_struct[] = {
+static PredictionStructureConfigEntry two_level_hierarchical_pred_struct[] = {
     {
         0, // GOP Index 0 - Temporal Layer
         0 // GOP Index 0 - Decode Order
@@ -130,7 +130,7 @@ PredictionStructureConfigEntry two_level_hierarchical_pred_struct[] = {
 *  0   3 2 4   1   7 6 8   5   1 1 1   9
 *                              1 0 2
 ************************************************/
-PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
+static PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
     {
         0, // GOP Index 0 - Temporal Layer
         0 // GOP Index 0 - Decode Order
@@ -172,7 +172,7 @@ PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
 *                                                  2  1  3     0     5  4  6
 *
 ***********************************************************************************************************/
-PredictionStructureConfigEntry four_level_hierarchical_pred_struct[] = {
+static PredictionStructureConfigEntry four_level_hierarchical_pred_struct[] = {
     {
         0, // GOP Index 0 - Temporal Layer
         0 // GOP Index 0 - Decode Order
@@ -231,7 +231,7 @@ PredictionStructureConfigEntry four_level_hierarchical_pred_struct[] = {
 *                                                   2  1  3     0     5  4  6
 *
 ***********************************************************************************************************/
-PredictionStructureConfigEntry five_level_hierarchical_pred_struct[] = {
+static PredictionStructureConfigEntry five_level_hierarchical_pred_struct[] = {
 
     {
         0, // GOP Index 0 - Temporal Layer
@@ -327,7 +327,7 @@ PredictionStructureConfigEntry five_level_hierarchical_pred_struct[] = {
 *                                      0               3  2  4     1     6  5  7                   1  0  2     9     4  3  5       8       8  7  9     6     1  0  2
 *
 **********************************************************************************************************************************************************************************************************************/
-PredictionStructureConfigEntry six_level_hierarchical_pred_struct[] = {
+static PredictionStructureConfigEntry six_level_hierarchical_pred_struct[] = {
     {
         0, // GOP Index 0 - Temporal Layer
         0 // GOP Index 0 - Decode Order

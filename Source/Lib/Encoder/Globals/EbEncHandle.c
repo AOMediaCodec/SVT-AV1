@@ -75,9 +75,7 @@
 #include "aom_dsp_rtcd.h"
 #include "common_dsp_rtcd.h"
 
-#if OPT_RPS_CONSTR_3
-EbErrorType prediction_structure_group_ctor(PredictionStructureGroup* pred_struct_group_ptr);
-#else
+#if !OPT_RPS_CONSTR_3
  EbErrorType prediction_structure_group_ctor(
      PredictionStructureGroup* pred_struct_group_ptr,
      struct SequenceControlSet* scs_ptr);
@@ -124,7 +122,6 @@ static processorGroup           *lp_group = NULL;
 #endif
 uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width, uint32_t picture_height);
 #if OPT_RPS_CONSTR_2
-bool is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay);
 /* count number of refs in a steady state MG*/
 static unsigned int get_num_refs_in_one_mg(unsigned hierarchical_levels, unsigned referencing_scheme) {
 
