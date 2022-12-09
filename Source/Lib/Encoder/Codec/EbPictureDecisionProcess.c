@@ -2465,7 +2465,10 @@ static void  av1_generate_rps_info(
             av1_rps->ref_dpb_index[LAST] = base1_idx;
             av1_rps->ref_dpb_index[LAST2] = base2_idx;
 #if OPT_LD_MRP4
-            av1_rps->ref_dpb_index[LAST3] = long_base_idx;
+            if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+                av1_rps->ref_dpb_index[LAST3] = long_base_idx;
+            else
+                av1_rps->ref_dpb_index[LAST3] = av1_rps->ref_dpb_index[LAST];
 #else
             av1_rps->ref_dpb_index[LAST3] = av1_rps->ref_dpb_index[LAST];
 #endif
@@ -2478,8 +2481,12 @@ static void  av1_generate_rps_info(
             av1_rps->ref_poc_array[LAST] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[0]);
             av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[1]);
 #if OPT_LD_MRP4
-            int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
-            av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
+            if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+                int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
+                av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
+            }
+            else
+                av1_rps->ref_poc_array[LAST3] = av1_rps->ref_poc_array[LAST];
 #else
             av1_rps->ref_poc_array[LAST3] = av1_rps->ref_poc_array[LAST];
 #endif
@@ -2596,7 +2603,7 @@ static void  av1_generate_rps_info(
             break;
         }
 #if OPT_LD_MRP4
-        if (pcs_ptr->picture_number % long_base_pic == 0)
+        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && pcs_ptr->picture_number % long_base_pic == 0)
             av1_rps->refresh_frame_mask |= (1 << long_base_idx);
 #endif
         prune_refs(pred_position_ptr, av1_rps);
@@ -5525,10 +5532,10 @@ static uint32_t get_pic_idx_in_mg(SequenceControlSet* scs, PictureParentControlS
 static void set_ref_frame_sign_bias(SequenceControlSet* scs, PictureParentControlSet* pcs) {
     memset(pcs->av1_cm->ref_frame_sign_bias, 0, 8 * sizeof(int32_t));
 
-    if (scs->seq_header.order_hint_info.enable_order_hint &&
 #if OPT_LD_MRP
-        pcs->frm_hdr.reference_mode == REFERENCE_MODE_SELECT){
+    if (scs->seq_header.order_hint_info.enable_order_hint) {
 #else
+    if (scs->seq_header.order_hint_info.enable_order_hint &&
         pcs->frm_hdr.reference_mode == REFERENCE_MODE_SELECT &&
         scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS) {
 #endif
