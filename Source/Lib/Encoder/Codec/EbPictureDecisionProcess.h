@@ -50,13 +50,13 @@ void svt_aom_set_dlf_controls(PictureParentControlSet *pcs_ptr, uint8_t dlf_leve
                               uint8_t bit_depth);
 
 #if FIX_LAYER_SIGNAL
-uint8_t tf_max_ref_per_struct(uint32_t hierarchical_levels, uint8_t type /*I_SLICE, BASE, L1*/, bool direction /*Past, Future*/);
+uint8_t svt_aom_tf_max_ref_per_struct(uint32_t hierarchical_levels, uint8_t type /*I_SLICE, BASE, L1*/, bool direction /*Past, Future*/);
 #endif
 #if OPT_RPS_CONSTR_3
-EbErrorType prediction_structure_group_ctor(PredictionStructureGroup* pred_struct_group_ptr);
+EbErrorType svt_aom_prediction_structure_group_ctor(PredictionStructureGroup* pred_struct_group_ptr);
 #endif
 #if OPT_RPS_CONSTR_2
-bool is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay);
+bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay);
 #endif
 #if OPT_RPS_CONSTR
 typedef struct DPBEntry {

@@ -2669,7 +2669,7 @@ we do not break the GOP.
 *************************************************/
 #if OPT_RPS_CONSTR
 #if OPT_RPS_CONSTR_2
-bool is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay) {
+bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay) {
 
     if (is_overlay)
         return false;
@@ -2806,7 +2806,7 @@ static void  av1_generate_rps_info(
 
 #if OPT_RPS_CONSTR_2
     pcs->is_used_as_reference_flag =
-        is_pic_used_as_ref(hierarchical_levels,
+        svt_aom_is_pic_used_as_ref(hierarchical_levels,
             temporal_layer,
             pic_idx,
             scs_ptr->mrp_ctrls.referencing_scheme,
@@ -6625,7 +6625,7 @@ static EbErrorType derive_tf_window_params(
                     ? (is_islice ? 4 : 3)
                     : (is_islice ? 3 : 2);
             }
-            num_future_pics = MIN((uint8_t)num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
+            num_future_pics = MIN((uint8_t)num_future_pics, svt_aom_tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
 #else
             picture_control_set_ptr_central->hierarchical_levels = pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels = context_ptr->mg_pictures_array[idx]->hierarchical_levels;
 #endif
@@ -6652,7 +6652,7 @@ static EbErrorType derive_tf_window_params(
                 uint32_t num_future_pics = pcs_ptr->tf_ctrls.num_future_pics + (pcs_ptr->tf_ctrls.noise_adjust_future_pics ? adjust_num : 0);
                 num_future_pics = MIN(pcs_ptr->tf_ctrls.max_num_future_pics, num_future_pics);
 #if FIX_LAYER_SIGNAL
-                num_future_pics = MIN((uint8_t)num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
+                num_future_pics = MIN((uint8_t)num_future_pics, svt_aom_tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
 #endif
                 uint32_t num_past_pics = 0;
                 uint32_t pic_i;
@@ -6680,8 +6680,8 @@ static EbErrorType derive_tf_window_params(
                 num_future_pics = MIN(pcs_ptr->tf_ctrls.max_num_future_pics, num_future_pics);
 
 #if FIX_LAYER_SIGNAL
-                num_past_pics = MIN(num_past_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 0));
-                num_future_pics = MIN(num_future_pics, tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 1));
+                num_past_pics = MIN(num_past_pics, svt_aom_tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 0));
+                num_future_pics = MIN(num_future_pics, svt_aom_tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, pcs_ptr->temporal_layer_index ? 2 : 1, 1));
 #endif
 
                 // Initialize list

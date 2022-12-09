@@ -1810,7 +1810,7 @@ static void prediction_structure_group_dctor(EbPtr p) {
  *
  *************************************************/
 #if OPT_RPS_CONSTR_3
-EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr) {
+EbErrorType svt_aom_prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr) {
 #else
 EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr,
                                             struct SequenceControlSet *scs_ptr) {
