@@ -5226,11 +5226,11 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
         else if (enc_mode <= ENC_M4)
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
 #if OPT_LD_M9
-        else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
+        else if (enc_mode <= ENC_M8 && !rtc_tune)
 #else
         else if (enc_mode <= ENC_M8)
 #endif
-            depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
+            depth_level = 3;
         else
             depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
     } else if (enc_mode <= ENC_M0)
