@@ -61,7 +61,7 @@ extern "C" {
 #define FIX_LAYER_SIGNAL           1
 #define FTR_PRED_STRUCT_CLASSIFIER 1
 #define FTR_PRED_STRUCT_CLASSIFIER2 1
-#define FTR_PRED_STRUCT_5L_VS_4L   1
+#define FTR_PRED_STRUCT_5L_VS_4L   0
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

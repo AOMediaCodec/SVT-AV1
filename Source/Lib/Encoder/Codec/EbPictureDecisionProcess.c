@@ -612,16 +612,22 @@ static void calc_mini_gop_activity(
     // The bias is function of the previous mini-gop structure towards less switch(es) within the same gop
     // 6L will be maintained unless the presence of a significant change compared to the previous mini-gop
     // To do: make the bias function of the preset; higher is the preset, higher is the bias towards less 6L
-    int bias = (encode_ctx->mini_gop_cnt_per_gop > 1 && encode_ctx->previous_mini_gop_hierarchical_levels == 5) ? 25 : 65;
+    int bias = (encode_ctx->mini_gop_cnt_per_gop > 1 && encode_ctx->previous_mini_gop_hierarchical_levels == 5) ? 25 : 75;
 #if FTR_PRED_STRUCT_CLASSIFIER2
-    if ((top_layer_perc_active >= 95 &&
-        top_layer_dist > LOW_DIST_TH &&
+    const bool cond1 = top_layer_perc_active >= 95 &&
+        !(sub_layer0_perc_active >= 95 && sub_layer1_perc_active < 75) &&
+        !(sub_layer0_perc_active < 75 && sub_layer1_perc_active >= 95);
+    const bool cond2 = top_layer_dist > LOW_DIST_TH &&
         sub_layer_dist0 < HIGH_DIST_TH &&
         sub_layer_dist1 < HIGH_DIST_TH &&
         top_layer_perc_cplx >   0 &&
         sub_layer0_perc_cplx < 25 &&
         sub_layer1_perc_cplx < 25 &&
-        (((sub_layer_dist0 + sub_layer_dist1) / 2) < ((bias * top_layer_dist) / 100))) || (MIN(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 40 && MAX(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 55 )) {
+        (((sub_layer_dist0 + sub_layer_dist1) / 2) < ((bias * top_layer_dist) / 100));
+    
+    const bool cond3 = MIN(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 40 && MAX(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 55;
+
+    if (cond1 && (cond2 || cond3)) {
 #else
     if (top_layer_perc_active >= 95 &&
         top_layer_dist > LOW_DIST_TH &&
@@ -757,7 +763,7 @@ static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, Enc
 
 #if FTR_PRED_STRUCT_CLASSIFIER
     // 6L vs. 5L
-    if (ctx->mini_gop_activity_array[L6_INDEX] == FALSE)
+    if (pcs->enc_mode <= ENC_M10 &&  ctx->mini_gop_activity_array[L6_INDEX] == FALSE)
         eval_sub_mini_gop(
             ctx,
             encode_ctx,
@@ -916,7 +922,11 @@ static void get_pred_struct_for_all_frames(
             PictureParentControlSet* pcs = (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[pic_idx]->object_ptr;
             SequenceControlSet* scs = pcs->scs_ptr;
             pcs->pred_structure = scs->static_config.pred_structure;
+#if FIX_LAYER_SIGNAL
+            pcs->hierarchical_levels = (pcs->idr_flag || pcs->cra_flag) ? scs->static_config.hierarchical_levels : (uint8_t)ctx->mini_gop_hierarchical_levels[mini_gop_index];
+#else
             pcs->hierarchical_levels = (uint8_t)ctx->mini_gop_hierarchical_levels[mini_gop_index];
+#endif
 
             pcs->pred_struct_ptr = get_prediction_structure(
                 encode_ctx->prediction_structure_group_ptr,
@@ -6621,9 +6631,12 @@ static EbErrorType derive_tf_window_params(
                 picture_control_set_ptr_central->hierarchical_levels != context_ptr->mg_pictures_array[idx]->hierarchical_levels) {
                 const uint8_t            is_islice = picture_control_set_ptr_central->slice_type == I_SLICE;
                 picture_control_set_ptr_central->hierarchical_levels = pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels = context_ptr->mg_pictures_array[idx]->hierarchical_levels;
-                picture_control_set_ptr_central->tpl_ctrls.reduced_tpl_group = picture_control_set_ptr_central->hierarchical_levels == 5
-                    ? (is_islice ? 4 : 3)
-                    : (is_islice ? 3 : 2);
+
+                // tpl setting are updated if hierarchical level has changed
+                set_tpl_extended_controls(picture_control_set_ptr_central, scs_ptr->tpl_level);
+                picture_control_set_ptr_central->r0_based_qps_qpm = picture_control_set_ptr_central->tpl_ctrls.enable &&
+                    (picture_control_set_ptr_central->temporal_layer_index == 0 ||
+                    (scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF && picture_control_set_ptr_central->hierarchical_levels == 5 && picture_control_set_ptr_central->temporal_layer_index == 1));
             }
             num_future_pics = MIN((uint8_t)num_future_pics, svt_aom_tf_max_ref_per_struct(pcs_ptr->hierarchical_levels, 0, 1));
 #else
@@ -7310,7 +7323,7 @@ static void set_mini_gop_structure(SequenceControlSet* scs, EncodeContext* encod
     // as a regular MG, you will change the hierarchical_levels to the minimum.
     // For low-delay pred strucutres, pre_assignment_buffer_count will be 1, but no need to change the default
     // hierarchical levels.
-    else if (encode_ctx->pre_assignment_buffer_count > 1 || ctx->cut_short_ra_mg) {
+    else if (encode_ctx->pre_assignment_buffer_count > 1 || !encode_ctx->pre_assignment_buffer_intra_count) {
 #else
     else if (encode_ctx->pre_assignment_buffer_count > 1) {
 #endif
