@@ -1211,12 +1211,13 @@ static void sb_setup_lambda(PictureControlSet *pcs_ptr, SuperBlock *sb_ptr) {
 #define QPM_MAX_BETA 1.7
 #define QPM_MIN_BETA 0.8
 #if OPT_LD_QPM
-// compute_deltaq
-// Compute delta-q for the segment.
+/******************************************************************************
+* compute_deltaq
+* Compute delta-q based on the q, bitdepth and cyclic refresh parameters
+*******************************************************************************/
 static int compute_deltaq(struct PictureParentControlSet *ppcs, RATE_CONTROL *rc, int q,
-    const int bit_depth) {
-
-    const rate_factor_level rf_lvl = rate_factor_levels[ppcs->update_type];
+                          const int bit_depth) {
+    const rate_factor_level rf_lvl     = rate_factor_levels[ppcs->update_type];
     const FrameType         frame_type = (rf_lvl == KF_STD) ? KEY_FRAME : INTER_FRAME;
 
     int deltaq = svt_av1_compute_qdelta_by_rate(
@@ -1224,86 +1225,43 @@ static int compute_deltaq(struct PictureParentControlSet *ppcs, RATE_CONTROL *rc
     if ((-deltaq) > ppcs->cyclic_refresh.max_qdelta_perc * q / 100) {
         deltaq = -ppcs->cyclic_refresh.max_qdelta_perc * q / 100;
     }
-    deltaq = AOMMIN(deltaq,
-        ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 - 1);
-    deltaq = AOMMAX(deltaq,
-        -ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 + 1);
+    deltaq = AOMMIN(deltaq, ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 - 1);
+    deltaq = AOMMAX(deltaq, -ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 + 1);
     return deltaq;
 }
 static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double correction_factor,
-    EbBitDepth bit_depth, uint8_t sc_content_detected,
-    int onepass_cbr_mode);
-int av1_cyclic_refresh_estimate_bits_at_q(PictureParentControlSet *ppcs, double correction_factor, int MBs) {
-
-    double weight_segment1 = (double)ppcs->cyclic_refresh.percent_refresh / 100;
-    double weight_segment2 = 0;
-
-    const int base_qindex = ppcs->frm_hdr.quantization_params.base_q_idx;
-    SequenceControlSet *scs = ppcs->scs_ptr;
-    RATE_CONTROL       *rc = &scs->encode_context_ptr->rc;
-    const int           bit_depth = scs->static_config.encoder_bit_depth;
-
-    // Compute delta-q corresponding to qindex i.
-        int deltaq = compute_deltaq(ppcs, rc, base_qindex,
-            bit_depth);
-
-    // Take segment weighted average for estimated bits.
-    const int estimated_bits =
-        (int)((1.0 - weight_segment1 - weight_segment2) *
-            av1_estimate_bits_at_q(
-                ppcs->frm_hdr.frame_type,
-                base_qindex,
-                MBs,
-                correction_factor,
-                bit_depth,
-                ppcs->sc_class1,
-                scs->encode_context_ptr->rc.onepass_cbr_mode) +
-            weight_segment1 * av1_estimate_bits_at_q(
-                ppcs->frm_hdr.frame_type,
-                base_qindex + deltaq,
-                MBs,
-                correction_factor,
-                bit_depth,
-                ppcs->sc_class1,
-                scs->encode_context_ptr->rc.onepass_cbr_mode) +
-            weight_segment2 * av1_estimate_bits_at_q(
-                ppcs->frm_hdr.frame_type,
-                base_qindex,
-                MBs,
-                correction_factor,
-                bit_depth,
-                ppcs->sc_class1,
-                scs->encode_context_ptr->rc.onepass_cbr_mode));
-
-    return estimated_bits;
-}
+                                  EbBitDepth bit_depth, uint8_t sc_content_detected,
+                                  int onepass_cbr_mode);
+/******************************************************************************
+* av1_cyclic_refresh_rc_bits_per_mb
+* Compute bits per mb for cyclic refresh mode
+*******************************************************************************/
 int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, int use_cyclic_refresh,
-    double correction_factor, int q) {
-    int bits_per_mb;
+                                      double correction_factor, int q) {
+    int    bits_per_mb;
     double weight_segment = (double)ppcs->cyclic_refresh.percent_refresh / 100;
 
-    SequenceControlSet *scs = ppcs->scs_ptr;
-    RATE_CONTROL       *rc = &scs->encode_context_ptr->rc;
+    SequenceControlSet *scs       = ppcs->scs_ptr;
+    RATE_CONTROL *      rc        = &scs->encode_context_ptr->rc;
     const int           bit_depth = scs->static_config.encoder_bit_depth;
-     // Compute delta-q corresponding to qindex i.
-    int deltaq = compute_deltaq(ppcs, rc, q,
-        bit_depth);
+    // Compute delta-q corresponding to qindex i.
+    int deltaq = compute_deltaq(ppcs, rc, q, bit_depth);
 
     // Take segment weighted average for bits per mb.
-    bits_per_mb =
-        (int)((1.0 - weight_segment) *
-            svt_av1_rc_bits_per_mb(ppcs->frm_hdr.frame_type,
-                q,
-                correction_factor,
-                scs->static_config.encoder_bit_depth,
-                ppcs->sc_class1,
-                scs->encode_context_ptr->rc.onepass_cbr_mode) +
-            weight_segment * svt_av1_rc_bits_per_mb(ppcs->frm_hdr.frame_type,
-                q + deltaq,
-                correction_factor,
-                scs->static_config.encoder_bit_depth,
-                ppcs->sc_class1,
-                scs->encode_context_ptr->rc.onepass_cbr_mode));
+    bits_per_mb = (int)((1.0 - weight_segment) *
+                            svt_av1_rc_bits_per_mb(ppcs->frm_hdr.frame_type,
+                                                   q,
+                                                   correction_factor,
+                                                   scs->static_config.encoder_bit_depth,
+                                                   ppcs->sc_class1,
+                                                   scs->encode_context_ptr->rc.onepass_cbr_mode) +
+                        weight_segment *
+                            svt_av1_rc_bits_per_mb(ppcs->frm_hdr.frame_type,
+                                                   q + deltaq,
+                                                   correction_factor,
+                                                   scs->static_config.encoder_bit_depth,
+                                                   ppcs->sc_class1,
+                                                   scs->encode_context_ptr->rc.onepass_cbr_mode));
     return bits_per_mb;
 }
 /******************************************************
@@ -1313,9 +1271,9 @@ int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, int use_cyc
  ******************************************************/
 static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
-    SequenceControlSet      *scs = pcs->parent_pcs_ptr->scs_ptr;
-    CyclicRefresh           *cr = &ppcs->cyclic_refresh;
-    SuperBlock              *sb;
+    SequenceControlSet *     scs  = pcs->parent_pcs_ptr->scs_ptr;
+    CyclicRefresh *          cr   = &ppcs->cyclic_refresh;
+    SuperBlock *             sb;
     uint32_t                 sb_addr;
 
     if (cr->apply_cyclic_refresh)
@@ -1328,51 +1286,47 @@ static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
         sb_cnt = ppcs->b64_total_count;
 
     if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
-
         uint64_t avg_me_dist = 0;
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-           // avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
+            // avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
             avg_me_dist += ppcs->me_8x8_distortion[sb_addr];
         }
         avg_me_dist /= sb_cnt;
 
-        RATE_CONTROL       *rc = &scs->encode_context_ptr->rc;
-        const int           bit_depth = scs->static_config.encoder_bit_depth;
-        int delta = compute_deltaq(ppcs, rc, ppcs->frm_hdr.quantization_params.base_q_idx,
-            bit_depth);
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr){
-             //   int diff_dist = (int)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
+        RATE_CONTROL *rc        = &scs->encode_context_ptr->rc;
+        const int     bit_depth = scs->static_config.encoder_bit_depth;
+        int           delta     = compute_deltaq(
+            ppcs, rc, ppcs->frm_hdr.quantization_params.base_q_idx, bit_depth);
+        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
+            //   int diff_dist = (int)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
             int diff_dist = (int)(ppcs->me_8x8_distortion[sb_addr] - avg_me_dist);
-            sb = pcs->sb_ptr_array[sb_addr];
-            int offset = 0;
+            sb            = pcs->sb_ptr_array[sb_addr];
+            int offset    = 0;
             if (sb_addr >= cr->sb_start && sb_addr < cr->sb_end && diff_dist <= 0) {
                 offset = delta;
-            }
-            else if (sb_addr >= cr->sb_start && sb_addr < cr->sb_end ) {
-                offset = delta/2;
+            } else if (sb_addr >= cr->sb_start && sb_addr < cr->sb_end) {
+                offset = delta / 2;
             }
             sb->qindex = CLIP3(
                 pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
                 255 - pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
                 ((int16_t)ppcs->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
         }
-    }
-    else {
+    } else {
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb = pcs->sb_ptr_array[sb_addr];
+            sb         = pcs->sb_ptr_array[sb_addr];
             sb->qindex = quantizer_to_qindex[pcs->picture_qp];
         }
     }
 }
-
 
 /******************************************************
  * cyclic_refresh_init
  * Initial cyclic refresh parameters
  ******************************************************/
 void cyclic_refresh_init(PictureParentControlSet *ppcs) {
-    SequenceControlSet      *scs = ppcs->scs_ptr;
-    CyclicRefresh           *cr = &ppcs->cyclic_refresh;
+    SequenceControlSet *scs = ppcs->scs_ptr;
+    CyclicRefresh *     cr  = &ppcs->cyclic_refresh;
 
     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
         cr->apply_cyclic_refresh = 1;
@@ -1382,7 +1336,7 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
     uint16_t sb_cnt = scs->sb_total_count;
     if (scs->static_config.superres_mode > SUPERRES_NONE)
         sb_cnt = ppcs->b64_total_count;
-   
+
     cr->percent_refresh = 20;
     if (ppcs->picture_number > 4 * (1 << scs->max_heirachical_level) * 100 / 20)
         cr->percent_refresh = 15;
@@ -1390,31 +1344,19 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
     if (cr->apply_cyclic_refresh) {
         cr->sb_start = scs->encode_context_ptr->cr_sb_end;
         // cr->sb_start = ((ppcs->picture_number - 4) / 4 * sb_cnt *cr->percent_refresh / 100) % sb_cnt;
-        cr->sb_end = cr->sb_start + sb_cnt * cr->percent_refresh / 100;
+        cr->sb_end                         = cr->sb_start + sb_cnt * cr->percent_refresh / 100;
         scs->encode_context_ptr->cr_sb_end = cr->sb_end >= sb_cnt ? 0 : cr->sb_end;
-    }
-    else {
+    } else {
         cr->sb_start = 0;
-        cr->sb_end = 0;
+        cr->sb_end   = 0;
     }
     // Use larger delta - qp(increase rate_ratio_qdelta) for first few(~4)
     // periods of the refresh cycle, after a key frame.
     cr->max_qdelta_perc = 60;
-    if (ppcs->picture_number > 4 * (1<< scs->max_heirachical_level)* 100 / cr->percent_refresh)
+    if (ppcs->picture_number > 4 * (1 << scs->max_heirachical_level) * 100 / cr->percent_refresh)
         cr->rate_ratio_qdelta = 2;
     else
         cr->rate_ratio_qdelta = 3;
-
-    /*/
-    // Account for larger interval on base layer for temporal layers.
-    if (cr->percent_refresh > 0 &&
-        rc->frames_since_key <
-        (4 * cpi->svc.number_temporal_layers) * (100 / cr->percent_refresh)) {
-        cr->rate_ratio_qdelta = 3.0;
-    }
-    else {
-        cr->rate_ratio_qdelta = 2.0;
-    }*/
 
 }
 #endif

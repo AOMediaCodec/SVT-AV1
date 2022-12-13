@@ -1905,7 +1905,7 @@ EbErrorType signal_derivation_multi_processes_oq(
     uint8_t dlf_level = 0;
     if (pcs_ptr->scs_ptr->static_config.enable_dlf_flag && frm_hdr->allow_intrabc == 0) {
 #if OPT_LD_M9
-        dlf_level = get_dlf_level(enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution,rtc_tune);
+        dlf_level = get_dlf_level(enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution, rtc_tune);
 #else
         dlf_level = get_dlf_level(enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution);
 #endif
@@ -2446,7 +2446,11 @@ static void  av1_generate_rps_info(
             set_key_frame_rps(pcs_ptr, context_ptr);
             return;
         }
+#if OPT_LD_MRP2
+        // Slot 0,1,2 for base layer, 3,4 for layer 1, 5 for layer2. slot 7 is used for long reference in base
+#else
         // Slot 0,1,2 for base layer, 3,4 for layer 1, 5 for layer2
+#endif
         const uint8_t  base0_idx = context_ptr->lay0_toggle == 0 ? 1 : context_ptr->lay0_toggle == 1 ? 2 : 0;
         const uint8_t  base1_idx = context_ptr->lay0_toggle == 0 ? 2 : context_ptr->lay0_toggle == 1 ? 0 : 1;
         const uint8_t  base2_idx = context_ptr->lay0_toggle == 0 ? 0 : context_ptr->lay0_toggle == 1 ? 1 : 2;
@@ -2454,7 +2458,7 @@ static void  av1_generate_rps_info(
         const uint8_t  lay1_0_idx = context_ptr->lay1_toggle == 0 ? LAY1_OFF + 1 : LAY1_OFF + 0;
         const uint8_t  lay1_1_idx = context_ptr->lay1_toggle == 0 ? LAY1_OFF + 0 : LAY1_OFF + 1;
         const uint8_t  lay2_idx = LAY2_OFF;
-#if OPT_LD_MRP4
+#if OPT_LD_MRP2
         const uint8_t  long_base_idx = 7;
         const uint16_t  long_base_pic = 128;
 #endif
@@ -2464,7 +2468,7 @@ static void  av1_generate_rps_info(
             //{ 4, 8, 0, 0 }      // GOP Index 0 - Ref List 1
             av1_rps->ref_dpb_index[LAST] = base1_idx;
             av1_rps->ref_dpb_index[LAST2] = base2_idx;
-#if OPT_LD_MRP4
+#if OPT_LD_MRP2
             if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
                 av1_rps->ref_dpb_index[LAST3] = long_base_idx;
             else
@@ -2480,7 +2484,7 @@ static void  av1_generate_rps_info(
             gop_i = 0;
             av1_rps->ref_poc_array[LAST] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[0]);
             av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[1]);
-#if OPT_LD_MRP4
+#if OPT_LD_MRP2
             if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
                 int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
                 av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
@@ -2602,7 +2606,7 @@ static void  av1_generate_rps_info(
             SVT_ERROR("unexpected picture mini Gop number\n");
             break;
         }
-#if OPT_LD_MRP4
+#if OPT_LD_MRP2
         if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && pcs_ptr->picture_number % long_base_pic == 0)
             av1_rps->refresh_frame_mask |= (1 << long_base_idx);
 #endif
