@@ -651,7 +651,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         } else { // regular
             pcs_ptr->txt_level = 7;
         }
-    } 
+    }
 #if OPT_LD_M13
     else if ((enc_mode <= ENC_M12) || (rtc_tune && (enc_mode <= ENC_M13))) {
 #else

@@ -1236,8 +1236,7 @@ static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double c
 * av1_cyclic_refresh_rc_bits_per_mb
 * Compute bits per mb for cyclic refresh mode
 *******************************************************************************/
-int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, int use_cyclic_refresh,
-                                      double correction_factor, int q) {
+int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor, int q) {
     int    bits_per_mb;
     double weight_segment = (double)ppcs->cyclic_refresh.percent_refresh / 100;
 
@@ -1338,7 +1337,7 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
         sb_cnt = ppcs->b64_total_count;
 
     cr->percent_refresh = 20;
-    if (ppcs->picture_number > 4 * (1 << scs->max_heirachical_level) * 100 / 20)
+    if (ppcs->picture_number > (uint64_t) (4 * (1 << scs->max_heirachical_level) * 100 / 20))
         cr->percent_refresh = 15;
 
     if (cr->apply_cyclic_refresh) {
@@ -1353,13 +1352,13 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
     // Use larger delta - qp(increase rate_ratio_qdelta) for first few(~4)
     // periods of the refresh cycle, after a key frame.
     cr->max_qdelta_perc = 60;
-    if (ppcs->picture_number > 4 * (1 << scs->max_heirachical_level) * 100 / cr->percent_refresh)
+    if (ppcs->picture_number > (uint64_t) (4 * (1 << scs->max_heirachical_level) * 100 / cr->percent_refresh))
         cr->rate_ratio_qdelta = 2;
     else
         cr->rate_ratio_qdelta = 3;
 
 }
-#endif
+#else
 /******************************************************
  * sb_qp_derivation
  * Calculates the QP per SB based on the ME statistics
@@ -1414,7 +1413,7 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
         }
     }
 }
-
+#endif
 /*
 * Derives a qindex per 64x64 using ME distortions (to be used for lambda modulation only; not at Q/Q-1)
 */
@@ -1861,8 +1860,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
     SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
     return use_cyclic_refresh
 #if OPT_LD_QPM
-        ? av1_cyclic_refresh_rc_bits_per_mb(ppcs_ptr, use_cyclic_refresh,
-            correction_factor, q)
+        ? av1_cyclic_refresh_rc_bits_per_mb(ppcs_ptr, correction_factor, q)
 #else
         ? 0 /*av1_cyclic_refresh_rc_bits_per_mb(cpi, q, correction_factor)*/
 #endif
@@ -3585,12 +3583,12 @@ void *rate_control_kernel(void *input_ptr) {
                         if ((pcs_ptr->slice_type == B_SLICE) &&
                             (pcs_ptr->ref_slice_type_array[1][0] != I_SLICE))
                             ref_qp = MAX(ref_qp, pcs_ptr->ref_pic_qp_array[1][0]);
-                            if (ref_qp > 4 && pcs_ptr->picture_qp < ref_qp) {
-                                pcs_ptr->picture_qp = (uint8_t)CLIP3(
-                                    scs_ptr->static_config.min_qp_allowed,
-                                    scs_ptr->static_config.max_qp_allowed,
-                                    (uint8_t)(ref_qp - 4));
-                            }
+                        if (ref_qp > 4 && pcs_ptr->picture_qp < ref_qp) {
+                            pcs_ptr->picture_qp = (uint8_t)CLIP3(
+                                scs_ptr->static_config.min_qp_allowed,
+                                scs_ptr->static_config.max_qp_allowed,
+                                (uint8_t)(ref_qp - 4));
+                        }
                     }
 #endif
                     frm_hdr->quantization_params.base_q_idx =
@@ -3701,7 +3699,7 @@ void *rate_control_kernel(void *input_ptr) {
             if (scs_ptr->static_config.enable_adaptive_quantization == 2 &&
                 pcs_ptr->parent_pcs_ptr->tpl_ctrls.enable && pcs_ptr->parent_pcs_ptr->r0 != 0) {
                 sb_qp_derivation_tpl_la(pcs_ptr);
-            } 
+            }
             else if (scs_ptr->static_config.enable_adaptive_quantization &&
                        scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
 #if OPT_LD_QPM

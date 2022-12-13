@@ -48,7 +48,7 @@ extern "C" {
 #define OPT_LD_LATENCY_MD       1 // Optimize MD for low latency KF
 #define OPT_LD_P2               1 // Optimize bdrate/speed trade off for low delay mode
 #define OPT_LD_MRP2             1 // Optimize MRP in low delay mode by changing the references
-#define OPT_CBR				    1 // Improve CBR by limiting the QP decrease between two base pictures
+#define OPT_CBR                    1 // Improve CBR by limiting the QP decrease between two base pictures
 #endif
 
 //FOR DEBUGGING - Do not remove

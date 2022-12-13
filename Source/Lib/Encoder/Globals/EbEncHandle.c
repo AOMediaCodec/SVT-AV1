@@ -1585,8 +1585,8 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
         input_data.is_scale = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.superres_mode > SUPERRES_NONE ||
                               enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.resize_mode > RESIZE_NONE;
 #if OPT_LD_M13
-		input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-							   enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+        input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+                               enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
 
         EB_NEW(
@@ -3130,7 +3130,7 @@ void derive_tf_params(SequenceControlSet *scs_ptr) {
     if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (do_tf == 0)
             tf_level = 0;
-        else 
+        else
             tf_level = enc_mode <= ENC_M10 ? 1 : enc_mode <= ENC_M12 && (scs_ptr->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
 
         tf_ld_controls(scs_ptr, tf_level);
@@ -3865,10 +3865,10 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
         if (scs_ptr->static_config.enc_mode <= ENC_M5)
             scs_ptr->mfmv_enabled = 1;
 #if OPT_LD_M11
-        else if (scs_ptr->static_config.enc_mode <= ENC_M10 || 
-				(scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_P && 
-				scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B && 
-				scs_ptr->static_config.enc_mode <= ENC_M11)) {
+        else if (scs_ptr->static_config.enc_mode <= ENC_M10 ||
+                (scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_P &&
+                scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B &&
+                scs_ptr->static_config.enc_mode <= ENC_M11)) {
 #else
         else if (scs_ptr->static_config.enc_mode <= ENC_M11) {
 #endif

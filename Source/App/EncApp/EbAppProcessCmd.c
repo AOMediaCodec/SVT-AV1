@@ -577,7 +577,7 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
 
     uint64_t *total_latency = &config->performance_context.total_latency;
     uint32_t *max_latency   = &config->performance_context.max_latency;
-    
+
     // Local variables
     uint64_t finish_s_time = 0;
     uint64_t finish_u_time = 0;
@@ -624,7 +624,7 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                     config->performance_context.encode_start_time[1],
                     finish_s_time,
                     finish_u_time);
-            
+
             // Write Stream Data to file
             if (stream_file) {
                 if (config->performance_context.frame_count == 1 &&
@@ -698,7 +698,7 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
 
                 double total_encode_times_10_frames_prior =
                     config->performance_context.start_times[index];
- 
+
                 double time_over_last_10_frames = config->performance_context.total_encode_time -
                     total_encode_times_10_frames_prior;
 

@@ -249,7 +249,7 @@ static void print_summary(const EncContext* const enc_context) {
             tot_frames_done = (int)config->performance_context.frame_count;
 #endif
 
-#if FPS_DATA          
+#if FPS_DATA
             double avg_10_frame_fps = config->performance_context.total_10f_fps /
                 (double)(config->performance_context.frame_count - 10);
             fprintf(stderr, "\rAvergae 10 frame FPS over clip: %.2f\n", avg_10_frame_fps);

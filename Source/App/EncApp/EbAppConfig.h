@@ -140,7 +140,7 @@ typedef struct EbPerformanceContext {
 
 #if FPS_DATA
     double start_times[10];
-    
+
     double max_10f_fps;
     double min_10f_fps;
     double total_10f_fps;
