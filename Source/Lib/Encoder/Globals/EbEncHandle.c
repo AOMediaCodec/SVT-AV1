@@ -3647,9 +3647,9 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
         }
     }
     // Set initial qp for single pass vbr
-    if ((scs_ptr->static_config.rate_control_mode) && (scs_ptr->static_config.pass == ENC_SINGLE_PASS)){
+    if ((scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR) && (scs_ptr->static_config.pass == ENC_SINGLE_PASS)){
         if (scs_ptr->static_config.qp != DEFAULT_QP) {
-            SVT_WARN("The input q vlaue is ignored in vbr mode %d", scs_ptr->static_config.qp);
+            SVT_WARN("The input q vlaue is ignored in vbr mode %d\n", scs_ptr->static_config.qp);
         }
         const uint8_t tbr_bands[6] = { 1,2,4,6,8,10 };
         const uint64_t src_samples = (uint64_t)(scs_ptr->seq_header.max_frame_width*scs_ptr->seq_header.max_frame_height);

@@ -246,6 +246,9 @@ EbErrorType picture_decision_context_ctor(
     context_ptr->transition_detected = -1;
     context_ptr->sframe_poc = 0;
     context_ptr->sframe_due = 0;
+#if OPT_LD_MRP2
+    context_ptr->last_long_base_pic = 0;
+#endif
     return EB_ErrorNone;
 }
 static Bool scene_transition_detector(
@@ -2460,7 +2463,7 @@ static void  av1_generate_rps_info(
         const uint8_t  lay2_idx = LAY2_OFF;
 #if OPT_LD_MRP2
         const uint8_t  long_base_idx = 7;
-        const uint16_t  long_base_pic = 128;
+        const uint16_t long_base_pic = 128;
 #endif
         switch (pcs_ptr->temporal_layer_index) {
         case 0:
@@ -2486,8 +2489,7 @@ static void  av1_generate_rps_info(
             av1_rps->ref_poc_array[LAST2] = get_ref_poc(context_ptr, pcs_ptr->picture_number, three_level_hierarchical_pred_struct[gop_i].ref_list0[1]);
 #if OPT_LD_MRP2
             if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
-                int32_t temp_offset = (int32_t)((pcs_ptr->picture_number % long_base_pic == 0) ? long_base_pic : (pcs_ptr->picture_number % long_base_pic));
-                av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, temp_offset);
+                av1_rps->ref_poc_array[LAST3] = get_ref_poc(context_ptr, pcs_ptr->picture_number, (int32_t) (pcs_ptr->picture_number - context_ptr->last_long_base_pic));
             }
             else
                 av1_rps->ref_poc_array[LAST3] = av1_rps->ref_poc_array[LAST];
@@ -2607,8 +2609,12 @@ static void  av1_generate_rps_info(
             break;
         }
 #if OPT_LD_MRP2
-        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && pcs_ptr->picture_number % long_base_pic == 0)
+        // to make sure the long base reference is in base layer
+        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && (pcs_ptr->picture_number - context_ptr->last_long_base_pic) > long_base_pic &&
+            pcs_ptr->temporal_layer_index == 0) {
             av1_rps->refresh_frame_mask |= (1 << long_base_idx);
+            context_ptr->last_long_base_pic = pcs_ptr->picture_number;
+        }
 #endif
         prune_refs(pred_position_ptr, av1_rps);
 
