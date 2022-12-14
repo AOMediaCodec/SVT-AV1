@@ -5251,7 +5251,9 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
         depth_level = 0;
 #if OPT_LD_M9
     if (rtc_tune) {
-        if(enc_mode > ENC_M8 && enc_mode <= ENC_M11) {
+        if (enc_mode <= ENC_M8) {
+        }
+        else if (enc_mode <= ENC_M11) {
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
                 int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
