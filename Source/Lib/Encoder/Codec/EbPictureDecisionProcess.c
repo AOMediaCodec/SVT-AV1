@@ -765,7 +765,7 @@ static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, Enc
 
 #if FTR_PRED_STRUCT_CLASSIFIER
     // 6L vs. 5L
-    if (pcs->enc_mode <= ENC_M10 &&  ctx->mini_gop_activity_array[L6_INDEX] == FALSE)
+    if (pcs->enc_mode <= ENC_M9 &&  ctx->mini_gop_activity_array[L6_INDEX] == FALSE)
         eval_sub_mini_gop(
             ctx,
             encode_ctx,
