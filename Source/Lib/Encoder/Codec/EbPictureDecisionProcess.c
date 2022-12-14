@@ -773,34 +773,6 @@ static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, Enc
             (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[0]->object_ptr,
             (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr,
             (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[31]->object_ptr);
-#if FTR_PRED_STRUCT_5L_VS_4L
-    if (ctx->mini_gop_activity_array[L6_INDEX] == TRUE) {
-
-        // 5L vs. 4L (1st segment)
-        if (ctx->mini_gop_activity_array[L5_0_INDEX] == FALSE)
-            eval_sub_mini_gop(
-                ctx,
-                encode_ctx,
-                L5_0_INDEX,
-                L4_0_INDEX,
-                L4_1_INDEX,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[0]->object_ptr,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[7]->object_ptr,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr);
-
-        // 5L vs. 4L (2nd segment)
-        if (ctx->mini_gop_activity_array[L5_1_INDEX] == FALSE)
-            eval_sub_mini_gop(
-                ctx,
-                encode_ctx,
-                L5_1_INDEX,
-                L4_2_INDEX,
-                L4_3_INDEX,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[15]->object_ptr,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[23]->object_ptr,
-                (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[31]->object_ptr);
-    }
-#endif
 #endif
 }
 
