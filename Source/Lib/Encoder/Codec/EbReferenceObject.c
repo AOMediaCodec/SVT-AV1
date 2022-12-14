@@ -342,6 +342,7 @@ EbErrorType svt_tpl_reference_object_creator(EbPtr *object_dbl_ptr, EbPtr object
 ** release them when appropriate
 ************************************************/
 void release_pa_reference_objects(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
+    (void)scs_ptr;
     // PA Reference Pictures
     if (pcs_ptr->slice_type != I_SLICE) {
 #if CLN_REMOVE_REF_CNT

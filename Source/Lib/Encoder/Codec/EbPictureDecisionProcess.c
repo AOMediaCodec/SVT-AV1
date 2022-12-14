@@ -606,6 +606,7 @@ static void calc_mini_gop_activity(
 #if FTR_PRED_STRUCT_CLASSIFIER2
     uint64_t sub_layer_idx1, uint64_t sub_layer_dist1, uint8_t sub_layer1_perc_active, uint8_t sub_layer1_perc_cplx,
     int16_t top_layer_mv_in_out_count, int16_t sub_layer_mv_in_out_count1, int16_t sub_layer_mv_in_out_count2) {
+    (void)top_layer_mv_in_out_count;
 #else
     uint64_t sub_layer_idx1, uint64_t sub_layer_dist1, uint8_t sub_layer1_perc_active, uint8_t sub_layer1_perc_cplx) {
 #endif
@@ -711,6 +712,7 @@ static void eval_sub_mini_gop(
 #if FTR_PRED_STRUCT_CLASSIFIER
 static void initialize_mini_gop_activity_array(SequenceControlSet* scs, PictureParentControlSet *pcs, EncodeContext* encode_ctx,
     PictureDecisionContext* ctx) {
+    (void)scs;
 #else
 static void initialize_mini_gop_activity_array(PictureParentControlSet *pcs, EncodeContext* encode_ctx,
     PictureDecisionContext* ctx) {
@@ -6601,7 +6603,6 @@ static EbErrorType derive_tf_window_params(
 
             if (picture_control_set_ptr_central->hierarchical_levels != pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels ||
                 picture_control_set_ptr_central->hierarchical_levels != context_ptr->mg_pictures_array[idx]->hierarchical_levels) {
-                const uint8_t            is_islice = picture_control_set_ptr_central->slice_type == I_SLICE;
                 picture_control_set_ptr_central->hierarchical_levels = pcs_ptr->temp_filt_pcs_list[0]->hierarchical_levels = context_ptr->mg_pictures_array[idx]->hierarchical_levels;
 
                 // tpl setting are updated if hierarchical level has changed
@@ -6616,9 +6617,9 @@ static EbErrorType derive_tf_window_params(
 #endif
             uint32_t pic_i;
             for (pic_i = 0; pic_i < num_future_pics; pic_i++) {
-                int32_t idx = search_this_pic(context_ptr->mg_pictures_array, context_ptr->mg_size, pcs_ptr->picture_number + pic_i + 1);
-                if (idx >= 0)
-                    pcs_ptr->temp_filt_pcs_list[pic_i + 1] = context_ptr->mg_pictures_array[idx];
+                int32_t idx_1 = search_this_pic(context_ptr->mg_pictures_array, context_ptr->mg_size, pcs_ptr->picture_number + pic_i + 1);
+                if (idx_1 >= 0)
+                    pcs_ptr->temp_filt_pcs_list[pic_i + 1] = context_ptr->mg_pictures_array[idx_1];
                 else
                     break;
             }
@@ -7361,6 +7362,7 @@ static void update_pred_struct_and_pic_type(SequenceControlSet* scs, EncodeConte
     PictureParentControlSet* pcs, PictureDecisionContext* ctx, unsigned int mini_gop_index, unsigned int pic_idx, bool pre_assignment_buffer_first_pass_flag,
 #endif
     SliceType* picture_type, PredictionStructureEntry** pred_position_ptr) {
+    (void)scs;
 #if !OPT_RPS_CONSTR_3
     bool is_trailing_frame = false;
 #endif
@@ -8332,9 +8334,9 @@ void* picture_decision_kernel(void *input_ptr) {
                     }
 
                     for (uint32_t pic_i = 0; pic_i < mg_size; ++pic_i) {
-                        PictureParentControlSet* pcs = ctx->mg_pictures_array_disp_order[pic_i];
-                        pcs->first_frame_in_minigop = !pic_i;
-                        set_gf_group_param(pcs);
+                        PictureParentControlSet* pcs_1 = ctx->mg_pictures_array_disp_order[pic_i];
+                        pcs_1->first_frame_in_minigop = !pic_i;
+                        set_gf_group_param(pcs_1);
                     }
 #endif
 
