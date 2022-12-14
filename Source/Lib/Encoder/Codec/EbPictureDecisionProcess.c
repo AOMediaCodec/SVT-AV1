@@ -1490,7 +1490,7 @@ void set_list0_only_base(PictureParentControlSet* pcs_ptr, uint8_t list0_only_ba
 * 3 -- SB-Based DLF + skip DLF if SB has 0 coeffs
 */
 #if OPT_LD_M9
-static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit, Bool fast_decode, EbInputResolution resolution, Bool rtc_tune) {
+static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit, Bool fast_decode, EbInputResolution resolution, bool rtc_tune) {
 #else
 static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit, Bool fast_decode, EbInputResolution resolution) {
 #endif
@@ -1804,7 +1804,7 @@ EbErrorType signal_derivation_multi_processes_oq(
     const Bool               fast_decode = scs_ptr->static_config.fast_decode;
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #if OPT_LD_M13
-    const Bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
         || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess

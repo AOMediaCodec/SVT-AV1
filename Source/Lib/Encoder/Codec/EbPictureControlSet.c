@@ -96,7 +96,7 @@ static uint8_t get_enable_me_8x8(EncMode enc_mode) {
     return enable_me_8x8;
 }
 #if OPT_LD_M13
-uint8_t get_enable_me_16x16(EncMode enc_mode, Bool rtc_tune) {
+static uint8_t get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
 #else
 uint8_t get_enable_me_16x16(EncMode enc_mode) {
 #endif

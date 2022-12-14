@@ -368,7 +368,7 @@ EbErrorType rtime_alloc_ec_ctx_array(PictureControlSet *pcs_ptr, uint16_t all_sb
     return EB_ErrorNone;
 }
 #if OPT_LD_M11
-uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, Bool rtc_tune);
+uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, bool rtc_tune);
 #else
 uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
 #endif
@@ -415,7 +415,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
     const Bool               transition_present  = (ppcs->transition_present == 1);
 #if OPT_LD_M13
-    const Bool               rtc_tune            = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+    const bool               rtc_tune            = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
                                                    || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     //MFMV
@@ -859,7 +859,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     frm_hdr->tx_mode = (pcs_ptr->txs_level) ? TX_MODE_SELECT : TX_MODE_LARGEST;
     // Set the level for nic
 #if OPT_LD_M11
-    pcs_ptr->nic_level = get_nic_level(enc_mode, is_base, hierarchical_levels,rtc_tune);
+    pcs_ptr->nic_level = get_nic_level(enc_mode, is_base, hierarchical_levels, rtc_tune);
 #else
     pcs_ptr->nic_level = get_nic_level(enc_mode, is_base, hierarchical_levels);
 #endif
@@ -1013,7 +1013,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         pcs_ptr->pic_skip_pd0 = is_base ? 0 : 1;
 #if OPT_LD_M9
     pcs_ptr->pic_disallow_below_16x16 = svt_aom_get_disallow_below_16x16_picture_level(
-        enc_mode, input_resolution, is_islice, ppcs->sc_class1, is_ref,rtc_tune);
+        enc_mode, input_resolution, is_islice, ppcs->sc_class1, is_ref, rtc_tune);
 #else
     pcs_ptr->pic_disallow_below_16x16 = svt_aom_get_disallow_below_16x16_picture_level(
         enc_mode, input_resolution, is_islice, ppcs->sc_class1, is_ref);

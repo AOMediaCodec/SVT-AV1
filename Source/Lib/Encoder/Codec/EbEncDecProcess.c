@@ -184,7 +184,7 @@ EbErrorType enc_dec_context_ctor(EbThreadContext   *thread_context_ptr,
                .split_mode         = FALSE,
            });
 #if OPT_LD_M9
-    Bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_P || static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_P || static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     // Mode Decision Context
     EB_NEW(context_ptr->md_context,
         mode_decision_context_ctor,
@@ -3955,7 +3955,7 @@ void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
 // Get the nic_level used for each preset (to be passed to setting function: set_nic_controls())
 // hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
 #if OPT_LD_M11
-uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, Bool rtc_tune) {
+uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, bool rtc_tune) {
 #else
 uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels) {
 #endif
@@ -5168,7 +5168,7 @@ static void set_detect_high_freq_ctrls(ModeDecisionContext *ctx, uint8_t detect_
 #if OPT_LD_M9
 uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
     EbInputResolution resolution, Bool is_islice,
-    Bool sc_class1, Bool is_ref, Bool rtc_tune) {
+    Bool sc_class1, Bool is_ref, bool rtc_tune) {
 #else
 uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
                                                        EbInputResolution resolution, Bool is_islice,
@@ -5207,7 +5207,7 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
     set_detect_high_freq_ctrls(ctx, pcs_ptr->vq_ctrls.detect_high_freq_lvl);
     ctx->high_freq_present = 0;
 #if OPT_LD_M9
-    const Bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+    const bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
         scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     if (ctx->detect_high_freq_ctrls.enabled) {
@@ -6273,7 +6273,7 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
     uint8_t        l0_was_skip = 0, l1_was_skip = 0;
     uint8_t        l0_was_64x64_mvp = 0, l1_was_64x64_mvp = 0;
 #if OPT_LD_M13
-    const Bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
@@ -6512,7 +6512,7 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
     set_nsq_ctrls(context_ptr, pcs_ptr->nsq_level);
 
 #if OPT_LD_M11
-    const Bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
         || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
 
@@ -7607,7 +7607,7 @@ void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
                             uint32_t pic_width_in_sb) {
 
 #if OPT_LD_P2
-    const Bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+    const bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
         pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     if (rtc_tune) {
         uint32_t me_8x8_cost_variance =
@@ -8131,7 +8131,7 @@ void *mode_decision_kernel(void *input_ptr) {
 
                         // If LPD0 is used, a more conservative level can be set for complex SBs
 #if OPT_LD_P2
-                        const Bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+                        const bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
                             scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
                         if (!rtc_tune) {
 #endif

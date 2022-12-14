@@ -1162,7 +1162,7 @@ typedef struct PictureControlSetInitData {
     uint8_t calculate_variance;
     Bool    is_scale;
 #if OPT_LD_M13
-    Bool rtc_tune;
+    bool rtc_tune;
 #endif
 } PictureControlSetInitData;
 
