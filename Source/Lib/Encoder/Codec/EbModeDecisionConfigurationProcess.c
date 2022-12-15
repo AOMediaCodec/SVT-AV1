@@ -416,8 +416,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
     const Bool               transition_present  = (ppcs->transition_present == 1);
 #if OPT_LD_M13
-    const bool rtc_tune = (scs_ptr->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
 #endif
@@ -987,8 +986,12 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
 #endif
     } else {
 #if OPT_LD_P2
-        if (rtc_tune)
-            pcs_ptr->pic_lpd0_lvl = enc_mode <= ENC_M12 || is_islice ? 4 : 7;
+        if (rtc_tune) {
+            if (enc_mode <= ENC_M12)
+                pcs_ptr->pic_lpd0_lvl = 4;
+            else
+                pcs_ptr->pic_lpd0_lvl = is_islice ? 4 : 7;
+        }
         else {
 #endif
             if (pcs_ptr->coeff_lvl == LOW_LVL) {

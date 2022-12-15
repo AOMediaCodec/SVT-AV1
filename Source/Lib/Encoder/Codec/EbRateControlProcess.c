@@ -1237,7 +1237,7 @@ static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double c
 * Compute bits per mb for cyclic refresh mode
 *******************************************************************************/
 int svt_av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor,
-                                      int q) {
+                                          int q) {
     int    bits_per_mb;
     double weight_segment = (double)ppcs->cyclic_refresh.percent_refresh / 100;
 
@@ -1322,7 +1322,7 @@ static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
  *  svt_aom_cyclic_refresh_init
  * Initial cyclic refresh parameters
  ******************************************************/
-void  svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
+void svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
     SequenceControlSet *scs = ppcs->scs_ptr;
     CyclicRefresh      *cr  = &ppcs->cyclic_refresh;
 
@@ -1331,13 +1331,13 @@ void  svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
     else
         cr->apply_cyclic_refresh = 0;
 
-    uint16_t sb_cnt = scs->sb_total_count;
+    uint16_t sb_cnt     = scs->sb_total_count;
     cr->percent_refresh = 20;
     if (ppcs->picture_number > (uint64_t)(4 * (1 << scs->max_heirachical_level) * 100 / 20))
         cr->percent_refresh = 15;
 
     if (cr->apply_cyclic_refresh) {
-        cr->sb_start = scs->encode_context_ptr->cr_sb_end;
+        cr->sb_start                       = scs->encode_context_ptr->cr_sb_end;
         cr->sb_end                         = cr->sb_start + sb_cnt * cr->percent_refresh / 100;
         scs->encode_context_ptr->cr_sb_end = cr->sb_end >= sb_cnt ? 0 : cr->sb_end;
     } else {

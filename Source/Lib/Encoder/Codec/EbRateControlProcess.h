@@ -236,7 +236,7 @@ int svt_aom_compute_rd_mult(struct PictureControlSet *pcs, uint8_t q_index, uint
 
 #if OPT_LD_QPM
 struct PictureParentControlSet;
-void  svt_aom_cyclic_refresh_init(struct PictureParentControlSet *ppcs);
+void svt_aom_cyclic_refresh_init(struct PictureParentControlSet *ppcs);
 #endif
 
 #endif // EbRateControl_h

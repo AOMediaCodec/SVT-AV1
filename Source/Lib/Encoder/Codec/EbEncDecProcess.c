@@ -184,9 +184,8 @@ EbErrorType enc_dec_context_ctor(EbThreadContext   *thread_context_ptr,
                .split_mode         = FALSE,
            });
 #if OPT_LD_M9
-    const bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
-        ? true
-        : false;
+    const bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+                                                                                      : false;
     // Mode Decision Context
     EB_NEW(context_ptr->md_context,
            mode_decision_context_ctor,
@@ -5200,8 +5199,8 @@ uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode enc_mode,
  * Generate per-SB MD settings (do not change per-PD)
  */
 EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr,
-    PictureControlSet   *pcs_ptr,
-    ModeDecisionContext *ctx) {
+                                                    PictureControlSet   *pcs_ptr,
+                                                    ModeDecisionContext *ctx) {
     EbErrorType return_error = EB_ErrorNone;
 
     EncMode enc_mode = pcs_ptr->enc_mode;
@@ -5250,7 +5249,7 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
         if (enc_mode > ENC_M8) {
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-                int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
+                int th     = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
                 if (me_8x8 < th)
                     depth_level = 0;
             }
@@ -5328,7 +5327,7 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
         int lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
         if (pcs_ptr->slice_type != I_SLICE) {
             int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-            int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
+            int th     = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
             if (me_8x8 < th)
                 lpd1_lvl += 2;
             else if (me_8x8 < 2 * th)
@@ -5336,14 +5335,12 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
         }
         lpd1_lvl = MAX(0, MIN(lpd1_lvl, 6));
         set_lpd1_ctrls(ctx, lpd1_lvl);
-    }
-    else
+    } else
 #endif
-    set_lpd1_ctrls(ctx,
-                   ctx->high_freq_present
-                       ? MIN(pcs_ptr->pic_lpd1_lvl, ctx->detect_high_freq_ctrls.max_pic_lpd1_lvl)
-                       : pcs_ptr->pic_lpd1_lvl);
-
+        set_lpd1_ctrls(ctx,
+                       ctx->high_freq_present ? MIN(pcs_ptr->pic_lpd1_lvl,
+                                                    ctx->detect_high_freq_ctrls.max_pic_lpd1_lvl)
+                                              : pcs_ptr->pic_lpd1_lvl);
 
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     set_nsq_ctrls(ctx, pcs_ptr->nsq_level);
@@ -6271,7 +6268,7 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
     uint8_t        l0_was_64x64_mvp = 0, l1_was_64x64_mvp = 0;
 #if OPT_LD_M13
     const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_B)
+                           SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
 #endif
@@ -6512,10 +6509,8 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
     set_nsq_ctrls(context_ptr, pcs_ptr->nsq_level);
 
 #if OPT_LD_M11
-    const bool rtc_tune = (scs->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_B)
-        ? true
-        : false;
+    const bool rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+                                                                                          : false;
 #endif
 
     set_cand_reduction_ctrls(pcs_ptr,
@@ -6586,7 +6581,7 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
         context_ptr->rdoq_level = 0;
     else
 #endif
-    if (pd_pass == PD_PASS_0) {
+        if (pd_pass == PD_PASS_0) {
         if (enc_mode <= ENC_M3)
             context_ptr->rdoq_level = 1;
         else
@@ -8138,7 +8133,7 @@ void *mode_decision_kernel(void *input_ptr) {
                                 // If LPD0 is used, a more conservative level can be set for complex SBs
 #if OPT_LD_P2
                         const bool rtc_tune = (scs_ptr->static_config.pred_structure ==
-                                                   SVT_AV1_PRED_LOW_DELAY_B)
+                                               SVT_AV1_PRED_LOW_DELAY_B)
                             ? true
                             : false;
                         if (!rtc_tune && md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
@@ -8147,7 +8142,6 @@ void *mode_decision_kernel(void *input_ptr) {
 #endif
                             lpd0_detector(pcs_ptr, md_ctx);
                         }
-
 
                         // PD0 is only skipped if there is a single depth to test
                         if (skip_pd_pass_0)
