@@ -59,12 +59,11 @@ EbErrorType svt_aom_prediction_structure_group_ctor(PredictionStructureGroup* pr
 bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay);
 #endif
 #if OPT_RPS_CONSTR
-typedef struct DPBEntry {
-    uint64_t         picture_number;
-    uint64_t         decode_order;
-    uint8_t          temporal_layer_index;
-    bool is_valid;
-} DPBEntry;
+typedef struct DpbEntry {
+    uint64_t picture_number;
+    uint64_t decode_order;
+    uint8_t  temporal_layer_index;
+} DpbEntry;
 #endif
 /**************************************
  * Context
@@ -115,7 +114,7 @@ typedef struct PictureDecisionContext {
     uint8_t  lay1_toggle; //2 way toggle 0->1
 #if OPT_RPS_CONSTR
     uint8_t  cut_short_ra_mg;
-    DPBEntry dpb[REF_FRAMES];
+    DpbEntry dpb[REF_FRAMES];
 #endif
     Bool mini_gop_toggle; //mini GOP toggling since last Key Frame  K-0-1-0-1-0-K-0-1-0-1-K-0-1.....
     uint8_t last_i_picture_sc_class0;

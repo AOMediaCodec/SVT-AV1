@@ -123,17 +123,17 @@ static processorGroup           *lp_group = NULL;
 uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width, uint32_t picture_height);
 #if OPT_RPS_CONSTR_2
 /* count number of refs in a steady state MG*/
-static unsigned int get_num_refs_in_one_mg(unsigned hierarchical_levels, unsigned referencing_scheme) {
+static uint16_t get_num_refs_in_one_mg(uint32_t hierarchical_levels, uint32_t referencing_scheme) {
 
     if (hierarchical_levels == 0)
         return 1;
 
     // All internal layer pics will be used as references.  Only top layer pics can be
     // not used as refs.
-    unsigned int tot_refs = 1 << (hierarchical_levels - 1);
+    uint16_t tot_refs = 1 << (hierarchical_levels - 1);
 
     // Top layer pics start at pic_idx 0 and every second pic is a top layer pic
-    for (unsigned int pic_idx = 0; pic_idx < (unsigned int)(1 << hierarchical_levels); pic_idx += 2) {
+    for (uint16_t pic_idx = 0; pic_idx < (uint32_t)(1 << hierarchical_levels); pic_idx += 2) {
         tot_refs += svt_aom_is_pic_used_as_ref(hierarchical_levels, hierarchical_levels, pic_idx, referencing_scheme, 0);
     }
 

@@ -2653,7 +2653,17 @@ we do not break the GOP.
 *************************************************/
 #if OPT_RPS_CONSTR
 #if OPT_RPS_CONSTR_2
-bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay) {
+/*
+ * Return true if a picture is used as a reference, false otherwise.
+ *
+ * Whether a picture is used as a reference depends on its position in the hierarchical strucutre, and on the referencing_scheme used.
+ * referencing_scheme = 0 means that no top-layer pictures will be used as a reference
+ * referencing_scheme = 1 means that all top-layer pictures may be used as a reference
+ * referencing_scheme = 2 means that some top-layer pictures will be used as a reference (depending on their position in the MG)
+ *
+ * Interal pictures (non-top-layer pictures) are always used as a reference.  Overlay pictures are never used as a reference.
+ */
+bool svt_aom_is_pic_used_as_ref(uint32_t hierarchical_levels, uint32_t temporal_layer, uint32_t picture_index, uint32_t referencing_scheme, bool is_overlay) {
 
     if (is_overlay)
         return false;
@@ -2765,7 +2775,7 @@ static void set_ref_list_counts(PictureParentControlSet* pcs) {
     assert(pcs->ref_list1_count);
 }
 #endif
-static INLINE void update_ref_poc_array(uint8_t* ref_dpb_idx, uint64_t* ref_poc_array, DPBEntry* dpb) {
+static INLINE void update_ref_poc_array(uint8_t* ref_dpb_idx, uint64_t* ref_poc_array, DpbEntry* dpb) {
     ref_poc_array[LAST]  = dpb[ref_dpb_idx[LAST]].picture_number;
     ref_poc_array[LAST2] = dpb[ref_dpb_idx[LAST2]].picture_number;
     ref_poc_array[LAST3] = dpb[ref_dpb_idx[LAST3]].picture_number;
@@ -7830,6 +7840,22 @@ static void process_pics(SequenceControlSet* scs, PictureDecisionContext* ctx) {
 
 }
 
+#if OPT_RPS_CONSTR
+// update the DPB stored in the PD context
+static void update_dpb(PictureParentControlSet* pcs, PictureDecisionContext* ctx) {
+    Av1RpsNode* av1_rps = &pcs->av1_ref_signal;
+    if (av1_rps->refresh_frame_mask) {
+        for (int i = 0; i < REF_FRAMES; i++) {
+            if ((av1_rps->refresh_frame_mask >> i) & 1) {
+                ctx->dpb[i].picture_number = pcs->picture_number;
+                ctx->dpb[i].decode_order = pcs->decode_order;
+                ctx->dpb[i].temporal_layer_index = pcs->temporal_layer_index;
+            }
+        }
+    }
+}
+#endif
+
 /* Picture Decision Kernel */
 
 /***************************************************************************************************
@@ -8317,17 +8343,7 @@ void* picture_decision_kernel(void *input_ptr) {
                             update_sframe_ref_order_hint(pcs, ctx);
                         }
 
-                        Av1RpsNode *av1_rps = &pcs->av1_ref_signal;
-                        if (av1_rps->refresh_frame_mask) {
-                            for (int i = 0; i < REF_FRAMES; i++) {
-                                if ((av1_rps->refresh_frame_mask >> i) & 1) {
-                                    ctx->dpb[i].is_valid = 1;
-                                    ctx->dpb[i].picture_number = pcs->picture_number;
-                                    ctx->dpb[i].decode_order = pcs->decode_order;
-                                    ctx->dpb[i].temporal_layer_index = pcs->temporal_layer_index;
-                                }
-                            }
-                        }
+                        update_dpb(pcs, ctx);
 
                         // Set picture settings, incl. normative frame header fields and feature levels in signal_derivation function
                         init_pic_settings(scs, pcs, ctx);
