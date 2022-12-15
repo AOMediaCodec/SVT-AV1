@@ -1782,16 +1782,8 @@ static double get_rate_correction_factor(PictureParentControlSet *ppcs_ptr, int 
     } else {
         if (ppcs_ptr->frm_hdr.frame_type == KEY_FRAME) {
             rcf = rc->rate_correction_factors[KF_STD];
-<<<<<<< HEAD
-#if 0//OPT_LD_QPM2
-            //  !ppcs_ptr->is_overlay)
-        } else if  (ppcs_ptr->temporal_layer_index == 0)
-#else
         } else if ((ppcs_ptr->update_type == SVT_AV1_GF_UPDATE ||
                     ppcs_ptr->update_type == SVT_AV1_ARF_UPDATE) &&
-=======
-        } else if ((ppcs_ptr->update_type == GF_UPDATE || ppcs_ptr->update_type == ARF_UPDATE) &&
->>>>>>> Code clean up
                    !ppcs_ptr->is_overlay &&
                    (encode_context_ptr->rc_cfg.mode != AOM_CBR ||
                     encode_context_ptr->rc_cfg.gf_cbr_boost_pct > 20))
@@ -1828,25 +1820,11 @@ static void set_rate_correction_factor(PictureParentControlSet *ppcs_ptr, double
     } else {
         if (ppcs_ptr->frm_hdr.frame_type == KEY_FRAME) {
             rc->rate_correction_factors[KF_STD] = factor;
-<<<<<<< HEAD
-#if 0//OPT_LD_QPM2
-            //  !ppcs_ptr->is_overlay)
-        }
-        else if (ppcs_ptr->temporal_layer_index == 0)
-#else
         } else if ((ppcs_ptr->update_type == SVT_AV1_GF_UPDATE ||
                     ppcs_ptr->update_type == SVT_AV1_ARF_UPDATE) &&
                    !ppcs_ptr->is_overlay &&
                    (encode_context_ptr->rc_cfg.mode != AOM_CBR ||
                     encode_context_ptr->rc_cfg.gf_cbr_boost_pct > 20))
-#endif
-=======
-        }
-        else if ((ppcs_ptr->update_type == GF_UPDATE || ppcs_ptr->update_type == ARF_UPDATE) &&
-            !ppcs_ptr->is_overlay &&
-            (encode_context_ptr->rc_cfg.mode != AOM_CBR ||
-                encode_context_ptr->rc_cfg.gf_cbr_boost_pct > 20))
->>>>>>> Code clean up
             rc->rate_correction_factors[GF_ARF_STD] = factor;
         else
             rc->rate_correction_factors[INTER_NORMAL] = factor;
@@ -1939,13 +1917,8 @@ static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
     if (ppcs_ptr->frm_hdr.frame_type != KEY_FRAME && /*!cpi->use_svc &&*/
         rc->frames_since_key > 1 && !change_target_bits_mb &&
         (!encode_context_ptr->rc_cfg.gf_cbr_boost_pct ||
-<<<<<<< HEAD
          !(ppcs_ptr->update_type == SVT_AV1_GF_UPDATE ||
            ppcs_ptr->update_type == SVT_AV1_ARF_UPDATE))) {
-#endif
-=======
-         !(ppcs_ptr->update_type == GF_UPDATE || ppcs_ptr->update_type == ARF_UPDATE))) {
->>>>>>> Code clean up
         // Make sure q is between oscillating Qs to prevent resonance.
         // Limit the decrease in Q from previous frame.
         if (rc->q_1_frame - q > max_delta)
