@@ -1233,10 +1233,10 @@ static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double c
                                   EbBitDepth bit_depth, uint8_t sc_content_detected,
                                   int onepass_cbr_mode);
 /******************************************************************************
-* av1_cyclic_refresh_rc_bits_per_mb
+* svt_av1_cyclic_refresh_rc_bits_per_mb
 * Compute bits per mb for cyclic refresh mode
 *******************************************************************************/
-int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor,
+int svt_av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor,
                                       int q) {
     int    bits_per_mb;
     double weight_segment = (double)ppcs->cyclic_refresh.percent_refresh / 100;
@@ -1839,7 +1839,7 @@ static int get_bits_per_mb(PictureParentControlSet *ppcs_ptr, int use_cyclic_ref
     SequenceControlSet *scs_ptr = ppcs_ptr->scs_ptr;
     return use_cyclic_refresh
 #if OPT_LD_QPM
-        ? av1_cyclic_refresh_rc_bits_per_mb(ppcs_ptr, correction_factor, q)
+        ? svt_av1_cyclic_refresh_rc_bits_per_mb(ppcs_ptr, correction_factor, q)
 #else
         ? 0 /*av1_cyclic_refresh_rc_bits_per_mb(cpi, q, correction_factor)*/
 #endif
