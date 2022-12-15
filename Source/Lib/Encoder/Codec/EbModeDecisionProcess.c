@@ -88,7 +88,8 @@ static void mode_decision_context_dctor(EbPtr p) {
     EB_DELETE(obj->temp_recon_ptr);
 }
 #if OPT_LD_M11
-uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, bool rtc_tune);
+uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels,
+                      bool rtc_tune);
 #else
 uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
 #endif
@@ -169,7 +170,7 @@ EbErrorType mode_decision_context_ctor(ModeDecisionContext *context_ptr, EbColor
 #if OPT_LD_M11
         uint8_t nic_level = get_nic_level(enc_mode, is_base, hierarchical_levels, rtc_tune);
 #else
-        uint8_t nic_level         = get_nic_level(enc_mode, is_base, hierarchical_levels);
+        uint8_t nic_level = get_nic_level(enc_mode, is_base, hierarchical_levels);
 #endif
         uint8_t nic_scaling_level = set_nic_controls(NULL, nic_level);
         min_nic_scaling_level     = MIN(min_nic_scaling_level, nic_scaling_level);

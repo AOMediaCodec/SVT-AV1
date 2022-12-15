@@ -129,9 +129,9 @@ EbErrorType me_sb_results_ctor(MeSbResults *obj_ptr, PictureControlSetInitData *
         ? get_enable_me_8x8(init_data_ptr->enc_mode) ? SQUARE_PU_COUNT : MAX_SB64_PU_COUNT_NO_8X8
         : MAX_SB64_PU_COUNT_WO_16X16;
 #else
-    uint8_t number_of_pus = get_enable_me_16x16(init_data_ptr->enc_mode)
-        ? get_enable_me_8x8(init_data_ptr->enc_mode) ? SQUARE_PU_COUNT : MAX_SB64_PU_COUNT_NO_8X8
-        : MAX_SB64_PU_COUNT_WO_16X16;
+    uint8_t number_of_pus       = get_enable_me_16x16(init_data_ptr->enc_mode)
+              ? get_enable_me_8x8(init_data_ptr->enc_mode) ? SQUARE_PU_COUNT : MAX_SB64_PU_COUNT_NO_8X8
+              : MAX_SB64_PU_COUNT_WO_16X16;
 #endif
 
     EB_MALLOC_ARRAY(obj_ptr->me_mv_array, number_of_pus * max_ref_to_alloc);

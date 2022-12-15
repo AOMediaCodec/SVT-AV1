@@ -1236,12 +1236,13 @@ static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double c
 * av1_cyclic_refresh_rc_bits_per_mb
 * Compute bits per mb for cyclic refresh mode
 *******************************************************************************/
-int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor, int q) {
+int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double correction_factor,
+                                      int q) {
     int    bits_per_mb;
     double weight_segment = (double)ppcs->cyclic_refresh.percent_refresh / 100;
 
     SequenceControlSet *scs       = ppcs->scs_ptr;
-    RATE_CONTROL *      rc        = &scs->encode_context_ptr->rc;
+    RATE_CONTROL       *rc        = &scs->encode_context_ptr->rc;
     const int           bit_depth = scs->static_config.encoder_bit_depth;
     // Compute delta-q corresponding to qindex i.
     int deltaq = compute_deltaq(ppcs, rc, q, bit_depth);
@@ -1270,9 +1271,9 @@ int av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double corr
  ******************************************************/
 static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
-    SequenceControlSet *     scs  = pcs->parent_pcs_ptr->scs_ptr;
-    CyclicRefresh *          cr   = &ppcs->cyclic_refresh;
-    SuperBlock *             sb;
+    SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
+    CyclicRefresh           *cr   = &ppcs->cyclic_refresh;
+    SuperBlock              *sb;
     uint32_t                 sb_addr;
 
     if (cr->apply_cyclic_refresh)
@@ -1325,7 +1326,7 @@ static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
  ******************************************************/
 void cyclic_refresh_init(PictureParentControlSet *ppcs) {
     SequenceControlSet *scs = ppcs->scs_ptr;
-    CyclicRefresh *     cr  = &ppcs->cyclic_refresh;
+    CyclicRefresh      *cr  = &ppcs->cyclic_refresh;
 
     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
         cr->apply_cyclic_refresh = 1;
@@ -1337,7 +1338,7 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
         sb_cnt = ppcs->b64_total_count;
 
     cr->percent_refresh = 20;
-    if (ppcs->picture_number > (uint64_t) (4 * (1 << scs->max_heirachical_level) * 100 / 20))
+    if (ppcs->picture_number > (uint64_t)(4 * (1 << scs->max_heirachical_level) * 100 / 20))
         cr->percent_refresh = 15;
 
     if (cr->apply_cyclic_refresh) {
@@ -1352,11 +1353,11 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
     // Use larger delta - qp(increase rate_ratio_qdelta) for first few(~4)
     // periods of the refresh cycle, after a key frame.
     cr->max_qdelta_perc = 60;
-    if (ppcs->picture_number > (uint64_t) (4 * (1 << scs->max_heirachical_level) * 100 / cr->percent_refresh))
+    if (ppcs->picture_number >
+        (uint64_t)(4 * (1 << scs->max_heirachical_level) * 100 / cr->percent_refresh))
         cr->rate_ratio_qdelta = 2;
     else
         cr->rate_ratio_qdelta = 3;
-
 }
 #else
 /******************************************************
@@ -1367,10 +1368,10 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
 static void sb_qp_derivation(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
     SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
-    SuperBlock              *sb;
-    uint32_t                 sb_addr;
+    SuperBlock *sb;
+    uint32_t sb_addr;
     if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
-   //     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
+        //     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
     else
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;
@@ -1922,7 +1923,7 @@ static int adjust_q_cbr(PictureParentControlSet *ppcs_ptr, int q) {
         // Make sure q is between oscillating Qs to prevent resonance.
         // Limit the decrease in Q from previous frame.
         if (rc->q_1_frame - q > max_delta)
-            q =  rc->q_1_frame - max_delta;
+            q = rc->q_1_frame - max_delta;
     }
     return AOMMAX(AOMMIN(q, rc->worst_quality), rc->best_quality);
 }
@@ -3549,7 +3550,7 @@ void *rate_control_kernel(void *input_ptr) {
                         }
                     }
 #if OPT_CBR
-                    else if (scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR){
+                    else if (scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
                         uint32_t ref_qp = 0;
                         if (pcs_ptr->ref_slice_type_array[0][0] != I_SLICE)
                             ref_qp = pcs_ptr->ref_pic_qp_array[0][0];
@@ -3672,8 +3673,7 @@ void *rate_control_kernel(void *input_ptr) {
             if (scs_ptr->static_config.enable_adaptive_quantization == 2 &&
                 pcs_ptr->parent_pcs_ptr->tpl_ctrls.enable && pcs_ptr->parent_pcs_ptr->r0 != 0) {
                 sb_qp_derivation_tpl_la(pcs_ptr);
-            }
-            else if (scs_ptr->static_config.enable_adaptive_quantization &&
+            } else if (scs_ptr->static_config.enable_adaptive_quantization &&
                        scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
 #if OPT_LD_QPM
                 cyclic_sb_qp_derivation(pcs_ptr);

@@ -368,7 +368,8 @@ EbErrorType rtime_alloc_ec_ctx_array(PictureControlSet *pcs_ptr, uint16_t all_sb
     return EB_ErrorNone;
 }
 #if OPT_LD_M11
-uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, bool rtc_tune);
+uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels,
+                      bool rtc_tune);
 #else
 uint8_t get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
 #endif
@@ -415,8 +416,12 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
     const Bool               transition_present  = (ppcs->transition_present == 1);
 #if OPT_LD_M13
-    const bool               rtc_tune            = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
-                                                   || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
+                               SVT_AV1_PRED_LOW_DELAY_P ||
+                           pcs_ptr->scs_ptr->static_config.pred_structure ==
+                               SVT_AV1_PRED_LOW_DELAY_B)
+        ? true
+        : false;
 #endif
     //MFMV
     if (is_islice || scs_ptr->mfmv_enabled == 0 ||
@@ -917,7 +922,8 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     // neighbour array updates at EncDec for all SBs, that are currently skipped if EncDec is bypassed.
     // TODO: Bypassing EncDec doesn't work if pcs_ptr->cdf_ctrl.update_coef is enabled for non-ISLICE frames (causes r2r)
 #if OPT_LD_P2
-    if (!(pcs_ptr->temporal_layer_index == 0 && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
+    if (!(pcs_ptr->temporal_layer_index == 0 &&
+          scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
         (scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
 #else
     if ((scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
@@ -957,22 +963,17 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         if (rtc_tune) {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd0_lvl = 2;
-            }
-            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+            } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            }
-            else { // Regular
+            } else { // Regular
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 4 : 6;
             }
-        }
-        else {
+        } else {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            }
-            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+            } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            }
-            else { // Regular
+            } else { // Regular
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
             }
         }
@@ -993,11 +994,9 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
 #endif
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-            }
-            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+            } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
                 pcs_ptr->pic_lpd0_lvl = 7;
-            }
-            else { // regular
+            } else { // regular
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
             }
 #if OPT_LD_P2
@@ -1160,27 +1159,23 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     } else {
 #if OPT_LD_M9
         if (rtc_tune) {
-            if(enc_mode <= ENC_M8){
+            if (enc_mode <= ENC_M8) {
                 if (pcs_ptr->coeff_lvl == LOW_LVL) {
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 4;
-                }
-                else { // regular
+                } else { // regular
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 2 : 5;
                 }
-            }else{
+            } else {
                 if (pcs_ptr->coeff_lvl == LOW_LVL) {
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 2 : 6;
-                }
-                else { // regular
+                } else { // regular
                     pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 7 : 10;
                 }
             }
-        }
-        else {
+        } else {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 1 : 4;
-            }
-            else { // regular
+            } else { // regular
                 pcs_ptr->pic_block_based_depth_refinement_level = is_base ? 2 : 5;
             }
         }
@@ -1234,29 +1229,23 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
 #if OPT_LD_M12_13
     } else if ((enc_mode <= ENC_M11) || (rtc_tune && (enc_mode <= ENC_M12))) {
 #else
-    }
-    else if (enc_mode <= ENC_M11) {
+    } else if (enc_mode <= ENC_M11) {
 #endif
 #if OPT_LD_M11
         if (rtc_tune) {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd1_lvl = is_ref ? 0 : 2;
-            }
-            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+            } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
                 pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 4;
-            }
-            else { // Regular
+            } else { // Regular
                 pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 3;
             }
-        }
-        else {
+        } else {
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 2;
-            }
-            else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
+            } else if (pcs_ptr->coeff_lvl == HIGH_LVL) {
                 pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 4;
-            }
-            else { // Regular
+            } else { // Regular
                 pcs_ptr->pic_lpd1_lvl = is_base ? 0 : 3;
             }
         }
@@ -1270,8 +1259,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
         }
 #endif
 #if OPT_LD_M13
-    }
-    else if ((enc_mode <= ENC_M12) || (rtc_tune && (enc_mode <= ENC_M13))) {
+    } else if ((enc_mode <= ENC_M12) || (rtc_tune && (enc_mode <= ENC_M13))) {
 #else
     } else if (enc_mode <= ENC_M12) {
 #endif

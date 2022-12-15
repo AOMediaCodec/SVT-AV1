@@ -1063,7 +1063,7 @@ typedef struct PictureParentControlSet {
     struct PictureParentControlSet *gf_group[MAX_TPL_GROUP_SIZE];
     StatStruct                      stat_struct;
 #if OPT_LD_QPM
-    CyclicRefresh                   cyclic_refresh;
+    CyclicRefresh cyclic_refresh;
 #endif
     uint8_t                         partition_contexts;
     uint8_t                         bypass_cost_table_gen;

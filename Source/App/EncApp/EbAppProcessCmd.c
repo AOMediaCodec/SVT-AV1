@@ -363,9 +363,9 @@ static void injector(uint64_t processed_frame_count, uint32_t injector_frame_rat
             current_times_seconds,
             current_timesu_seconds);
 #if OPT_LD_LATENCY
-        const int    buffer_frames = 0; // How far ahead of time should we let it get
+        const int buffer_frames = 0; // How far ahead of time should we let it get
 #else
-        const int    buffer_frames = 1; // How far ahead of time should we let it get
+        const int buffer_frames = 1; // How far ahead of time should we let it get
 #endif
         const double injector_interval = (double)(1 << 16) /
             injector_frame_rate; // 1.0 / injector frame rate (in this
@@ -695,7 +695,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                     config->performance_context.total_encode_time;
 
             } else {
-
                 double total_encode_times_10_frames_prior =
                     config->performance_context.start_times[index];
 
@@ -713,7 +712,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                     config->performance_context.max_10f_fps = avg_fps_over_10_frames;
 
                 } else {
-
                     config->performance_context.min_10f_fps = avg_fps_over_10_frames <
                             config->performance_context.min_10f_fps
                         ? avg_fps_over_10_frames
@@ -726,11 +724,9 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
 
                 config->performance_context.total_10f_fps += avg_fps_over_10_frames;
 
-                fprintf(
-                    stderr, "\rAverage FPS over past 10 frames: %.2f", avg_fps_over_10_frames);
+                fprintf(stderr, "\rAverage FPS over past 10 frames: %.2f", avg_fps_over_10_frames);
             }
 #endif
-
 
             const double fps = (double)*frame_count / config->performance_context.total_encode_time;
             const double frame_rate = (double)config->config.frame_rate_numerator /

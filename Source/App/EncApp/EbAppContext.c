@@ -301,7 +301,7 @@ EbErrorType init_encoder(EbConfig *config, EbAppContext *callback_data, uint32_t
         preload_frames_info_ram(config);
     } else
         config->sequence_buffer = 0;
-    ///********************** APPLICATION INIT [END] ******************////////
+        ///********************** APPLICATION INIT [END] ******************////////
 
 #if FPS_DATA
     // Initialze running sum for 10F FPS values to calculcate average over clip
