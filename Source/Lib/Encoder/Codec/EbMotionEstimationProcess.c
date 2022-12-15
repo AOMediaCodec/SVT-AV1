@@ -260,7 +260,7 @@ void set_me_search_params(SequenceControlSet *scs_ptr, PictureParentControlSet *
         me_context_ptr->me_sa.sa_max = (SearchArea){8, 3};
     }
 #if OPT_LD_M9
-    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool               rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     if (rtc_tune && pcs_ptr->enc_mode > ENC_M8) {
         if (input_resolution < INPUT_SIZE_720p_RANGE) {
             me_context_ptr->me_sa.sa_min = (SearchArea) { 8, 3 };

@@ -416,7 +416,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
     const Bool               transition_present  = (ppcs->transition_present == 1);
 #if OPT_LD_M13
-    const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
+    const bool rtc_tune = (scs_ptr->static_config.pred_structure ==
                                SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;

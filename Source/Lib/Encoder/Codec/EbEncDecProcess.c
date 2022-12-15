@@ -5200,8 +5200,8 @@ uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode enc_mode,
  * Generate per-SB MD settings (do not change per-PD)
  */
 EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr,
-                                                    PictureControlSet   *pcs_ptr,
-                                                    ModeDecisionContext *ctx) {
+    PictureControlSet   *pcs_ptr,
+    ModeDecisionContext *ctx) {
     EbErrorType return_error = EB_ErrorNone;
 
     EncMode enc_mode = pcs_ptr->enc_mode;
@@ -5229,44 +5229,43 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
         else if (enc_mode <= ENC_M4)
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
-#if OPT_LD_M9
-        else if (enc_mode <= ENC_M8 && !rtc_tune)
-#else
         else if (enc_mode <= ENC_M8)
-#endif
             depth_level = 3;
         else
             depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
-    } else if (enc_mode <= ENC_M0)
-        depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
-    else if (enc_mode <= ENC_M4)
-        depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+    }
 #if OPT_LD_M9
-    else if ((enc_mode <= ENC_M8) || (rtc_tune && (enc_mode <= ENC_M9)))
-#else
-    else if (enc_mode <= ENC_M8)
-#endif
-        depth_level = 3;
-#if OPT_LD_M10
-    else if (rtc_tune && enc_mode <= ENC_M10)
-        depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
-#endif
-    else
-        depth_level = 0;
-#if OPT_LD_M9
-    if (rtc_tune) {
-        if (enc_mode <= ENC_M8) {
-        } else if (enc_mode <= ENC_M11) {
+    else if (rtc_tune) {
+        if (enc_mode <= ENC_M0)
+            depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
+        else if (enc_mode <= ENC_M4)
+            depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+        if (enc_mode <= ENC_M9)
+            depth_level = 3;
+        else if (enc_mode <= ENC_M10)
+            depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
+        else
+            depth_level = 0;
+
+        if (enc_mode > ENC_M8) {
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-                int th     = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
+                int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
                 if (me_8x8 < th)
                     depth_level = 0;
             }
-        } else
-            depth_level = 0;
+        }
     }
 #endif
+    else if (enc_mode <= ENC_M0)
+        depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
+    else if (enc_mode <= ENC_M4)
+        depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+    else if (enc_mode <= ENC_M8)
+        depth_level = 3;
+    else
+        depth_level = 0;
+
     set_depth_ctrls(ctx, depth_level);
 
     // pic_pred_depth_only shouldn't be changed after this point
@@ -5324,29 +5323,27 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
             ctx->depth_removal_ctrls.disallow_below_16x16 = FALSE;
     }
 
+#if OPT_LD_M13
+    if (rtc_tune && enc_mode > ENC_M8) {
+        int lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
+        if (pcs_ptr->slice_type != I_SLICE) {
+            int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
+            int th = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
+            if (me_8x8 < th)
+                lpd1_lvl += 2;
+            else if (me_8x8 < 2 * th)
+                lpd1_lvl += 1;
+        }
+        lpd1_lvl = MAX(0, MIN(lpd1_lvl, 6));
+        set_lpd1_ctrls(ctx, lpd1_lvl);
+    }
+    else
+#endif
     set_lpd1_ctrls(ctx,
                    ctx->high_freq_present
                        ? MIN(pcs_ptr->pic_lpd1_lvl, ctx->detect_high_freq_ctrls.max_pic_lpd1_lvl)
                        : pcs_ptr->pic_lpd1_lvl);
-#if OPT_LD_M13
-    if (rtc_tune) {
-        int pic_lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
-        if (enc_mode <= ENC_M8) {
-            pic_lpd1_lvl = pcs_ptr->pic_lpd1_lvl;
-        } else {
-            if (pcs_ptr->slice_type != I_SLICE) {
-                int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-                int th     = enc_mode <= ENC_M12 ? 3 * ctx->qp_index : 6000;
-                if (me_8x8 < th)
-                    pic_lpd1_lvl += 2;
-                else if (me_8x8 < 2 * th)
-                    pic_lpd1_lvl += 1;
-            }
-            pic_lpd1_lvl = MAX(0, MIN(pic_lpd1_lvl, 6));
-            set_lpd1_ctrls(ctx, pic_lpd1_lvl);
-        }
-    }
-#endif
+
 
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     set_nsq_ctrls(ctx, pcs_ptr->nsq_level);
@@ -6515,7 +6512,7 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
     set_nsq_ctrls(context_ptr, pcs_ptr->nsq_level);
 
 #if OPT_LD_M11
-    const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
+    const bool rtc_tune = (scs->static_config.pred_structure ==
                                SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
@@ -7619,9 +7616,9 @@ void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
         : false;
     if (rtc_tune) {
         uint32_t me_8x8_cost_variance = pcs->parent_pcs_ptr->me_8x8_cost_variance[md_ctx->sb_index];
-        md_ctx->lpd1_ctrls.pd1_level  = me_8x8_cost_variance < 500 ? 2
-             : me_8x8_cost_variance < 3000                         ? 1
-                                                                   : -1;
+        md_ctx->lpd1_ctrls.pd1_level  = me_8x8_cost_variance < 500 ? LPD1_LVL_2
+             : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
+                                                                   : REGULAR_PD1;
         return;
     }
 #endif
@@ -8144,14 +8141,13 @@ void *mode_decision_kernel(void *input_ptr) {
                                                    SVT_AV1_PRED_LOW_DELAY_B)
                             ? true
                             : false;
-                        if (!rtc_tune) {
+                        if (!rtc_tune && md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
+#else
+                        if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
 #endif
-                            if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
-                                lpd0_detector(pcs_ptr, md_ctx);
-                            }
-#if OPT_LD_P2
+                            lpd0_detector(pcs_ptr, md_ctx);
                         }
-#endif
+
 
                         // PD0 is only skipped if there is a single depth to test
                         if (skip_pd_pass_0)

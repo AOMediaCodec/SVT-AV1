@@ -1319,10 +1319,10 @@ static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
 }
 
 /******************************************************
- * cyclic_refresh_init
+ *  svt_aom_cyclic_refresh_init
  * Initial cyclic refresh parameters
  ******************************************************/
-void cyclic_refresh_init(PictureParentControlSet *ppcs) {
+void  svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
     SequenceControlSet *scs = ppcs->scs_ptr;
     CyclicRefresh      *cr  = &ppcs->cyclic_refresh;
 

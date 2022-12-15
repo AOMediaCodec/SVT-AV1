@@ -511,9 +511,16 @@ typedef struct Lpd0Ctrls {
 } Lpd0Ctrls;
 
 typedef struct Lpd1Ctrls {
+
+#if OPT_LD_P2
+    Pd1Level
+        pd1_level; // Whether light-PD1 is set to be used for an SB (the detector may change this)
+#else
     int8_t
-         pd1_level; // Whether light-PD1 is set to be used for an SB (the detector may change this)
-    Bool use_lpd1_detector
+        pd1_level; // Whether light-PD1 is set to be used for an SB (the detector may change this)
+#endif
+
+     Bool use_lpd1_detector
         [LPD1_LEVELS]; // Whether to use a detector; if use_light_pd1 is set to 1, the detector will protect tough SBs
     Bool use_ref_info
         [LPD1_LEVELS]; // Use info of ref frames - incl. colocated SBs - such as mode, coeffs, etc. in the detector

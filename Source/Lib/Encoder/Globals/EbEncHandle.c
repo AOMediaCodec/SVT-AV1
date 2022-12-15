@@ -2606,7 +2606,7 @@ void set_tf_64x64_params(
 * tf_ld_controls
 * TF control functions for low delay mode
 *******************************************************************************/
-void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
+static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
 
     switch (tf_level)
     {
@@ -3874,8 +3874,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
             scs_ptr->mfmv_enabled = 1;
 #if OPT_LD_M11
         else if (scs_ptr->static_config.enc_mode <= ENC_M10 ||
-                (scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_P &&
-                scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B &&
+                (scs_ptr->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B &&
                 scs_ptr->static_config.enc_mode <= ENC_M11)) {
 #else
         else if (scs_ptr->static_config.enc_mode <= ENC_M11) {

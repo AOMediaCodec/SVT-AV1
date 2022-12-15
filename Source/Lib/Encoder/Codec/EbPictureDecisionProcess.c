@@ -1804,7 +1804,7 @@ EbErrorType signal_derivation_multi_processes_oq(
     const Bool               fast_decode = scs_ptr->static_config.fast_decode;
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #if OPT_LD_M13
-    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool               rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
@@ -6306,7 +6306,7 @@ void* picture_decision_kernel(void *input_ptr) {
 #if OPT_LD_QPM
                         if (scs->static_config.enable_adaptive_quantization &&
                             scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR)
-                            cyclic_refresh_init(pcs);
+                            svt_aom_cyclic_refresh_init(pcs);
 #endif
                     }
 
