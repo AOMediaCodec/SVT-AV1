@@ -625,7 +625,7 @@ static void calc_mini_gop_activity(
         sub_layer0_perc_cplx < 25 &&
         sub_layer1_perc_cplx < 25 &&
         (((sub_layer_dist0 + sub_layer_dist1) / 2) < ((bias * top_layer_dist) / 100));
-    
+
     const bool cond3 = MIN(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 40 && MAX(sub_layer_mv_in_out_count1, sub_layer_mv_in_out_count2) > 55;
 
     if (cond1 && (cond2 || cond3)) {
