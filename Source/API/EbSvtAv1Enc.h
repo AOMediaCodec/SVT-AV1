@@ -648,6 +648,7 @@ typedef struct EbSvtAv1EncConfiguration {
     *
     * Default is -1. */
     int enable_restoration_filtering;
+
     /* motion field motion vector
     *
     *  Default is -1. */
