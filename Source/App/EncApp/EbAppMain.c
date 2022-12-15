@@ -249,18 +249,6 @@ static void print_summary(const EncContext* const enc_context) {
             tot_frames_done = (int)config->performance_context.frame_count;
 #endif
 
-#if FPS_DATA
-            double avg_10_frame_fps = config->performance_context.total_10f_fps /
-                (double)(config->performance_context.frame_count - 10);
-            fprintf(stderr, "\rAvergae 10 frame FPS over clip: %.2f\n", avg_10_frame_fps);
-            fprintf(stderr,
-                    "Min 10 frame FPS over clip: %.2f\n",
-                    config->performance_context.min_10f_fps);
-            fprintf(stderr,
-                    "Max 10 frame FPS over clip: %.2f\n",
-                    config->performance_context.max_10f_fps);
-#endif
-
             uint64_t frame_count    = (uint32_t)config->performance_context.frame_count;
             uint32_t max_luma_value = (config->config.encoder_bit_depth == 8) ? 255 : 1023;
             double   max_luma_sse   = (double)max_luma_value * max_luma_value *

@@ -417,8 +417,6 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     const Bool               transition_present  = (ppcs->transition_present == 1);
 #if OPT_LD_M13
     const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_P ||
-                           pcs_ptr->scs_ptr->static_config.pred_structure ==
                                SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
@@ -916,14 +914,15 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
     /*
        Bypassing EncDec
     */
-
+#if OPT_LD_P2
+    // In low delay mode, bypassing encdec in base layer is disabled as it provides bad trade offs
+#endif
     // TODO: Bypassing EncDec doesn't work if NSQ is enabled for 10bit content (causes r2r).
     // TODO: This signal can only be modified per picture right now, not per SB.  Per SB requires
     // neighbour array updates at EncDec for all SBs, that are currently skipped if EncDec is bypassed.
     // TODO: Bypassing EncDec doesn't work if pcs_ptr->cdf_ctrl.update_coef is enabled for non-ISLICE frames (causes r2r)
 #if OPT_LD_P2
-    if (!(pcs_ptr->temporal_layer_index == 0 &&
-          scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
+    if (!(is_base && scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
         (scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&
 #else
     if ((scs_ptr->static_config.encoder_bit_depth == EB_EIGHT_BIT || !pcs_ptr->nsq_level) &&

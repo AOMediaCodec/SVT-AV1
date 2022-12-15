@@ -184,8 +184,7 @@ EbErrorType enc_dec_context_ctor(EbThreadContext   *thread_context_ptr,
                .split_mode         = FALSE,
            });
 #if OPT_LD_M9
-    bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-                     static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
     // Mode Decision Context
@@ -5211,8 +5210,7 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
     set_detect_high_freq_ctrls(ctx, pcs_ptr->vq_ctrls.detect_high_freq_lvl);
     ctx->high_freq_present = 0;
 #if OPT_LD_M9
-    const bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-                           scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
 #endif
@@ -6276,8 +6274,6 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
     uint8_t        l0_was_64x64_mvp = 0, l1_was_64x64_mvp = 0;
 #if OPT_LD_M13
     const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_P ||
-                           pcs_ptr->scs_ptr->static_config.pred_structure ==
                                SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
@@ -6520,8 +6516,6 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
 
 #if OPT_LD_M11
     const bool rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure ==
-                               SVT_AV1_PRED_LOW_DELAY_P ||
-                           pcs_ptr->scs_ptr->static_config.pred_structure ==
                                SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
@@ -6589,15 +6583,18 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
         context_ptr->blk_skip_decision = TRUE;
     else
         context_ptr->blk_skip_decision = FALSE;
+
+#if OPT_LD_LATENCY_MD
+    if (scs->low_latency_kf && pcs_ptr->slice_type == I_SLICE)
+        context_ptr->rdoq_level = 0;
+    else
+#endif
     if (pd_pass == PD_PASS_0) {
         if (enc_mode <= ENC_M3)
             context_ptr->rdoq_level = 1;
         else
             context_ptr->rdoq_level = 0;
-#if OPT_LD_LATENCY_MD
-    } else if (pcs_ptr->scs_ptr->low_latency_kf && pcs_ptr->slice_type == I_SLICE) {
-        context_ptr->rdoq_level = 0;
-#endif
+
     } else if (enc_mode <= ENC_M12)
         context_ptr->rdoq_level = 1;
 #if OPT_LD_M13
@@ -7617,8 +7614,7 @@ not performed, this detector is used (else lpd1_detector_post_pd0() is used). */
 void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
                             uint32_t pic_width_in_sb) {
 #if OPT_LD_P2
-    const bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-                           pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
     if (rtc_tune) {
@@ -8145,8 +8141,6 @@ void *mode_decision_kernel(void *input_ptr) {
                                 // If LPD0 is used, a more conservative level can be set for complex SBs
 #if OPT_LD_P2
                         const bool rtc_tune = (scs_ptr->static_config.pred_structure ==
-                                                   SVT_AV1_PRED_LOW_DELAY_P ||
-                                               scs_ptr->static_config.pred_structure ==
                                                    SVT_AV1_PRED_LOW_DELAY_B)
                             ? true
                             : false;

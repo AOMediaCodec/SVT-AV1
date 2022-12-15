@@ -1804,8 +1804,7 @@ EbErrorType signal_derivation_multi_processes_oq(
     const Bool               fast_decode = scs_ptr->static_config.fast_decode;
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #if OPT_LD_M13
-    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
-        || pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool               rtc_tune = (pcs_ptr->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
@@ -5144,10 +5143,6 @@ void update_count_try(SequenceControlSet* scs_ptr, PictureParentControlSet* pcs_
             pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, mrp_ctrl->base_ref_list0_count);
             pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, mrp_ctrl->base_ref_list1_count);
         }
-     /*   else if (!pcs_ptr->is_used_as_reference_flag) {
-            pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, 1);
-            pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, 1);
-        }*/
         else {
             pcs_ptr->ref_list0_count_try = MIN(pcs_ptr->ref_list0_count, mrp_ctrl->non_base_ref_list0_count);
             pcs_ptr->ref_list1_count_try = MIN(pcs_ptr->ref_list1_count, mrp_ctrl->non_base_ref_list1_count);

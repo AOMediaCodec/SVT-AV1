@@ -1585,8 +1585,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
         input_data.is_scale = enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.superres_mode > SUPERRES_NONE ||
                               enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.resize_mode > RESIZE_NONE;
 #if OPT_LD_M13
-        input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-                               enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+        input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
 
         EB_NEW(
@@ -3649,7 +3648,7 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
     // Set initial qp for single pass vbr
     if ((scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR) && (scs_ptr->static_config.pass == ENC_SINGLE_PASS)){
         if (scs_ptr->static_config.qp != DEFAULT_QP) {
-            SVT_WARN("The input q vlaue is ignored in vbr mode %d\n", scs_ptr->static_config.qp);
+            SVT_WARN("The input q value is ignored in vbr mode %d\n", scs_ptr->static_config.qp);
         }
         const uint8_t tbr_bands[6] = { 1,2,4,6,8,10 };
         const uint64_t src_samples = (uint64_t)(scs_ptr->seq_header.max_frame_width*scs_ptr->seq_header.max_frame_height);
@@ -3739,10 +3738,19 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
             // update the look ahead size
             update_look_ahead(scs_ptr);
     }
+#if OPT_LD
+    // In low delay mode, sb size is set to 64
+    // In two pass encoding, the first pass uses sb size=64. Also when tpl is used
+    // in 240P resolution, sb size is set to 64
+    if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B ||
+        scs_ptr->static_config.pass == ENC_FIRST_PASS ||
+        (scs_ptr->tpl_level && scs_ptr->input_resolution == INPUT_SIZE_240p_RANGE))
+#else
     // In two pass encoding, the first pass uses sb size=64. Also when tpl is used
     // in 240P resolution, sb size is set to 64
     if (scs_ptr->static_config.pass == ENC_FIRST_PASS ||
         (scs_ptr->tpl_level && scs_ptr->input_resolution == INPUT_SIZE_240p_RANGE))
+#endif
         scs_ptr->super_block_size = 64;
     else
         if (scs_ptr->static_config.enc_mode <= ENC_M2)

@@ -685,49 +685,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
             }
             ++*frame_count;
 
-#if FPS_DATA
-
-            int index = (*frame_count - 1) % 10;
-
-            if (*frame_count <= 10) {
-                // populate the total encode time array for the first 10 frames
-                config->performance_context.start_times[index] =
-                    config->performance_context.total_encode_time;
-
-            } else {
-                double total_encode_times_10_frames_prior =
-                    config->performance_context.start_times[index];
-
-                double time_over_last_10_frames = config->performance_context.total_encode_time -
-                    total_encode_times_10_frames_prior;
-
-                config->performance_context.start_times[index] =
-                    config->performance_context.total_encode_time;
-
-                double avg_fps_over_10_frames = 10.0 / time_over_last_10_frames;
-
-                if (*frame_count == 11) {
-                    // Initialize min and max values on first complete sliding window
-                    config->performance_context.min_10f_fps = avg_fps_over_10_frames;
-                    config->performance_context.max_10f_fps = avg_fps_over_10_frames;
-
-                } else {
-                    config->performance_context.min_10f_fps = avg_fps_over_10_frames <
-                            config->performance_context.min_10f_fps
-                        ? avg_fps_over_10_frames
-                        : config->performance_context.min_10f_fps;
-                    config->performance_context.max_10f_fps = avg_fps_over_10_frames >
-                            config->performance_context.max_10f_fps
-                        ? avg_fps_over_10_frames
-                        : config->performance_context.max_10f_fps;
-                }
-
-                config->performance_context.total_10f_fps += avg_fps_over_10_frames;
-
-                fprintf(stderr, "\rAverage FPS over past 10 frames: %.2f", avg_fps_over_10_frames);
-            }
-#endif
-
             const double fps = (double)*frame_count / config->performance_context.total_encode_time;
             const double frame_rate = (double)config->config.frame_rate_numerator /
                 (double)config->config.frame_rate_denominator;

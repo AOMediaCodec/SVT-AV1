@@ -1268,53 +1268,51 @@ int svt_av1_cyclic_refresh_rc_bits_per_mb(PictureParentControlSet *ppcs, double 
  * cyclic_sb_qp_derivation
  * Calculates the QP per SB based on the ME statistics
  * used in one pass encoding
+ * only works for sb size  = 64
  ******************************************************/
 static void cyclic_sb_qp_derivation(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
     SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
     CyclicRefresh           *cr   = &ppcs->cyclic_refresh;
     SuperBlock              *sb;
-    uint32_t                 sb_addr;
+    uint32_t                 b64_idx;
 
     if (cr->apply_cyclic_refresh)
         ppcs->frm_hdr.delta_q_params.delta_q_present = 1;
     else
         ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
-    // super res pictures scaled with different sb count, should use sb_total_count for each picture
-    uint16_t sb_cnt = scs->sb_total_count;
-    if (scs->static_config.superres_mode > SUPERRES_NONE)
-        sb_cnt = ppcs->b64_total_count;
 
-    if (pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present) {
+    // This function assume sb size = 64 and sb total count is equal to b64 total count
+    assert(scs->sb_total_count == ppcs->b64_total_count);
+
+    if (ppcs->frm_hdr.delta_q_params.delta_q_present) {
         uint64_t avg_me_dist = 0;
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            // avg_me_dist += ppcs->me_8x8_cost_variance[sb_addr];
-            avg_me_dist += ppcs->me_8x8_distortion[sb_addr];
+        for (b64_idx = 0; b64_idx < ppcs->b64_total_count; ++b64_idx) {
+            avg_me_dist += ppcs->me_8x8_distortion[b64_idx];
         }
-        avg_me_dist /= sb_cnt;
+        avg_me_dist /= ppcs->b64_total_count;
 
         RATE_CONTROL *rc        = &scs->encode_context_ptr->rc;
         const int     bit_depth = scs->static_config.encoder_bit_depth;
         int           delta     = compute_deltaq(
             ppcs, rc, ppcs->frm_hdr.quantization_params.base_q_idx, bit_depth);
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            //   int diff_dist = (int)(ppcs->me_8x8_cost_variance[sb_addr] - avg_me_dist);
-            int diff_dist = (int)(ppcs->me_8x8_distortion[sb_addr] - avg_me_dist);
-            sb            = pcs->sb_ptr_array[sb_addr];
+        for (b64_idx = 0; b64_idx < ppcs->b64_total_count; ++b64_idx) {
+            int diff_dist = (int)(ppcs->me_8x8_distortion[b64_idx] - avg_me_dist);
+            sb            = pcs->sb_ptr_array[b64_idx];
             int offset    = 0;
-            if (sb_addr >= cr->sb_start && sb_addr < cr->sb_end && diff_dist <= 0) {
+            if (b64_idx >= cr->sb_start && b64_idx < cr->sb_end && diff_dist <= 0) {
                 offset = delta;
-            } else if (sb_addr >= cr->sb_start && sb_addr < cr->sb_end) {
+            } else if (b64_idx >= cr->sb_start && b64_idx < cr->sb_end) {
                 offset = delta / 2;
             }
             sb->qindex = CLIP3(
-                pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
-                255 - pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_res,
+                ppcs->frm_hdr.delta_q_params.delta_q_res,
+                255 - ppcs->frm_hdr.delta_q_params.delta_q_res,
                 ((int16_t)ppcs->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
         }
     } else {
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb         = pcs->sb_ptr_array[sb_addr];
+        for (b64_idx = 0; b64_idx < ppcs->b64_total_count; ++b64_idx) {
+            sb         = pcs->sb_ptr_array[b64_idx];
             sb->qindex = quantizer_to_qindex[pcs->picture_qp];
         }
     }
@@ -1332,18 +1330,14 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
         cr->apply_cyclic_refresh = 1;
     else
         cr->apply_cyclic_refresh = 0;
-    // super res pictures scaled with different sb count, should use sb_total_count for each picture
-    uint16_t sb_cnt = scs->sb_total_count;
-    if (scs->static_config.superres_mode > SUPERRES_NONE)
-        sb_cnt = ppcs->b64_total_count;
 
+    uint16_t sb_cnt = scs->sb_total_count;
     cr->percent_refresh = 20;
     if (ppcs->picture_number > (uint64_t)(4 * (1 << scs->max_heirachical_level) * 100 / 20))
         cr->percent_refresh = 15;
 
     if (cr->apply_cyclic_refresh) {
         cr->sb_start = scs->encode_context_ptr->cr_sb_end;
-        // cr->sb_start = ((ppcs->picture_number - 4) / 4 * sb_cnt *cr->percent_refresh / 100) % sb_cnt;
         cr->sb_end                         = cr->sb_start + sb_cnt * cr->percent_refresh / 100;
         scs->encode_context_ptr->cr_sb_end = cr->sb_end >= sb_cnt ? 0 : cr->sb_end;
     } else {
@@ -1367,11 +1361,10 @@ void cyclic_refresh_init(PictureParentControlSet *ppcs) {
  ******************************************************/
 static void sb_qp_derivation(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
-    SequenceControlSet      *scs  = pcs->parent_pcs_ptr->scs_ptr;
+    SequenceControlSet *scs = pcs->parent_pcs_ptr->scs_ptr;
     SuperBlock *sb;
     uint32_t sb_addr;
     if ((ppcs->slice_type != I_SLICE) && (ppcs->is_used_as_reference_flag))
-        //     if ((ppcs->slice_type != I_SLICE) && (ppcs->temporal_layer_index == 0))
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 1;
     else
         pcs->parent_pcs_ptr->frm_hdr.delta_q_params.delta_q_present = 0;

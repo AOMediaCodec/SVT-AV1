@@ -136,6 +136,7 @@ PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
         0, // GOP Index 0 - Temporal Layer
         0, // GOP Index 0 - Decode Order
 #if OPT_LD_MRP2
+        // 8 is not actually an offset and is used for long base ref in LD. It will be cleaned up in the new RPS
         {4, 12, 8, 0}, // GOP Index 0 - Ref List 0
 #else
         {4, 12, 0, 0}, // GOP Index 0 - Ref List 0
