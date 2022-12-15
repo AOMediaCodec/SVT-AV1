@@ -991,8 +991,7 @@ EbErrorType signal_derivation_mode_decision_config_kernel_oq(SequenceControlSet 
                 pcs_ptr->pic_lpd0_lvl = 4;
             else
                 pcs_ptr->pic_lpd0_lvl = is_islice ? 4 : 7;
-        }
-        else {
+        } else {
 #endif
             if (pcs_ptr->coeff_lvl == LOW_LVL) {
                 pcs_ptr->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
