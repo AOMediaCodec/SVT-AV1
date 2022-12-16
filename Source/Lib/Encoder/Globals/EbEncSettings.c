@@ -691,8 +691,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (pass == 3 && config->rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) {
-        SVT_ERROR("Instance %u: CRF does not support 3-pass\n", channel_number + 1);
+    if (pass > 1 && config->rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) {
+        SVT_ERROR("Instance %u: CRF does not support Multi-pass\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
 

@@ -2580,11 +2580,11 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
     }
     // Determine the number of passes in CRF mode
     if (rc_mode == 0) {
-        if (ip > -1 && ip < 16 && passes != 1) {
+        if (passes != 1) {
             passes = 1;
             fprintf(
                 stderr,
-                "[SVT-Warning]: Multipass CRF is not supported for Intra_period %d. Switching to "
+                "[SVT-Warning]: Multipass CRF is not supported. Switching to "
                 "1-pass encoding\n\n",
                 ip);
         }
