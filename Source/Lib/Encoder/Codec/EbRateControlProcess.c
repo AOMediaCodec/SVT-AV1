@@ -1225,6 +1225,7 @@ static int compute_deltaq(struct PictureParentControlSet *ppcs, RATE_CONTROL *rc
     if ((-deltaq) > ppcs->cyclic_refresh.max_qdelta_perc * q / 100) {
         deltaq = -ppcs->cyclic_refresh.max_qdelta_perc * q / 100;
     }
+    // RA uses a scale factor of 4 for the deltaQ range. Found it beneficial for low delay to have a larger deltaQ range, so we scale by 8
     deltaq = AOMMIN(deltaq, ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 - 1);
     deltaq = AOMMAX(deltaq, -ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 8 + 1);
     return deltaq;

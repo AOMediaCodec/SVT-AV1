@@ -2609,7 +2609,7 @@ static void  av1_generate_rps_info(
         }
 #if OPT_LD_MRP2
         // to make sure the long base reference is in base layer
-        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && (pcs_ptr->picture_number - context_ptr->last_long_base_pic) > long_base_pic &&
+        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && (pcs_ptr->picture_number - context_ptr->last_long_base_pic) >= long_base_pic &&
             pcs_ptr->temporal_layer_index == 0) {
             av1_rps->refresh_frame_mask |= (1 << long_base_idx);
             context_ptr->last_long_base_pic = pcs_ptr->picture_number;

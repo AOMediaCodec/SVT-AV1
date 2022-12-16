@@ -5332,6 +5332,7 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
             else if (me_8x8 < 2 * th)
                 lpd1_lvl += 1;
         }
+        // Checking against 6, as 6 is the max level for lpd1_lvl. If max level for lpd1_lvl changes, the check should be updated
         lpd1_lvl = MAX(0, MIN(lpd1_lvl, 6));
         set_lpd1_ctrls(ctx, lpd1_lvl);
     } else
