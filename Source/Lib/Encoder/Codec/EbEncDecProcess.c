@@ -5239,16 +5239,17 @@ EbErrorType signal_derivation_enc_dec_kernel_common(SequenceControlSet  *scs_ptr
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 2;
         else if (enc_mode <= ENC_M4)
             depth_level = pcs_ptr->slice_type == I_SLICE ? 1 : 3;
+        else if (enc_mode <= ENC_M8)
+            depth_level = 3;
         else if (enc_mode <= ENC_M9) {
             depth_level = 3;
             if (pcs_ptr->slice_type != I_SLICE) {
                 int me_8x8 = pcs_ptr->parent_pcs_ptr->me_8x8_cost_variance[ctx->sb_index];
-                int th = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
+                int th     = enc_mode <= ENC_M9 ? 60 * ctx->qp_index : 500 * ctx->qp_index;
                 if (me_8x8 < th)
                     depth_level = 0;
             }
-        }
-        else if (enc_mode <= ENC_M10)
+        } else if (enc_mode <= ENC_M10)
             depth_level = pcs_ptr->slice_type == I_SLICE ? 3 : 0;
         else
             depth_level = 0;
@@ -6581,10 +6582,10 @@ EbErrorType signal_derivation_enc_dec_kernel_oq(SequenceControlSet *scs, Picture
     else
 #endif
         if (pd_pass == PD_PASS_0) {
-            if (enc_mode <= ENC_M3)
-                context_ptr->rdoq_level = 1;
-            else
-                context_ptr->rdoq_level = 0;
+        if (enc_mode <= ENC_M3)
+            context_ptr->rdoq_level = 1;
+        else
+            context_ptr->rdoq_level = 0;
 
     } else if (enc_mode <= ENC_M12)
         context_ptr->rdoq_level = 1;
