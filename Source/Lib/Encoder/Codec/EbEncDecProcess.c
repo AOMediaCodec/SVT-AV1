@@ -6366,16 +6366,19 @@ void signal_derivation_enc_dec_kernel_oq_light_pd1(PictureControlSet   *pcs_ptr,
         lpd1_tx_level = 3;
     else {
         lpd1_tx_level = 4;
+#if OPT_LD_M12_13
+        if (!rtc_tune && (((l0_was_skip && l1_was_skip && ref_skip_perc > 35) &&
+            me_8x8_cost_variance < (800 * picture_qp) &&
+            me_64x64_distortion < (800 * picture_qp)) ||
+            (me_8x8_cost_variance < (100 * picture_qp) && me_64x64_distortion < (100 * picture_qp))))
+#else
         if (((l0_was_skip && l1_was_skip && ref_skip_perc > 35) &&
              me_8x8_cost_variance < (800 * picture_qp) &&
              me_64x64_distortion < (800 * picture_qp)) ||
             (me_8x8_cost_variance < (100 * picture_qp) && me_64x64_distortion < (100 * picture_qp)))
+#endif
             lpd1_tx_level = 6;
     }
-#if OPT_LD_M12_13
-    if (rtc_tune)
-        lpd1_tx_level = 4;
-#endif
     set_lpd1_tx_ctrls(pcs_ptr, context_ptr, lpd1_tx_level);
 
     /* In modes below M13, only use level 1-3 for chroma detector, as more aggressive levels will cause

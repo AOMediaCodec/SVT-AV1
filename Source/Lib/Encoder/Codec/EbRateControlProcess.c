@@ -2151,7 +2151,7 @@ void svt_av1_resize_reset_rc(PictureParentControlSet *ppcs_ptr, int32_t resize_w
             rc->rate_correction_factors[INTER_NORMAL] *= 2.0;
     }
 }
-#define QFACTOR 1.4
+#define QFACTOR 1.1
 static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
     SequenceControlSet *scs_ptr            = pcs_ptr->parent_pcs_ptr->scs_ptr;
     EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
