@@ -225,8 +225,8 @@ void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContex
     memset(pcs->tpl_valid_pic, 0, MAX_TPL_EXT_GROUP_SIZE * sizeof(uint8_t));
     pcs->tpl_valid_pic[0]   = 1;
     pcs->used_tpl_frame_num = 0;
-    uint8_t  is_gop_end     = 0;
-    int64_t  last_intra_mg_id;
+    uint8_t is_gop_end      = 0;
+    int64_t last_intra_mg_id;
 #if FIX_LAYER_SIGNAL
     uint32_t mg_size = 1 << pcs->hierarchical_levels;
 #else

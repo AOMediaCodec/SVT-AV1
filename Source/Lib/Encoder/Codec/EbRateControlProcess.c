@@ -912,7 +912,7 @@ static int crf_qindex_calc(PictureControlSet *pcs, RATE_CONTROL *rc, int qindex)
         // adjust the weight for base layer frames with shorter minigops
         if (scs_ptr->lad_mg && !frame_is_intra_only(ppcs) &&
 #if FIX_LAYER_SIGNAL
-        (ppcs->tpl_group_size < (uint32_t)(2 << pcs->parent_pcs_ptr->hierarchical_levels)))
+            (ppcs->tpl_group_size < (uint32_t)(2 << pcs->parent_pcs_ptr->hierarchical_levels)))
 #else
             (ppcs->tpl_group_size < (uint32_t)(2 << scs_ptr->max_heirachical_level)))
 #endif
@@ -1651,13 +1651,13 @@ static void av1_rc_init(SequenceControlSet *scs_ptr) {
 * update r0, calculate kf and gfu boosts for VBR
 *******************************************************************************/
 void process_tpl_stats_frame_kf_gfu_boost(PictureControlSet *pcs) {
-    PictureParentControlSet *ppcs               = pcs->parent_pcs_ptr;
-    SequenceControlSet      *scs                = ppcs->scs_ptr;
+    PictureParentControlSet *ppcs = pcs->parent_pcs_ptr;
+    SequenceControlSet      *scs  = ppcs->scs_ptr;
 #if FIX_LAYER_SIGNAL
     const uint8_t hierarchical_levels = ppcs->hierarchical_levels;
 #endif
-    EncodeContext           *encode_context_ptr = scs->encode_context_ptr;
-    RATE_CONTROL *const      rc                 = &encode_context_ptr->rc;
+    EncodeContext      *encode_context_ptr = scs->encode_context_ptr;
+    RATE_CONTROL *const rc                 = &encode_context_ptr->rc;
     // The new tpl only looks at pictures in tpl group, which is fewer than before,
     // As a results, we defined a factor to adjust r0
     if (!frame_is_intra_only(ppcs)) {
@@ -2273,15 +2273,15 @@ static int rc_pick_q_and_bounds_no_stats_cbr(PictureControlSet *pcs_ptr) {
  * used in the second pass of two pass encoding
  ******************************************************/
 static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
-    SequenceControlSet *scs_ptr              = pcs_ptr->parent_pcs_ptr->scs_ptr;
-    EncodeContext      *encode_context_ptr   = scs_ptr->encode_context_ptr;
+    SequenceControlSet *scs_ptr            = pcs_ptr->parent_pcs_ptr->scs_ptr;
+    EncodeContext      *encode_context_ptr = scs_ptr->encode_context_ptr;
 #if FIX_LAYER_SIGNAL
     const uint8_t hierarchical_levels = pcs_ptr->parent_pcs_ptr->hierarchical_levels;
 #endif
     RATE_CONTROL       *rc                   = &encode_context_ptr->rc;
-    int                 active_best_quality  = 0;
-    int                 active_worst_quality = rc->active_worst_quality;
-    int                 q;
+    int           active_best_quality  = 0;
+    int           active_worst_quality = rc->active_worst_quality;
+    int           q;
     int is_intrl_arf_boost = pcs_ptr->parent_pcs_ptr->update_type == SVT_AV1_INTNL_ARF_UPDATE;
     // Calculated qindex based on r0 using qstep calculation
     if (pcs_ptr->parent_pcs_ptr->temporal_layer_index == 0) {
@@ -2315,8 +2315,8 @@ static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
             int w1 = non_base_qindex_weight_ref[hierarchical_levels];
             int w2 = non_base_qindex_weight_wq[hierarchical_levels];
 #else
-            int w1              = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
-            int w2              = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
+            int w1 = non_base_qindex_weight_ref[scs_ptr->max_heirachical_level];
+            int w2 = non_base_qindex_weight_wq[scs_ptr->max_heirachical_level];
 #endif
             active_best_quality = (w1 * active_best_quality + (w2 * active_worst_quality) +
                                    ((w1 + w2) / 2)) /

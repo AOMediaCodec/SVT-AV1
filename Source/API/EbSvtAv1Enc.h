@@ -114,8 +114,8 @@ typedef struct PredictionStructureConfigEntry {
     uint32_t temporal_layer_index;
     uint32_t decode_order;
 #if !OPT_RPS_CONSTR_3
-    int32_t  ref_list0[REF_LIST_MAX_DEPTH];
-    int32_t  ref_list1[REF_LIST_MAX_DEPTH];
+    int32_t ref_list0[REF_LIST_MAX_DEPTH];
+    int32_t ref_list1[REF_LIST_MAX_DEPTH];
 #endif
 } PredictionStructureConfigEntry;
 

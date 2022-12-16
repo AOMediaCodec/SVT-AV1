@@ -151,7 +151,7 @@ typedef struct EncodeContext {
     EncMode  enc_mode;
 
     // Dynamic GOP
-    uint32_t         previous_mini_gop_hierarchical_levels;
+    uint32_t previous_mini_gop_hierarchical_levels;
 #if FTR_PRED_STRUCT_CLASSIFIER
     uint64_t mini_gop_cnt_per_gop;
 #endif

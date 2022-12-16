@@ -50,13 +50,18 @@ void svt_aom_set_dlf_controls(PictureParentControlSet *pcs_ptr, uint8_t dlf_leve
                               uint8_t bit_depth);
 
 #if FIX_LAYER_SIGNAL
-uint8_t svt_aom_tf_max_ref_per_struct(uint32_t hierarchical_levels, uint8_t type /*I_SLICE, BASE, L1*/, bool direction /*Past, Future*/);
+uint8_t svt_aom_tf_max_ref_per_struct(uint32_t hierarchical_levels,
+                                      uint8_t  type /*I_SLICE, BASE, L1*/,
+                                      bool     direction /*Past, Future*/);
 #endif
 #if OPT_RPS_CONSTR_3
-EbErrorType svt_aom_prediction_structure_group_ctor(PredictionStructureGroup* pred_struct_group_ptr);
+EbErrorType svt_aom_prediction_structure_group_ctor(
+    PredictionStructureGroup *pred_struct_group_ptr);
 #endif
 #if OPT_RPS_CONSTR_2
-bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer, unsigned picture_index, unsigned referencing_scheme, bool is_overlay);
+bool svt_aom_is_pic_used_as_ref(unsigned hierarchical_levels, unsigned temporal_layer,
+                                unsigned picture_index, unsigned referencing_scheme,
+                                bool is_overlay);
 #endif
 #if OPT_RPS_CONSTR
 typedef struct DpbEntry {
@@ -142,11 +147,11 @@ typedef struct PictureDecisionContext {
     uint64_t sframe_poc;
     int32_t  sframe_due; // The flag indicates whether the next ARF will be made an s-frame
 #if FTR_PRED_STRUCT_CLASSIFIER
-    uint8_t* sixteenth_b64_buffer;
+    uint8_t *sixteenth_b64_buffer;
     uint32_t sixteenth_b64_buffer_stride;
     uint64_t norm_dist;
-    uint8_t perc_cplx;
-    uint8_t perc_active;
+    uint8_t  perc_cplx;
+    uint8_t  perc_active;
 #if FTR_PRED_STRUCT_CLASSIFIER2
     int16_t mv_in_out_count;
 #endif

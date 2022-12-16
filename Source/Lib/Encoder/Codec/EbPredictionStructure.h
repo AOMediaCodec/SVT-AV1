@@ -70,10 +70,10 @@ typedef struct PredictionStructureEntry {
     uint32_t      dep_list0_count;
     uint32_t      dep_list1_count;
 #endif
-    uint32_t      temporal_layer_index;
-    uint32_t      decode_order;
+    uint32_t temporal_layer_index;
+    uint32_t decode_order;
 #if !OPT_RPS_CONSTR_3
-    Bool          is_referenced;
+    Bool is_referenced;
 #endif
 } PredictionStructureEntry;
 
@@ -88,11 +88,11 @@ typedef struct PredictionStructure {
     PredictionStructureEntry **pred_struct_entry_ptr_array;
     SvtAv1PredStructure        pred_type;
 #if !OPT_RPS_CONSTR_3
-    uint32_t                   temporal_layer_count;
+    uint32_t temporal_layer_count;
 #endif
-    uint32_t                   pred_struct_period;
+    uint32_t pred_struct_period;
 #if !OPT_RPS_CONSTR_3
-    uint32_t                   maximum_extent;
+    uint32_t maximum_extent;
 #endif
     // Section Indices
     uint32_t init_pic_index;
@@ -112,7 +112,7 @@ typedef struct PredictionStructureGroup {
     uint32_t              prediction_structure_count;
     void                 *priv; /* private member*/
 #if !OPT_RPS_CONSTR_3
-    uint8_t               ref_count_used;
+    uint8_t ref_count_used;
 #endif
 } PredictionStructureGroup;
 

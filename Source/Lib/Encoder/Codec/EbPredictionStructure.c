@@ -19,7 +19,8 @@
  * Macros
  **********************************************************/
 #if OPT_RPS_CONSTR_3
-#define PRED_STRUCT_INDEX(hierarchicalLevelCount, predType) ((hierarchicalLevelCount) * SVT_AV1_PRED_TOTAL_COUNT + (predType))
+#define PRED_STRUCT_INDEX(hierarchicalLevelCount, predType) \
+    ((hierarchicalLevelCount)*SVT_AV1_PRED_TOTAL_COUNT + (predType))
 #else
 #define PRED_STRUCT_INDEX(hierarchicalLevelCount, predType, refCount)                        \
     (((hierarchicalLevelCount)*SVT_AV1_PRED_TOTAL_COUNT + (predType)) * REF_LIST_MAX_DEPTH + \
@@ -75,7 +76,7 @@
  *  To Get Random Access, use the preduction structure as is
  **********************************************************/
 #if OPT_RPS_CONSTR_3
- /************************************************
+/************************************************
  * Flat
  *
  *  I-b-b-b-b-b-b-b-b
@@ -85,9 +86,9 @@
  *
  ************************************************/
 static PredictionStructureConfigEntry flat_pred_struct[] = {{
-        0, // GOP Index 0 - Temporal Layer
-        0 // GOP Index 0 - Decode Order
-    }};
+    0, // GOP Index 0 - Temporal Layer
+    0 // GOP Index 0 - Decode Order
+}};
 
 /************************************************
 * Random Access - Two-Level Hierarchical
@@ -110,8 +111,7 @@ static PredictionStructureConfigEntry two_level_hierarchical_pred_struct[] = {
     {
         1, // GOP Index 1 - Temporal Layer
         1 // GOP Index 1 - Decode Order
-    }
-};
+    }};
 
 /************************************************
 * Three-Level Hierarchical
@@ -146,8 +146,7 @@ static PredictionStructureConfigEntry three_level_hierarchical_pred_struct[] = {
     {
         2, // GOP Index 3 - Temporal Layer
         3 // GOP Index 3 - Decode Order
-    }
-};
+    }};
 
 /************************************************************************************************************
 * Four-Level Hierarchical
@@ -204,8 +203,7 @@ static PredictionStructureConfigEntry four_level_hierarchical_pred_struct[] = {
     {
         3, // GOP Index 7 - Temporal Layer
         7 // GOP Index 7 - Decode Order
-    }
-};
+    }};
 
 /***********************************************************************************************************
 * Five-Level Level Hierarchical
@@ -297,8 +295,7 @@ static PredictionStructureConfigEntry five_level_hierarchical_pred_struct[] = {
     {
         4, // GOP Index 15 - Temporal Layer
         15 // GOP Index 15 - Decode Order
-    }
-};
+    }};
 
 /**********************************************************************************************************************************************************************************************************************
 * Six-Level Level Hierarchical
@@ -455,8 +452,7 @@ static PredictionStructureConfigEntry six_level_hierarchical_pred_struct[] = {
     {
         5, // GOP Index 31 - Temporal Layer
         31 // GOP Index 31 - Decode Order
-    }
-};
+    }};
 #else
 /************************************************
   * Flat
@@ -1023,9 +1019,9 @@ static EbErrorType prediction_structure_config_array_ctor(
 PredictionStructure *get_prediction_structure(PredictionStructureGroup *pred_struct_group_ptr,
                                               SvtAv1PredStructure       pred_struct,
 #if !CLN_REMOVE_REF_CNT
-                                              uint32_t                  number_of_references,
+                                              uint32_t number_of_references,
 #endif
-                                              uint32_t                  levels_of_hierarchy) {
+                                              uint32_t levels_of_hierarchy) {
     PredictionStructure *pred_struct_ptr;
     uint32_t             pred_struct_index;
 #if !CLN_REMOVE_REF_CNT
@@ -1046,10 +1042,10 @@ PredictionStructure *get_prediction_structure(PredictionStructureGroup *pred_str
 }
 
 static void prediction_structure_dctor(EbPtr p) {
-    PredictionStructure       *obj   = (PredictionStructure *)p;
-    PredictionStructureEntry **pe    = obj->pred_struct_entry_ptr_array;
+    PredictionStructure       *obj = (PredictionStructure *)p;
+    PredictionStructureEntry **pe  = obj->pred_struct_entry_ptr_array;
 #if !OPT_RPS_CONSTR_3
-    uint32_t                   count = obj->pred_struct_entry_count;
+    uint32_t count = obj->pred_struct_entry_count;
 #endif
     if (pe) {
 #if !OPT_RPS_CONSTR_3
@@ -1239,42 +1235,36 @@ static void prediction_structure_dctor(EbPtr p) {
  *  The RPS Ctor code follows these construction steps.
  ******************************************************************************************/
 #if OPT_RPS_CONSTR_3
-static EbErrorType prediction_structure_ctor(
-    PredictionStructure             *pred_struct,
-    const PredictionStructureConfig *pred_struct_cfg,
-    const SvtAv1PredStructure        pred_type) {
-
+static EbErrorType prediction_structure_ctor(PredictionStructure             *pred_struct,
+                                             const PredictionStructureConfig *pred_struct_cfg,
+                                             const SvtAv1PredStructure        pred_type) {
     pred_struct->dctor = prediction_structure_dctor;
 
     pred_struct->pred_type = pred_type;
 
     // Set the Pred Struct Period and total Entry Count
-    const uint32_t pred_struct_period =
-        pred_struct->pred_struct_period =
+    const uint32_t pred_struct_period        = pred_struct->pred_struct_period =
         pred_struct->pred_struct_entry_count = pred_struct_cfg->entry_count;
 
     // Set the Section Indices
     pred_struct->init_pic_index = 0;
 
     // Allocate the entry array
-    EB_CALLOC_2D(pred_struct->pred_struct_entry_ptr_array,
-        pred_struct->pred_struct_entry_count,
-        1);
+    EB_CALLOC_2D(pred_struct->pred_struct_entry_ptr_array, pred_struct->pred_struct_entry_count, 1);
 
     //----------------------------------------
     // Construct Steady-state Pictures
     //   -Copy directly from the Config
     //----------------------------------------
     for (unsigned int entry_idx = 0; entry_idx < pred_struct_period; ++entry_idx) {
-        PredictionStructureConfigEntry* cfg_entry = &pred_struct_cfg->entry_array[entry_idx];
-        PredictionStructureEntry* pred_entry = pred_struct->pred_struct_entry_ptr_array[entry_idx];
+        PredictionStructureConfigEntry *cfg_entry = &pred_struct_cfg->entry_array[entry_idx];
+        PredictionStructureEntry *pred_entry = pred_struct->pred_struct_entry_ptr_array[entry_idx];
 
         // Set the Temporal Layer Index
         pred_entry->temporal_layer_index = cfg_entry->temporal_layer_index;
 
         // Set the Decode Order
-        pred_entry->decode_order =
-            (pred_type == SVT_AV1_PRED_RANDOM_ACCESS)
+        pred_entry->decode_order = (pred_type == SVT_AV1_PRED_RANDOM_ACCESS)
             ? cfg_entry->decode_order
             : entry_idx;
     }
@@ -1810,7 +1800,8 @@ static void prediction_structure_group_dctor(EbPtr p) {
  *
  *************************************************/
 #if OPT_RPS_CONSTR_3
-EbErrorType svt_aom_prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr) {
+EbErrorType svt_aom_prediction_structure_group_ctor(
+    PredictionStructureGroup *pred_struct_group_ptr) {
 #else
 EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_struct_group_ptr,
                                             struct SequenceControlSet *scs_ptr) {
@@ -1824,7 +1815,7 @@ EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_stru
 #endif
     pred_struct_group_ptr->dctor = prediction_structure_group_dctor;
 #if !OPT_RPS_CONSTR_3
-    MrpCtrls *mrp_ctrl           = &(scs_ptr->mrp_ctrls);
+    MrpCtrls *mrp_ctrl = &(scs_ptr->mrp_ctrls);
     // Derive the max count at BASE
     uint8_t ref_count_used_base = MAX(
         mrp_ctrl->sc_base_ref_list0_count,
@@ -2003,17 +1994,20 @@ EbErrorType prediction_structure_group_ctor(PredictionStructureGroup  *pred_stru
     }
 #endif
 #if OPT_RPS_CONSTR_3
-    pred_struct_group_ptr->prediction_structure_count = MAX_TEMPORAL_LAYERS * SVT_AV1_PRED_TOTAL_COUNT;
+    pred_struct_group_ptr->prediction_structure_count = MAX_TEMPORAL_LAYERS *
+        SVT_AV1_PRED_TOTAL_COUNT;
     EB_ALLOC_PTR_ARRAY(pred_struct_group_ptr->prediction_structure_ptr_array,
-        pred_struct_group_ptr->prediction_structure_count);
-    for (unsigned int hierarchical_levels = 0; hierarchical_levels < MAX_TEMPORAL_LAYERS; hierarchical_levels++) {
+                       pred_struct_group_ptr->prediction_structure_count);
+    for (unsigned int hierarchical_levels = 0; hierarchical_levels < MAX_TEMPORAL_LAYERS;
+         hierarchical_levels++) {
         for (SvtAv1PredStructure pred_type = 0; pred_type < SVT_AV1_PRED_TOTAL_COUNT; ++pred_type) {
-            const unsigned int pred_struct_index = PRED_STRUCT_INDEX(hierarchical_levels, pred_type);
+            const unsigned int pred_struct_index = PRED_STRUCT_INDEX(hierarchical_levels,
+                                                                     pred_type);
 
             EB_NEW(pred_struct_group_ptr->prediction_structure_ptr_array[pred_struct_index],
-                prediction_structure_ctor,
-                &(prediction_structure_config_array[hierarchical_levels]),
-                pred_type);
+                   prediction_structure_ctor,
+                   &(prediction_structure_config_array[hierarchical_levels]),
+                   pred_type);
         }
     }
 #else

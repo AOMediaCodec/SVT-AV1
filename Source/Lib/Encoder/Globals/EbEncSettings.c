@@ -864,10 +864,12 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
         return_error = EB_ErrorBadParameter;
     }
 #if EN_WARNING_FOR_MISMATCH
-    if (config->encoder_bit_depth == 10 && (config->stat_report == 1 || config->recon_enabled == 1) && config->enc_mode >= ENC_M10) {
+    if (config->encoder_bit_depth == 10 &&
+        (config->stat_report == 1 || config->recon_enabled == 1) && config->enc_mode >= ENC_M10) {
         SVT_WARN(
             "If encoding 10-bit video using any preset greater than M9 there will be a mismatch "
-            "between the encoded files if either --enable-stat-report is 0 or 1 or a recon file (-o) "
+            "between the encoded files if either --enable-stat-report is 0 or 1 or a recon file "
+            "(-o) "
             "is or is not specified in the command line\n");
     }
 #endif

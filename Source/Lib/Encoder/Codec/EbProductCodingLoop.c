@@ -10093,9 +10093,10 @@ void md_encode_block_light_pd1(PictureControlSet *pcs_ptr, ModeDecisionContext *
         lpd1_tx_shortcut_detector(pcs_ptr, context_ptr, candidate_buffer_ptr_array);
 #if FIX_2009
         // Condition needed in order to avoid mismatch between recon flag ON/OFF when lpd1_skip_inter_tx_level == 2
-        if (fast_candidate_total_count == 1 && context_ptr->lpd1_skip_inter_tx_level == 2 && !is_intra_mode(fast_candidate_array[0].pred_mode)) {
-            context_ptr->use_tx_shortcuts_mds3        = 1;
-            context_ptr->lpd1_allow_skipping_tx       = 1;
+        if (fast_candidate_total_count == 1 && context_ptr->lpd1_skip_inter_tx_level == 2 &&
+            !is_intra_mode(fast_candidate_array[0].pred_mode)) {
+            context_ptr->use_tx_shortcuts_mds3  = 1;
+            context_ptr->lpd1_allow_skipping_tx = 1;
         }
 #endif
     } else {
