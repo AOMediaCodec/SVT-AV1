@@ -7302,11 +7302,11 @@ static void set_mini_gop_structure(SequenceControlSet* scs, EncodeContext* encod
         ctx->mini_gop_hierarchical_levels[ctx->total_number_of_mini_gops] = 2;
     }
 #if FIX_INCOMP_MG_2
-    // If the only picture is an I_SLICE, use default settings (set above). If treat the solo I_SLICE
+    // In RA, if the only picture is an I_SLICE, use default settings (set above). If treat the solo I_SLICE
     // as a regular MG, you will change the hierarchical_levels to the minimum.
     // For low-delay pred strucutres, pre_assignment_buffer_count will be 1, but no need to change the default
     // hierarchical levels.
-    else if (encode_ctx->pre_assignment_buffer_count > 1 || !encode_ctx->pre_assignment_buffer_intra_count) {
+    else if (encode_ctx->pre_assignment_buffer_count > 1 || (!encode_ctx->pre_assignment_buffer_intra_count && scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS)) {
 #else
     else if (encode_ctx->pre_assignment_buffer_count > 1) {
 #endif
