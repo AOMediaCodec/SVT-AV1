@@ -2160,9 +2160,6 @@ EbErrorType signal_derivation_multi_processes_oq(
 #else
     const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #endif
-
-    const Bool               fast_decode = scs_ptr->static_config.fast_decode;
-    const uint32_t           hierarchical_levels = scs_ptr->static_config.hierarchical_levels;
 #if OPT_LD_M13
     const bool               rtc_tune = (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #endif
@@ -2772,7 +2769,7 @@ static void set_ref_list_counts(PictureParentControlSet* pcs) {
         MIN(list1_count,
             is_sc ? (is_base ? mrp_ctrls->sc_base_ref_list1_count : mrp_ctrls->sc_non_base_ref_list1_count)
             : (is_base ? mrp_ctrls->base_ref_list1_count    : mrp_ctrls->non_base_ref_list1_count));
-    assert(pcs->ref_list1_count);
+    assert(!(pcs->ref_list1_count == 0 && pcs->scs_ptr->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS));
 }
 #endif
 static INLINE void update_ref_poc_array(uint8_t* ref_dpb_idx, uint64_t* ref_poc_array, DpbEntry* dpb) {
@@ -2976,6 +2973,10 @@ static void  av1_generate_rps_info(
         const uint8_t  lay1_0_idx = lay1_toggle == 0 ? LAY1_OFF + 0 : LAY1_OFF + 1; //the oldest L1 picture in the DPB
         const uint8_t  lay1_1_idx = lay1_toggle == 0 ? LAY1_OFF + 1 : LAY1_OFF + 0; //the newest L1 picture in the DPB
         const uint8_t  lay2_idx = LAY2_OFF; //the newest L2 picture in the DPB
+#if OPT_LD_MRP2
+        const uint8_t  long_base_idx = 7;
+        const uint16_t long_base_pic = 128;
+#endif
 
         switch (temporal_layer) {
         case 0:
@@ -2983,7 +2984,14 @@ static void  av1_generate_rps_info(
             //{ 4, 8, 0, 0 } // GOP Index 0 - Ref List 1
             ref_dpb_index[LAST] = base2_idx;
             ref_dpb_index[LAST2] = base0_idx;
+#if OPT_LD_MRP2
+            if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+                ref_dpb_index[LAST3] = long_base_idx;
+            else
+                ref_dpb_index[LAST3] = ref_dpb_index[LAST];
+#else
             ref_dpb_index[LAST3] = ref_dpb_index[LAST];
+#endif
             ref_dpb_index[GOLD] = ref_dpb_index[LAST];
 
             ref_dpb_index[BWD] = base2_idx;
@@ -3062,6 +3070,14 @@ static void  av1_generate_rps_info(
 
 #if OPT_RPS_CONSTR_2
         set_ref_list_counts(pcs);
+#endif
+#if OPT_LD_MRP2
+        // to make sure the long base reference is in base layer
+        if (scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B && (pcs->picture_number - ctx->last_long_base_pic) >= long_base_pic &&
+            pcs->temporal_layer_index == 0) {
+            av1_rps->refresh_frame_mask |= (1 << long_base_idx);
+            ctx->last_long_base_pic = pcs->picture_number;
+        }
 #endif
         prune_refs(av1_rps, pcs->ref_list0_count, pcs->ref_list1_count);
 
