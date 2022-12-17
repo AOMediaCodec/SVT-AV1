@@ -739,7 +739,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
     }
 
     if (config->pass > 1 && config->rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) {
-        SVT_WARN("Instance %u: CRF does not support Multi-pass. Switching to single pass\n", channel_number + 1);
+        SVT_WARN("Instance %u: CRF does not support Multi-pass. Switching to single pass\n",
+                 channel_number + 1);
         config->pass = ENC_SINGLE_PASS;
     }
     // color description
