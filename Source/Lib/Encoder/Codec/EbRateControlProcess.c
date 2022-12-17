@@ -2278,7 +2278,7 @@ static int rc_pick_q_and_bounds(PictureControlSet *pcs_ptr) {
 #if FIX_LAYER_SIGNAL
     const uint8_t hierarchical_levels = pcs_ptr->parent_pcs_ptr->hierarchical_levels;
 #endif
-    RATE_CONTROL       *rc                   = &encode_context_ptr->rc;
+    RATE_CONTROL *rc                   = &encode_context_ptr->rc;
     int           active_best_quality  = 0;
     int           active_worst_quality = rc->active_worst_quality;
     int           q;

@@ -2582,10 +2582,9 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
     if (rc_mode == 0) {
         if (passes != 1) {
             passes = 1;
-            fprintf(
-                stderr,
-                "[SVT-Warning]: Multipass CRF is not supported. Switching to "
-                "1-pass encoding\n\n");
+            fprintf(stderr,
+                    "[SVT-Warning]: Multipass CRF is not supported. Switching to "
+                    "1-pass encoding\n\n");
         }
         multi_pass_mode = passes == 2 ? TWO_PASS_IPP_FINAL : SINGLE_PASS;
     }
