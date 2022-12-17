@@ -2479,7 +2479,6 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
     };
     const size_t rc_size  = sizeof(rc) / sizeof(rc[0]);
     int          enc_mode = 0;
-    int          ip       = -1;
     // Read required inputs to decide on the number of passes and check the validity of their ranges
     if (find_token(argc, argv, RATE_CONTROL_ENABLE_TOKEN, config_string) == 0) {
         for (size_t i = 0; i < rc_size; i++) {
@@ -2534,6 +2533,7 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
         find_token(argc, argv, KEYINT_TOKEN, config_string) == 0) {
         const bool               is_keyint  = find_token(argc, argv, KEYINT_TOKEN, NULL) == 0;
         const int                max_keyint = 2 * ((1 << 30) - 1);
+        int                      ip         = -1;
         EbSvtAv1EncConfiguration c;
         c.multiply_keyint = false;
 
