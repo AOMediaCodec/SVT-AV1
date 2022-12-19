@@ -2520,20 +2520,11 @@ static Bool set_frame_display_params(
     Av1RpsNode *av1_rps = &pcs_ptr->av1_ref_signal;
     FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
 
-    if (pcs_ptr->pred_struct_ptr->pred_type == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->is_overlay) {
+    if (pcs_ptr->pred_struct_ptr->pred_type == SVT_AV1_PRED_LOW_DELAY_P || pcs_ptr->is_overlay ||
+        pcs_ptr->pred_struct_ptr->pred_type == SVT_AV1_PRED_LOW_DELAY_B) {
         //P frames
         av1_rps->ref_dpb_index[BWD] = av1_rps->ref_dpb_index[ALT2] = av1_rps->ref_dpb_index[ALT] = av1_rps->ref_dpb_index[LAST];
         av1_rps->ref_poc_array[BWD] = av1_rps->ref_poc_array[ALT2] = av1_rps->ref_poc_array[ALT] = av1_rps->ref_poc_array[LAST];
-
-        frm_hdr->show_frame = TRUE;
-        pcs_ptr->has_show_existing = FALSE;
-    } else if (pcs_ptr->pred_struct_ptr->pred_type == SVT_AV1_PRED_LOW_DELAY_B) {
-        av1_rps->ref_dpb_index[BWD] = av1_rps->ref_dpb_index[LAST];
-        av1_rps->ref_dpb_index[ALT2] = av1_rps->ref_dpb_index[LAST2];
-        av1_rps->ref_dpb_index[ALT] = av1_rps->ref_dpb_index[LAST3];
-        av1_rps->ref_poc_array[BWD] = av1_rps->ref_poc_array[LAST];
-        av1_rps->ref_poc_array[ALT2] = av1_rps->ref_poc_array[LAST2];
-        av1_rps->ref_poc_array[ALT] = av1_rps->ref_poc_array[LAST3];
 
         frm_hdr->show_frame = TRUE;
         pcs_ptr->has_show_existing = FALSE;
