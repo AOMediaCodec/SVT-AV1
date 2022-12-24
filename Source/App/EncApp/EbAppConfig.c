@@ -1596,7 +1596,7 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, ENABLE_RESTORATION_TOKEN, "EnableRestoration", set_enable_restoration_flag},
     {SINGLE_INPUT, ENABLE_TPL_LA_TOKEN, "EnableTPLModel", set_enable_tpl_la},
     {SINGLE_INPUT, MFMV_ENABLE_NEW_TOKEN, "Mfmv", set_enable_mfmv_flag},
-    {SINGLE_INPUT, DG_ENABLE_NEW_TOKEN, "EnableDg", set_enable_dg_flag },
+    {SINGLE_INPUT, DG_ENABLE_NEW_TOKEN, "EnableDg", set_enable_dg_flag},
     {SINGLE_INPUT, FAST_DECODE_TOKEN, "FastDecode", set_fast_decode_flag},
     {SINGLE_INPUT, TUNE_TOKEN, "Tune", set_tune},
     //   ALT-REF filtering support
