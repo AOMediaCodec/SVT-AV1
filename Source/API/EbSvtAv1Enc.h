@@ -893,6 +893,13 @@ typedef struct EbSvtAv1EncConfiguration {
      * factor >> 7 (/ 128) is the actual value in float
      */
     int32_t lambda_scale_factors[SVT_AV1_FRAME_UPDATE_TYPES];
+
+    /* Dynamic gop
+    *
+    * 0 = disable Dynamic GoP
+    * 1 = enable Dynamic GoP
+    *  Default is 1. */
+    uint8_t enable_dg;
 } EbSvtAv1EncConfiguration;
 
 /**

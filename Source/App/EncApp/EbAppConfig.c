@@ -163,6 +163,7 @@
 #define STAT_REPORT_NEW_TOKEN "--enable-stat-report"
 #define ENABLE_RESTORATION_TOKEN "--enable-restoration"
 #define MFMV_ENABLE_NEW_TOKEN "--enable-mfmv"
+#define DG_ENABLE_NEW_TOKEN "--enable-dg"
 #define FAST_DECODE_TOKEN "--fast-decode"
 #define HDR_INPUT_NEW_TOKEN "--enable-hdr"
 #define ADAPTIVE_QP_ENABLE_NEW_TOKEN "--aq-mode"
@@ -601,6 +602,9 @@ static void set_enable_restoration_flag(const char *value, EbConfig *cfg) {
 };
 static void set_enable_mfmv_flag(const char *value, EbConfig *cfg) {
     cfg->config.enable_mfmv = strtol(value, NULL, 0);
+};
+static void set_enable_dg_flag(const char *value, EbConfig *cfg) {
+    cfg->config.enable_dg = (uint8_t)strtol(value, NULL, 0);
 };
 static void set_fast_decode_flag(const char *value, EbConfig *cfg) {
     cfg->config.fast_decode = (Bool)strtol(value, NULL, 0);
@@ -1283,6 +1287,10 @@ ConfigEntry config_entry_specific[] = {
      "Motion Field Motion Vector control, default is -1 [-1: auto, 0-1]",
      set_enable_mfmv_flag},
     {SINGLE_INPUT,
+     DG_ENABLE_NEW_TOKEN,
+     "Dynamic GoP control, default is 1 [0-1]",
+     set_enable_dg_flag},
+    {SINGLE_INPUT,
      FAST_DECODE_TOKEN,
      "Fast Decoder levels, default is 0 [0-1]",
      set_fast_decode_flag},
@@ -1588,6 +1596,7 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, ENABLE_RESTORATION_TOKEN, "EnableRestoration", set_enable_restoration_flag},
     {SINGLE_INPUT, ENABLE_TPL_LA_TOKEN, "EnableTPLModel", set_enable_tpl_la},
     {SINGLE_INPUT, MFMV_ENABLE_NEW_TOKEN, "Mfmv", set_enable_mfmv_flag},
+    {SINGLE_INPUT, DG_ENABLE_NEW_TOKEN, "EnableDg", set_enable_dg_flag },
     {SINGLE_INPUT, FAST_DECODE_TOKEN, "FastDecode", set_fast_decode_flag},
     {SINGLE_INPUT, TUNE_TOKEN, "Tune", set_tune},
     //   ALT-REF filtering support

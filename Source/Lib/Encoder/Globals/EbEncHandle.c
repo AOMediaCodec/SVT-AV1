@@ -4016,9 +4016,9 @@ void set_param_based_on_input(SequenceControlSet *scs_ptr)
 
     if (scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR || scs_ptr->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR ||
         scs_ptr->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B || scs_ptr->static_config.pass != ENC_SINGLE_PASS || scs_ptr->static_config.enc_mode >= ENC_M10)
-        scs_ptr->dg_enabled = 0;
+        scs_ptr->enable_dg = 0;
     else
-        scs_ptr->dg_enabled = 1;
+        scs_ptr->enable_dg = scs_ptr->static_config.enable_dg;
 
 
     // Set hbd_mode_decision OFF for high encode modes or bitdepth < 10
@@ -4307,6 +4307,9 @@ void copy_api_from_app(
 
     // motion field motion vector
     scs_ptr->static_config.enable_mfmv                  = ((EbSvtAv1EncConfiguration*)config_struct)->enable_mfmv;
+
+    // Dynamic GoP
+    scs_ptr->static_config.enable_dg = ((EbSvtAv1EncConfiguration*)config_struct)->enable_dg;
 
     // Decoder Optimization Flag
     scs_ptr->static_config.fast_decode = ((EbSvtAv1EncConfiguration*)config_struct)->fast_decode;

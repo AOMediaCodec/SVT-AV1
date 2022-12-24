@@ -535,6 +535,15 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs_ptr) {
         return_error = EB_ErrorBadParameter;
     }
 
+    if (config->enable_dg > 1) {
+        SVT_ERROR(
+            "Instance %u: Invalid dynamic GoP flag [0 - 1], your "
+            "input: %d\n",
+            channel_number + 1,
+            config->enable_dg);
+        return_error = EB_ErrorBadParameter;
+    }
+
     if (config->fast_decode > 1) {
         SVT_ERROR(
             "Instance %u: Invalid fast decode flag [0 - 1, 0 for no decoder optimization], your "
@@ -938,6 +947,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     config_ptr->cdef_level                   = DEFAULT;
     config_ptr->enable_restoration_filtering = DEFAULT;
     config_ptr->enable_mfmv                  = DEFAULT;
+    config_ptr->enable_dg                    = 1;
     config_ptr->fast_decode                  = 0;
     config_ptr->encoder_color_format         = EB_YUV420;
     // Rate control options
@@ -1851,6 +1861,7 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
         {"enable-cdef", &config_struct->cdef_level},
         {"enable-restoration", &config_struct->enable_restoration_filtering},
         {"enable-mfmv", &config_struct->enable_mfmv},
+        {"enable-dg", &config_struct->enable_dg},
         {"intra-period", &config_struct->intra_period_length},
         {"tile-rows", &config_struct->tile_rows},
         {"tile-columns", &config_struct->tile_columns},

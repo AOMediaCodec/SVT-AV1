@@ -132,9 +132,9 @@ typedef struct SequenceControlSet {
     /*!< Allow the usage of motion field motion vector in the stream
         (The signal changes per preset; 0: Enabled, 1: Disabled) Default is 1. */
     uint8_t mfmv_enabled;
-    /*!< Enable dynamic-gop
+    /*!< Enable dynamic GoP
         (The signal changes per preset; 0: Disabled, 1: Enabled) Default is 1. */
-    uint8_t dg_enabled;
+    uint8_t enable_dg;
     /*!< Film grain seed */
     uint16_t film_grain_random_seed;
     /*!< over_boundary_block: pad resolution to a multiple of SB for smaller overhead
