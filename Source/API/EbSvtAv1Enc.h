@@ -899,7 +899,7 @@ typedef struct EbSvtAv1EncConfiguration {
     * 0 = disable Dynamic GoP
     * 1 = enable Dynamic GoP
     *  Default is 1. */
-    uint8_t enable_dg;
+    Bool enable_dg;
 } EbSvtAv1EncConfiguration;
 
 /**
