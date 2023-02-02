@@ -264,10 +264,15 @@ EbErrorType sb_geom_init(SequenceControlSet *scs_ptr) {
                     : TRUE;
 
                 scs_ptr->sb_geom[sb_index].block_is_inside_md_scan[md_scan_block_index] =
+#if FIX_2042
+                    ((scs_ptr->sb_geom[sb_index].origin_x >= scs_ptr->max_input_luma_width) ||
+                     (scs_ptr->sb_geom[sb_index].origin_y >= scs_ptr->max_input_luma_height))
+#else
                     ((scs_ptr->sb_geom[sb_index].origin_x + blk_geom->origin_x + blk_geom->bwidth >
                       scs_ptr->max_input_luma_width) ||
                      (scs_ptr->sb_geom[sb_index].origin_y + blk_geom->origin_y + blk_geom->bheight >
                       scs_ptr->max_input_luma_height))
+#endif
                     ? FALSE
                     : TRUE;
             }
