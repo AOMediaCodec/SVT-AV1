@@ -196,6 +196,10 @@
 #define MIN_QM_LEVEL_TOKEN "--qm-min"
 #define MAX_QM_LEVEL_TOKEN "--qm-max"
 
+#if FTR_STARTUP_MG_SIZE
+#define STARTUP_MG_SIZE_TOKEN "--startup-mg-size"
+#endif
+
 static EbErrorType validate_error(EbErrorType err, const char *token, const char *value) {
     switch (err) {
     case EB_ErrorNone: return EB_ErrorNone;
@@ -484,6 +488,14 @@ static EbErrorType set_frame_rate(EbConfig *cfg, const char *token, const char *
     cfg->config.frame_rate_denominator = 1;
     return EB_ErrorNone;
 }
+
+#if FTR_STARTUP_MG_SIZE
+static EbErrorType set_startup_mg_size(EbConfig *cfg, const char *token, const char *value) {
+    (void)token;
+    cfg->config.startup_mg_size = (uint8_t)strtol(value, NULL, 0);
+    return EB_ErrorNone;
+};
+#endif
 
 /**
  * @brief split colon separated string into key=value pairs
@@ -1007,6 +1019,12 @@ ConfigEntry config_entry_intra_refresh[] = {
      FORCE_KEY_FRAMES_TOKEN,
      "Force key frames at the comma separated specifiers. `#f` for frames, `#.#s` for seconds",
      set_cfg_force_key_frames},
+#if FTR_STARTUP_MG_SIZE
+    {SINGLE_INPUT,
+     STARTUP_MG_SIZE_TOKEN,
+     "Specify another mini-gop configuration for the first mini-gop after the key-frame [0: OFF, 2: 3 temporal layers, 3: 4 temporal layers]",
+     set_startup_mg_size},
+#endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
@@ -1316,6 +1334,9 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, HIERARCHICAL_LEVELS_TOKEN, "HierarchicalLevels", set_cfg_generic_token},
     {SINGLE_INPUT, PRED_STRUCT_TOKEN, "PredStructure", set_cfg_generic_token},
     {SINGLE_INPUT, FORCE_KEY_FRAMES_TOKEN, "ForceKeyFrames", set_cfg_force_key_frames},
+#if FTR_STARTUP_MG_SIZE
+    {SINGLE_INPUT, STARTUP_MG_SIZE_TOKEN, "StartupMgSize", set_startup_mg_size},
+#endif
 
     // AV1 Specific Options
     {SINGLE_INPUT, TILE_ROW_TOKEN, "TileRow", set_cfg_generic_token},
