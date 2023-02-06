@@ -3121,8 +3121,9 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
         uint32_t       blk_index     = 0;
         while (blk_index < max_block_cnt) {
             const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
-
+#if !FIX_2042
             if (pcs->parent_pcs_ptr->sb_geom[sb_addr].block_is_inside_md_scan[blk_index]) {
+#endif
                 const uint32_t tot_d1_blocks = !md_ctx->nsq_ctrls.enabled
                     ? 1
                     : get_tot_1d_blks(md_ctx, blk_geom->sq_size, md_ctx->md_disallow_nsq);
@@ -3137,9 +3138,11 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
                     }
                 }
                 blk_index += blk_geom->d1_depth_offset;
+#if !FIX_2042
             } else
                 blk_index += (blk_geom->sq_size > min_sq_size) ? blk_geom->d1_depth_offset
                                                                : blk_geom->ns_depth_offset;
+#endif
         }
     }
 

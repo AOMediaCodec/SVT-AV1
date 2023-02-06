@@ -6971,8 +6971,12 @@ static void build_cand_block_array(SequenceControlSet *scs_ptr, PictureControlSe
                 : is_block_tagged;
 
         // SQ/NSQ block(s) filter based on the block validity
+#if FIX_2042
+        if (is_block_tagged) {
+#else
         if (pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].block_is_inside_md_scan[blk_index] &&
             is_block_tagged) {
+#endif
             uint32_t tot_d1_blocks = !context_ptr->nsq_ctrls.enabled
                 ? 1
                 : get_tot_1d_blks(context_ptr, blk_geom->sq_size, context_ptr->md_disallow_nsq);
@@ -7182,8 +7186,12 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs_ptr, PictureCo
         // derive split_flag
         Bool split_flag = context_ptr->md_blk_arr_nsq[blk_index].split_flag;
 
+#if FIX_2042
+        if (is_blk_allowed) {
+#else
         if (pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].block_is_inside_md_scan[blk_index] &&
             is_blk_allowed) {
+#endif
             if (blk_geom->shape == PART_N) {
                 if (context_ptr->md_blk_arr_nsq[blk_index].split_flag == FALSE) {
                     // Add current pred depth block(s)
@@ -7354,8 +7362,12 @@ EbErrorType build_starting_cand_block_array(SequenceControlSet *scs_ptr, Picture
                 : is_block_tagged;
 
         // SQ/NSQ block(s) filter based on the block validity
+#if FIX_2042
+        if (is_block_tagged) {
+#else
         if (pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].block_is_inside_md_scan[blk_index] &&
             is_block_tagged) {
+#endif
             const uint32_t tot_d1_blocks = !context_ptr->nsq_ctrls.enabled
                 ? 1
                 : get_tot_1d_blks(context_ptr, blk_geom->sq_size, context_ptr->md_disallow_nsq);
@@ -7368,7 +7380,9 @@ EbErrorType build_starting_cand_block_array(SequenceControlSet *scs_ptr, Picture
                 : tot_d1_blocks;
 
             for (uint32_t idx = blk_index; idx < (tot_d1_blocks + blk_index); ++idx) {
+#if !FIX_2042
                 if (pcs_ptr->parent_pcs_ptr->sb_geom[sb_index].block_is_inside_md_scan[idx]) {
+#endif
                     if (context_ptr->nsq_ctrls.allow_HVA_HVB == 0) {
                         // Index of first HA block is 5; if HA/HB/VA/VB blocks are skipped increase index to bypass the blocks.
                         // idx is increased by 11, rather than 12, because after continue is exectued, idx will be incremented
@@ -7396,8 +7410,10 @@ EbErrorType build_starting_cand_block_array(SequenceControlSet *scs_ptr, Picture
                                                                           min_sq_size)
                         ? TRUE
                         : FALSE;
+#if !FIX_2042
                 }
-            }
+#endif
+        }
             blk_index += blk_geom->d1_depth_offset;
         } else {
             if (context_ptr->skip_pd0)
