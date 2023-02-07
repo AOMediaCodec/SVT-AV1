@@ -6973,7 +6973,7 @@ static void build_cand_block_array(SequenceControlSet *scs_ptr, PictureControlSe
                 ? 0
                 : is_block_tagged;
 
-        // SQ/NSQ block(s) filter based on the block validity
+            // SQ/NSQ block(s) filter based on the block validity
 #if FIX_2042
         if (is_block_tagged) {
 #else
@@ -7368,7 +7368,7 @@ EbErrorType build_starting_cand_block_array(SequenceControlSet *scs_ptr, Picture
                 ? 0
                 : is_block_tagged;
 
-        // SQ/NSQ block(s) filter based on the block validity
+            // SQ/NSQ block(s) filter based on the block validity
 #if FIX_2042
         if (is_block_tagged) {
 #else
@@ -7420,7 +7420,7 @@ EbErrorType build_starting_cand_block_array(SequenceControlSet *scs_ptr, Picture
 #if !FIX_2042
                 }
 #endif
-        }
+            }
             blk_index += blk_geom->d1_depth_offset;
         } else {
             if (context_ptr->skip_pd0)

@@ -1750,7 +1750,6 @@ EbErrorType sb_geom_init_pcs(SequenceControlSet *scs_ptr, PictureParentControlSe
                     : TRUE;
 #endif
             } else {
-
                 if (blk_geom->shape != PART_N)
                     blk_geom = get_blk_geom_mds(blk_geom->sqi_mds);
 

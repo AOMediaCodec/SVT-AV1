@@ -256,8 +256,6 @@ EbErrorType sb_geom_init(SequenceControlSet *scs_ptr) {
 #endif
 
             } else {
-
-
                 if (blk_geom->shape != PART_N)
                     blk_geom = get_blk_geom_mds(blk_geom->sqi_mds);
 
@@ -268,7 +266,6 @@ EbErrorType sb_geom_init(SequenceControlSet *scs_ptr) {
                       scs_ptr->max_input_luma_height))
                     ? FALSE
                     : TRUE;
-
 
 #if !FIX_2042
                 scs_ptr->sb_geom[sb_index].block_is_inside_md_scan[md_scan_block_index] =

@@ -3108,19 +3108,19 @@ EB_EXTERN EbErrorType av1_encdec_update(SequenceControlSet *scs, PictureControlS
     if (pcs->parent_pcs_ptr->palette_level) {
         const uint16_t max_block_cnt = scs->max_block_cnt;
 #if !FIX_2042
-        const int32_t  min_sq_size   = (md_ctx->depth_removal_ctrls.enabled &&
+        const int32_t min_sq_size = (md_ctx->depth_removal_ctrls.enabled &&
                                      md_ctx->depth_removal_ctrls.disallow_below_64x64)
-               ? 64
-               : (md_ctx->depth_removal_ctrls.enabled &&
+            ? 64
+            : (md_ctx->depth_removal_ctrls.enabled &&
                md_ctx->depth_removal_ctrls.disallow_below_32x32)
-               ? 32
-               : (md_ctx->depth_removal_ctrls.enabled &&
+            ? 32
+            : (md_ctx->depth_removal_ctrls.enabled &&
                md_ctx->depth_removal_ctrls.disallow_below_16x16)
-               ? 16
-               : md_ctx->disallow_4x4 ? 8
-                                      : 4;
+            ? 16
+            : md_ctx->disallow_4x4 ? 8
+                                   : 4;
 #endif
-        uint32_t       blk_index     = 0;
+        uint32_t blk_index = 0;
         while (blk_index < max_block_cnt) {
             const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
 #if !FIX_2042
