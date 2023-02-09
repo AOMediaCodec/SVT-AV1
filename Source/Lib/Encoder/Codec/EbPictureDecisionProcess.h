@@ -154,7 +154,7 @@ typedef struct PictureDecisionContext {
 #endif
 #endif
 #if FTR_STARTUP_MG_SIZE
-    Bool     enable_startup_mg;
+    Bool enable_startup_mg;
 #endif
 } PictureDecisionContext;
 

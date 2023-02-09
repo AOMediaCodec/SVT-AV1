@@ -1022,7 +1022,8 @@ ConfigEntry config_entry_intra_refresh[] = {
 #if FTR_STARTUP_MG_SIZE
     {SINGLE_INPUT,
      STARTUP_MG_SIZE_TOKEN,
-     "Specify another mini-gop configuration for the first mini-gop after the key-frame [0: OFF, 2: 3 temporal layers, 3: 4 temporal layers]",
+     "Specify another mini-gop configuration for the first mini-gop after the key-frame [0: OFF, "
+     "2: 3 temporal layers, 3: 4 temporal layers]",
      set_startup_mg_size},
 #endif
     // Termination
