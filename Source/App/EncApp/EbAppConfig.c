@@ -489,14 +489,6 @@ static EbErrorType set_frame_rate(EbConfig *cfg, const char *token, const char *
     return EB_ErrorNone;
 }
 
-#if FTR_STARTUP_MG_SIZE
-static EbErrorType set_startup_mg_size(EbConfig *cfg, const char *token, const char *value) {
-    (void)token;
-    cfg->config.startup_mg_size = (uint8_t)strtol(value, NULL, 0);
-    return EB_ErrorNone;
-};
-#endif
-
 /**
  * @brief split colon separated string into key=value pairs
  *
@@ -1024,7 +1016,7 @@ ConfigEntry config_entry_intra_refresh[] = {
      STARTUP_MG_SIZE_TOKEN,
      "Specify another mini-gop configuration for the first mini-gop after the key-frame [0: OFF, "
      "2: 3 temporal layers, 3: 4 temporal layers]",
-     set_startup_mg_size},
+     set_cfg_generic_token},
 #endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
@@ -1336,7 +1328,7 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, PRED_STRUCT_TOKEN, "PredStructure", set_cfg_generic_token},
     {SINGLE_INPUT, FORCE_KEY_FRAMES_TOKEN, "ForceKeyFrames", set_cfg_force_key_frames},
 #if FTR_STARTUP_MG_SIZE
-    {SINGLE_INPUT, STARTUP_MG_SIZE_TOKEN, "StartupMgSize", set_startup_mg_size},
+    {SINGLE_INPUT, STARTUP_MG_SIZE_TOKEN, "StartupMgSize", set_cfg_generic_token},
 #endif
 
     // AV1 Specific Options
