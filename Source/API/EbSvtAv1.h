@@ -165,9 +165,9 @@ typedef struct EbSvtIOFormat //former EbSvtEncInput
     uint8_t *cr;
 
     // Hosts LSB 2 bits of 10bit input/output when the compressed 10bit format is used
-    uint8_t *luma_ext;
-    uint8_t *cb_ext;
-    uint8_t *cr_ext;
+
+
+
 
     uint32_t y_stride;
     uint32_t cr_stride;
