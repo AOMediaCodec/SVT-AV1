@@ -862,11 +862,11 @@ static void get_pred_struct_for_all_frames(
             PictureParentControlSet* pcs = (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[pic_idx]->object_ptr;
             SequenceControlSet* scs = pcs->scs;
 #if DEBUG_STARTUP_MG_SIZE
-            if (pcs->idr_flag || pcs->cra_flag) {
+            if (pcs->idr_flag) {
                 SVT_LOG("Frame %d, key-frame\n", (int)pcs->picture_number);
             }
             if (pic_idx == ctx->mini_gop_start_index[mini_gop_index]) {
-                SVT_LOG("mGOP start %d\n", (int)pcs->picture_number);
+                SVT_LOG("mGOP start %d, mGOP length %d, startup mini-GOP %d\n", (int)pcs->picture_number, ctx->mini_gop_length[mini_gop_index], ctx->enable_startup_mg);
             }
             if (pic_idx == ctx->mini_gop_end_index[mini_gop_index]) {
                 SVT_LOG("mGOP end %d, mGOP length %d\n", (int)pcs->picture_number, ctx->mini_gop_length[mini_gop_index]);

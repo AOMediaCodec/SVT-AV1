@@ -922,14 +922,20 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
 #endif
 #if FTR_STARTUP_MG_SIZE
     if (config->startup_mg_size != 0 && config->startup_mg_size != 2 &&
-        config->startup_mg_size != 3) {
-        SVT_ERROR("Instance %u: Startup MG size supported [0, 2, 3]\n", channel_number + 1);
+        config->startup_mg_size != 3 && config->startup_mg_size != 4) {
+        SVT_ERROR("Instance %u: Startup MG size supported [0, 2, 3, 4]\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
 
     if (config->startup_mg_size >= config->hierarchical_levels) {
         SVT_ERROR("Instance %u: Startup MG size must less than Hierarchical Levels\n",
                   channel_number + 1);
+        return_error = EB_ErrorBadParameter;
+    }
+
+    if (config->startup_mg_size != 0 &&
+        !(config->rate_control_mode == 0 && config->enable_adaptive_quantization != 0)) {
+        SVT_ERROR("Instance %u: Startup MG size feature only supports CRF rate control mode\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
 #endif

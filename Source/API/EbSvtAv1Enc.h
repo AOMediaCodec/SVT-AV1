@@ -911,6 +911,7 @@ typedef struct EbSvtAv1EncConfiguration {
      * 0: off
      * 2: set hierarchical levels to 2 (MG size 4)
      * 3: set hierarchical levels to 3 (MG size 8)
+     * 4: set hierarchical levels to 4 (MG size 16)
      * Default is 0.
      */
     uint8_t startup_mg_size;
