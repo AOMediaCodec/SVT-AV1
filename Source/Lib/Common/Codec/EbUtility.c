@@ -362,8 +362,8 @@ static INLINE TxSize av1_get_tx_size(BlockSize sb_type, int32_t plane /*, const 
     return av1_get_max_uv_txsize(/*mbmi->*/ sb_type, subsampling_x, subsampling_y);
 }
 
-void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t y,
-                      int32_t is_last_quadrant, uint8_t quad_it) {
+static void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t y,
+                             int32_t is_last_quadrant, uint8_t quad_it) {
     //the input block is the parent square block of size sq_size located at pos (x,y)
 
     assert(quad_it <= 3);
@@ -1298,7 +1298,7 @@ void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t 
     }
 }
 
-uint32_t count_total_num_of_active_blks() {
+static uint32_t count_total_num_of_active_blks() {
     uint32_t depth_it, sq_it_y, sq_it_x, part_it, nsq_it;
 
     uint32_t depth_scan_idx = 0;
@@ -1333,7 +1333,7 @@ uint32_t count_total_num_of_active_blks() {
 
     return depth_scan_idx;
 }
-void log_redundancy_similarity(uint32_t max_block_count) {
+static void log_redundancy_similarity(uint32_t max_block_count) {
     uint32_t blk_it, s_it;
 
     for (blk_it = 0; blk_it < max_block_count; blk_it++) {

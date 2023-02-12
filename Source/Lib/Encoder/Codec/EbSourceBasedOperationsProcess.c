@@ -544,10 +544,10 @@ static void tpl_subpel_search(SequenceControlSet *scs, PictureParentControlSet *
     best_mv->row = best_sp_mv.as_mv.row;
 }
 
-void tpl_mc_flow_dispenser_sb_generic(EncodeContext *encode_context_ptr, SequenceControlSet *scs,
-                                      PictureParentControlSet *pcs, int32_t frame_idx,
-                                      uint32_t sb_index, int32_t qIndex,
-                                      uint8_t dispenser_search_level) {
+static void tpl_mc_flow_dispenser_sb_generic(EncodeContext      *encode_context_ptr,
+                                             SequenceControlSet *scs, PictureParentControlSet *pcs,
+                                             int32_t frame_idx, uint32_t sb_index, int32_t qIndex,
+                                             uint8_t dispenser_search_level) {
     uint32_t size      = size_array[dispenser_search_level];
     uint32_t blk_start = blk_start_array[dispenser_search_level];
     uint32_t blk_end   = blk_end_array[dispenser_search_level];
@@ -1269,8 +1269,8 @@ void tpl_mc_flow_dispenser_sb_generic(EncodeContext *encode_context_ptr, Sequenc
 /*
    Assign TPL dispenser segments
 */
-Bool assign_tpl_segments(EncDecSegments *segmentPtr, uint16_t *segmentInOutIndex,
-                         TplDispResults *taskPtr, int32_t frame_idx, EbFifo *srmFifoPtr) {
+static Bool assign_tpl_segments(EncDecSegments *segmentPtr, uint16_t *segmentInOutIndex,
+                                TplDispResults *taskPtr, int32_t frame_idx, EbFifo *srmFifoPtr) {
     Bool     continue_processing_flag = FALSE;
     uint32_t row_segment_index        = 0;
     uint32_t segment_index;
@@ -1411,9 +1411,9 @@ Bool assign_tpl_segments(EncDecSegments *segmentPtr, uint16_t *segmentInOutIndex
 ** LAD Window: sliding window size
 ************************************************/
 
-void tpl_mc_flow_dispenser(EncodeContext *encode_context_ptr, SequenceControlSet *scs,
-                           int32_t *base_rdmult, PictureParentControlSet *pcs, int32_t frame_idx,
-                           SourceBasedOperationsContext *context_ptr) {
+static void tpl_mc_flow_dispenser(EncodeContext *encode_context_ptr, SequenceControlSet *scs,
+                                  int32_t *base_rdmult, PictureParentControlSet *pcs,
+                                  int32_t frame_idx, SourceBasedOperationsContext *context_ptr) {
     EbPictureBufferDesc *recon_picture_ptr =
         encode_context_ptr->mc_flow_rec_picture_buffer[frame_idx];
 
@@ -1771,7 +1771,7 @@ void generate_r0beta(PictureParentControlSet *pcs) {
 /************************************************
 * Allocate and initialize buffers needed for tpl
 ************************************************/
-EbErrorType init_tpl_buffers(EncodeContext *encode_context_ptr) {
+static EbErrorType init_tpl_buffers(EncodeContext *encode_context_ptr) {
     for (int frame_idx = 0; frame_idx < MAX_TPL_LA_SW; frame_idx++) {
         encode_context_ptr->poc_map_idx[frame_idx]                = -1;
         encode_context_ptr->mc_flow_rec_picture_buffer[frame_idx] = NULL;
@@ -1782,8 +1782,8 @@ EbErrorType init_tpl_buffers(EncodeContext *encode_context_ptr) {
 /************************************************
 * init tpl tpl_disp_segment_ctrl
 ************************************************/
-void init_tpl_segments(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                       PictureParentControlSet **pcs_array, int32_t frames_in_sw) {
+static void init_tpl_segments(SequenceControlSet *scs, PictureParentControlSet *pcs,
+                              PictureParentControlSet **pcs_array, int32_t frames_in_sw) {
     for (int32_t frame_idx = 0; frame_idx < frames_in_sw; frame_idx++) {
         uint32_t enc_dec_seg_col_cnt = scs->tpl_segment_col_count_array;
         uint32_t enc_dec_seg_row_cnt = scs->tpl_segment_row_count_array;
@@ -1879,8 +1879,9 @@ typedef struct TplRefList {
 /************************************************
 * Genrate TPL MC Flow Based on frames in the tpl group
 ************************************************/
-EbErrorType tpl_mc_flow(EncodeContext *encode_context_ptr, SequenceControlSet *scs,
-                        PictureParentControlSet *pcs, SourceBasedOperationsContext *context_ptr) {
+static EbErrorType tpl_mc_flow(EncodeContext *encode_context_ptr, SequenceControlSet *scs,
+                               PictureParentControlSet      *pcs,
+                               SourceBasedOperationsContext *context_ptr) {
     int32_t  frames_in_sw         = MIN(MAX_TPL_LA_SW, pcs->tpl_group_size);
     uint32_t picture_width_in_mb  = (pcs->enhanced_picture_ptr->width + 16 - 1) / 16;
     uint32_t picture_height_in_mb = (pcs->enhanced_picture_ptr->height + 16 - 1) / 16;

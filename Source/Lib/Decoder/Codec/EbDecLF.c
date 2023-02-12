@@ -255,10 +255,10 @@ static AOM_FORCE_INLINE TxSize dec_set_lpf_parameters(
 }
 
 /*It applies Vertical Loop Filtering in a superblock*/
-void dec_av1_filter_block_plane_vert(EbDecHandle *dec_handle, SBInfo *sb_info,
-                                     EbPictureBufferDesc *recon_picture_buf, LfCtxt *lf_ctxt,
-                                     const int32_t num_planes, const int32_t sb_mi_row,
-                                     const int32_t sb_mi_col, int32_t *sb_delta_lf) {
+static void dec_av1_filter_block_plane_vert(EbDecHandle *dec_handle, SBInfo *sb_info,
+                                            EbPictureBufferDesc *recon_picture_buf, LfCtxt *lf_ctxt,
+                                            const int32_t num_planes, const int32_t sb_mi_row,
+                                            const int32_t sb_mi_col, int32_t *sb_delta_lf) {
     FrameHeader   *frm_hdr      = &dec_handle->frame_header;
     EbColorConfig *color_config = &dec_handle->seq_header.color_config;
     EbBitDepth     is16bit      = (recon_picture_buf->bit_depth > EB_EIGHT_BIT ||
@@ -441,10 +441,10 @@ void dec_av1_filter_block_plane_vert(EbDecHandle *dec_handle, SBInfo *sb_info,
     }
 }
 
-void dec_av1_filter_block_plane_horz(EbDecHandle *dec_handle, SBInfo *sb_info,
-                                     EbPictureBufferDesc *recon_picture_buf, LfCtxt *lf_ctxt,
-                                     const int32_t num_planes, const int32_t sb_mi_row,
-                                     const uint32_t sb_mi_col, int32_t *sb_delta_lf) {
+static void dec_av1_filter_block_plane_horz(EbDecHandle *dec_handle, SBInfo *sb_info,
+                                            EbPictureBufferDesc *recon_picture_buf, LfCtxt *lf_ctxt,
+                                            const int32_t num_planes, const int32_t sb_mi_row,
+                                            const uint32_t sb_mi_col, int32_t *sb_delta_lf) {
     FrameHeader   *frm_hdr      = &dec_handle->frame_header;
     EbColorConfig *color_config = &dec_handle->seq_header.color_config;
 
@@ -629,11 +629,11 @@ void dec_av1_filter_block_plane_horz(EbDecHandle *dec_handle, SBInfo *sb_info,
 }
 
 /*LF function to filter each SB*/
-void dec_loop_filter_sb(EbDecHandle *dec_handle, SBInfo *sb_info, FrameHeader *frm_hdr,
-                        SeqHeader *seq_header, EbPictureBufferDesc *recon_picture_buf,
-                        LfCtxt *lf_ctxt, const int32_t mi_row, const int32_t mi_col,
-                        int32_t plane_start, int32_t plane_end, uint8_t last_col,
-                        int32_t *sb_delta_lf) {
+static void dec_loop_filter_sb(EbDecHandle *dec_handle, SBInfo *sb_info, FrameHeader *frm_hdr,
+                               SeqHeader *seq_header, EbPictureBufferDesc *recon_picture_buf,
+                               LfCtxt *lf_ctxt, const int32_t mi_row, const int32_t mi_col,
+                               int32_t plane_start, int32_t plane_end, uint8_t last_col,
+                               int32_t *sb_delta_lf) {
     int num_planes = plane_end - plane_start;
     if (frm_hdr->loop_filter_params.combine_vert_horz_lf) {
         /*filter all vertical and horizontal edges in every 64x64 super block
