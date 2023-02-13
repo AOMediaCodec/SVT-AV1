@@ -236,7 +236,7 @@ EbErrorType picture_decision_context_ctor(
     context_ptr->last_long_base_pic = 0;
 #endif
 #if FTR_STARTUP_MG_SIZE
-    context_ptr->enable_startup_mg = FALSE;
+    context_ptr->enable_startup_mg = false;
 #endif
     return EB_ErrorNone;
 }
@@ -862,7 +862,7 @@ static void get_pred_struct_for_all_frames(
             PictureParentControlSet* pcs = (PictureParentControlSet*)encode_ctx->pre_assignment_buffer[pic_idx]->object_ptr;
             SequenceControlSet* scs = pcs->scs;
 #if DEBUG_STARTUP_MG_SIZE
-            if (pcs->idr_flag) {
+            if (pcs->idr_flag || pcs->cra_flag) {
                 SVT_LOG("Frame %d, key-frame\n", (int)pcs->picture_number);
             }
             if (pic_idx == ctx->mini_gop_start_index[mini_gop_index]) {
@@ -889,10 +889,10 @@ static void get_pred_struct_for_all_frames(
 
 #if FTR_STARTUP_MG_SIZE
            if (scs->static_config.startup_mg_size != 0) {
-               if (pcs->idr_flag) {
-                   ctx->enable_startup_mg = TRUE;
+               if (pcs->idr_flag || pcs->cra_flag) {
+                   ctx->enable_startup_mg = true;
                } else if (ctx->enable_startup_mg) {
-                   ctx->enable_startup_mg = FALSE;
+                   ctx->enable_startup_mg = false;
                }
            }
 #endif
