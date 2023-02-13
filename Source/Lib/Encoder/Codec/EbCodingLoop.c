@@ -1235,8 +1235,8 @@ static void av1_encode_generate_recon_16bit(EncDecContext *ed_ctx, uint32_t org_
 static EbAv1EncodeLoopFuncPtr av1_encode_loop_func_table[2] = {av1_encode_loop,
                                                                av1_encode_loop_16bit};
 
-EbAv1GenerateReconFuncPtr av1_enc_gen_recon_func_ptr[2] = {av1_encode_generate_recon,
-                                                           av1_encode_generate_recon_16bit};
+static EbAv1GenerateReconFuncPtr av1_enc_gen_recon_func_ptr[2] = {av1_encode_generate_recon,
+                                                                  av1_encode_generate_recon_16bit};
 
 void store16bit_input_src(EbPictureBufferDesc *input_sample16bit_buffer, PictureControlSet *pcs,
                           uint32_t sb_x, uint32_t sb_y, uint32_t sb_w, uint32_t sb_h) {

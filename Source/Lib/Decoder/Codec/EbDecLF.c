@@ -30,10 +30,10 @@ Contains the Decoder Loop Filtering related functions*/
 /*4-> 0   6-> 1   8-> 2   14->3 */
 static int8_t filter_map[15] = {-1, -1, -1, -1, 0, -1, 1, -1, 2, -1, -1, -1, -1, -1, 3};
 
-SvtLbdFilterTapFn lbd_vert_filter_tap[FILTER_LEN];
-SvtHbdFilterTapFn hbd_vert_filter_tap[FILTER_LEN];
-SvtLbdFilterTapFn lbd_horz_filter_tap[FILTER_LEN];
-SvtHbdFilterTapFn hbd_horz_filter_tap[FILTER_LEN];
+static SvtLbdFilterTapFn lbd_vert_filter_tap[FILTER_LEN];
+static SvtHbdFilterTapFn hbd_vert_filter_tap[FILTER_LEN];
+static SvtLbdFilterTapFn lbd_horz_filter_tap[FILTER_LEN];
+static SvtHbdFilterTapFn hbd_horz_filter_tap[FILTER_LEN];
 
 void set_lbd_lf_filter_tap_functions(void) {
     lbd_horz_filter_tap[0] = svt_aom_lpf_horizontal_4;

@@ -68,7 +68,7 @@ const EbPredictionFunc svt_product_prediction_fun_table_light_pd1[2] = {
 const EbPredictionFunc svt_product_prediction_fun_table[2] = {svt_av1_intra_prediction_cl,
                                                               inter_pu_prediction_av1};
 
-const EbFastCostFunc av1_product_fast_cost_func_table[2] = {
+static const EbFastCostFunc av1_product_fast_cost_func_table[2] = {
     av1_intra_fast_cost, /*INTRA */
     av1_inter_fast_cost /*INTER */
 };

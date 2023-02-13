@@ -144,8 +144,9 @@ int32_t have_newmv_in_inter_mode(PredictionMode mode) {
     return (mode == NEWMV || mode == NEW_NEWMV || mode == NEAREST_NEWMV || mode == NEW_NEARESTMV ||
             mode == NEAR_NEWMV || mode == NEW_NEARMV);
 }
-MvReferenceFrame to_ref_frame[2][4] = {{LAST_FRAME, LAST2_FRAME, LAST3_FRAME, GOLDEN_FRAME},
-                                       {BWDREF_FRAME, ALTREF2_FRAME, ALTREF_FRAME, INVALID_REF}};
+static MvReferenceFrame to_ref_frame[2][4] = {
+    {LAST_FRAME, LAST2_FRAME, LAST3_FRAME, GOLDEN_FRAME},
+    {BWDREF_FRAME, ALTREF2_FRAME, ALTREF_FRAME, INVALID_REF}};
 
 MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx) {
     return to_ref_frame[list][ref_idx];
@@ -421,7 +422,7 @@ static void inter_intra_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // Enable wedge search if source variance and edge strength are above the thresholds.
 }
 
-COMPOUND_TYPE to_av1_compound_lut[] = {
+static COMPOUND_TYPE to_av1_compound_lut[] = {
     COMPOUND_AVERAGE, COMPOUND_DISTWTD, COMPOUND_DIFFWTD, COMPOUND_WEDGE};
 
 static void determine_compound_mode(PictureControlSet *pcs, ModeDecisionContext *ctx,
@@ -824,9 +825,9 @@ static Bool is_valid_bi_type(struct ModeDecisionContext *ctx, MD_COMP_TYPE cur_t
 }
 #define BIPRED_3x3_REFINMENT_POSITIONS 8
 
-int8_t allow_refinement_flag[BIPRED_3x3_REFINMENT_POSITIONS] = {1, 0, 1, 0, 1, 0, 1, 0};
-int8_t bipred_3x3_x_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {-1, -1, 0, 1, 1, 1, 0, -1};
-int8_t bipred_3x3_y_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {0, 1, 1, 1, 0, -1, -1, -1};
+static int8_t allow_refinement_flag[BIPRED_3x3_REFINMENT_POSITIONS] = {1, 0, 1, 0, 1, 0, 1, 0};
+static int8_t bipred_3x3_x_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {-1, -1, 0, 1, 1, 1, 0, -1};
+static int8_t bipred_3x3_y_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {0, 1, 1, 1, 0, -1, -1, -1};
 
 void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureControlSet *pcs,
                                       ModeDecisionContext *ctx, SuperBlock *sb_ptr,

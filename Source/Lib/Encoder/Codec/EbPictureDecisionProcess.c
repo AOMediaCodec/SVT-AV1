@@ -1121,7 +1121,7 @@ static void set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl_
     }
 }
 
-uint8_t pf_gi[16] = { 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60 };
+static uint8_t pf_gi[16] = { 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60 };
 
 void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, Bool fast_decode) {
 
