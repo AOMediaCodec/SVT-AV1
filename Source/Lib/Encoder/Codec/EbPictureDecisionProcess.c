@@ -8140,10 +8140,10 @@ void* picture_decision_kernel(void *input_ptr) {
 #endif
 
 #if FTR_STARTUP_MG_SIZE
-                 uint32_t next_mg_hierarchical_levels = scs->static_config.hierarchical_levels;
-                 if (ctx->enable_startup_mg) {
-                     next_mg_hierarchical_levels = scs->static_config.startup_mg_size;
-                 }
+            uint32_t next_mg_hierarchical_levels = scs->static_config.hierarchical_levels;
+            if (ctx->enable_startup_mg) {
+                next_mg_hierarchical_levels = scs->static_config.startup_mg_size;
+            }
 #endif
             // Determine if Pictures can be released from the Pre-Assignment Buffer
             if ((encode_ctx->pre_assignment_buffer_intra_count > 0) ||

@@ -4568,7 +4568,7 @@ void copy_api_from_app(
     }
 
 #if FTR_STARTUP_MG_SIZE
-    scs_ptr->static_config.startup_mg_size = config_struct->startup_mg_size;
+    scs->static_config.startup_mg_size = config_struct->startup_mg_size;
 #endif
     return;
 }
