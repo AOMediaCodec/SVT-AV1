@@ -49,10 +49,8 @@ int init_pic_buffer(EbSvtIOFormat *pic_buffer, CliInput *cli, EbSvtAv1DecConfigu
         break;
     default: fprintf(stderr, "Unsupported colour format. \n"); return 0;
     }
-    pic_buffer->width     = cli->width;
-    pic_buffer->height    = cli->height;
-
-
+    pic_buffer->width  = cli->width;
+    pic_buffer->height = cli->height;
 
     pic_buffer->org_x     = 0;
     pic_buffer->org_y     = 0;

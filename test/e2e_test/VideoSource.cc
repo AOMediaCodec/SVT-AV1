@@ -154,7 +154,6 @@ EbErrorType VideoSource::init_frame_buffer() {
     }
     memset(frame_buffer_->cr, 0, chroma_size);
 
-
     return EB_ErrorNone;
 }
 
@@ -328,9 +327,6 @@ uint32_t VideoFileSource::read_input_frame() {
                0,
                frame_buffer_->cr_stride * bytes_per_sample_ *
                    (height_ >> height_downsize_));
-
-
-
     }
 
     return filled_len;
