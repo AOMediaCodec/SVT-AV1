@@ -933,9 +933,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->startup_mg_size != 0 &&
-        !(config->rate_control_mode == 0 && config->enable_adaptive_quantization != 0)) {
-        SVT_ERROR("Instance %u: Startup MG size feature only supports CRF rate control mode\n",
+    if (config->startup_mg_size != 0 && config->rate_control_mode != 0) {
+        SVT_ERROR("Instance %u: Startup MG size feature only supports CRF/CQP rate control mode\n",
                   channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
