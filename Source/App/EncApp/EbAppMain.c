@@ -63,6 +63,8 @@ void process_output_recon_buffer(EncChannel* c);
 
 void process_output_stream_buffer(EncChannel* c, EncApp* enc_app, int32_t* frame_count);
 
+void init_reader(EbConfig *app_cfg);
+
 volatile int32_t keep_running = 1;
 
 void event_handler(int32_t dummy) {
@@ -136,11 +138,13 @@ static void deinit_memory_file_map(EbConfig* app_cfg) {
 #endif
 }
 
+
 static int compar_uint64(const void* a, const void* b) {
     const uint64_t x = *(const uint64_t*)a;
     const uint64_t y = *(const uint64_t*)b;
     return (x < y) ? -1 : (x > y) ? 1 : 0;
 }
+
 
 static EbErrorType enc_context_ctor(EncApp* enc_app, EncContext* enc_context, int32_t argc,
                                     char* argv[], EncPass enc_pass, int32_t passes) {
@@ -217,7 +221,8 @@ static EbErrorType enc_context_ctor(EncApp* enc_app, EncContext* enc_context, in
                       compar_uint64);
             }
             init_memory_file_map(app_cfg);
-
+            init_reader(app_cfg);
+            
             app_svt_av1_get_time(&app_cfg->performance_context.lib_start_time[0],
                                  &app_cfg->performance_context.lib_start_time[1]);
             // Update pass
