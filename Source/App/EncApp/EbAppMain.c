@@ -63,7 +63,7 @@ void process_output_recon_buffer(EncChannel* c);
 
 void process_output_stream_buffer(EncChannel* c, EncApp* enc_app, int32_t* frame_count);
 
-void init_reader(EbConfig *app_cfg);
+void init_reader(EbConfig* app_cfg);
 
 volatile int32_t keep_running = 1;
 
