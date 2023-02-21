@@ -408,19 +408,9 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
     uint32_t chroma_read_size = ((uint32_t)luma_read_size >> (3 - color_format));
     uint8_t *eb_input_ptr     = input_ptr->luma;
 
-    if (!app_cfg->y4m_input && app_cfg->processed_frame_count == 0 &&
-        app_cfg->input_file == stdin) {
-        /* 9 bytes were already buffered during the the YUV4MPEG2 header probe */
-        memcpy(eb_input_ptr, app_cfg->y4m_buf, YUV4MPEG2_IND_SIZE);
-        header_ptr->n_filled_len += YUV4MPEG2_IND_SIZE;
-        eb_input_ptr += YUV4MPEG2_IND_SIZE;
-        header_ptr->n_filled_len += (uint32_t)fread(
-            eb_input_ptr, 1, luma_read_size - YUV4MPEG2_IND_SIZE, input_file);
-    } else {
-        int64_t offset  = get_mmap_offset(app_cfg, read_size);
-        input_ptr->luma = svt_mmap(&app_cfg->mmap, offset, luma_read_size);
-        header_ptr->n_filled_len += (input_ptr->luma ? (uint32_t)luma_read_size : 0);
-    }
+    int64_t offset  = get_mmap_offset(app_cfg, read_size);
+    input_ptr->luma = svt_mmap(&app_cfg->mmap, offset, luma_read_size);
+    header_ptr->n_filled_len += (input_ptr->luma ? (uint32_t)luma_read_size : 0);
 
     int64_t offset = get_mmap_offset(app_cfg, read_size);
 
