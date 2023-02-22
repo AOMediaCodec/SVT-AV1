@@ -412,8 +412,6 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
     input_ptr->luma = svt_mmap(&app_cfg->mmap, offset, luma_read_size);
     header_ptr->n_filled_len += (input_ptr->luma ? (uint32_t)luma_read_size : 0);
 
-    int64_t offset = get_mmap_offset(app_cfg, read_size);
-
     offset += luma_read_size;
     input_ptr->cb = svt_mmap(&app_cfg->mmap, offset, chroma_read_size);
     header_ptr->n_filled_len += (input_ptr->cb ? chroma_read_size : 0);
@@ -425,7 +423,7 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
     if (read_size != header_ptr->n_filled_len) {
         app_cfg->mmap.file_frame_it = 0;
 
-        int64_t offset  = get_mmap_offset(app_cfg, read_size);
+        offset  = get_mmap_offset(app_cfg, read_size);
         input_ptr->luma = svt_mmap(&app_cfg->mmap, offset, luma_read_size);
         header_ptr->n_filled_len += (input_ptr->luma ? (uint32_t)luma_read_size : 0);
 
