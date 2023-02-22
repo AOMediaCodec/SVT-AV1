@@ -393,7 +393,7 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
     input_ptr->cr_stride = input_padded_width >> subsampling_x;
     input_ptr->cb_stride = input_padded_width >> subsampling_x;
 
-    uint64_t read_size = (uint64_t)SIZE_OF_ONE_FRAME_IN_BYTES(
+    size_t read_size = (size_t)SIZE_OF_ONE_FRAME_IN_BYTES(
         input_padded_width, input_padded_height, color_format, is_16bit);
 
     header_ptr->n_filled_len = 0;
@@ -404,8 +404,8 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
         app_cfg->mmap.y4m_frm_hdr = read_y4m_frame_delimiter(app_cfg->input_file,
                                                              app_cfg->error_log_file);
     }
-    uint64_t luma_read_size   = (uint64_t)input_padded_width * input_padded_height << is_16bit;
-    uint32_t chroma_read_size = ((uint32_t)luma_read_size >> (3 - color_format));
+    size_t luma_read_size   = (size_t)input_padded_width * input_padded_height << is_16bit;
+    size_t chroma_read_size = ((size_t)luma_read_size >> (3 - color_format));
     uint8_t *eb_input_ptr     = input_ptr->luma;
 
     int64_t offset  = get_mmap_offset(app_cfg, read_size);
