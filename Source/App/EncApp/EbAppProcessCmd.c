@@ -524,12 +524,6 @@ static void buffered_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit,
     const size_t luma_size   = (input_padded_width * input_padded_height) << is_16bit;
     const size_t chroma_size = luma_size >> (3 - color_format);
 
-    input_ptr = (EbSvtIOFormat *)header_ptr->p_buffer;
-
-    input_ptr->y_stride  = input_padded_width;
-    input_ptr->cr_stride = input_padded_width >> subsampling_x;
-    input_ptr->cb_stride = input_padded_width >> subsampling_x;
-
     uint8_t *base =
         app_cfg->sequence_buffer[app_cfg->processed_frame_count % app_cfg->buffered_input];
     input_ptr->luma = base;
