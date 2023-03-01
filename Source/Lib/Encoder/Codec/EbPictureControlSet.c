@@ -1313,6 +1313,10 @@ static void picture_parent_control_set_dctor(EbPtr ptr) {
     uint16_t tile_cnt = 1; /*obj->tile_row_count * obj->tile_column_count;*/
     EB_DELETE_PTR_ARRAY(obj->tpl_disp_segment_ctrl, tile_cnt);
     EB_DESTROY_MUTEX(obj->pcs_total_rate_mutex);
+#if OPT_PRED_STRUCT_CLASSIFIER
+    EB_DESTROY_SEMAPHORE(obj->dg_detector_frame_done_semaphore);
+    EB_DESTROY_MUTEX(obj->dg_detector_metrics_mutex);
+#endif
 }
 static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
                                                    EbPtr                    object_init_data_ptr) {
@@ -1520,6 +1524,10 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
         ? svt_aom_get_enable_me_8x8(init_data_ptr->enc_mode)
 #endif
         : 0;
+#if OPT_PRED_STRUCT_CLASSIFIER
+    EB_CREATE_SEMAPHORE(object_ptr->dg_detector_frame_done_semaphore, 0, 1);
+    EB_CREATE_MUTEX(object_ptr->dg_detector_metrics_mutex);
+#endif
     return return_error;
 }
 static void me_dctor(EbPtr p) {

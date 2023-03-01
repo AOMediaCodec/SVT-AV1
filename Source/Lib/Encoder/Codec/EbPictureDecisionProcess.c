@@ -370,7 +370,12 @@ EbErrorType release_prev_picture_from_reorder_queue(
 
 #if FTR_PRED_STRUCT_CLASSIFIER
 static void early_hme_b64(
+#if OPT_PRED_STRUCT_CLASSIFIER
+    uint8_t *sixteenth_b64_buffer,
+    uint32_t sixteenth_b64_buffer_stride,
+#else
     PictureDecisionContext* pd_ctx, // ME context Ptr, used to get/update ME results
+#endif
     uint8_t hme_search_method, //
     int16_t    org_x, // Block position in the horizontal direction- sixteenth resolution
     int16_t    org_y, // Block position in the vertical direction- sixteenth resolution
@@ -437,10 +442,17 @@ static void early_hme_b64(
 
     // Put the first search location into level0 results
     svt_sad_loop_kernel(
+#if OPT_PRED_STRUCT_CLASSIFIER
+        &sixteenth_b64_buffer[0],
+        (hme_search_method == FULL_SAD_SEARCH)
+        ? sixteenth_b64_buffer_stride
+        : sixteenth_b64_buffer_stride * 2,
+#else
         &pd_ctx->sixteenth_b64_buffer[0],
         (hme_search_method == FULL_SAD_SEARCH)
         ? pd_ctx->sixteenth_b64_buffer_stride
         : pd_ctx->sixteenth_b64_buffer_stride * 2,
+#endif
         &sixteenth_ref_pic_ptr->buffer_y[search_region_index],
         (hme_search_method == FULL_SAD_SEARCH) ? sixteenth_ref_pic_ptr->stride_y
         : sixteenth_ref_pic_ptr->stride_y * 2,
@@ -468,6 +480,112 @@ static void early_hme_b64(
     return;
 }
 
+#if OPT_PRED_STRUCT_CLASSIFIER
+void dg_detector_hme_level0(struct PictureParentControlSet *pcs_ptr, uint32_t segment_index) {
+    EbPaReferenceObject* pa_src_obj =
+        (EbPaReferenceObject*)pcs_ptr->pa_ref_pic_wrapper->object_ptr;
+
+    EbPaReferenceObject* pa_ref_obj =
+        (EbPaReferenceObject*)pcs_ptr->dg_detector_ref_pic->pa_ref_pic_wrapper->object_ptr;
+
+    int16_t sa_width = pcs_ptr->input_resolution <= INPUT_SIZE_360p_RANGE ? 16 : pcs_ptr->input_resolution <= INPUT_SIZE_480p_RANGE ? 64 : 128;
+    int16_t sa_height = pcs_ptr->input_resolution <= INPUT_SIZE_360p_RANGE ? 16 : pcs_ptr->input_resolution <= INPUT_SIZE_480p_RANGE ? 64 : 128;
+
+    uint64_t hme_level0_sad = (uint64_t)~0;
+    int16_t x_hme_level0_search_center = 0;
+    int16_t y_hme_level0_search_center = 0;
+
+    uint8_t hme_search_method = FULL_SAD_SEARCH;
+
+    // determine the starting and ending block for each segment
+    uint32_t pic_width_in_b64 = (pcs_ptr->aligned_width + pcs_ptr->scs->b64_size - 1) / pcs_ptr->scs->b64_size;
+    uint32_t pic_height_in_b64 = (pcs_ptr->aligned_height + pcs_ptr->scs->b64_size - 1) / pcs_ptr->scs->b64_size;
+    uint32_t y_segment_index;
+    uint32_t x_segment_index;
+
+    SEGMENT_CONVERT_IDX_TO_XY(segment_index, x_segment_index, y_segment_index, pcs_ptr->me_segments_column_count);
+    uint32_t x_b64_start_index = SEGMENT_START_IDX(x_segment_index, pic_width_in_b64, pcs_ptr->me_segments_column_count);
+    uint32_t x_b64_end_index = SEGMENT_END_IDX(x_segment_index, pic_width_in_b64, pcs_ptr->me_segments_column_count);
+    uint32_t y_b64_start_index = SEGMENT_START_IDX(y_segment_index, pic_height_in_b64, pcs_ptr->me_segments_row_count);
+    uint32_t y_b64_end_index = SEGMENT_END_IDX(y_segment_index, pic_height_in_b64, pcs_ptr->me_segments_row_count);
+
+    for (uint32_t y_b64_index = y_b64_start_index; y_b64_index < y_b64_end_index; ++y_b64_index) {
+        for (uint32_t x_b64_index = x_b64_start_index; x_b64_index < x_b64_end_index; ++x_b64_index) {
+
+            uint32_t b64_origin_x = x_b64_index * 64;
+            uint32_t b64_origin_y = y_b64_index * 64;
+
+            uint32_t buffer_index = (pa_src_obj->sixteenth_downsampled_picture_ptr->org_y +
+                (b64_origin_y >> 2)) * pa_src_obj->sixteenth_downsampled_picture_ptr->stride_y +
+                pa_src_obj->sixteenth_downsampled_picture_ptr->org_x + (b64_origin_x >> 2);
+
+            early_hme_b64(
+                &pa_src_obj->sixteenth_downsampled_picture_ptr->buffer_y[buffer_index],
+                pa_src_obj->sixteenth_downsampled_picture_ptr->stride_y,
+                hme_search_method,
+                ((int16_t)b64_origin_x) >> 2,
+                ((int16_t)b64_origin_y) >> 2,
+                16,
+                16,
+                sa_width,
+                sa_height,
+                pa_ref_obj->sixteenth_downsampled_picture_ptr,
+                &hme_level0_sad,
+                &x_hme_level0_search_center,
+                &y_hme_level0_search_center);
+
+            // lock the dg metrics calculation using a mutex, only one segment can modify the data at a time
+            svt_block_on_mutex(pcs_ptr->dg_detector_metrics_mutex);
+            pcs_ptr->dg_detector_metrics.tot_dist += hme_level0_sad;
+
+            pcs_ptr->dg_detector_metrics.tot_cplx += (hme_level0_sad > (16 * 16 * 30));
+            pcs_ptr->dg_detector_metrics.tot_active += ((abs(x_hme_level0_search_center) > 0) || (abs(y_hme_level0_search_center) > 0));
+            if (y_b64_index < pic_height_in_b64 / 2) {
+                if (y_hme_level0_search_center > 0) {
+                    --pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+                else if (y_hme_level0_search_center < 0) {
+                    ++pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+            }
+            else if (y_b64_index > pic_height_in_b64 / 2) {
+                if (y_hme_level0_search_center > 0) {
+                    ++pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+                else if (y_hme_level0_search_center < 0) {
+                    --pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+            }
+
+            // Does the col vector point inwards or outwards?
+            if (x_b64_index < pic_width_in_b64 / 2) {
+                if (x_hme_level0_search_center > 0) {
+                    --pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+                else if (x_hme_level0_search_center < 0) {
+                    ++pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+            }
+            else if (x_b64_index > pic_width_in_b64 / 2) {
+                if (x_hme_level0_search_center > 0) {
+                    ++pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+                else if (x_hme_level0_search_center < 0) {
+                    --pcs_ptr->dg_detector_metrics.sum_in_vectors;
+                }
+            }
+            svt_release_mutex(pcs_ptr->dg_detector_metrics_mutex);
+        }
+    }
+    svt_block_on_mutex(pcs_ptr->dg_detector_metrics_mutex);
+    pcs_ptr->dg_detector_metrics.dg_detector_seg_completed++;
+    if (pcs_ptr->dg_detector_metrics.dg_detector_seg_completed == (pcs_ptr->me_segments_column_count*pcs_ptr->me_segments_row_count))
+        // signal that all the hme_level0 segments have been performed and dg metrics collected for the frame
+        svt_post_semaphore(pcs_ptr->dg_detector_frame_done_semaphore);
+    svt_release_mutex(pcs_ptr->dg_detector_metrics_mutex);
+}
+#endif
+
 static void early_hme(
     PictureDecisionContext* ctx,
     PictureParentControlSet* src_pcs,
@@ -475,7 +593,46 @@ static void early_hme(
 
     EbPaReferenceObject* pa_src_obj =
         (EbPaReferenceObject*)src_pcs->pa_ref_pic_wrapper->object_ptr;
+#if OPT_PRED_STRUCT_CLASSIFIER
+    // store the ref pic so it can be used by dg detector when the src picture is sent to the motion estimation kernel
+    src_pcs->dg_detector_ref_pic = (PictureParentControlSet*)ref_pcs;
 
+    SequenceControlSet *scs_ptr = src_pcs->scs;
+    uint16_t dg_detector_seg_total_count = (uint16_t)(src_pcs->me_segments_column_count)  * (uint16_t)(src_pcs->me_segments_row_count);
+    // reset all metrics for the frame, must be performed here since the frame can be used again in a future comparison
+    src_pcs->dg_detector_metrics.dg_detector_seg_completed = 0;
+    src_pcs->dg_detector_metrics.sum_in_vectors = 0;
+    src_pcs->dg_detector_metrics.tot_dist = 0;
+    src_pcs->dg_detector_metrics.tot_cplx = 0;
+    src_pcs->dg_detector_metrics.tot_active = 0;
+
+    // create segments for the dg detector and send them to the motion estimation kernel
+    for (uint16_t seg_idx = 0; seg_idx < dg_detector_seg_total_count; ++seg_idx) {
+
+        EbObjectWrapper               *out_results_wrapper_ptr;
+        PictureDecisionResults        *out_results_ptr;
+        svt_get_empty_object(
+            ctx->picture_decision_results_output_fifo_ptr,
+            &out_results_wrapper_ptr);
+        out_results_ptr = (PictureDecisionResults*)out_results_wrapper_ptr->object_ptr;
+        out_results_ptr->pcs_wrapper = src_pcs->p_pcs_wrapper_ptr;
+        out_results_ptr->segment_index = seg_idx;
+        out_results_ptr->task_type = TASK_DG_DETECTOR_HME;
+        svt_post_full_object(out_results_wrapper_ptr);
+    }
+
+    // wait for all segments to complete before the frame based calculations can be performed using the dg metrics
+    svt_block_on_semaphore(src_pcs->dg_detector_frame_done_semaphore);
+
+    // 64x64 Block Loop
+    uint32_t pic_width_in_b64 = (src_pcs->aligned_width + 63) / 64;
+    uint32_t pic_height_in_b64 = (src_pcs->aligned_height + 63) / 64;
+
+    ctx->mv_in_out_count = src_pcs->dg_detector_metrics.sum_in_vectors * 100 / (int)(pic_height_in_b64 * pic_width_in_b64);
+    ctx->norm_dist = src_pcs->dg_detector_metrics.tot_dist / (pic_height_in_b64 * pic_width_in_b64);
+    ctx->perc_cplx = (src_pcs->dg_detector_metrics.tot_cplx * 100) / (pic_height_in_b64 * pic_width_in_b64);
+    ctx->perc_active = (src_pcs->dg_detector_metrics.tot_active * 100) / (pic_height_in_b64 * pic_width_in_b64);
+#else
     EbPaReferenceObject* pa_ref_obj =
         (EbPaReferenceObject*)ref_pcs->pa_ref_pic_wrapper->object_ptr;
 
@@ -574,6 +731,7 @@ static void early_hme(
     ctx->norm_dist = tot_dist / (pic_height_in_b64 * pic_width_in_b64);
     ctx->perc_cplx = (tot_cplx * 100) / (pic_height_in_b64 * pic_width_in_b64);
     ctx->perc_active = (tot_active * 100) / (pic_height_in_b64 * pic_width_in_b64);
+#endif
 }
 
 #define HIGH_DIST_TH 16 * 16 * 18
