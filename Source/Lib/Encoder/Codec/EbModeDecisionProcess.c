@@ -102,35 +102,6 @@ uint8_t svt_aom_get_update_cdf_level(EncMode enc_mode, SliceType is_islice, uint
 uint8_t svt_aom_get_chroma_level(EncMode enc_mode);
 uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level);
 
-/*
-* return the max canidate count for MDS0
-  Used by candidate injection and memory allocation
-*/
-uint16_t svt_aom_get_max_can_count(EncMode enc_mode) {
-    //NOTE: this is a memory feature and not a speed feature. it should not be have any speed/quality impact.
-    uint16_t mem_max_can_count;
-
-    if (enc_mode <= ENC_M0)
-        mem_max_can_count = 1225;
-    else if (enc_mode <= ENC_M1)
-        mem_max_can_count = 1000;
-    else if (enc_mode <= ENC_M2)
-        mem_max_can_count = 720;
-    else if (enc_mode <= ENC_M3)
-        mem_max_can_count = 576;
-    else if (enc_mode <= ENC_M4)
-        mem_max_can_count = 369;
-    else if (enc_mode <= ENC_M5)
-        mem_max_can_count = 295;
-    else if (enc_mode <= ENC_M6)
-        mem_max_can_count = 236;
-    else if (enc_mode <= ENC_M11)
-        mem_max_can_count = 190;
-    else
-        mem_max_can_count = 80;
-
-    return mem_max_can_count;
-}
 
 /******************************************************
  * Mode Decision Context Constructor

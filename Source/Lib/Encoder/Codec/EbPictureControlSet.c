@@ -85,33 +85,7 @@ void svt_aom_get_max_allocated_me_refs(uint8_t ref_count_used_list0, uint8_t ref
         (ref_count_used_list0 * ref_count_used_list1) + (ref_count_used_list0 - 1) +
         (ref_count_used_list1 == 3 ? 1 : 0);
 }
-// use this function to set the enable_me_8x8 level
-static uint8_t get_enable_me_8x8(EncMode enc_mode) {
-    uint8_t enable_me_8x8 = 0;
-    if (enc_mode <= ENC_M11)
-        enable_me_8x8 = 1;
-    else
-        enable_me_8x8 = 0;
 
-    return enable_me_8x8;
-}
-#if OPT_LD_M13
-static uint8_t get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
-#else
-uint8_t get_enable_me_16x16(EncMode enc_mode) {
-#endif
-    uint8_t enable_me_16x16;
-#if OPT_LD_M13
-    if ((enc_mode <= ENC_M12) || (rtc_tune && (enc_mode <= ENC_M13)))
-#else
-    if (enc_mode <= ENC_M12)
-#endif
-        enable_me_16x16 = 1;
-    else
-        enable_me_16x16 = 0;
-
-    return enable_me_16x16;
-}
 
 EbErrorType svt_aom_me_sb_results_ctor(MeSbResults               *obj_ptr,
                                        PictureControlSetInitData *init_data_ptr) {
