@@ -20,7 +20,7 @@
 /***************************************
  * Extern Function Declaration
  ***************************************/
-EbErrorType  svt_aom_picture_decision_context_ctor(EbThreadContext   *thread_context_ptr,
+EbErrorType  svt_aom_picture_decision_context_ctor(EbThreadContext   *thread_ctx,
                                                    const EbEncHandle *enc_handle_ptr,
                                                    uint8_t            scene_change_detection);
 extern void *svt_aom_picture_decision_kernel(void *input_ptr);

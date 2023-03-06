@@ -54,24 +54,23 @@ typedef struct PictureAnalysisContext {
 } PictureAnalysisContext;
 
 static void picture_analysis_context_dctor(EbPtr p) {
-    EbThreadContext        *thread_context_ptr = (EbThreadContext *)p;
-    PictureAnalysisContext *obj                = (PictureAnalysisContext *)thread_context_ptr->priv;
+    EbThreadContext        *thread_ctx = (EbThreadContext *)p;
+    PictureAnalysisContext *obj        = (PictureAnalysisContext *)thread_ctx->priv;
     EB_FREE_ARRAY(obj);
 }
 /************************************************
-* Picture Analysis Context Constructor
-************************************************/
-EbErrorType svt_aom_picture_analysis_context_ctor(EbThreadContext   *thread_context_ptr,
+ * Picture Analysis Context Constructor
+ ************************************************/
+EbErrorType svt_aom_picture_analysis_context_ctor(EbThreadContext   *thread_ctx,
                                                   const EbEncHandle *enc_handle_ptr, int index) {
-    PictureAnalysisContext *context_ptr;
-    EB_CALLOC_ARRAY(context_ptr, 1);
-    thread_context_ptr->priv  = context_ptr;
-    thread_context_ptr->dctor = picture_analysis_context_dctor;
+    PictureAnalysisContext *pa_ctx;
+    EB_CALLOC_ARRAY(pa_ctx, 1);
+    thread_ctx->priv  = pa_ctx;
+    thread_ctx->dctor = picture_analysis_context_dctor;
 
-    context_ptr->resource_coordination_results_input_fifo_ptr =
-        svt_system_resource_get_consumer_fifo(
-            enc_handle_ptr->resource_coordination_results_resource_ptr, index);
-    context_ptr->picture_analysis_results_output_fifo_ptr = svt_system_resource_get_producer_fifo(
+    pa_ctx->resource_coordination_results_input_fifo_ptr = svt_system_resource_get_consumer_fifo(
+        enc_handle_ptr->resource_coordination_results_resource_ptr, index);
+    pa_ctx->picture_analysis_results_output_fifo_ptr = svt_system_resource_get_producer_fifo(
         enc_handle_ptr->picture_analysis_results_resource_ptr, index);
     return EB_ErrorNone;
 }
@@ -1905,14 +1904,14 @@ static int32_t apply_denoise_2d(SequenceControlSet *scs, PictureParentControlSet
                                 EbPictureBufferDesc *inputPicturePointer) {
     AomDenoiseAndModel     *denoise_and_model;
     DenoiseAndModelInitData fg_init_data;
-    fg_init_data.encoder_bit_depth    = pcs->enhanced_picture_ptr->bit_depth;
-    fg_init_data.encoder_color_format = pcs->enhanced_picture_ptr->color_format;
+    fg_init_data.encoder_bit_depth    = pcs->enhanced_pic->bit_depth;
+    fg_init_data.encoder_color_format = pcs->enhanced_pic->color_format;
     fg_init_data.noise_level          = scs->static_config.film_grain_denoise_strength;
-    fg_init_data.width                = pcs->enhanced_picture_ptr->width;
-    fg_init_data.height               = pcs->enhanced_picture_ptr->height;
-    fg_init_data.stride_y             = pcs->enhanced_picture_ptr->stride_y;
-    fg_init_data.stride_cb            = pcs->enhanced_picture_ptr->stride_cb;
-    fg_init_data.stride_cr            = pcs->enhanced_picture_ptr->stride_cr;
+    fg_init_data.width                = pcs->enhanced_pic->width;
+    fg_init_data.height               = pcs->enhanced_pic->height;
+    fg_init_data.stride_y             = pcs->enhanced_pic->stride_y;
+    fg_init_data.stride_cb            = pcs->enhanced_pic->stride_cb;
+    fg_init_data.stride_cr            = pcs->enhanced_pic->stride_cr;
     fg_init_data.denoise_apply        = scs->static_config.film_grain_denoise_apply;
     EB_NEW(denoise_and_model, svt_aom_denoise_and_model_ctor, (EbPtr)&fg_init_data);
 
@@ -1932,7 +1931,7 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs,
 
     FrameHeader *frm_hdr = &pcs->frm_hdr;
 
-    EbPictureBufferDesc *input_pic         = pcs->enhanced_picture_ptr;
+    EbPictureBufferDesc *input_pic         = pcs->enhanced_pic;
     frm_hdr->film_grain_params.apply_grain = 0;
 
     if (scs->static_config.film_grain_denoise_strength) {
@@ -2469,7 +2468,7 @@ void svt_aom_is_screen_content(PictureParentControlSet *pcs) {
     int counts_2 = 0;
 
     const AomVarianceFnPtr *fn_ptr    = &svt_aom_mefn_ptr[BLOCK_16X16];
-    EbPictureBufferDesc    *input_pic = pcs->enhanced_picture_ptr;
+    EbPictureBufferDesc    *input_pic = pcs->enhanced_pic;
 
     for (int r = 0; r + blk_h <= input_pic->height; r += blk_h) {
         for (int c = 0; c + blk_w <= input_pic->width; c += blk_w) {
@@ -2634,29 +2633,32 @@ void svt_aom_pad_input_pictures(SequenceControlSet *scs, EbPictureBufferDesc *in
 /* Picture Analysis Kernel */
 
 /*********************************************************************************
-*
-* @brief
-*  The Picture Analysis processes perform the first stage of encoder pre-processing analysis
-*  as well as any intra-picture image conversion procedures, such as resampling, color space conversion, or tone mapping.
-*
-* @par Description:
-*  The Picture Analysis processes can be multithreaded and as such can process multiple input pictures at a time.
-*  The Picture Analysis also includes creating an n-bin Histogram, gathering 1st and 2nd moment statistics for each 8x8 block
-*  in the picture, which are used in variance calculations. Since the Picture Analysis process is multithreaded,
-*  the pictures can be processed out of order as long as all image-modifying functions are completed before any
-*  statistics-gathering functions begin.
-*
-* @param[in] Pictures
-*  The Picture Analysis Kernel performs pre-processing analysis as well as any intra-picture image conversion,
-*  color space conversion or tone mapping on the pictures that it was given.
-*
-* @param[out] statistics
-*  n-bin histogram is created to gather 1st and 2nd moment statistics for each 8x8 block which is then used to compute statistics
-*
-********************************************************************************/
+ *
+ * @brief
+ *  The Picture Analysis processes perform the first stage of encoder pre-processing analysis
+ *  as well as any intra-picture image conversion procedures, such as resampling, color space
+ *conversion, or tone mapping.
+ *
+ * @par Description:
+ *  The Picture Analysis processes can be multithreaded and as such can process multiple input
+ *pictures at a time. The Picture Analysis also includes creating an n-bin Histogram, gathering 1st
+ *and 2nd moment statistics for each 8x8 block in the picture, which are used in variance
+ *calculations. Since the Picture Analysis process is multithreaded, the pictures can be processed
+ *out of order as long as all image-modifying functions are completed before any
+ *  statistics-gathering functions begin.
+ *
+ * @param[in] Pictures
+ *  The Picture Analysis Kernel performs pre-processing analysis as well as any intra-picture image
+ *conversion, color space conversion or tone mapping on the pictures that it was given.
+ *
+ * @param[out] statistics
+ *  n-bin histogram is created to gather 1st and 2nd moment statistics for each 8x8 block which is
+ *then used to compute statistics
+ *
+ ********************************************************************************/
 void *svt_aom_picture_analysis_kernel(void *input_ptr) {
-    EbThreadContext         *thread_context_ptr = (EbThreadContext *)input_ptr;
-    PictureAnalysisContext  *context_ptr = (PictureAnalysisContext *)thread_context_ptr->priv;
+    EbThreadContext         *thread_ctx = (EbThreadContext *)input_ptr;
+    PictureAnalysisContext  *pa_ctx     = (PictureAnalysisContext *)thread_ctx->priv;
     PictureParentControlSet *pcs;
     SequenceControlSet      *scs;
 
@@ -2670,20 +2672,21 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
 
     for (;;) {
         // Get Input Full Object
-        EB_GET_FULL_OBJECT(context_ptr->resource_coordination_results_input_fifo_ptr,
+        EB_GET_FULL_OBJECT(pa_ctx->resource_coordination_results_input_fifo_ptr,
                            &in_results_wrapper_ptr);
 
         in_results_ptr = (ResourceCoordinationResults *)in_results_wrapper_ptr->object_ptr;
-        pcs            = (PictureParentControlSet *)in_results_ptr->pcs_wrapper_ptr->object_ptr;
+        pcs            = (PictureParentControlSet *)in_results_ptr->pcs_wrapper->object_ptr;
         scs            = pcs->scs;
 
         // Mariana : save enhanced picture ptr, move this from here
-        pcs->enhanced_unscaled_picture_ptr                    = pcs->enhanced_picture_ptr;
-        pcs->enhanced_unscaled_picture_ptr->is_16bit_pipeline = scs->is_16bit_pipeline;
+        pcs->enhanced_unscaled_pic                    = pcs->enhanced_pic;
+        pcs->enhanced_unscaled_pic->is_16bit_pipeline = scs->is_16bit_pipeline;
 
-        // There is no need to do processing for overlay picture. Overlay and AltRef share the same results.
+        // There is no need to do processing for overlay picture. Overlay and AltRef share the same
+        // results.
         if (!pcs->is_overlay) {
-            input_pic      = pcs->enhanced_picture_ptr;
+            input_pic      = pcs->enhanced_pic;
             int copy_frame = 1;
             if (pcs->scs->ipp_pass_ctrls.skip_frame_first_pass == 1)
                 copy_frame = (((pcs->picture_number % 8) == 0) ||
@@ -2765,12 +2768,12 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
             }
         }
         // Get Empty Results Object
-        svt_get_empty_object(context_ptr->picture_analysis_results_output_fifo_ptr,
+        svt_get_empty_object(pa_ctx->picture_analysis_results_output_fifo_ptr,
                              &out_results_wrapper_ptr);
 
         PictureAnalysisResults *out_results_ptr = (PictureAnalysisResults *)
                                                       out_results_wrapper_ptr->object_ptr;
-        out_results_ptr->pcs_wrapper_ptr = in_results_ptr->pcs_wrapper_ptr;
+        out_results_ptr->pcs_wrapper = in_results_ptr->pcs_wrapper;
 
         // Release the Input Results
         svt_release_object(in_results_wrapper_ptr);

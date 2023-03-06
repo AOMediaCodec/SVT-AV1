@@ -26,11 +26,11 @@ typedef struct InputCommand {
 } InputCommand;
 
 /**************************************
-     * Process Results
-     **************************************/
+ * Process Results
+ **************************************/
 typedef struct ResourceCoordinationResults {
     EbDctor          dctor;
-    EbObjectWrapper *pcs_wrapper_ptr;
+    EbObjectWrapper *pcs_wrapper;
 } ResourceCoordinationResults;
 
 typedef struct ResourceCoordinationResultInitData {

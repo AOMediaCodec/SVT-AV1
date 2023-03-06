@@ -1173,7 +1173,7 @@ static INLINE unsigned int lcg_rand16(unsigned int *state) {
 static void analyze_hor_freq(PictureParentControlSet *pcs, double *energy) {
     uint64_t freq_energy[16] = {0};
 
-    EbPictureBufferDesc *input_pic = pcs->enhanced_picture_ptr;
+    EbPictureBufferDesc *input_pic = pcs->enhanced_pic;
     uint8_t  *in = input_pic->buffer_y + input_pic->org_x + input_pic->org_y * input_pic->stride_y;
     const int width  = input_pic->width;
     const int height = input_pic->height;
@@ -1236,7 +1236,7 @@ static int av1_superres_in_recode_allowed(SequenceControlSet *scs) {
     // Empirically found to not be beneficial for image coding.
     return static_config->superres_mode == SUPERRES_AUTO &&
         static_config->superres_auto_search_type != SUPERRES_AUTO_SOLO /* &&
-        scs->encode_context_ptr->rc.frames_to_key > 1*/
+        scs->enc_ctx->rc.frames_to_key > 1*/
         ;
 }
 
@@ -1292,8 +1292,7 @@ static uint8_t get_superres_denom_for_qindex(SequenceControlSet *scs, PicturePar
     double energy[16];
     analyze_hor_freq(pcs, energy);
 
-    const double energy_by_q2_thresh = get_energy_by_q2_thresh(&scs->encode_context_ptr->rc,
-                                                               update_type);
+    const double energy_by_q2_thresh = get_energy_by_q2_thresh(&scs->enc_ctx->rc, update_type);
     int          denom               = get_superres_denom_from_qindex_energy(
         qindex, energy, energy_by_q2_thresh, SUPERRES_ENERGY_BY_AC_THRESH);
 
@@ -1304,8 +1303,7 @@ static uint8_t get_superres_denom_for_qindex(SequenceControlSet *scs, PicturePar
     for (int k = 1; k < 16; ++k) printf("%f, ", energy[k]);
     printf("]\n");
     printf("boost = %d\n",
-           (update_type == KF_UPDATE) ? scs->encode_context_ptr->rc.kf_boost
-                                      : scs->encode_context_ptr->rc.gfu_boost);
+           (update_type == KF_UPDATE) ? scs->enc_ctx->rc.kf_boost : scs->enc_ctx->rc.gfu_boost);
     printf("denom = %d\n", denom);
 #endif
 
@@ -1756,7 +1754,7 @@ static void scale_input_references(PictureParentControlSet *pcs,
     if (do_resize) {
         padded_pic_ptr =
             src_object->downscaled_input_padded_picture_ptr[sr_denom_idx][resize_denom_idx];
-        EbPictureBufferDesc *input_pic = pcs->enhanced_picture_ptr;
+        EbPictureBufferDesc *input_pic = pcs->enhanced_pic;
 
         for (uint32_t row = 0; row < (uint32_t)(input_pic->height + 2 * input_pic->org_y); row++)
             EB_MEMCPY(padded_pic_ptr->buffer_y + row * padded_pic_ptr->stride_y,
@@ -2055,7 +2053,7 @@ static int validate_size_scales(RESIZE_MODE resize_mode, SUPERRES_MODE superres_
  * adjust resolution related parameters
  */
 void svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSet *pcs) {
-    EbPictureBufferDesc *input_pic = pcs->enhanced_unscaled_picture_ptr;
+    EbPictureBufferDesc *input_pic = pcs->enhanced_unscaled_pic;
 
     superres_params_type spr_params = {input_pic->width, // encoding_width
                                        input_pic->height, // encoding_height
@@ -2148,19 +2146,19 @@ void svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSe
 
         // use downscaled picture instead of original res for mode decision, encoding loop etc
         // after temporal filtering and motion estimation
-        pcs->enhanced_picture_ptr = pcs->enhanced_downscaled_picture_ptr;
+        pcs->enhanced_pic = pcs->enhanced_downscaled_picture_ptr;
 
         scale_pcs_params(scs, pcs, spr_params, input_pic->width, input_pic->height);
 
         scale_input_references(pcs, spr_params);
 
         if (pcs->slice_type != I_SLICE) {
-            scale_source_references(scs, pcs, pcs->enhanced_picture_ptr);
+            scale_source_references(scs, pcs, pcs->enhanced_pic);
         }
     } else {
         // pcs previously might be used and dirty in params
         // clean up if current frame doesn't need scaling
-        pcs->enhanced_picture_ptr = pcs->enhanced_unscaled_picture_ptr;
+        pcs->enhanced_pic = pcs->enhanced_unscaled_pic;
         svt_aom_reset_resized_picture(scs, pcs, input_pic);
     }
 }

@@ -599,8 +599,8 @@ void svt_aom_reset_mode_decision(SequenceControlSet *scs, ModeDecisionContext *c
                                  PictureControlSet *pcs, uint16_t tile_group_idx,
                                  uint32_t segment_index) {
     ctx->hbd_md = pcs->hbd_md;
-    // Reset MD rate Estimation table to initial values by copying from md_rate_estimation_array
-    ctx->md_rate_estimation_ptr = pcs->md_rate_estimation_array;
+    // Reset MD rate Estimation table to initial values by copying from md_rate_est_ctx
+    ctx->md_rate_est_ctx = pcs->md_rate_est_ctx;
     // Reset CABAC Contexts
 
     // Reset Neighbor Arrays at start of new Segment / Picture

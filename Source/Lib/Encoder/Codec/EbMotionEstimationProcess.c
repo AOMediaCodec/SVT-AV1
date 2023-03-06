@@ -718,8 +718,8 @@ EbErrorType tf_signal_derivation_me_kernel_oq(PictureParentControlSet *  pcs,
 };
 
 static void motion_estimation_context_dctor(EbPtr p) {
-    EbThreadContext *          thread_context_ptr = (EbThreadContext *)p;
-    MotionEstimationContext_t *obj = (MotionEstimationContext_t *)thread_context_ptr->priv;
+    EbThreadContext *          thread_ctx = (EbThreadContext *)p;
+    MotionEstimationContext_t *obj = (MotionEstimationContext_t *)thread_ctx->priv;
     EB_DELETE(obj->me_ctx);
     EB_FREE_ARRAY(obj);
 }
@@ -727,13 +727,13 @@ static void motion_estimation_context_dctor(EbPtr p) {
 /************************************************
  * Motion Analysis Context Constructor
  ************************************************/
-EbErrorType svt_aom_motion_estimation_context_ctor(EbThreadContext *  thread_context_ptr,
+EbErrorType svt_aom_motion_estimation_context_ctor(EbThreadContext *  thread_ctx,
                                            const EbEncHandle *enc_handle_ptr, int index) {
     MotionEstimationContext_t *me_context_ptr;
 
     EB_CALLOC_ARRAY(me_context_ptr, 1);
-    thread_context_ptr->priv                             = me_context_ptr;
-    thread_context_ptr->dctor                            = motion_estimation_context_dctor;
+    thread_ctx->priv                             = me_context_ptr;
+    thread_ctx->dctor                            = motion_estimation_context_dctor;
     me_context_ptr->picture_decision_results_input_fifo_ptr = svt_system_resource_get_consumer_fifo(
         enc_handle_ptr->picture_decision_results_resource_ptr, index);
     me_context_ptr->motion_estimation_results_output_fifo_ptr = svt_system_resource_get_producer_fifo(
@@ -750,8 +750,8 @@ EbErrorType svt_aom_motion_estimation_context_ctor(EbThreadContext *  thread_con
  * so pictures can be processed out of order as long as all inputs are available.
  ************************************************/
 void *svt_aom_motion_estimation_kernel(void *input_ptr) {
-    EbThreadContext *          thread_context_ptr = (EbThreadContext *)input_ptr;
-    MotionEstimationContext_t *me_context_ptr = (MotionEstimationContext_t *)thread_context_ptr->priv;
+    EbThreadContext *          thread_ctx = (EbThreadContext *)input_ptr;
+    MotionEstimationContext_t *me_context_ptr = (MotionEstimationContext_t *)thread_ctx->priv;
     EbObjectWrapper *          in_results_wrapper_ptr;
     EbObjectWrapper *          out_results_wrapper_ptr;
     for (;;) {
@@ -761,7 +761,7 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
         PictureDecisionResults *in_results_ptr = (PictureDecisionResults *)
                                                      in_results_wrapper_ptr->object_ptr;
         PictureParentControlSet *pcs = (PictureParentControlSet *)
-                                               in_results_ptr->pcs_wrapper_ptr->object_ptr;
+                                               in_results_ptr->pcs_wrapper->object_ptr;
         SequenceControlSet *scs = pcs->scs;
         if (in_results_ptr->task_type == TASK_TFME)
             me_context_ptr->me_ctx->me_type = ME_MCTF;
@@ -801,7 +801,7 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
                                         pa_ref_obj_->sixteenth_downsampled_picture_ptr;
             input_padded_picture_ptr = (EbPictureBufferDesc *)pa_ref_obj_->input_padded_picture_ptr;
 
-            input_pic = pcs->enhanced_picture_ptr;
+            input_pic = pcs->enhanced_pic;
 
             // Segments
             uint32_t segment_index   = in_results_ptr->segment_index;
@@ -885,7 +885,7 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
                                 if (pcs->slice_type == B_SLICE)
                                     me_context_ptr->me_ctx->num_of_ref_pic_to_search[1] = pcs->ref_list1_count_try;
                                 me_context_ptr->me_ctx->temporal_layer_index = pcs->temporal_layer_index;
-                                me_context_ptr->me_ctx->is_used_as_reference_flag = pcs->is_used_as_reference_flag;
+                                me_context_ptr->me_ctx->is_ref = pcs->is_ref;
 
                                 if (pcs->frame_superres_enabled || pcs->frame_resize_enabled) {
                                     for (int i = 0;  i < me_context_ptr->me_ctx->num_of_list_to_search; i++) {
@@ -962,7 +962,7 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
 
             MotionEstimationResults *out_results_ptr = (MotionEstimationResults *)
                                                            out_results_wrapper_ptr->object_ptr;
-            out_results_ptr->pcs_wrapper_ptr = in_results_ptr->pcs_wrapper_ptr;
+            out_results_ptr->pcs_wrapper = in_results_ptr->pcs_wrapper;
             out_results_ptr->segment_index   = segment_index;
             out_results_ptr->task_type       = in_results_ptr->task_type;
             // Release the Input Results
