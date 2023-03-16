@@ -37,6 +37,8 @@ set(all_files
         EbEncSettings.h
         EbMetadataHandle.c
         EbMetadataHandle.h
+        EncModeConfig.c
+        EncModeConfig.h
         )
 
 add_library(ENCODER_GLOBALS OBJECT ${all_files})

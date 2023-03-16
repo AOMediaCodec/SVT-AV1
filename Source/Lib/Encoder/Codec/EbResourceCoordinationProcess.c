@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -124,135 +125,6 @@ EbErrorType svt_aom_resource_coordination_context_ctor(EbThreadContext *thread_c
     context_ptr->prev_change_cond       = 0;
 
     return EB_ErrorNone;
-}
-
-uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resolution, Bool is_ref);
-uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, Bool fast_decode, uint8_t input_resolution,
-                                    Bool is_base);
-/*
-* return true if restoration filtering is enabled; false otherwise
-  Used by signal_derivation_pre_analysis_oq and memory allocation
-*/
-uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration,
-                                       uint8_t input_resolution, Bool fast_decode) {
-    if (config_enable_restoration != DEFAULT)
-        return config_enable_restoration;
-
-    uint8_t wn = 0;
-    for (int is_ref = 0; is_ref < 2; is_ref++) {
-        wn = svt_aom_get_wn_filter_level(enc_mode, input_resolution, is_ref);
-        if (wn)
-            break;
-    }
-
-    uint8_t sg = 0;
-    for (int is_base = 0; is_base < 2; is_base++) {
-        sg = svt_aom_get_sg_filter_level(enc_mode, fast_decode, input_resolution, is_base);
-        if (sg)
-            break;
-    }
-
-    return (sg > 0 || wn > 0);
-}
-
-/******************************************************
-* Derive Pre-Analysis settings for OQ for pcs
-Input   : encoder mode and tune
-Output  : Pre-Analysis signal(s)
-******************************************************/
-static EbErrorType signal_derivation_pre_analysis_oq_pcs(PictureParentControlSet *pcs) {
-    EbErrorType return_error = EB_ErrorNone;
-    // Derive HME Flag
-    // Set here to allocate resources for the downsampled pictures used in HME (generated in PictureAnalysis)
-    // Will be later updated for SC/NSC in PictureDecisionProcess
-    pcs->enable_hme_flag        = 1;
-    pcs->enable_hme_level0_flag = 1;
-    pcs->enable_hme_level1_flag = 1;
-    pcs->enable_hme_level2_flag = 1;
-    // Set here to allocate resources for the downsampled pictures used in HME (generated in PictureAnalysis)
-    // Will be later updated for SC/NSC in PictureDecisionProcess
-    pcs->tf_enable_hme_flag        = 1;
-    pcs->tf_enable_hme_level0_flag = 1;
-    pcs->tf_enable_hme_level1_flag = 1;
-    pcs->tf_enable_hme_level2_flag = 1;
-
-    //if (scs->static_config.enable_tpl_la)
-    //svt_aom_assert_err(pcs->is_720p_or_larger == (pcs->tpl_ctrls.synth_blk_size == 16), "TPL Synth Size Error");
-
-    return return_error;
-}
-
-/******************************************************
-* Derive Pre-Analysis settings for OQ for scs
-Input   : encoder mode and tune
-Output  : Pre-Analysis signal(s)
-******************************************************/
-EbErrorType signal_derivation_pre_analysis_oq_scs(SequenceControlSet *scs) {
-    EbErrorType return_error = EB_ErrorNone;
-
-    // Set the SCD Mode
-    scs->scd_mode = scs->static_config.scene_change_detection == 0 ? SCD_MODE_0 : SCD_MODE_1;
-
-    // initialize sequence level enable_superres
-    scs->seq_header.enable_superres = scs->static_config.superres_mode > SUPERRES_NONE ? 1 : 0;
-    if (scs->inter_intra_compound == DEFAULT)
-        scs->seq_header.enable_interintra_compound = 1;
-    else
-        scs->seq_header.enable_interintra_compound = scs->inter_intra_compound;
-    // Enable/Disable Filter Intra
-    // seq_header.filter_intra_level | Settings
-    // 0                             | Disable
-    // 1                             | Enable
-    if (scs->filter_intra_level == DEFAULT)
-        scs->seq_header.filter_intra_level = 1;
-    else
-        scs->seq_header.filter_intra_level = scs->filter_intra_level;
-    // Set compound mode      Settings
-    // 0                 OFF: No compond mode search : AVG only
-    // 1                 ON: full
-    if (scs->compound_level == DEFAULT)
-        scs->compound_mode = 1;
-    else
-        scs->compound_mode = scs->compound_level;
-    if (scs->compound_mode) {
-        scs->seq_header.order_hint_info.enable_jnt_comp = 1; //DISTANCE
-        scs->seq_header.enable_masked_compound          = 1; //DIFF+WEDGE
-    } else {
-        scs->seq_header.order_hint_info.enable_jnt_comp = 0;
-        scs->seq_header.enable_masked_compound          = 0;
-    }
-
-    if (scs->enable_intra_edge_filter == DEFAULT)
-        scs->seq_header.enable_intra_edge_filter = 1;
-    else
-        scs->seq_header.enable_intra_edge_filter = (uint8_t)scs->enable_intra_edge_filter;
-
-    if (scs->pic_based_rate_est == DEFAULT)
-        scs->seq_header.pic_based_rate_est = 0;
-    else
-        scs->seq_header.pic_based_rate_est = (uint8_t)scs->pic_based_rate_est;
-
-    if (scs->static_config.enable_restoration_filtering == DEFAULT) {
-        scs->seq_header.enable_restoration = svt_aom_get_enable_restoration(
-            scs->static_config.enc_mode,
-            scs->static_config.enable_restoration_filtering,
-            scs->input_resolution,
-            scs->static_config.fast_decode);
-    } else
-        scs->seq_header.enable_restoration = (uint8_t)
-                                                 scs->static_config.enable_restoration_filtering;
-
-    if (scs->static_config.cdef_level == DEFAULT)
-        scs->seq_header.cdef_level = 1;
-    else
-        scs->seq_header.cdef_level = (uint8_t)(scs->static_config.cdef_level > 0);
-
-    if (scs->enable_warped_motion == DEFAULT) {
-        scs->seq_header.enable_warped_motion = 1;
-    } else
-        scs->seq_header.enable_warped_motion = (uint8_t)scs->enable_warped_motion;
-
-    return return_error;
 }
 
 //******************************************************************************//
@@ -712,8 +584,6 @@ void svt_aom_setup_two_pass(SequenceControlSet *scs) {
         svt_av1_init_single_pass_lap(scs);
 }
 
-extern EbErrorType first_pass_signal_derivation_pre_analysis_pcs(PictureParentControlSet *pcs);
-extern EbErrorType first_pass_signal_derivation_pre_analysis_scs(SequenceControlSet *scs);
 
 static EbErrorType realloc_sb_param(SequenceControlSet *scs, PictureParentControlSet *pcs) {
     EB_FREE_ARRAY(pcs->b64_geom);

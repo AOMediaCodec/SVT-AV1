@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -27,7 +28,6 @@
 #include "EbCommonUtils.h"
 #include "EbResize.h"
 #include "EbInvTransforms.h"
-uint8_t svt_aom_get_bypass_encdec(EncMode enc_mode, uint8_t hbd_md, uint8_t encoder_bit_depth);
 
 #define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
 static MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
@@ -325,52 +325,11 @@ EbErrorType svt_aom_mode_decision_configuration_context_ctor(EbThreadContext   *
     return EB_ErrorNone;
 }
 
-void set_cdf_controls(PictureControlSet *pcs, uint8_t update_cdf_level) {
-    CdfControls *ctrl = &pcs->cdf_ctrl;
-    switch (update_cdf_level) {
-    case 0:
-        ctrl->update_mv   = 0;
-        ctrl->update_se   = 0;
-        ctrl->update_coef = 0;
-        break;
-    case 1:
-        ctrl->update_mv   = 1;
-        ctrl->update_se   = 1;
-        ctrl->update_coef = 1;
-        break;
-    case 2:
-        ctrl->update_mv   = 0;
-        ctrl->update_se   = 1;
-        ctrl->update_coef = 1;
-        break;
-    case 3:
-        ctrl->update_mv   = 0;
-        ctrl->update_se   = 1;
-        ctrl->update_coef = 0;
-        break;
-    default: assert(0); break;
-    }
-
-    ctrl->update_mv = pcs->slice_type == I_SLICE ? 0 : ctrl->update_mv;
-    ctrl->enabled   = ctrl->update_coef | ctrl->update_mv | ctrl->update_se;
-}
-/******************************************************
-* Derive Mode Decision Config Settings for OQ
-Input   : encoder mode and tune
-Output  : EncDec Kernel signal(s)
-******************************************************/
-EbErrorType rtime_alloc_ec_ctx_array(PictureControlSet *pcs, uint16_t all_sb) {
-    EB_MALLOC_ARRAY(pcs->ec_ctx_array, all_sb);
-    return EB_ErrorNone;
-}
-
-
 /******************************************************
 * Derive Mode Decision Config Settings for first pass
 Input   : encoder mode and tune
 Output  : EncDec Kernel signal(s)
 ******************************************************/
-EbErrorType       first_pass_signal_derivation_mode_decision_config_kernel(PictureControlSet *pcs);
 static INLINE int get_relative_dist(const OrderHintInfo *oh, int a, int b) {
     if (!oh->enable_order_hint)
         return 0;

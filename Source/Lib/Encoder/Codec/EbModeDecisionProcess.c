@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -16,7 +17,6 @@
 #include "EbLambdaRateTables.h"
 #include "EbRateControlProcess.h"
 
-uint8_t     svt_aom_get_bypass_encdec(EncMode enc_mode, uint8_t hbd_md, uint8_t encoder_bit_depth);
 void        set_block_based_depth_refinement_controls(ModeDecisionContext *mdctxt,
                                                       uint8_t block_based_depth_refinement_level);
 int         svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
@@ -87,21 +87,10 @@ static void mode_decision_context_dctor(EbPtr p) {
     EB_DELETE(obj->temp_residual);
     EB_DELETE(obj->temp_recon_ptr);
 }
-#if OPT_LD_M11
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels,
-                              bool rtc_tune);
-#else
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
-#endif
-uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level);
+
 void    svt_aom_set_nics(NicScalingCtrls *scaling_ctrls, uint32_t mds1_count[CAND_CLASS_TOTAL],
                          uint32_t mds2_count[CAND_CLASS_TOTAL], uint32_t mds3_count[CAND_CLASS_TOTAL],
                          uint8_t pic_type);
-
-uint8_t svt_aom_get_update_cdf_level(EncMode enc_mode, SliceType is_islice, uint8_t is_base);
-uint8_t svt_aom_get_chroma_level(EncMode enc_mode);
-uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level);
-
 
 /******************************************************
  * Mode Decision Context Constructor

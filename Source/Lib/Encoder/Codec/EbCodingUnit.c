@@ -22,8 +22,6 @@ void svt_aom_largest_coding_unit_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj->final_blk_arr);
     EB_FREE_ARRAY(obj->cu_partition_array);
 }
-
-
 /*
 Tasks & Questions
     -Need a GetEmptyChain function for testing sub partitions.  Tie it to an Itr?

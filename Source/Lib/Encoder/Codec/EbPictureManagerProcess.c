@@ -41,8 +41,7 @@ static INLINE unsigned int get_token_alloc(int mb_rows, int mb_cols, int sb_size
 
     return sb_rows * sb_cols * sb_palette_toks;
 }
-void rtime_alloc_palette_tokens(SequenceControlSet *scs, PictureControlSet *child_pcs);
-extern MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx);
+void rtime_alloc_palette_tokens(SequenceControlSet *scs, PictureControlSet *child_pcs_ptr);
 
 void svt_aom_largest_coding_unit_dctor(EbPtr p);
 void write_stat_to_file(SequenceControlSet *scs, StatStruct stat_struct, uint64_t ref_poc);

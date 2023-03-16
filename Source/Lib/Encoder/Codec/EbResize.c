@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
  * Copyright(c) 2019 Intel Corporation
  * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -21,8 +22,6 @@
 #include "aom_dsp_rtcd.h"
 #include "EbModeDecisionProcess.h"
 
-EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
-                                                uint8_t list_idx, uint8_t ref_idx);
 
 #define DIVIDE_AND_ROUND(x, y) (((x) + ((y) >> 1)) / (y))
 
@@ -1430,16 +1429,6 @@ EbErrorType sb_geom_init_pcs(SequenceControlSet *scs, PictureParentControlSet *p
 EbErrorType b64_geom_init_pcs(SequenceControlSet *scs, PictureParentControlSet *pcs);
 
 /*
- * Get the index of downscaled input pictures or reference pictures in 2D array
- * from super-res or resize denominator, the index starts from 0 (denom 8, unscaled)
- * to support the combinition of both super-res and resize enabled
- */
-uint8_t svt_aom_get_denom_idx(uint8_t scale_denom) {
-    uint8_t denom_idx = (uint8_t)(scale_denom - SCALE_NUMERATOR);
-    return denom_idx;
-}
-
-/*
  * Modify encoder parameters and structures that depend on picture resolution
  * Performed after a source picture has been scaled
  */
@@ -1872,25 +1861,6 @@ void svt_aom_scale_rec_references(PictureControlSet *pcs, EbPictureBufferDesc *i
             }
         }
     }
-}
-
-/*
- * Check if width of input and reference <reconstructed> pictures match.
- * if not, return pointers to downscaled reference picture of the correct resolution
- */
-void svt_aom_use_scaled_rec_refs_if_needed(PictureControlSet *pcs, EbPictureBufferDesc *input_pic,
-                                           EbReferenceObject    *ref_obj,
-                                           EbPictureBufferDesc **ref_pic, uint8_t hbd_md) {
-    if ((*ref_pic)->width != input_pic->width) {
-        uint8_t sr_denom_idx     = svt_aom_get_denom_idx(pcs->ppcs->superres_denom);
-        uint8_t resize_denom_idx = svt_aom_get_denom_idx(pcs->ppcs->resize_denom);
-        UNUSED(hbd_md);
-        {
-            assert(ref_obj->downscaled_reference_picture[sr_denom_idx][resize_denom_idx] != NULL);
-            *ref_pic = ref_obj->downscaled_reference_picture[sr_denom_idx][resize_denom_idx];
-        }
-    }
-    assert((*ref_pic)->width == input_pic->width);
 }
 
 /*

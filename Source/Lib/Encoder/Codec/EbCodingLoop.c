@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -33,9 +34,6 @@ void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_p
 int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t sq_size,
                                  const uint8_t disallow_nsq);
-
-EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
-                                                uint8_t list_idx, uint8_t ref_idx);
 void                 svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq);
 /*******************************************
 * set Penalize Skip Flag
@@ -61,35 +59,6 @@ typedef void (*EbAv1GenerateReconFuncPtr)(EncDecContext *ed_ctx, uint32_t org_x,
                                           EbPictureBufferDesc *pred_samples, // no basis/offset
                                           EbPictureBufferDesc *residual16bit, // no basis/offset
                                           uint32_t component_mask, uint16_t *eob);
-
-/*******************************************
-* Residual Kernel 8-16bit
-    Computes the residual data
-*******************************************/
-void svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
-                             uint8_t *pred, uint32_t pred_offset, uint32_t pred_stride,
-                             int16_t *residual, uint32_t residual_offset, uint32_t residual_stride,
-                             Bool hbd, uint32_t area_width, uint32_t area_height) {
-    if (hbd) {
-        svt_residual_kernel16bit(((uint16_t *)input) + input_offset,
-                                 input_stride,
-                                 ((uint16_t *)pred) + pred_offset,
-                                 pred_stride,
-                                 residual + residual_offset,
-                                 residual_stride,
-                                 area_width,
-                                 area_height);
-    } else {
-        svt_residual_kernel8bit(&(input[input_offset]),
-                                input_stride,
-                                &(pred[pred_offset]),
-                                pred_stride,
-                                residual + residual_offset,
-                                residual_stride,
-                                area_width,
-                                area_height);
-    }
-}
 
 /***************************************************
  * Update Intra Mode Neighbor Arrays

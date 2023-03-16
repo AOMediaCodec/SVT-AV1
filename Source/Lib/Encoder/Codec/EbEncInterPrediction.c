@@ -1,3 +1,4 @@
+#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -33,12 +34,6 @@ void svt_aom_enc_make_inter_predictor(
 void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride, uint8_t *inn_bit_buffer,
                         uint32_t inn_stride, uint16_t *out16_bit_buffer, uint32_t out_stride,
                         uint32_t width, uint32_t height);
-EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
-                                                uint8_t list_idx, uint8_t ref_idx) {
-    (void)is_highbd;
-    return ((EbReferenceObject *)(pcs->ref_pic_ptr_array[list_idx][ref_idx]->object_ptr))
-        ->reference_picture;
-}
 static INLINE MV clamp_mv_to_umv_border_sb(const MacroBlockD *xd, const MV *src_mv, int32_t bw,
                                            int32_t bh, int32_t ss_x, int32_t ss_y) {
     // If the MV points so far into the UMV border that no visible pixels
