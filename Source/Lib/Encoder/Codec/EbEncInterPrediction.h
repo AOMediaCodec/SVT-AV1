@@ -110,7 +110,5 @@ void svt_aom_enc_make_inter_predictor(
 #endif
 #endif //EbEncInterPrediction_h
 
-
-EbPictureBufferDesc   *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
-                                                  uint8_t list_idx, uint8_t ref_idx);
-                                                  
+EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
+                                                uint8_t list_idx, uint8_t ref_idx);

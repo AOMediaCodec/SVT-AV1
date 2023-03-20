@@ -36,7 +36,7 @@ int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t sq_size,
                                  const uint8_t disallow_nsq);
 
-void                 svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq);
+void svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq);
 /*******************************************
 * set Penalize Skip Flag
 *

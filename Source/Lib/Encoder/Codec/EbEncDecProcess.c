@@ -3401,9 +3401,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                             // skip_intra much be TRUE for non-I_SLICE pictures to use light_pd0 path
                             if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
                                 // [PD_PASS_0] Signal(s) derivation
-                                sig_deriv_enc_dec_light_pd0(
-                                    scs, pcs, ed_ctx->md_ctx);
-
+                                sig_deriv_enc_dec_light_pd0(scs, pcs, ed_ctx->md_ctx);
                                 // Save a clean copy of the neighbor arrays
                                 if (!ed_ctx->md_ctx->skip_intra)
                                     copy_neighbour_arrays_light_pd0(
@@ -3443,8 +3441,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                         sb_origin_y);
                             } else {
                                 // [PD_PASS_0] Signal(s) derivation
-                                svt_aom_sig_deriv_enc_dec(
-                                    scs, pcs, ed_ctx->md_ctx);
+                                svt_aom_sig_deriv_enc_dec(scs, pcs, ed_ctx->md_ctx);
 
                                 // Save a clean copy of the neighbor arrays
                                 svt_aom_copy_neighbour_arrays(pcs,

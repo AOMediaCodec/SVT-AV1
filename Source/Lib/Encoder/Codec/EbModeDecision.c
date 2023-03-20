@@ -42,9 +42,8 @@
 
 #define SUPERRES_INVALID_STATE 0x7fffffff
 
-
-int                  svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
-Bool                 check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
+int  svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
+Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
 
 static INLINE int32_t derive_rmv_setting(const SequenceControlSet      *scs,
                                          const PictureParentControlSet *ppcs) {

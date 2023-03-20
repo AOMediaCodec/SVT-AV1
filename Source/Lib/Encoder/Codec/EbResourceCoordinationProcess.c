@@ -584,7 +584,6 @@ void svt_aom_setup_two_pass(SequenceControlSet *scs) {
         svt_av1_init_single_pass_lap(scs);
 }
 
-
 static EbErrorType realloc_sb_param(SequenceControlSet *scs, PictureParentControlSet *pcs) {
     EB_FREE_ARRAY(pcs->b64_geom);
     EB_MALLOC_ARRAY(pcs->b64_geom, scs->b64_total_count);

@@ -87,7 +87,6 @@ void svt_aom_get_max_allocated_me_refs(uint8_t ref_count_used_list0, uint8_t ref
         (ref_count_used_list1 == 3 ? 1 : 0);
 }
 
-
 EbErrorType svt_aom_me_sb_results_ctor(MeSbResults               *obj_ptr,
                                        PictureControlSetInitData *init_data_ptr) {
     obj_ptr->dctor = me_sb_results_dctor;

@@ -60,7 +60,7 @@ void precompute_intra_pred_for_inter_intra(PictureControlSet *pcs, ModeDecisionC
 int svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
-extern IntraSize       svt_aom_intra_unit[];
+extern IntraSize svt_aom_intra_unit[];
 
 const EbPredictionFunc svt_product_prediction_fun_table_light_pd0[2] = {
     svt_av1_intra_prediction_cl, svt_aom_inter_pu_prediction_av1_light_pd0};
@@ -1012,7 +1012,6 @@ static void product_coding_loop_init_fast_loop(PictureControlSet *pcs, ModeDecis
 
     return;
 }
-
 
 /*
 */
@@ -9843,7 +9842,6 @@ static uint8_t update_skip_nsq_shapes(ModeDecisionContext *ctx) {
 
     return skip_nsq;
 }
-
 
 // Set the levels used by features which apply aggressive settings for certain blocks (e.g. NSQ stats)
 // Return 1 to skip, else 0

@@ -62,7 +62,6 @@ static void source_based_operations_context_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj);
 }
 
-
 /************************************************
  * Source Based Operation Context Constructor
  ************************************************/

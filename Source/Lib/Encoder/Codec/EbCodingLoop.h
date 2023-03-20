@@ -1107,8 +1107,8 @@ static const int32_t me_idx_128x128[4][BLOCK_MAX_COUNT_SB_128] = {
      20, 83, 84, 75, 83, 20, 20, 76, 84, 20, 20, 20, 20, 20, 20, 20, 20, 75, 75, 75, 75, 75, 75, 75,
      75, 75, 76, 76, 76, 76, 76, 76, 76, 76, 76, 83, 83, 83, 83, 83, 83, 83, 83, 83, 84, 84, 84, 84,
      84, 84, 84, 84, 84}};
-void svt_aom_sig_deriv_enc_dec(
-    SequenceControlSet *sequence_control_set_ptr, PictureControlSet *pcs, ModeDecisionContext *ctx);
+void svt_aom_sig_deriv_enc_dec(SequenceControlSet *sequence_control_set_ptr, PictureControlSet *pcs,
+                               ModeDecisionContext *ctx);
 
 void read_refine_me_mvs(PictureControlSet *pcs, ModeDecisionContext *ctx,
                         EbPictureBufferDesc *input_pic);
