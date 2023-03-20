@@ -1194,3 +1194,33 @@ void svt_aom_update_part_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, uint1
         }
     }
 }
+uint8_t svt_aom_get_me_qindex(PictureControlSet *pcs, SuperBlock *sb_ptr, uint8_t is_sb128) {
+    if (!is_sb128)
+        return pcs->b64_me_qindex[sb_ptr->index];
+
+    uint32_t pic_width_in_b64  = (pcs->ppcs->aligned_width + 64 - 1) / 64;
+    uint32_t pic_height_in_b64 = (pcs->ppcs->aligned_height + 64 - 1) / 64;
+
+    uint32_t x_b64_index = sb_ptr->org_x / 64;
+    uint32_t y_b64_index = sb_ptr->org_y / 64;
+    uint32_t b64_index   = x_b64_index + y_b64_index * pic_width_in_b64;
+
+    uint8_t valid_b64_cnt = 1;
+
+    uint16_t sum_me_qindex = pcs->b64_me_qindex[b64_index];
+
+    if ((x_b64_index + 1) < pic_width_in_b64) {
+        sum_me_qindex += pcs->b64_me_qindex[b64_index + 1];
+        valid_b64_cnt++;
+    }
+    if ((y_b64_index + 1) < pic_height_in_b64) {
+        sum_me_qindex += pcs->b64_me_qindex[b64_index + pic_width_in_b64];
+        valid_b64_cnt++;
+    }
+    if (valid_b64_cnt == 3) {
+        sum_me_qindex += pcs->b64_me_qindex[b64_index + 1 + pic_width_in_b64];
+        valid_b64_cnt++;
+    }
+
+    return sum_me_qindex / valid_b64_cnt;
+}

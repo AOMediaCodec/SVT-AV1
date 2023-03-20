@@ -630,9 +630,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
         // Mode Decision Configuration Kernel Signal(s) derivation
         if (scs->static_config.pass == ENC_FIRST_PASS)
-            first_pass_signal_derivation_mode_decision_config_kernel(pcs);
+            first_pass_sig_deriv_mode_decision_config(pcs);
         else
-            signal_derivation_mode_decision_config_kernel_oq(scs, pcs);
+            sig_deriv_mode_decision_config(scs, pcs);
 
         if (pcs->slice_type != I_SLICE && scs->mfmv_enabled)
             av1_setup_motion_field(pcs->ppcs->av1_cm, pcs);

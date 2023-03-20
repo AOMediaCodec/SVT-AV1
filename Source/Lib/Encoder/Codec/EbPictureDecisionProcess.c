@@ -52,6 +52,7 @@ extern PredictionStructureConfigEntry five_level_hierarchical_pred_struct[];
 extern PredictionStructureConfigEntry six_level_hierarchical_pred_struct[];
 void  svt_aom_get_max_allocated_me_refs(uint8_t ref_count_used_list0, uint8_t ref_count_used_list1, uint8_t* max_ref_to_alloc, uint8_t* max_cand_to_alloc);
 void svt_aom_init_resize_picture(SequenceControlSet* scs, PictureParentControlSet* pcs);
+MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx);
 
 static INLINE int get_relative_dist(const OrderHintInfo *oh, int a, int b) {
     if (!oh->enable_order_hint) return 0;
@@ -904,35 +905,8 @@ static INLINE void update_list0_only_base(SequenceControlSet* scs, PictureParent
     }
 }
 
-uint8_t svt_aom_derive_gm_level(PictureParentControlSet* pcs) {
-    SequenceControlSet* scs = pcs->scs;
-    uint8_t gm_level = 0;
-    const EncMode enc_mode = pcs->enc_mode;
-    const uint8_t is_ref = pcs->is_used_as_reference_flag;
 
-    // disable global motion when reference scaling enabled,
-    // even if current pic is not scaled, because its reference
-    // pics might be scaled in different size
-    // super-res is ok for its reference pics are always upscaled
-    // to original size
-    if (scs->enable_global_motion == TRUE &&
-        pcs->frame_superres_enabled == FALSE &&
-        scs->static_config.resize_mode == RESIZE_NONE) {
-        if (pcs->enc_mode <= ENC_MRS)
-            gm_level = 2;
-        else if (pcs->enc_mode <= ENC_M1)
-            gm_level = 3;
-        else if (enc_mode <= ENC_M3)
-            gm_level = 4;
-        else if (enc_mode <= ENC_M4)
-            gm_level = 5;
-        else if (pcs->enc_mode <= ENC_M6)
-            gm_level = is_ref ? 6 : 0;
-        else
-            gm_level = 0;
-    }
-    return gm_level;
-}
+
 
 Bool svt_aom_is_pic_skipped(PictureParentControlSet *pcs) {
     if (!pcs->is_ref &&
@@ -4867,8 +4841,8 @@ static void process_first_pass_frame(
 
     pcs->first_pass_seg_total_count = (uint16_t)(pcs->first_pass_seg_column_count  * pcs->first_pass_seg_row_count);
     pcs->first_pass_seg_acc = 0;
-    first_pass_signal_derivation_multi_processes(scs, pcs);
-    if (pcs->me_data_wrapper == NULL) {
+    first_pass_sig_deriv_multi_processes(scs, pcs);
+    if (pcs->me_data_wrapper_ptr == NULL) {
         EbObjectWrapper               *me_wrapper;
         svt_get_empty_object(pd_ctx->me_fifo_ptr, &me_wrapper);
         pcs->me_data_wrapper = me_wrapper;
@@ -6150,9 +6124,9 @@ static void init_pic_settings(SequenceControlSet* scs, PictureParentControlSet* 
     // TODO: put this in EbMotionEstimationProcess?
     // ME Kernel Multi-Processes Signal(s) derivation
     if (scs->static_config.pass == ENC_FIRST_PASS)
-        first_pass_signal_derivation_multi_processes(scs, pcs);
+        first_pass_sig_deriv_multi_processes(scs, pcs);
     else
-        signal_derivation_multi_processes_oq(scs, pcs, ctx);
+        sig_deriv_multi_processes(scs, pcs, ctx);
 
     update_count_try(scs, pcs);
 

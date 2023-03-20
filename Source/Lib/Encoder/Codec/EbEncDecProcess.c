@@ -1,5 +1,3 @@
-#include "EncModeConfig.h"
-
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -28,6 +26,8 @@
 #include "firstpass.h"
 #include "EbPictureAnalysisProcess.h"
 #include "EbResize.h"
+#include "EncModeConfig.h"
+
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 void copy_mv_rate(PictureControlSet *pcs, MdRateEstimationContext *dst_rate);
@@ -2001,6 +2001,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *mdctxt,
         break;
     }
 }
+
 void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                      uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
                                      uint32_t sb_org_x, uint32_t sb_org_y);
@@ -2666,6 +2667,7 @@ void recode_loop_update_q(PictureParentControlSet *ppcs, int *const loop, int *c
                           int *const q_low, int *const q_high, const int top_index,
                           const int bottom_index, int *const undershoot_seen,
                           int *const overshoot_seen, int *const low_cr_seen, const int loop_count);
+void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs);
 void mode_decision_configuration_init_qp_update(PictureControlSet *pcs);
 void svt_aom_init_enc_dec_segement(PictureParentControlSet *ppcs);
 
@@ -3354,7 +3356,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                 pcs, sb_ptr, scs->seq_header.sb_size == BLOCK_128X128));
 
                         // signals set once per SB (i.e. not per PD)
-                        signal_derivation_enc_dec_kernel_common(scs, pcs, ed_ctx->md_ctx);
+                        sig_deriv_enc_dec__common(scs, pcs, ed_ctx->md_ctx);
 
                         if (pcs->ppcs->palette_level)
                             // Status of palette info alloc
@@ -3399,7 +3401,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                             // skip_intra much be TRUE for non-I_SLICE pictures to use light_pd0 path
                             if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
                                 // [PD_PASS_0] Signal(s) derivation
-                                signal_derivation_enc_dec_kernel_oq_light_pd0(
+                                sig_deriv_enc_dec_light_pd0(
                                     scs, pcs, ed_ctx->md_ctx);
 
                                 // Save a clean copy of the neighbor arrays
@@ -3441,7 +3443,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                         sb_origin_y);
                             } else {
                                 // [PD_PASS_0] Signal(s) derivation
-                                svt_aom_signal_derivation_enc_dec_kernel_oq(
+                                svt_aom_sig_deriv_enc_dec(
                                     scs, pcs, ed_ctx->md_ctx);
 
                                 // Save a clean copy of the neighbor arrays
@@ -3509,9 +3511,9 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         exaustive_light_pd1_features(
                             md_ctx, ppcs, md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1, 0);
                         if (md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1)
-                            signal_derivation_enc_dec_kernel_oq_light_pd1(pcs, ed_ctx->md_ctx);
+                            sig_deriv_enc_dec_light_pd1(pcs, ed_ctx->md_ctx);
                         else
-                            svt_aom_signal_derivation_enc_dec_kernel_oq(scs, pcs, ed_ctx->md_ctx);
+                            svt_aom_sig_deriv_enc_dec(scs, pcs, ed_ctx->md_ctx);
                         if (!skip_pd_pass_0 && pcs->ppcs->multi_pass_pd_level != MULTI_PASS_PD_OFF)
                             build_cand_block_array(scs,
                                                    pcs,

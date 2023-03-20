@@ -119,14 +119,14 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
         if ((in_results_ptr->task_type == TASK_PAME) ||
             (in_results_ptr->task_type == TASK_SUPERRES_RE_ME))
             if (scs->static_config.pass == ENC_FIRST_PASS)
-                first_pass_signal_derivation_me_kernel(scs, pcs, me_context_ptr);
+                first_pass_sig_deriv_me(scs, pcs, me_context_ptr);
             else
-                svt_aom_signal_derivation_me_kernel_oq(scs, pcs, me_context_ptr);
+                svt_aom_sig_deriv_me(scs, pcs, me_context_ptr);
 
         else if (in_results_ptr->task_type == TASK_TFME)
-            tf_signal_derivation_me_kernel_oq(pcs, me_context_ptr);
+            sig_deriv_me_tf(pcs, me_context_ptr);
         else // TASK_FIRST_PASS_ME
-            first_pass_signal_derivation_me_kernel(scs, pcs, me_context_ptr);
+            first_pass_sig_deriv_me(scs, pcs, me_context_ptr);
 
         if ((in_results_ptr->task_type == TASK_PAME) ||
             (in_results_ptr->task_type == TASK_SUPERRES_RE_ME)) {

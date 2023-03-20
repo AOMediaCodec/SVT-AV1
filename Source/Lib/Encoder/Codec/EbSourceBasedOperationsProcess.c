@@ -34,7 +34,7 @@
 #include "mcomp.h"
 #include "av1me.h"
 #include "EbEncInterPrediction.h"
-#include "EbResize.h"
+
 /**************************************
  * Context
  **************************************/
@@ -61,6 +61,7 @@ static void source_based_operations_context_dctor(EbPtr p) {
     SourceBasedOperationsContext *obj        = (SourceBasedOperationsContext *)thread_ctx->priv;
     EB_FREE_ARRAY(obj);
 }
+
 
 /************************************************
  * Source Based Operation Context Constructor

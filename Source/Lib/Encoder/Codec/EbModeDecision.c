@@ -41,6 +41,8 @@
     MULTI_LINE_MACRO_END
 
 #define SUPERRES_INVALID_STATE 0x7fffffff
+
+
 int                  svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
 Bool                 check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
 
@@ -143,7 +145,13 @@ int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode) {
     return (mode == NEWMV || mode == NEW_NEWMV || mode == NEAREST_NEWMV || mode == NEW_NEARESTMV ||
             mode == NEAR_NEWMV || mode == NEW_NEARMV);
 }
+static MvReferenceFrame to_ref_frame[2][4] = {
+    {LAST_FRAME, LAST2_FRAME, LAST3_FRAME, GOLDEN_FRAME},
+    {BWDREF_FRAME, ALTREF2_FRAME, ALTREF_FRAME, INVALID_REF}};
 
+MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx) {
+    return to_ref_frame[list][ref_idx];
+};
 extern uint32_t stage1ModesArray[];
 
 uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode);

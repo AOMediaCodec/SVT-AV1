@@ -16,6 +16,10 @@
 #include "EbRateDistortionCost.h"
 #include "aom_dsp_rtcd.h"
 
+void svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
+                             uint8_t *pred, uint32_t pred_offset, uint32_t pred_stride,
+                             int16_t *residual, uint32_t residual_offset, uint32_t residual_stride,
+                             Bool hbd, uint32_t area_width, uint32_t area_height);
 
 void svt_aom_quantize_b_c_ii(const TranLow *coeff_ptr, intptr_t n_coeffs, const int16_t *zbin_ptr,
                              const int16_t *round_ptr, const int16_t *quant_ptr,

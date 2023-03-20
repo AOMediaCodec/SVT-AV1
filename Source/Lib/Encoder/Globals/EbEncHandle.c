@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 // clang-format off
 /*
 * Copyright(c) 2019 Intel Corporation
@@ -118,6 +117,7 @@ typedef struct logicalProcessorGroup {
 #define INITIAL_PROCESSOR_GROUP 16
 static processorGroup           *lp_group = NULL;
 #endif
+uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width, uint32_t picture_height);
 #if OPT_RPS_CONSTR_2
 /* count number of refs in a steady state MG*/
 static uint16_t get_num_refs_in_one_mg(uint32_t hierarchical_levels, uint32_t referencing_scheme) {

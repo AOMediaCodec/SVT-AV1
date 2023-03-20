@@ -33,6 +33,7 @@
 #include "limits.h"
 
 #include "EbPackUnPack_C.h"
+#include "EbEncInterPrediction.h"
 
 #include "EbInterPrediction.h"
 #define DIVIDE_AND_ROUND(x, y) (((x) + ((y) >> 1)) / (y))
@@ -57,8 +58,10 @@ static INLINE int svt_aom_is_interintra_allowed_bsize(const BlockSize bsize) {
 void precompute_intra_pred_for_inter_intra(PictureControlSet *pcs, ModeDecisionContext *ctx);
 
 int svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
-extern IntraSize       svt_aom_intra_unit[];
+
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
+extern IntraSize       svt_aom_intra_unit[];
+
 const EbPredictionFunc svt_product_prediction_fun_table_light_pd0[2] = {
     svt_av1_intra_prediction_cl, svt_aom_inter_pu_prediction_av1_light_pd0};
 const EbPredictionFunc svt_product_prediction_fun_table_light_pd1[2] = {
@@ -1009,6 +1012,7 @@ static void product_coding_loop_init_fast_loop(PictureControlSet *pcs, ModeDecis
 
     return;
 }
+
 
 /*
 */
@@ -10342,8 +10346,8 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
     // Reset settings, in case they were over-written by previous block
     // Only reset settings when features that change settings are used.
     if (!ctx->md_disallow_nsq)
-        svt_aom_signal_derivation_enc_dec_kernel_oq(scs, pcs, ctx);
-    signal_derivation_block(pcs, ctx);
+        svt_aom_sig_deriv_enc_dec(scs, pcs, ctx);
+    sig_deriv_block(pcs, ctx);
     // Check current depth cost; if larger than parent, exit early
     // if using pred depth only, you won't skip, so no need to check
     if (!(ctx->pd_pass == PD_PASS_1 && ctx->pred_depth_only))

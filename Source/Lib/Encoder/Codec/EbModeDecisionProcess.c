@@ -92,6 +92,7 @@ void    svt_aom_set_nics(NicScalingCtrls *scaling_ctrls, uint32_t mds1_count[CAN
                          uint32_t mds2_count[CAND_CLASS_TOTAL], uint32_t mds3_count[CAND_CLASS_TOTAL],
                          uint8_t pic_type);
 
+
 /******************************************************
  * Mode Decision Context Constructor
  ******************************************************/
