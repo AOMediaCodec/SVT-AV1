@@ -4841,7 +4841,7 @@ static void process_first_pass_frame(
 
     pcs->first_pass_seg_total_count = (uint16_t)(pcs->first_pass_seg_column_count  * pcs->first_pass_seg_row_count);
     pcs->first_pass_seg_acc = 0;
-    first_pass_sig_deriv_multi_processes(scs, pcs);
+    first_pass_svt_aom_sig_deriv_multi_processes(scs, pcs);
     if (pcs->me_data_wrapper_ptr == NULL) {
         EbObjectWrapper               *me_wrapper;
         svt_get_empty_object(pd_ctx->me_fifo_ptr, &me_wrapper);
@@ -5172,7 +5172,7 @@ static EbErrorType derive_tf_window_params(
 #endif
 
                 // tpl setting are updated if hierarchical level has changed
-                set_tpl_extended_controls(centre_pcs, scs->tpl_level);
+                svt_aom_set_tpl_extended_controls(centre_pcs, scs->tpl_level);
                 centre_pcs->r0_based_qps_qpm = centre_pcs->tpl_ctrls.enable &&
                     (centre_pcs->temporal_layer_index == 0 ||
                     (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF && centre_pcs->hierarchical_levels == 5 && centre_pcs->temporal_layer_index == 1));
@@ -6124,9 +6124,9 @@ static void init_pic_settings(SequenceControlSet* scs, PictureParentControlSet* 
     // TODO: put this in EbMotionEstimationProcess?
     // ME Kernel Multi-Processes Signal(s) derivation
     if (scs->static_config.pass == ENC_FIRST_PASS)
-        first_pass_sig_deriv_multi_processes(scs, pcs);
+        first_pass_svt_aom_sig_deriv_multi_processes(scs, pcs);
     else
-        sig_deriv_multi_processes(scs, pcs, ctx);
+        svt_aom_sig_deriv_multi_processes(scs, pcs, ctx);
 
     update_count_try(scs, pcs);
 

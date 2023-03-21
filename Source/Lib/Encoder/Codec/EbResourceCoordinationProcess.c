@@ -712,9 +712,9 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
             // Pre-Analysis Signal(s) derivation
             if (scs->static_config.pass == ENC_FIRST_PASS)
-                first_pass_sig_deriv_pre_analysis_scs(scs);
+                first_pass_svt_aom_sig_deriv_pre_analysis_scs(scs);
             else
-                sig_deriv_pre_analysis_scs(scs);
+                svt_aom_sig_deriv_pre_analysis_scs(scs);
 
             // Init SB Params
             const uint32_t input_size = scs->max_input_luma_width * scs->max_input_luma_height;
@@ -871,9 +871,9 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
             // Pre-Analysis Signal(s) derivation
             if (scs->static_config.pass == ENC_FIRST_PASS)
-                first_pass_sig_deriv_pre_analysis_pcs(pcs);
+                first_pass_svt_aom_sig_deriv_pre_analysis_pcs(pcs);
             else
-                sig_deriv_pre_analysis_pcs(pcs);
+                svt_aom_sig_deriv_pre_analysis_pcs(pcs);
             // Rate Control
 
             // Picture Stats

@@ -2773,8 +2773,8 @@ static void lpd1_detector_post_pd0(PictureControlSet *pcs, ModeDecisionContext *
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
-    const Bool is_ref_l0_avail = is_ref_same_size(pcs, REF_LIST_0, 0);
-    const Bool is_ref_l1_avail = is_ref_same_size(pcs, REF_LIST_1, 0);
+    const Bool is_ref_l0_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_0, 0);
+    const Bool is_ref_l1_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_1, 0);
 
     for (int pd1_lvl = LPD1_LEVELS - 1; pd1_lvl > REGULAR_PD1; pd1_lvl--) {
         if (md_ctx->lpd1_ctrls.pd1_level == pd1_lvl) {
@@ -2887,8 +2887,8 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
-    const Bool is_ref_l0_avail = is_ref_same_size(pcs, REF_LIST_0, 0);
-    const Bool is_ref_l1_avail = is_ref_same_size(pcs, REF_LIST_1, 0);
+    const Bool is_ref_l0_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_0, 0);
+    const Bool is_ref_l1_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_1, 0);
 
     for (int pd1_lvl = LPD1_LEVELS - 1; pd1_lvl > REGULAR_PD1; pd1_lvl--) {
         if (md_ctx->lpd1_ctrls.pd1_level == pd1_lvl) {
@@ -3009,8 +3009,8 @@ static void lpd0_detector(PictureControlSet *pcs, ModeDecisionContext *md_ctx) {
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
-    const Bool is_ref_l0_avail = is_ref_same_size(pcs, REF_LIST_0, 0);
-    const Bool is_ref_l1_avail = is_ref_same_size(pcs, REF_LIST_1, 0);
+    const Bool is_ref_l0_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_0, 0);
+    const Bool is_ref_l1_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_1, 0);
 
     for (int pd0_lvl = LPD0_LEVELS - 1; pd0_lvl > REGULAR_PD0; pd0_lvl--) {
         if (lpd0_ctrls->pd0_level == pd0_lvl) {
@@ -3356,7 +3356,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                 pcs, sb_ptr, scs->seq_header.sb_size == BLOCK_128X128));
 
                         // signals set once per SB (i.e. not per PD)
-                        sig_deriv_enc_dec__common(scs, pcs, ed_ctx->md_ctx);
+                        svt_aom_sig_deriv_enc_dec__common(scs, pcs, ed_ctx->md_ctx);
 
                         if (pcs->ppcs->palette_level)
                             // Status of palette info alloc
@@ -3401,7 +3401,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                             // skip_intra much be TRUE for non-I_SLICE pictures to use light_pd0 path
                             if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
                                 // [PD_PASS_0] Signal(s) derivation
-                                sig_deriv_enc_dec_light_pd0(scs, pcs, ed_ctx->md_ctx);
+                                svt_aom_sig_deriv_enc_dec_light_pd0(scs, pcs, ed_ctx->md_ctx);
                                 // Save a clean copy of the neighbor arrays
                                 if (!ed_ctx->md_ctx->skip_intra)
                                     copy_neighbour_arrays_light_pd0(
@@ -3485,7 +3485,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                 lpd1_detector_post_pd0(pcs, md_ctx);
                             // Force pred depth only for modes where that is not the default
                             if (md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1) {
-                                set_depth_ctrls(md_ctx, 0);
+                                svt_aom_set_depth_ctrls(md_ctx, 0);
                                 md_ctx->pred_depth_only = 1;
                             }
                             // Perform Pred_0 depth refinement - add depth(s) to be considered in the next stage(s)
@@ -3508,7 +3508,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         exaustive_light_pd1_features(
                             md_ctx, ppcs, md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1, 0);
                         if (md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1)
-                            sig_deriv_enc_dec_light_pd1(pcs, ed_ctx->md_ctx);
+                            svt_aom_sig_deriv_enc_dec_light_pd1(pcs, ed_ctx->md_ctx);
                         else
                             svt_aom_sig_deriv_enc_dec(scs, pcs, ed_ctx->md_ctx);
                         if (!skip_pd_pass_0 && pcs->ppcs->multi_pass_pd_level != MULTI_PASS_PD_OFF)

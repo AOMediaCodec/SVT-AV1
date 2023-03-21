@@ -11,7 +11,7 @@
 static uint8_t pf_gi[16] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60};
 
 // use this function to set the enable_me_8x8 level
-uint8_t get_enable_me_8x8(EncMode enc_mode) {
+uint8_t svt_aom_get_enable_me_8x8(EncMode enc_mode) {
     uint8_t enable_me_8x8 = 0;
     if (enc_mode <= ENC_M11)
         enable_me_8x8 = 1;
@@ -21,9 +21,9 @@ uint8_t get_enable_me_8x8(EncMode enc_mode) {
     return enable_me_8x8;
 }
 #if OPT_LD_M13
-uint8_t get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
+uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
 #else
-uint8_t get_enable_me_16x16(EncMode enc_mode) {
+uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode) {
 #endif
     uint8_t enable_me_16x16;
 #if OPT_LD_M13
@@ -73,8 +73,8 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs) {
 /************************************************
  * Set HME Search area parameters
  ************************************************/
-void set_hme_search_params(PictureParentControlSet *pcs, MeContext *me_ctx,
-                           EbInputResolution input_resolution) {
+static void set_hme_search_params(PictureParentControlSet *pcs, MeContext *me_ctx,
+                                  EbInputResolution input_resolution) {
     // Set number of HME level 0 search regions to use
     me_ctx->num_hme_sa_w = 2;
     me_ctx->num_hme_sa_h = 2;
@@ -144,8 +144,8 @@ void set_hme_search_params(PictureParentControlSet *pcs, MeContext *me_ctx,
 /************************************************
  * Set ME Search area parameters
  ************************************************/
-void set_me_search_params(SequenceControlSet *scs, PictureParentControlSet *pcs, MeContext *me_ctx,
-                          EbInputResolution input_resolution) {
+static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSet *pcs,
+                                 MeContext *me_ctx, EbInputResolution input_resolution) {
 #if FIX_LAYER_SIGNAL
     uint32_t hierarchical_levels = pcs->hierarchical_levels;
 #else
@@ -498,7 +498,7 @@ static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *
   Output  : ME Kernel signal(s)
 ******************************************************/
 void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                          MotionEstimationContext_t *me_context_ptr) {
+                          MeContext *me_ctx) {
     EncMode           enc_mode         = pcs->enc_mode;
     EbInputResolution input_resolution = scs->input_resolution;
 #if FIX_LAYER_SIGNAL
@@ -507,29 +507,29 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     const uint32_t hierarchical_levels = scs->static_config.hierarchical_levels;
 #endif
     // Set ME search area
-    set_me_search_params(scs, pcs, me_context_ptr->me_ctx, input_resolution);
+    set_me_search_params(scs, pcs, me_ctx, input_resolution);
 
     // Set HME search area
-    set_hme_search_params(pcs, me_context_ptr->me_ctx, input_resolution);
+    set_hme_search_params(pcs, me_ctx, input_resolution);
 
     // Set HME flags
-    me_context_ptr->me_ctx->enable_hme_flag        = pcs->enable_hme_flag;
-    me_context_ptr->me_ctx->enable_hme_level0_flag = pcs->enable_hme_level0_flag;
-    me_context_ptr->me_ctx->enable_hme_level1_flag = pcs->enable_hme_level1_flag;
-    me_context_ptr->me_ctx->enable_hme_level2_flag = pcs->enable_hme_level2_flag;
+    me_ctx->enable_hme_flag        = pcs->enable_hme_flag;
+    me_ctx->enable_hme_level0_flag = pcs->enable_hme_level0_flag;
+    me_ctx->enable_hme_level1_flag = pcs->enable_hme_level1_flag;
+    me_ctx->enable_hme_level2_flag = pcs->enable_hme_level2_flag;
     // HME Search Method
-    me_context_ptr->me_ctx->hme_search_method = SUB_SAD_SEARCH;
-    me_context_ptr->me_ctx->me_search_method  = SUB_SAD_SEARCH;
+    me_ctx->hme_search_method = SUB_SAD_SEARCH;
+    me_ctx->me_search_method  = SUB_SAD_SEARCH;
 
     if (pcs->sc_class1) {
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_min = 0;
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_max = 0;
+        me_ctx->reduce_hme_l0_sr_th_min = 0;
+        me_ctx->reduce_hme_l0_sr_th_max = 0;
     } else if (pcs->enc_mode <= ENC_M10) {
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_min = 0;
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_max = 0;
+        me_ctx->reduce_hme_l0_sr_th_min = 0;
+        me_ctx->reduce_hme_l0_sr_th_max = 0;
     } else {
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_min = 8;
-        me_context_ptr->me_ctx->reduce_hme_l0_sr_th_max = 200;
+        me_ctx->reduce_hme_l0_sr_th_min = 8;
+        me_ctx->reduce_hme_l0_sr_th_max = 200;
     }
     // Set pre-hme level (0-2)
     uint8_t prehme_level = 0;
@@ -544,101 +544,101 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     if (pcs->enable_hme_level1_flag == 0)
         prehme_level = 0;
 
-    svt_aom_set_prehme_ctrls(me_context_ptr->me_ctx, prehme_level);
+    svt_aom_set_prehme_ctrls(me_ctx, prehme_level);
 
     // Set hme/me based reference pruning level (0-4)
     if (pcs->sc_class1) {
         if (enc_mode <= ENC_MRS)
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 0);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 0);
         else if (enc_mode <= ENC_M1)
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 2);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
         else if (enc_mode <= ENC_M9)
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 5);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 5);
         else
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 6);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 6);
     } else {
         if (enc_mode <= ENC_MRS)
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 0);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 0);
         else if (enc_mode <= ENC_M0)
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 2);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
         else if (enc_mode <= ENC_M1) {
             if (pcs->temporal_layer_index == 0)
-                svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 2);
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
             else
-                svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 4);
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 4);
         } else if (enc_mode <= ENC_M7) {
             if (pcs->temporal_layer_index == 0)
-                svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 2);
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
             else
-                svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 5);
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 5);
         } else
-            svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 5);
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 5);
     }
     // Set hme-based me sr adjustment level
     if (pcs->sc_class1)
         if (enc_mode <= ENC_M9)
-            svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 4);
+            svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 4);
         else
-            svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 5);
+            svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 5);
     else if (enc_mode <= ENC_MRS)
-        svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 0);
+        svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
     else if (enc_mode <= ENC_M2)
-        svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 1);
+        svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 1);
     else
-        svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 3);
+        svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 3);
     if (enc_mode <= ENC_M2)
-        me_context_ptr->me_ctx->prune_me_candidates_th = 0;
+        me_ctx->prune_me_candidates_th = 0;
     else
-        me_context_ptr->me_ctx->prune_me_candidates_th = 65;
+        me_ctx->prune_me_candidates_th = 65;
     // Set signal at picture level b/c may check signal in MD
-    me_context_ptr->me_ctx->use_best_unipred_cand_only = pcs->use_best_me_unipred_cand_only;
+    me_ctx->use_best_unipred_cand_only = pcs->use_best_me_unipred_cand_only;
     if (enc_mode <= ENC_M6)
-        me_context_ptr->me_ctx->me_early_exit_th = 0;
+        me_ctx->me_early_exit_th = 0;
     else if (enc_mode <= ENC_M7) {
         if (hierarchical_levels <= 3)
-            me_context_ptr->me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
+            me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
         else
-            me_context_ptr->me_ctx->me_early_exit_th = 0;
+            me_ctx->me_early_exit_th = 0;
     } else if (pcs->enc_mode <= ENC_M10)
-        me_context_ptr->me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
+        me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
     else
-        me_context_ptr->me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
+        me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
 
-    me_context_ptr->me_ctx->skip_frame = 0;
+    me_ctx->skip_frame = 0;
 };
 /******************************************************
 * Derive ME Settings for OQ for Altref Temporal Filtering
   Input   : encoder mode and tune
   Output  : ME Kernel signal(s)
 ******************************************************/
-void sig_deriv_me_tf(PictureParentControlSet *pcs, MotionEstimationContext_t *me_context_ptr) {
+void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     // Set ME/HME search regions
-    tf_set_me_hme_params_oq(me_context_ptr->me_ctx, pcs);
+    tf_set_me_hme_params_oq(me_ctx, pcs);
     // Set HME flags
-    me_context_ptr->me_ctx->enable_hme_flag        = pcs->tf_enable_hme_flag;
-    me_context_ptr->me_ctx->enable_hme_level0_flag = pcs->tf_enable_hme_level0_flag;
-    me_context_ptr->me_ctx->enable_hme_level1_flag = pcs->tf_enable_hme_level1_flag;
-    me_context_ptr->me_ctx->enable_hme_level2_flag = pcs->tf_enable_hme_level2_flag;
+    me_ctx->enable_hme_flag        = pcs->tf_enable_hme_flag;
+    me_ctx->enable_hme_level0_flag = pcs->tf_enable_hme_level0_flag;
+    me_ctx->enable_hme_level1_flag = pcs->tf_enable_hme_level1_flag;
+    me_ctx->enable_hme_level2_flag = pcs->tf_enable_hme_level2_flag;
     // HME Search Method
-    me_context_ptr->me_ctx->hme_search_method = SUB_SAD_SEARCH;
+    me_ctx->hme_search_method = SUB_SAD_SEARCH;
     // ME Search Method
-    me_context_ptr->me_ctx->me_search_method = SUB_SAD_SEARCH;
+    me_ctx->me_search_method = SUB_SAD_SEARCH;
 
     uint8_t prehme_level = 0;
-    svt_aom_set_prehme_ctrls(me_context_ptr->me_ctx, prehme_level);
+    svt_aom_set_prehme_ctrls(me_ctx, prehme_level);
 
     // Set hme/me based reference pruning level (0-4)
     // Ref pruning is disallowed for TF in motion_estimate_sb()
-    svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 0);
+    svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 0);
 
     // Set hme-based me sr adjustment level
     // ME SR adjustment is disallowed for TF in motion_estimate_sb()
-    svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 0);
+    svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
 
-    me_context_ptr->me_ctx->me_early_exit_th        = 0;
-    me_context_ptr->me_ctx->reduce_hme_l0_sr_th_min = 0;
-    me_context_ptr->me_ctx->reduce_hme_l0_sr_th_max = 0;
-    me_context_ptr->me_ctx->skip_frame              = 0;
+    me_ctx->me_early_exit_th        = 0;
+    me_ctx->reduce_hme_l0_sr_th_min = 0;
+    me_ctx->reduce_hme_l0_sr_th_max = 0;
+    me_ctx->skip_frame              = 0;
 };
 
 /* Wrapper function to compute TPL Synthesizer block size: Used in init memory allocation and TPL Controls*/
@@ -658,7 +658,7 @@ uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t pictur
 /*************************************************************************************
 Set the TPL controls that control TPL search complexity.
 ***************************************************************************************/
-void set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl_level) {
+void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl_level) {
     TplControls            *tpl_ctrls  = &pcs->tpl_ctrls;
     SequenceControlSet     *scs        = pcs->scs;
     const uint8_t           is_islice  = pcs->slice_type == I_SLICE;
@@ -859,7 +859,7 @@ void set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl_level) 
     }
 }
 
-void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, Bool fast_decode) {
+static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, Bool fast_decode) {
     CdefControls *cdef_ctrls = &pcs->cdef_ctrls;
     int           i, j, sf_idx, second_pass_fs_num;
     cdef_ctrls->use_reference_cdef_fs = 0;
@@ -1495,8 +1495,8 @@ uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resolution, 
 }
 
 // Returns the level for self-guided restoration filter
-uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, Bool fast_decode, uint8_t input_resolution,
-                                    Bool is_base) {
+static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, Bool fast_decode,
+                                           uint8_t input_resolution, Bool is_base) {
     uint8_t sg_filter_lvl = 0;
     if (fast_decode == 0) {
         if (enc_mode <= ENC_M2)
@@ -1523,7 +1523,7 @@ uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, Bool fast_decode, uint8_t 
     return sg_filter_lvl;
 }
 
-void set_list0_only_base(PictureParentControlSet *pcs, uint8_t list0_only_base) {
+static void set_list0_only_base(PictureParentControlSet *pcs, uint8_t list0_only_base) {
     List0OnlyBase *ctrls = &pcs->list0_only_base_ctrls;
 
     switch (list0_only_base) {
@@ -1545,7 +1545,7 @@ void set_list0_only_base(PictureParentControlSet *pcs, uint8_t list0_only_base) 
 
 /*
 * return the DLF level
-* Used by sig_deriv_multi_processes and memory allocation
+* Used by svt_aom_sig_deriv_multi_processes and memory allocation
 *
 * 0 -- DLF OFF
 * 1 -- Full Frame DLF
@@ -1680,7 +1680,7 @@ static void set_intrabc_level(PictureParentControlSet *pcs, SequenceControlSet *
 /*
     set controls for Palette prediction
 */
-void set_palette_level(PictureParentControlSet *pcs, uint8_t palette_level) {
+static void set_palette_level(PictureParentControlSet *pcs, uint8_t palette_level) {
     PaletteCtrls *palette_ctrls = &pcs->palette_ctrls;
 
     switch (palette_level) {
@@ -1732,8 +1732,8 @@ uint16_t svt_aom_get_max_can_count(EncMode enc_mode) {
 Input   : encoder mode and tune
 Output  : Multi-Processes signal(s)
 ******************************************************/
-void sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                               PictureDecisionContext *context_ptr) {
+void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentControlSet *pcs,
+                                       PictureDecisionContext *context_ptr) {
     FrameHeader            *frm_hdr          = &pcs->frm_hdr;
     EncMode                 enc_mode         = pcs->enc_mode;
     const uint8_t           is_islice        = pcs->slice_type == I_SLICE;
@@ -1960,7 +1960,7 @@ void sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentControlSet 
         pcs->use_best_me_unipred_cand_only = 1;
 
     //TPL level should not be modified outside of this function
-    set_tpl_extended_controls(pcs, scs->tpl_level);
+    svt_aom_set_tpl_extended_controls(pcs, scs->tpl_level);
     pcs->r0_based_qps_qpm = pcs->tpl_ctrls.enable &&
         (pcs->temporal_layer_index == 0 ||
          (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF &&
@@ -1970,7 +1970,7 @@ void sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentControlSet 
         pcs->adjust_under_shoot_gf = enc_mode <= ENC_M11 ? 1 : 2;
 }
 /*set the skip_frame flag for ipp*/
-void set_skip_frame_in_ipp(PictureParentControlSet *pcs, MeContext *me_ctx) {
+void svt_aom_set_skip_frame_in_ipp(PictureParentControlSet *pcs, MeContext *me_ctx) {
     me_ctx->skip_frame             = 0;
     int8_t   max_heirachical_level = (int8_t)pcs->scs->max_heirachical_level;
     int8_t   enc_mode              = pcs->scs->static_config.enc_mode;
@@ -2105,8 +2105,8 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 /************************************************
  * Set ME/HME Params for the first pass encoding
  ************************************************/
-void *set_first_pass_me_hme_params_oq(MeContext *me_ctx, SequenceControlSet *scs,
-                                      EbInputResolution input_resolution) {
+static void *set_first_pass_me_hme_params_oq(MeContext *me_ctx, SequenceControlSet *scs,
+                                             EbInputResolution input_resolution) {
     // HME/ME default settings
     me_ctx->num_hme_sa_w            = 2;
     me_ctx->num_hme_sa_h            = 2;
@@ -2144,7 +2144,7 @@ void *set_first_pass_me_hme_params_oq(MeContext *me_ctx, SequenceControlSet *scs
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-extern void first_pass_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
+extern void first_pass_svt_aom_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
     // Derive HME Flag
     pcs->enable_hme_flag        = 1;
     pcs->enable_hme_level0_flag = 1;
@@ -2164,7 +2164,7 @@ extern void first_pass_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) 
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-extern void first_pass_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
+extern void first_pass_svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
     scs->seq_header.enable_intra_edge_filter   = 0;
     scs->seq_header.pic_based_rate_est         = 0;
     scs->seq_header.enable_restoration         = 0;
@@ -2188,7 +2188,8 @@ Input   : encoder mode and tune
 Output  : Multi-Processes signal(s)
 ******************************************************/
 
-void first_pass_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentControlSet *pcs) {
+void first_pass_svt_aom_sig_deriv_multi_processes(SequenceControlSet      *scs,
+                                                  PictureParentControlSet *pcs) {
     FrameHeader *frm_hdr = &pcs->frm_hdr;
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
@@ -2241,7 +2242,7 @@ void first_pass_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParent
 Input   : encoder mode and tune
 Output  : EncDec Kernel signal(s)
 ******************************************************/
-void first_pass_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
+void first_pass_svt_aom_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
     // CDF
     pcs->cdf_ctrl.enabled = pcs->cdf_ctrl.update_coef = 0;
     pcs->cdf_ctrl.update_mv = pcs->cdf_ctrl.update_se = 0;
@@ -2286,43 +2287,43 @@ void first_pass_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
   Input   : encoder mode and tune
   Output  : ME Kernel signal(s)
 ******************************************************/
-void first_pass_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                             MotionEstimationContext_t *me_context_ptr) {
+void svt_aom_first_pass_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
+                                     MeContext *me_ctx) {
     // Set ME/HME search regions
-    set_first_pass_me_hme_params_oq(me_context_ptr->me_ctx, scs, scs->input_resolution);
+    set_first_pass_me_hme_params_oq(me_ctx, scs, scs->input_resolution);
 
     // Set HME flags
-    me_context_ptr->me_ctx->enable_hme_flag        = pcs->enable_hme_flag;
-    me_context_ptr->me_ctx->enable_hme_level0_flag = pcs->enable_hme_level0_flag;
-    me_context_ptr->me_ctx->enable_hme_level1_flag = pcs->enable_hme_level1_flag;
-    me_context_ptr->me_ctx->enable_hme_level2_flag = !scs->ipp_pass_ctrls.reduce_me_search
+    me_ctx->enable_hme_flag        = pcs->enable_hme_flag;
+    me_ctx->enable_hme_level0_flag = pcs->enable_hme_level0_flag;
+    me_ctx->enable_hme_level1_flag = pcs->enable_hme_level1_flag;
+    me_ctx->enable_hme_level2_flag = !scs->ipp_pass_ctrls.reduce_me_search
         ? pcs->enable_hme_level2_flag
         : 0;
 
     // HME Search Method
-    me_context_ptr->me_ctx->hme_search_method = SUB_SAD_SEARCH;
+    me_ctx->hme_search_method = SUB_SAD_SEARCH;
 
     // ME Search Method
-    me_context_ptr->me_ctx->me_search_method = SUB_SAD_SEARCH;
+    me_ctx->me_search_method = SUB_SAD_SEARCH;
 
     uint8_t gm_level = 0;
     svt_aom_set_gm_controls(pcs, gm_level);
 
     // Set pre-hme level (0-2)
     uint8_t prehme_level = 0;
-    svt_aom_set_prehme_ctrls(me_context_ptr->me_ctx, prehme_level);
+    svt_aom_set_prehme_ctrls(me_ctx, prehme_level);
 
     // Set hme/me based reference pruning level (0-4)
-    svt_aom_set_me_hme_ref_prune_ctrls(me_context_ptr->me_ctx, 0);
+    svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 0);
 
     // Set hme-based me sr adjustment level
-    svt_aom_set_me_sr_adjustment_ctrls(me_context_ptr->me_ctx, 0);
-    me_context_ptr->me_ctx->prune_me_candidates_th     = 0; // No impact on tf
-    me_context_ptr->me_ctx->use_best_unipred_cand_only = 0; // No impact on tf
-    svt_aom_set_prehme_ctrls(me_context_ptr->me_ctx, 0);
-    set_skip_frame_in_ipp(pcs, me_context_ptr->me_ctx);
+    svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
+    me_ctx->prune_me_candidates_th     = 0; // No impact on tf
+    me_ctx->use_best_unipred_cand_only = 0; // No impact on tf
+    svt_aom_set_prehme_ctrls(me_ctx, 0);
+    svt_aom_set_skip_frame_in_ipp(pcs, me_ctx);
 };
-void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp_mode) {
+static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp_mode) {
     InterCompCtrls *inter_comp_ctrls = &ctx->inter_comp_ctrls;
 
     switch (inter_comp_mode) {
@@ -2424,7 +2425,7 @@ void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp_mode) 
   changed  at the block level
 ******************************************************/
 
-void sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     ctx->spatial_sse_full_loop_level = ctx->spatial_sse_ctrls.spatial_sse_full_loop_level;
     UNUSED(pcs);
     // set compound_types_to_try
@@ -2462,7 +2463,7 @@ uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_re
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-void sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
+void svt_aom_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
     // Derive HME Flag
     // Set here to allocate resources for the downsampled pictures used in HME (generated in PictureAnalysis)
     // Will be later updated for SC/NSC in PictureDecisionProcess
@@ -2486,7 +2487,7 @@ void sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-void sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
+void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
     // Set the SCD Mode
     scs->scd_mode = scs->static_config.scene_change_detection == 0 ? SCD_MODE_0 : SCD_MODE_1;
 
@@ -2791,7 +2792,7 @@ EB_EXTERN EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock
 * TRUE -- in same frame size
 * FALSE -- reference picture not exist or in difference frame size
 */
-Bool is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t ref_idx) {
+Bool svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t ref_idx) {
     // skip the checking if reference scaling and super-res are disabled
     if (pcs->ppcs->is_not_scaled)
         return TRUE;
@@ -2810,7 +2811,7 @@ Bool is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t ref_idx)
     return ref_obj->reference_picture->width == pcs->ppcs->frame_width &&
         ref_obj->reference_picture->height == pcs->ppcs->frame_height;
 }
-void set_obmc_controls(ModeDecisionContext *mdctxt, uint8_t obmc_mode) {
+static void set_obmc_controls(ModeDecisionContext *mdctxt, uint8_t obmc_mode) {
     ObmcControls *obmc_ctrls = &mdctxt->obmc_ctrls;
     switch (obmc_mode) {
     case 0: obmc_ctrls->enabled = 0; break;
@@ -2833,8 +2834,8 @@ void set_obmc_controls(ModeDecisionContext *mdctxt, uint8_t obmc_mode) {
     }
 }
 
-void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisionContext *mdctxt,
-                                      uint8_t depth_removal_level) {
+static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisionContext *mdctxt,
+                                             uint8_t depth_removal_level) {
     DepthRemovalCtrls *depth_removal_ctrls = &mdctxt->depth_removal_ctrls;
 
     if (pcs->slice_type == I_SLICE) {
@@ -3343,7 +3344,7 @@ void svt_aom_md_pme_search_controls(ModeDecisionContext *mdctxt, uint8_t md_pme_
     default: assert(0); break;
     }
 }
-void set_subres_controls(ModeDecisionContext *mdctxt, uint8_t subres_level) {
+static void set_subres_controls(ModeDecisionContext *mdctxt, uint8_t subres_level) {
     SubresCtrls *subres_ctrls = &mdctxt->subres_ctrls;
 
     switch (subres_level) {
@@ -3358,7 +3359,7 @@ void set_subres_controls(ModeDecisionContext *mdctxt, uint8_t subres_level) {
     else
         subres_ctrls->odd_to_even_deviation_th = 5;
 }
-void set_pf_controls(ModeDecisionContext *mdctxt, uint8_t pf_level) {
+static void set_pf_controls(ModeDecisionContext *mdctxt, uint8_t pf_level) {
     PfCtrls *pf_ctrls = &mdctxt->pf_ctrls;
 
     switch (pf_level) {
@@ -3742,7 +3743,7 @@ static void md_subpel_pme_controls(ModeDecisionContext *mdctxt, uint8_t md_subpe
 /*
  * Control RDOQ
  */
-void set_rdoq_controls(ModeDecisionContext *mdctxt, uint8_t rdoq_level) {
+static void set_rdoq_controls(ModeDecisionContext *mdctxt, uint8_t rdoq_level) {
     RdoqCtrls *rdoq_ctrls = &mdctxt->rdoq_ctrls;
 
     switch (rdoq_level) {
@@ -4621,7 +4622,7 @@ uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level) 
     return uv_mode;
 }
 
-void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
+static void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
     WmCtrls *wm_ctrls = &mdctxt->wm_ctrls;
 
     switch (wm_level) {
@@ -4638,6 +4639,52 @@ void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
         break;
     default: assert(0); break;
     }
+}
+// Get the nic_level used for each preset (to be passed to setting function: svt_aom_set_nic_controls())
+// hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
+#if OPT_LD_M11
+uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels,
+                              bool rtc_tune) {
+#else
+uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels) {
+#endif
+    uint8_t nic_level;
+
+    if (enc_mode <= ENC_MRS)
+        nic_level = 0;
+    else if (enc_mode <= ENC_MR)
+        nic_level = 1;
+    else if (enc_mode <= ENC_M0)
+        nic_level = is_base ? 2 : 4;
+    else if (enc_mode <= ENC_M1)
+        nic_level = is_base ? 7 : 8;
+    else if (enc_mode <= ENC_M3) {
+        if (hierarchical_levels <= 3)
+            nic_level = 10;
+        else
+            nic_level = 11;
+    } else if (enc_mode <= ENC_M5)
+        nic_level = 12;
+    else if (enc_mode <= ENC_M6) {
+        if (hierarchical_levels <= 3)
+            nic_level = 15;
+        else
+            nic_level = 14;
+    } else if (enc_mode <= ENC_M10)
+        nic_level = 15;
+    else if (enc_mode <= ENC_M11)
+#if OPT_LD_M11
+        if (rtc_tune)
+            nic_level = is_base ? 15 : 16;
+        else
+            nic_level = hierarchical_levels <= 2 ? 16 : 15;
+#else
+        nic_level = hierarchical_levels <= 2 ? 16 : 15;
+#endif
+    else
+        nic_level = 16;
+
+    return nic_level;
 }
 /*
 * Set the NIC scaling and pruning controls.
@@ -5465,7 +5512,7 @@ void svt_aom_set_inter_intra_ctrls(ModeDecisionContext *mdctxt, uint8_t inter_in
     default: assert(0); break;
     }
 }
-void set_depth_ctrls(ModeDecisionContext *ctx, uint8_t depth_level) {
+void svt_aom_set_depth_ctrls(ModeDecisionContext *ctx, uint8_t depth_level) {
     DepthCtrls *depth_ctrls = &ctx->depth_ctrls;
 
     switch (depth_level) {
@@ -6213,7 +6260,8 @@ static uint64_t compute_subres_th(SequenceControlSet *scs, PictureControlSet *pc
     }
     return use_subres_th;
 }
-void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t lpd1_tx_level) {
+static void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                              uint8_t lpd1_tx_level) {
     PictureParentControlSet *ppcs  = pcs->ppcs;
     Lpd1TxCtrls             *ctrls = &ctx->lpd1_tx_ctrls;
 
@@ -6306,7 +6354,7 @@ static void set_cfl_ctrls(ModeDecisionContext *ctx, uint8_t cfl_level) {
     default: assert(0); break;
     }
 }
-void set_rate_est_ctrls(ModeDecisionContext *ctx, uint8_t rate_est_level) {
+static void set_rate_est_ctrls(ModeDecisionContext *ctx, uint8_t rate_est_level) {
     MdRateEstCtrls *ctrls = &ctx->rate_est_ctrls;
 
     switch (rate_est_level) {
@@ -6400,7 +6448,7 @@ static Bool get_sb_tpl_intra_stats(PictureControlSet *pcs, ModeDecisionContext *
     }
     return 0;
 }
-void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t intra_level) {
+static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t intra_level) {
     IntraCtrls              *ctrls = &ctx->intra_ctrls;
     PictureParentControlSet *ppcs  = pcs->ppcs;
 
@@ -6504,8 +6552,8 @@ void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t i
     }
 }
 
-void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                           uint8_t tx_shortcut_level) {
+static void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                  uint8_t tx_shortcut_level) {
     PictureParentControlSet *ppcs  = pcs->ppcs;
     TxShortcutCtrls         *ctrls = &ctx->tx_shortcut_ctrls;
 
@@ -6562,7 +6610,7 @@ void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
                "artifacts.");
 }
 
-void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
+static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
     Mds0Ctrls *ctrls = &ctx->mds0_ctrls;
 
     switch (mds0_level) {
@@ -6615,8 +6663,8 @@ static void set_skip_4x4_depth_ctrls(Skip4x4DepthCtrls *skip_4x4_depth_ctrls,
 /*
  * Generate per-SB MD settings (do not change per-PD)
  */
-void sig_deriv_enc_dec__common(SequenceControlSet *scs, PictureControlSet *pcs,
-                               ModeDecisionContext *ctx) {
+void svt_aom_sig_deriv_enc_dec__common(SequenceControlSet *scs, PictureControlSet *pcs,
+                                       ModeDecisionContext *ctx) {
     EncMode enc_mode = pcs->enc_mode;
 
     SuperBlock *sb_ptr = pcs->sb_ptr_array[ctx->sb_index];
@@ -6677,7 +6725,7 @@ void sig_deriv_enc_dec__common(SequenceControlSet *scs, PictureControlSet *pcs,
     else
         depth_level = 0;
 
-    set_depth_ctrls(ctx, depth_level);
+    svt_aom_set_depth_ctrls(ctx, depth_level);
 
     // pic_pred_depth_only shouldn't be changed after this point
     ctx->pred_depth_only = ctx->pic_pred_depth_only = (depth_level == 0);
@@ -6761,8 +6809,8 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
 
 // Set signals used for light-pd0 path; only PD0 should call this function
 // assumes NSQ OFF, no 4x4, no chroma, no TXT/TXS/RDOQ/SSSE, SB_64x64
-void sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs,
-                                 ModeDecisionContext *ctx) {
+void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs,
+                                         ModeDecisionContext *ctx) {
     Pd0Level pd0_level = ctx->lpd0_ctrls.pd0_level;
 
     ctx->md_disallow_nsq                 = 1;
@@ -6874,7 +6922,7 @@ void sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs
     ctx->approx_inter_rate = 1;
 }
 
-void sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     Pd1Level                 lpd1_level       = ctx->lpd1_ctrls.pd1_level;
     PictureParentControlSet *ppcs             = pcs->ppcs;
     const uint8_t            is_ref           = ppcs->is_used_as_reference_flag;
@@ -6895,8 +6943,8 @@ void sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ct
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
-    const Bool is_ref_l0_avail = is_ref_same_size(pcs, REF_LIST_0, 0);
-    const Bool is_ref_l1_avail = is_ref_same_size(pcs, REF_LIST_1, 0);
+    const Bool is_ref_l0_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_0, 0);
+    const Bool is_ref_l1_avail = svt_aom_is_ref_same_size(pcs, REF_LIST_1, 0);
 
     // REF info only available if frame is not an I_SLICE
     if (!is_islice && is_ref_l0_avail) {
@@ -7407,62 +7455,18 @@ uint8_t svt_aom_get_bypass_encdec(EncMode enc_mode, uint8_t hbd_md, uint8_t enco
     }
     return bypass_encdec;
 }
-// Get the nic_level used for each preset (to be passed to setting function: svt_aom_set_nic_controls())
-// hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
-#if OPT_LD_M11
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels,
-                              bool rtc_tune) {
-#else
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels) {
-#endif
-    uint8_t nic_level;
 
-    if (enc_mode <= ENC_MRS)
-        nic_level = 0;
-    else if (enc_mode <= ENC_MR)
-        nic_level = 1;
-    else if (enc_mode <= ENC_M0)
-        nic_level = is_base ? 2 : 4;
-    else if (enc_mode <= ENC_M1)
-        nic_level = is_base ? 7 : 8;
-    else if (enc_mode <= ENC_M3) {
-        if (hierarchical_levels <= 3)
-            nic_level = 10;
-        else
-            nic_level = 11;
-    } else if (enc_mode <= ENC_M5)
-        nic_level = 12;
-    else if (enc_mode <= ENC_M6) {
-        if (hierarchical_levels <= 3)
-            nic_level = 15;
-        else
-            nic_level = 14;
-    } else if (enc_mode <= ENC_M10)
-        nic_level = 15;
-    else if (enc_mode <= ENC_M11)
-#if OPT_LD_M11
-        if (rtc_tune)
-            nic_level = is_base ? 15 : 16;
-        else
-            nic_level = hierarchical_levels <= 2 ? 16 : 15;
-#else
-        nic_level = hierarchical_levels <= 2 ? 16 : 15;
-#endif
-    else
-        nic_level = 16;
-
-    return nic_level;
-}
-
-// use this function to set the disallow_below_16x16 level in MD. ME 8x8 blocks are controlled by get_enable_me_8x8()
+// use this function to set the disallow_below_16x16 level in MD. ME 8x8 blocks are controlled by svt_aom_get_enable_me_8x8()
 #if OPT_LD_M9
-uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
-                                                       EbInputResolution resolution, Bool is_islice,
-                                                       Bool sc_class1, Bool is_ref, bool rtc_tune) {
+static uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
+                                                              EbInputResolution resolution,
+                                                              Bool is_islice, Bool sc_class1,
+                                                              Bool is_ref, bool rtc_tune) {
 #else
-uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
-                                                       EbInputResolution resolution, Bool is_islice,
-                                                       Bool sc_class1, Bool is_ref) {
+static uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mode,
+                                                              EbInputResolution resolution,
+                                                              Bool is_islice, Bool sc_class1,
+                                                              Bool is_ref) {
 #endif
     uint8_t disallow_below_16x16 = 0;
     if (sc_class1)
@@ -7484,7 +7488,7 @@ uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode           enc_mod
     return disallow_below_16x16;
 }
 
-void set_cdf_controls(PictureControlSet *pcs, uint8_t update_cdf_level) {
+static void set_cdf_controls(PictureControlSet *pcs, uint8_t update_cdf_level) {
     CdfControls *ctrl = &pcs->cdf_ctrl;
     switch (update_cdf_level) {
     case 0:
@@ -7518,7 +7522,7 @@ void set_cdf_controls(PictureControlSet *pcs, uint8_t update_cdf_level) {
 Input   : encoder mode and tune
 Output  : EncDec Kernel signal(s)
 ******************************************************/
-EbErrorType rtime_alloc_ec_ctx_array(PictureControlSet *pcs, uint16_t all_sb) {
+static EbErrorType rtime_alloc_ec_ctx_array(PictureControlSet *pcs, uint16_t all_sb) {
     EB_MALLOC_ARRAY(pcs->ec_ctx_array, all_sb);
     return EB_ErrorNone;
 }
@@ -7551,7 +7555,7 @@ uint8_t svt_aom_get_chroma_level(EncMode enc_mode) {
     return chroma_level;
 }
 
-void sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
+void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
     PictureParentControlSet *ppcs                = pcs->ppcs;
     const EncMode            enc_mode            = pcs->enc_mode;
     const uint8_t            is_ref              = ppcs->is_used_as_reference_flag;

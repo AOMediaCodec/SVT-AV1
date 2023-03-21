@@ -10345,7 +10345,7 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
     // Only reset settings when features that change settings are used.
     if (!ctx->md_disallow_nsq)
         svt_aom_sig_deriv_enc_dec(scs, pcs, ctx);
-    sig_deriv_block(pcs, ctx);
+    svt_aom_sig_deriv_block(pcs, ctx);
     // Check current depth cost; if larger than parent, exit early
     // if using pred depth only, you won't skip, so no need to check
     if (!(ctx->pd_pass == PD_PASS_1 && ctx->pred_depth_only))

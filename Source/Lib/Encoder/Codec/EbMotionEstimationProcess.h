@@ -45,7 +45,4 @@ EbErrorType svt_aom_motion_estimation_context_ctor(EbThreadContext   *thread_ctx
 
 extern void *svt_aom_motion_estimation_kernel(void *input_ptr);
 
-void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                          MotionEstimationContext_t *me_context_ptr);
-
 #endif // EbMotionEstimationProcess_h

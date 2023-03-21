@@ -15,6 +15,7 @@
 #include "EbTransformUnit.h"
 #include "EbPictureControlSet.h"
 #include "EbUtility.h"
+#include "EncModeConfig.h"
 
 void svt_aom_largest_coding_unit_dctor(EbPtr p) {
     SuperBlock *obj = (SuperBlock *)p;
