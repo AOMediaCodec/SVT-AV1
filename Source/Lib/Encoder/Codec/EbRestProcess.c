@@ -595,12 +595,12 @@ void *svt_aom_rest_kernel(void *input_ptr) {
     SequenceControlSet *scs;
 
     //// Input
-    EbObjectWrapper *cdef_results_wrapper_ptr;
-    CdefResults     *cdef_results_ptr;
+    EbObjectWrapper *cdef_results_wrapper;
+    CdefResults     *cdef_results;
 
     //// Output
-    EbObjectWrapper     *rest_results_wrapper_ptr;
-    RestResults         *rest_results_ptr;
+    EbObjectWrapper     *rest_results_wrapper;
+    RestResults         *rest_results;
     EbObjectWrapper     *picture_demux_results_wrapper_ptr;
     PictureDemuxResults *picture_demux_results_rtr;
     // SB Loop variables
@@ -611,10 +611,10 @@ void *svt_aom_rest_kernel(void *input_ptr) {
 
     for (;;) {
         // Get Cdef Results
-        EB_GET_FULL_OBJECT(context_ptr->rest_input_fifo_ptr, &cdef_results_wrapper_ptr);
+        EB_GET_FULL_OBJECT(context_ptr->rest_input_fifo_ptr, &cdef_results_wrapper);
 
-        cdef_results_ptr = (CdefResults *)cdef_results_wrapper_ptr->object_ptr;
-        pcs              = (PictureControlSet *)cdef_results_ptr->pcs_wrapper->object_ptr;
+        cdef_results = (CdefResults *)cdef_results_wrapper->object_ptr;
+        pcs              = (PictureControlSet *)cdef_results->pcs_wrapper->object_ptr;
         PictureParentControlSet *ppcs = pcs->ppcs;
         scs                           = pcs->scs;
         FrameHeader *frm_hdr          = &pcs->ppcs->frm_hdr;
@@ -685,7 +685,7 @@ void *svt_aom_rest_kernel(void *input_ptr) {
                                    &cpi_source,
                                    &trial_frame_rst,
                                    pcs,
-                                   cdef_results_ptr->segment_index);
+                                   cdef_results->segment_index);
         }
 
         //all seg based search is done. update total processed segments. if all done, finish the search and perfrom application.
@@ -840,19 +840,19 @@ void *svt_aom_rest_kernel(void *input_ptr) {
                 for (int tile_col_idx = 0; tile_col_idx < tile_cols; tile_col_idx++) {
                     const int tile_idx = tile_row_idx * tile_cols + tile_col_idx;
                     svt_get_empty_object(context_ptr->rest_output_fifo_ptr,
-                                         &rest_results_wrapper_ptr);
-                    rest_results_ptr = (struct RestResults *)rest_results_wrapper_ptr->object_ptr;
-                    rest_results_ptr->pcs_wrapper = cdef_results_ptr->pcs_wrapper;
-                    rest_results_ptr->tile_index  = tile_idx;
+                                         &rest_results_wrapper);
+                    rest_results = (struct RestResults *)rest_results_wrapper->object_ptr;
+                    rest_results->pcs_wrapper = cdef_results->pcs_wrapper;
+                    rest_results->tile_index  = tile_idx;
                     // Post Rest Results
-                    svt_post_full_object(rest_results_wrapper_ptr);
+                    svt_post_full_object(rest_results_wrapper);
                 }
             }
         }
         svt_release_mutex(pcs->rest_search_mutex);
 
         // Release input Results
-        svt_release_object(cdef_results_wrapper_ptr);
+        svt_release_object(cdef_results_wrapper);
     }
 
     return NULL;

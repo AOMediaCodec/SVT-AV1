@@ -177,7 +177,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
                 svt_aom_neighbor_array_unit_mode_write(
-                    pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array
+                    pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na
                         [MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
                     (uint8_t *)&dc_sign_level_coeff,
                     ctx->sb_origin_x +
@@ -254,7 +254,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
 
             if (ctx->txs_ctrls.enabled) {
                 svt_aom_update_recon_neighbor_array16bit(
-                    pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                    pcs->md_tx_depth_1_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                      [tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon_16bit[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon_16bit[0],
@@ -263,7 +263,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                     ctx->blk_geom->bwidth,
                     ctx->blk_geom->bheight);
                 svt_aom_update_recon_neighbor_array16bit(
-                    pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                    pcs->md_tx_depth_2_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                      [tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon_16bit[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon_16bit[0],
@@ -304,7 +304,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
 
             if (ctx->txs_ctrls.enabled) {
                 svt_aom_update_recon_neighbor_array(
-                    pcs->md_tx_depth_1_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                    pcs->md_tx_depth_1_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0],
                     org_x,
@@ -312,7 +312,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                     ctx->blk_geom->bwidth,
                     ctx->blk_geom->bheight);
                 svt_aom_update_recon_neighbor_array(
-                    pcs->md_tx_depth_2_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                    pcs->md_tx_depth_2_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0],
                     org_x,
@@ -350,7 +350,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                 ctx->blk_geom->bheight);
             if (ctx->txs_ctrls.enabled) {
                 svt_aom_update_recon_neighbor_array(
-                    pcs->md_tx_depth_1_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                    pcs->md_tx_depth_1_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0],
                     org_x,
@@ -358,7 +358,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                     ctx->blk_geom->bwidth,
                     ctx->blk_geom->bheight);
                 svt_aom_update_recon_neighbor_array(
-                    pcs->md_tx_depth_2_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                    pcs->md_tx_depth_2_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0],
                     org_x,
@@ -395,7 +395,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                 ctx->blk_geom->bheight);
             if (ctx->txs_ctrls.enabled) {
                 svt_aom_update_recon_neighbor_array16bit(
-                    pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                    pcs->md_tx_depth_1_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                      [tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon_16bit[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon_16bit[0],
@@ -404,7 +404,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                     ctx->blk_geom->bwidth,
                     ctx->blk_geom->bheight);
                 svt_aom_update_recon_neighbor_array16bit(
-                    pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                    pcs->md_tx_depth_2_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                      [tile_idx],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon_16bit[0],
                     ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon_16bit[0],
@@ -446,16 +446,16 @@ void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext
     uint32_t blk_org_y = sb_org_y + blk_geom->org_y;
 
     if (!ctx->hbd_md) {
-        svt_aom_copy_neigh_arr(pcs->md_luma_recon_neighbor_array[src_idx][tile_idx],
-                               pcs->md_luma_recon_neighbor_array[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_luma_recon_na[src_idx][tile_idx],
+                               pcs->md_luma_recon_na[dst_idx][tile_idx],
                                blk_org_x,
                                blk_org_y,
                                blk_geom->bwidth,
                                blk_geom->bheight,
                                NEIGHBOR_ARRAY_UNIT_FULL_MASK);
     } else {
-        svt_aom_copy_neigh_arr(pcs->md_luma_recon_neighbor_array16bit[src_idx][tile_idx],
-                               pcs->md_luma_recon_neighbor_array16bit[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_luma_recon_na_16bit[src_idx][tile_idx],
+                               pcs->md_luma_recon_na_16bit[dst_idx][tile_idx],
                                blk_org_x,
                                blk_org_y,
                                blk_geom->bwidth,
@@ -477,25 +477,25 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
     uint32_t bwidth_uv    = blk_geom->bwidth_uv;
     uint32_t bheight_uv   = blk_geom->bheight_uv;
 
-    svt_aom_copy_neigh_arr(pcs->md_intra_luma_mode_neighbor_array[src_idx][tile_idx],
-                           pcs->md_intra_luma_mode_neighbor_array[dst_idx][tile_idx],
+    svt_aom_copy_neigh_arr(pcs->md_intra_luma_mode_na[src_idx][tile_idx],
+                           pcs->md_intra_luma_mode_na[dst_idx][tile_idx],
                            blk_org_x,
                            blk_org_y,
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-    //svt_aom_neighbor_array_unit_reset(pcs->md_skip_flag_neighbor_array[depth]);
-    svt_aom_copy_neigh_arr(pcs->md_skip_flag_neighbor_array[src_idx][tile_idx],
-                           pcs->md_skip_flag_neighbor_array[dst_idx][tile_idx],
+    //svt_aom_neighbor_array_unit_reset(pcs->md_skip_flag_na[depth]);
+    svt_aom_copy_neigh_arr(pcs->md_skip_flag_na[src_idx][tile_idx],
+                           pcs->md_skip_flag_na[dst_idx][tile_idx],
                            blk_org_x,
                            blk_org_y,
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
-    //svt_aom_neighbor_array_unit_reset(pcs->md_mode_type_neighbor_array[depth]);
-    svt_aom_copy_neigh_arr(pcs->md_mode_type_neighbor_array[src_idx][tile_idx],
-                           pcs->md_mode_type_neighbor_array[dst_idx][tile_idx],
+    //svt_aom_neighbor_array_unit_reset(pcs->md_mode_type_na[depth]);
+    svt_aom_copy_neigh_arr(pcs->md_mode_type_na[src_idx][tile_idx],
+                           pcs->md_mode_type_na[dst_idx][tile_idx],
                            blk_org_x,
                            blk_org_y,
                            blk_geom->bwidth,
@@ -503,8 +503,8 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            NEIGHBOR_ARRAY_UNIT_FULL_MASK);
 
     //svt_aom_neighbor_array_unit_reset(pcs->md_leaf_depth_neighbor_array[depth]);
-    svt_aom_copy_neigh_arr(pcs->mdleaf_partition_neighbor_array[src_idx][tile_idx],
-                           pcs->mdleaf_partition_neighbor_array[dst_idx][tile_idx],
+    svt_aom_copy_neigh_arr(pcs->mdleaf_partition_na[src_idx][tile_idx],
+                           pcs->mdleaf_partition_na[dst_idx][tile_idx],
                            blk_org_x,
                            blk_org_y,
                            blk_geom->bwidth,
@@ -512,23 +512,23 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
     if (!ctx->hbd_md) {
-        svt_aom_copy_neigh_arr(pcs->md_luma_recon_neighbor_array[src_idx][tile_idx],
-                               pcs->md_luma_recon_neighbor_array[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_luma_recon_na[src_idx][tile_idx],
+                               pcs->md_luma_recon_na[dst_idx][tile_idx],
                                blk_org_x,
                                blk_org_y,
                                blk_geom->bwidth,
                                blk_geom->bheight,
                                NEIGHBOR_ARRAY_UNIT_FULL_MASK);
         if (ctx->txs_ctrls.enabled) {
-            svt_aom_copy_neigh_arr(pcs->md_tx_depth_1_luma_recon_neighbor_array[src_idx][tile_idx],
-                                   pcs->md_tx_depth_1_luma_recon_neighbor_array[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_tx_depth_1_luma_recon_na[src_idx][tile_idx],
+                                   pcs->md_tx_depth_1_luma_recon_na[dst_idx][tile_idx],
                                    blk_org_x,
                                    blk_org_y,
                                    blk_geom->bwidth,
                                    blk_geom->bheight,
                                    NEIGHBOR_ARRAY_UNIT_FULL_MASK);
-            svt_aom_copy_neigh_arr(pcs->md_tx_depth_2_luma_recon_neighbor_array[src_idx][tile_idx],
-                                   pcs->md_tx_depth_2_luma_recon_neighbor_array[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_tx_depth_2_luma_recon_na[src_idx][tile_idx],
+                                   pcs->md_tx_depth_2_luma_recon_na[dst_idx][tile_idx],
                                    blk_org_x,
                                    blk_org_y,
                                    blk_geom->bwidth,
@@ -536,16 +536,16 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                                    NEIGHBOR_ARRAY_UNIT_FULL_MASK);
         }
         if (blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1) {
-            svt_aom_copy_neigh_arr(pcs->md_cb_recon_neighbor_array[src_idx][tile_idx],
-                                   pcs->md_cb_recon_neighbor_array[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_cb_recon_na[src_idx][tile_idx],
+                                   pcs->md_cb_recon_na[dst_idx][tile_idx],
                                    blk_org_x_uv,
                                    blk_org_y_uv,
                                    bwidth_uv,
                                    bheight_uv,
                                    NEIGHBOR_ARRAY_UNIT_FULL_MASK);
 
-            svt_aom_copy_neigh_arr(pcs->md_cr_recon_neighbor_array[src_idx][tile_idx],
-                                   pcs->md_cr_recon_neighbor_array[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_cr_recon_na[src_idx][tile_idx],
+                                   pcs->md_cr_recon_na[dst_idx][tile_idx],
                                    blk_org_x_uv,
                                    blk_org_y_uv,
                                    bwidth_uv,
@@ -553,8 +553,8 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                                    NEIGHBOR_ARRAY_UNIT_FULL_MASK);
         }
     } else {
-        svt_aom_copy_neigh_arr(pcs->md_luma_recon_neighbor_array16bit[src_idx][tile_idx],
-                               pcs->md_luma_recon_neighbor_array16bit[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_luma_recon_na_16bit[src_idx][tile_idx],
+                               pcs->md_luma_recon_na_16bit[dst_idx][tile_idx],
                                blk_org_x,
                                blk_org_y,
                                blk_geom->bwidth,
@@ -562,16 +562,16 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                                NEIGHBOR_ARRAY_UNIT_FULL_MASK);
         if (ctx->txs_ctrls.enabled) {
             svt_aom_copy_neigh_arr(
-                pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[src_idx][tile_idx],
-                pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[dst_idx][tile_idx],
+                pcs->md_tx_depth_1_luma_recon_na_16bit[src_idx][tile_idx],
+                pcs->md_tx_depth_1_luma_recon_na_16bit[dst_idx][tile_idx],
                 blk_org_x,
                 blk_org_y,
                 blk_geom->bwidth,
                 blk_geom->bheight,
                 NEIGHBOR_ARRAY_UNIT_FULL_MASK);
             svt_aom_copy_neigh_arr(
-                pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[src_idx][tile_idx],
-                pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[dst_idx][tile_idx],
+                pcs->md_tx_depth_2_luma_recon_na_16bit[src_idx][tile_idx],
+                pcs->md_tx_depth_2_luma_recon_na_16bit[dst_idx][tile_idx],
                 blk_org_x,
                 blk_org_y,
                 blk_geom->bwidth,
@@ -579,16 +579,16 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                 NEIGHBOR_ARRAY_UNIT_FULL_MASK);
         }
         if (blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1) {
-            svt_aom_copy_neigh_arr(pcs->md_cb_recon_neighbor_array16bit[src_idx][tile_idx],
-                                   pcs->md_cb_recon_neighbor_array16bit[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_cb_recon_na_16bit[src_idx][tile_idx],
+                                   pcs->md_cb_recon_na_16bit[dst_idx][tile_idx],
                                    blk_org_x_uv,
                                    blk_org_y_uv,
                                    bwidth_uv,
                                    bheight_uv,
                                    NEIGHBOR_ARRAY_UNIT_FULL_MASK);
 
-            svt_aom_copy_neigh_arr(pcs->md_cr_recon_neighbor_array16bit[src_idx][tile_idx],
-                                   pcs->md_cr_recon_neighbor_array16bit[dst_idx][tile_idx],
+            svt_aom_copy_neigh_arr(pcs->md_cr_recon_na_16bit[src_idx][tile_idx],
+                                   pcs->md_cr_recon_na_16bit[dst_idx][tile_idx],
                                    blk_org_x_uv,
                                    blk_org_y_uv,
                                    bwidth_uv,
@@ -607,25 +607,25 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
     svt_aom_copy_neigh_arr(
-        pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[src_idx][tile_idx],
-        pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[dst_idx][tile_idx],
+        pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[src_idx][tile_idx],
+        pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[dst_idx][tile_idx],
         blk_org_x,
         blk_org_y,
         blk_geom->bwidth,
         blk_geom->bheight,
         NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     if (blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1) {
-        svt_aom_copy_neigh_arr(pcs->md_cb_dc_sign_level_coeff_neighbor_array[src_idx][tile_idx],
-                               pcs->md_cb_dc_sign_level_coeff_neighbor_array[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_cb_dc_sign_level_coeff_na[src_idx][tile_idx],
+                               pcs->md_cb_dc_sign_level_coeff_na[dst_idx][tile_idx],
                                blk_org_x_uv,
                                blk_org_y_uv,
                                bwidth_uv,
                                bheight_uv,
                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-        //svt_aom_neighbor_array_unit_reset(pcs->md_cr_dc_sign_level_coeff_neighbor_array[depth]);
+        //svt_aom_neighbor_array_unit_reset(pcs->md_cr_dc_sign_level_coeff_na[depth]);
 
-        svt_aom_copy_neigh_arr(pcs->md_cr_dc_sign_level_coeff_neighbor_array[src_idx][tile_idx],
-                               pcs->md_cr_dc_sign_level_coeff_neighbor_array[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_cr_dc_sign_level_coeff_na[src_idx][tile_idx],
+                               pcs->md_cr_dc_sign_level_coeff_na[dst_idx][tile_idx],
                                blk_org_x_uv,
                                blk_org_y_uv,
                                bwidth_uv,
@@ -642,25 +642,25 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     if (ctx->rate_est_ctrls.update_skip_coeff_ctx) {
-        svt_aom_copy_neigh_arr(pcs->md_skip_coeff_neighbor_array[src_idx][tile_idx],
-                               pcs->md_skip_coeff_neighbor_array[dst_idx][tile_idx],
+        svt_aom_copy_neigh_arr(pcs->md_skip_coeff_na[src_idx][tile_idx],
+                               pcs->md_skip_coeff_na[dst_idx][tile_idx],
                                blk_org_x,
                                blk_org_y,
                                blk_geom->bwidth,
                                blk_geom->bheight,
                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
-    //svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_neighbor_array[depth]);
-    svt_aom_copy_neigh_arr(pcs->md_ref_frame_type_neighbor_array[src_idx][tile_idx],
-                           pcs->md_ref_frame_type_neighbor_array[dst_idx][tile_idx],
+    //svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_na[depth]);
+    svt_aom_copy_neigh_arr(pcs->md_ref_frame_type_na[src_idx][tile_idx],
+                           pcs->md_ref_frame_type_na[dst_idx][tile_idx],
                            blk_org_x,
                            blk_org_y,
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
-    svt_aom_copy_neigh_arr_32(pcs->md_interpolation_type_neighbor_array[src_idx][tile_idx],
-                              pcs->md_interpolation_type_neighbor_array[dst_idx][tile_idx],
+    svt_aom_copy_neigh_arr_32(pcs->md_interpolation_type_na[src_idx][tile_idx],
+                              pcs->md_interpolation_type_na[dst_idx][tile_idx],
                               blk_org_x,
                               blk_org_y,
                               blk_geom->bwidth,
@@ -4240,7 +4240,7 @@ static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDes
     }
 }
 
-// double check the usage of tx_search_luma_recon_na16bit
+// double check the usage of tx_search_luma_recon_na_16bit
 static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureControlSet *pcs,
                                              ModeDecisionCandidateBuffer *cand_bf) {
     EbErrorType return_error = EB_ErrorNone;
@@ -4353,7 +4353,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
             if (txb_origin_y != 0 && intra_size.top)
                 svt_memcpy(
                     top_neigh_array + 1,
-                    (uint16_t *)(ctx->tx_search_luma_recon_na16bit->top_array) + txb_origin_x,
+                    (uint16_t *)(ctx->tx_search_luma_recon_na_16bit->top_array) + txb_origin_x,
                     sizeof(uint16_t) * tx_width * intra_size.top);
             if (txb_origin_x != 0 && intra_size.left) {
                 uint16_t multipler = (txb_origin_y % sb_size_luma + tx_height * intra_size.left) >
@@ -4362,7 +4362,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
                     : intra_size.left;
                 svt_memcpy(
                     left_neigh_array + 1,
-                    (uint16_t *)(ctx->tx_search_luma_recon_na16bit->left_array) + txb_origin_y,
+                    (uint16_t *)(ctx->tx_search_luma_recon_na_16bit->left_array) + txb_origin_y,
                     sizeof(uint16_t) * tx_height * multipler);
             }
 
@@ -4370,7 +4370,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
             if (txb_origin_y != 0)
                 svt_memcpy(
                     top_neigh_array + 1,
-                    (uint16_t *)(ctx->tx_search_luma_recon_na16bit->top_array) + txb_origin_x,
+                    (uint16_t *)(ctx->tx_search_luma_recon_na_16bit->top_array) + txb_origin_x,
                     sizeof(uint16_t) * tx_width * 2);
             if (txb_origin_x != 0) {
                 uint16_t multipler = (txb_origin_y % sb_size_luma + tx_height * 2) > sb_size_luma
@@ -4378,15 +4378,15 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
                     : 2;
                 svt_memcpy(
                     left_neigh_array + 1,
-                    (uint16_t *)(ctx->tx_search_luma_recon_na16bit->left_array) + txb_origin_y,
+                    (uint16_t *)(ctx->tx_search_luma_recon_na_16bit->left_array) + txb_origin_y,
                     sizeof(uint16_t) * tx_height * multipler);
             }
         }
 
         if (txb_origin_y != 0 && txb_origin_x != 0)
             top_neigh_array[0] = left_neigh_array[0] =
-                ((uint16_t *)(ctx->tx_search_luma_recon_na16bit->top_left_array) +
-                 ctx->tx_search_luma_recon_na16bit->max_pic_h + txb_origin_x - txb_origin_y)[0];
+                ((uint16_t *)(ctx->tx_search_luma_recon_na_16bit->top_left_array) +
+                 ctx->tx_search_luma_recon_na_16bit->max_pic_h + txb_origin_x - txb_origin_y)[0];
 
         svt_av1_predict_intra_block_16bit(
             EB_TEN_BIT,
@@ -4476,23 +4476,23 @@ static void tx_initialize_neighbor_arrays(PictureControlSet *pcs, ModeDecisionCo
     // Set recon neighbor array to be used @ intra compensation
     if (!is_inter) {
         if (ctx->hbd_md)
-            ctx->tx_search_luma_recon_na16bit = ctx->tx_depth == 2
-                ? pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+            ctx->tx_search_luma_recon_na_16bit = ctx->tx_depth == 2
+                ? pcs->md_tx_depth_2_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                    [tile_idx]
                 : ctx->tx_depth == 1
-                ? pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                ? pcs->md_tx_depth_1_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                    [tile_idx]
-                : pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                : pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         else
             ctx->tx_search_luma_recon_na = ctx->tx_depth == 2
-                ? pcs->md_tx_depth_2_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx]
+                ? pcs->md_tx_depth_2_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx]
                 : ctx->tx_depth == 1
-                ? pcs->md_tx_depth_1_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx]
-                : pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                ? pcs->md_tx_depth_1_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx]
+                : pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     }
     // Set luma dc sign level coeff
     ctx->full_loop_luma_dc_sign_level_coeff_na = (ctx->tx_depth)
-        ? pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+        ? pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                     [tile_idx]
         : pcs->md_y_dcs_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
 }
@@ -4503,7 +4503,7 @@ void tx_update_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
     if (ctx->tx_depth) {
         if (!is_inter)
             tx_search_update_recon_sample_neighbor_array(
-                ctx->hbd_md ? ctx->tx_search_luma_recon_na16bit : ctx->tx_search_luma_recon_na,
+                ctx->hbd_md ? ctx->tx_search_luma_recon_na_16bit : ctx->tx_search_luma_recon_na,
                 cand_bf->recon,
                 ctx->blk_geom->tx_org_x[is_inter][ctx->tx_depth][ctx->txb_itr],
                 ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr],
@@ -4514,7 +4514,7 @@ void tx_update_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 ctx->hbd_md);
         int8_t dc_sign_level_coeff = cand_bf->quantized_dc[0][ctx->txb_itr];
         svt_aom_neighbor_array_unit_mode_write(
-            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                       [tile_idx],
             (uint8_t *)&dc_sign_level_coeff,
             ctx->sb_origin_x + ctx->blk_geom->tx_org_x[is_inter][ctx->tx_depth][ctx->txb_itr],
@@ -4533,8 +4533,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
             if (ctx->hbd_md) {
                 if (tx_depth == 2) {
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_2_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                          [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4543,8 +4543,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         NEIGHBOR_ARRAY_UNIT_TOPLEFT_MASK);
 
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_2_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                          [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4553,8 +4553,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
                 } else {
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_1_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                          [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4563,8 +4563,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         NEIGHBOR_ARRAY_UNIT_TOPLEFT_MASK);
 
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_1_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX]
                                                                          [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4575,8 +4575,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
             } else {
                 if (tx_depth == 2) {
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_2_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_2_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                     [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4584,8 +4584,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         ctx->blk_geom->bheight,
                         NEIGHBOR_ARRAY_UNIT_TOPLEFT_MASK);
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_2_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_2_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                     [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4594,8 +4594,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
                 } else {
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_1_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_1_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                     [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4603,8 +4603,8 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
                         ctx->blk_geom->bheight,
                         NEIGHBOR_ARRAY_UNIT_TOPLEFT_MASK);
                     svt_aom_copy_neigh_arr(
-                        pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-                        pcs->md_tx_depth_1_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+                        pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
+                        pcs->md_tx_depth_1_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                     [tile_idx],
                         ctx->sb_origin_x + ctx->blk_geom->org_x,
                         ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -4616,7 +4616,7 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
         }
         svt_aom_copy_neigh_arr(
             pcs->md_y_dcs_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx],
-            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX]
+            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX]
                                                                       [tile_idx],
             ctx->sb_origin_x + ctx->blk_geom->org_x,
             ctx->sb_origin_y + ctx->blk_geom->org_y,
@@ -10222,18 +10222,18 @@ void update_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionConte
     if (!ctx->skip_intra) {
         if (!ctx->hbd_md) {
             ctx->recon_neigh_y =
-                pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
             ctx->recon_neigh_cb =
-                pcs->md_cb_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_cb_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
             ctx->recon_neigh_cr =
-                pcs->md_cr_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_cr_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         } else {
             ctx->luma_recon_na_16bit =
-                pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
             ctx->cb_recon_na_16bit =
-                pcs->md_cb_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_cb_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
             ctx->cr_recon_na_16bit =
-                pcs->md_cr_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+                pcs->md_cr_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         }
     }
 }
@@ -10243,37 +10243,37 @@ void update_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionConte
 static void update_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     const uint16_t tile_idx = ctx->tile_index;
     ctx->leaf_partition_na =
-        pcs->mdleaf_partition_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        pcs->mdleaf_partition_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     if (ctx->encoder_bit_depth > EB_EIGHT_BIT && ctx->bypass_encdec && !ctx->hbd_md &&
         ctx->pd_pass == PD_PASS_1) {
-        ctx->recon_neigh_y  = pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
-        ctx->recon_neigh_cb = pcs->md_cb_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
-        ctx->recon_neigh_cr = pcs->md_cr_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_y  = pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_cb = pcs->md_cb_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_cr = pcs->md_cr_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
 
         ctx->luma_recon_na_16bit =
-            pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         ctx->cb_recon_na_16bit =
-            pcs->md_cb_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_cb_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         ctx->cr_recon_na_16bit =
-            pcs->md_cr_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_cr_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     } else if (!ctx->hbd_md) {
-        ctx->recon_neigh_y  = pcs->md_luma_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
-        ctx->recon_neigh_cb = pcs->md_cb_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
-        ctx->recon_neigh_cr = pcs->md_cr_recon_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_y  = pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_cb = pcs->md_cb_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        ctx->recon_neigh_cr = pcs->md_cr_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     } else {
         ctx->luma_recon_na_16bit =
-            pcs->md_luma_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_luma_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         ctx->cb_recon_na_16bit =
-            pcs->md_cb_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_cb_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         ctx->cr_recon_na_16bit =
-            pcs->md_cr_recon_neighbor_array16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+            pcs->md_cr_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     }
-    ctx->skip_coeff_na = pcs->md_skip_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+    ctx->skip_coeff_na = pcs->md_skip_coeff_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     ctx->luma_dc_sign_level_coeff_na = pcs->md_y_dcs_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     ctx->cb_dc_sign_level_coeff_na =
-        pcs->md_cb_dc_sign_level_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        pcs->md_cb_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     ctx->cr_dc_sign_level_coeff_na =
-        pcs->md_cr_dc_sign_level_coeff_neighbor_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+        pcs->md_cr_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     ctx->txfm_context_array = pcs->md_txfm_context_array[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
 }
 

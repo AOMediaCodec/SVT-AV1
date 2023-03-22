@@ -388,12 +388,12 @@ void *svt_aom_cdef_kernel(void *input_ptr) {
     SequenceControlSet *scs;
 
     //// Input
-    EbObjectWrapper *dlf_results_wrapper_ptr;
-    DlfResults      *dlf_results_ptr;
+    EbObjectWrapper *dlf_results_wrapper;
+    DlfResults      *dlf_results;
 
     //// Output
-    EbObjectWrapper *cdef_results_wrapper_ptr;
-    CdefResults     *cdef_results_ptr;
+    EbObjectWrapper *cdef_results_wrapper;
+    CdefResults     *cdef_results;
 
     // SB Loop variables
 
@@ -401,10 +401,10 @@ void *svt_aom_cdef_kernel(void *input_ptr) {
         FrameHeader *frm_hdr;
 
         // Get DLF Results
-        EB_GET_FULL_OBJECT(context_ptr->cdef_input_fifo_ptr, &dlf_results_wrapper_ptr);
+        EB_GET_FULL_OBJECT(context_ptr->cdef_input_fifo_ptr, &dlf_results_wrapper);
 
-        dlf_results_ptr = (DlfResults *)dlf_results_wrapper_ptr->object_ptr;
-        pcs             = (PictureControlSet *)dlf_results_ptr->pcs_wrapper->object_ptr;
+        dlf_results = (DlfResults *)dlf_results_wrapper->object_ptr;
+        pcs             = (PictureControlSet *)dlf_results->pcs_wrapper->object_ptr;
         PictureParentControlSet *ppcs = pcs->ppcs;
         scs                           = pcs->scs;
 
@@ -414,7 +414,7 @@ void *svt_aom_cdef_kernel(void *input_ptr) {
         CdefControls *cdef_ctrls = &pcs->ppcs->cdef_ctrls;
         if (!cdef_ctrls->use_reference_cdef_fs) {
             if (scs->seq_header.cdef_level && pcs->ppcs->cdef_level) {
-                cdef_seg_search(pcs, scs, dlf_results_ptr->segment_index);
+                cdef_seg_search(pcs, scs, dlf_results->segment_index);
             }
         }
         //all seg based search is done. update total processed segments. if all done, finish the search and perfrom application.
@@ -502,18 +502,18 @@ void *svt_aom_cdef_kernel(void *input_ptr) {
             for (segment_index = 0; segment_index < pcs->rest_segments_total_count;
                  ++segment_index) {
                 // Get Empty Cdef Results to Rest
-                svt_get_empty_object(context_ptr->cdef_output_fifo_ptr, &cdef_results_wrapper_ptr);
-                cdef_results_ptr = (struct CdefResults *)cdef_results_wrapper_ptr->object_ptr;
-                cdef_results_ptr->pcs_wrapper   = dlf_results_ptr->pcs_wrapper;
-                cdef_results_ptr->segment_index = segment_index;
+                svt_get_empty_object(context_ptr->cdef_output_fifo_ptr, &cdef_results_wrapper);
+                cdef_results = (struct CdefResults *)cdef_results_wrapper->object_ptr;
+                cdef_results->pcs_wrapper   = dlf_results->pcs_wrapper;
+                cdef_results->segment_index = segment_index;
                 // Post Cdef Results
-                svt_post_full_object(cdef_results_wrapper_ptr);
+                svt_post_full_object(cdef_results_wrapper);
             }
         }
         svt_release_mutex(pcs->cdef_search_mutex);
 
         // Release Dlf Results
-        svt_release_object(dlf_results_wrapper_ptr);
+        svt_release_object(dlf_results_wrapper);
     }
 
     return NULL;

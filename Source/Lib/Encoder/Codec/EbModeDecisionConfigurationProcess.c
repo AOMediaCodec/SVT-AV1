@@ -1579,20 +1579,20 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
     ModeDecisionConfigurationContext *context_ptr = (ModeDecisionConfigurationContext *)
                                                         thread_ctx->priv;
     // Input
-    EbObjectWrapper *rate_control_results_wrapper_ptr;
+    EbObjectWrapper *rc_results_wrapper;
 
     // Output
-    EbObjectWrapper *enc_dec_tasks_wrapper_ptr;
+    EbObjectWrapper *enc_dec_tasks_wrapper;
 
     for (;;) {
         // Get RateControl Results
         EB_GET_FULL_OBJECT(context_ptr->rate_control_input_fifo_ptr,
-                           &rate_control_results_wrapper_ptr);
+                           &rc_results_wrapper);
 
-        RateControlResults *rate_control_results_ptr =
-            (RateControlResults *)rate_control_results_wrapper_ptr->object_ptr;
+        RateControlResults *rc_results =
+            (RateControlResults *)rc_results_wrapper->object_ptr;
         PictureControlSet *pcs = (PictureControlSet *)
-                                     rate_control_results_ptr->pcs_wrapper->object_ptr;
+                                     rc_results->pcs_wrapper->object_ptr;
         SequenceControlSet *scs = pcs->scs;
 
         pcs->coeff_lvl = INVALID_LVL;
@@ -1612,9 +1612,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
             if (pcs->ppcs->is_ref == TRUE && pcs->ppcs->ref_pic_wrapper != NULL) {
                 // update mi_rows and mi_cols for the reference pic wrapper (used in mfmv for other
                 // pictures)
-                EbReferenceObject *reference_object = pcs->ppcs->ref_pic_wrapper->object_ptr;
-                reference_object->mi_rows           = pcs->ppcs->aligned_height >> MI_SIZE_LOG2;
-                reference_object->mi_cols           = pcs->ppcs->aligned_width >> MI_SIZE_LOG2;
+                EbReferenceObject *ref_object = pcs->ppcs->ref_pic_wrapper->object_ptr;
+                ref_object->mi_rows           = pcs->ppcs->aligned_height >> MI_SIZE_LOG2;
+                ref_object->mi_cols           = pcs->ppcs->aligned_width >> MI_SIZE_LOG2;
             }
 
             svt_aom_scale_rec_references(pcs, pcs->ppcs->enhanced_pic, pcs->hbd_md);
@@ -1865,26 +1865,26 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         uint16_t tg_count = pcs->ppcs->tile_group_cols * pcs->ppcs->tile_group_rows;
         for (uint16_t tile_group_idx = 0; tile_group_idx < tg_count; tile_group_idx++) {
             svt_get_empty_object(context_ptr->mode_decision_configuration_output_fifo_ptr,
-                                 &enc_dec_tasks_wrapper_ptr);
+                                 &enc_dec_tasks_wrapper);
 
-            EncDecTasks *enc_dec_tasks_ptr = (EncDecTasks *)enc_dec_tasks_wrapper_ptr->object_ptr;
-            enc_dec_tasks_ptr->pcs_wrapper = rate_control_results_ptr->pcs_wrapper;
-            enc_dec_tasks_ptr->input_type  = rate_control_results_ptr->superres_recode
+            EncDecTasks *enc_dec_tasks = (EncDecTasks *)enc_dec_tasks_wrapper->object_ptr;
+            enc_dec_tasks->pcs_wrapper = rc_results->pcs_wrapper;
+            enc_dec_tasks->input_type  = rc_results->superres_recode
                  ? ENCDEC_TASKS_SUPERRES_INPUT
                  : ENCDEC_TASKS_MDC_INPUT;
-            enc_dec_tasks_ptr->tile_group_index = tile_group_idx;
+            enc_dec_tasks->tile_group_index = tile_group_idx;
 
             // Post the Full Results Object
-            svt_post_full_object(enc_dec_tasks_wrapper_ptr);
+            svt_post_full_object(enc_dec_tasks_wrapper);
 
-            if (rate_control_results_ptr->superres_recode) {
+            if (rc_results->superres_recode) {
                 // for superres input, only send one task
                 break;
             }
         }
 
         // Release Rate Control Results
-        svt_release_object(rate_control_results_wrapper_ptr);
+        svt_release_object(rc_results_wrapper);
     }
 
     return NULL;

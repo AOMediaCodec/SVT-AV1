@@ -102,10 +102,10 @@ void svt_aom_set_tile_info(PictureParentControlSet *pcs);
   walks the ref picture list, and looks for a particular pic
   return NULL if not found.
 */
-ReferenceQueueEntry *search_ref_in_ref_queue(EncodeContext *encode_ctx, uint64_t ref_poc) {
+ReferenceQueueEntry *search_ref_in_ref_queue(EncodeContext *enc_ctx, uint64_t ref_poc) {
     ReferenceQueueEntry *ref_pic_entry = NULL;
-    for (uint32_t i = 0; i < encode_ctx->ref_pic_list_length; i++) {
-        ref_pic_entry = encode_ctx->ref_pic_list[i];
+    for (uint32_t i = 0; i < enc_ctx->ref_pic_list_length; i++) {
+        ref_pic_entry = enc_ctx->ref_pic_list[i];
         if (ref_pic_entry->is_valid && ref_pic_entry->picture_number == ref_poc) {
             return ref_pic_entry;
         }
@@ -305,10 +305,10 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
     EbThreadContext       *thread_ctx  = (EbThreadContext *)input_ptr;
     PictureManagerContext *context_ptr = (PictureManagerContext *)thread_ctx->priv;
 
-    EbObjectWrapper *enc_dec_wrapper_ptr;
+    EbObjectWrapper *enc_dec_wrapper;
     EncDecSet       *enc_dec_ptr;
 
-    EbObjectWrapper         *child_pcs_wrapper_ptr;
+    EbObjectWrapper         *child_pcs_wrapper;
     PictureControlSet       *child_pcs;
     PictureParentControlSet *pcs;
     SequenceControlSet      *scs;
@@ -319,7 +319,7 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
 
     Bool availability_flag;
 
-    InputQueueEntry         *input_entry_ptr;
+    InputQueueEntry         *input_entry;
     uint32_t                 input_queue_index;
     ReferenceQueueEntry     *ref_entry = NULL;
     PictureParentControlSet *entry_ppcs;
@@ -350,16 +350,16 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
             // setup child pcs to reflect superres config. E.g. sb count, sb orig, tile info, etc.
             superres_setup_child_pcs(scs, pcs);
 
-            EbObjectWrapper *out_results_wrapper_ptr;
+            EbObjectWrapper *out_results_wrapper;
             // Get Empty Results Object
             svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr,
-                                 &out_results_wrapper_ptr);
-            RateControlTasks *rate_control_tasks_ptr = (RateControlTasks *)
-                                                           out_results_wrapper_ptr->object_ptr;
-            rate_control_tasks_ptr->pcs_wrapper = pcs->child_pcs->c_pcs_wrapper_ptr;
-            rate_control_tasks_ptr->task_type   = RC_INPUT_SUPERRES_RECODE;
+                                 &out_results_wrapper);
+            RateControlTasks *rc_tasks = (RateControlTasks *)
+                                                           out_results_wrapper->object_ptr;
+            rc_tasks->pcs_wrapper = pcs->child_pcs->c_pcs_wrapper_ptr;
+            rc_tasks->task_type   = RC_INPUT_SUPERRES_RECODE;
             // Post the Full Results Object
-            svt_post_full_object(out_results_wrapper_ptr);
+            svt_post_full_object(out_results_wrapper);
 
             pcs     = (PictureParentControlSet *)NULL;
             enc_ctx = (EncodeContext *)NULL;
@@ -381,8 +381,8 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                 EB_ENC_PM_ERROR4);
 
             // Place Picture in input queue
-            input_entry_ptr = enc_ctx->input_picture_queue[enc_ctx->input_picture_queue_tail_index];
-            input_entry_ptr->input_object_ptr       = input_pic_demux->pcs_wrapper;
+            input_entry = enc_ctx->input_picture_queue[enc_ctx->input_picture_queue_tail_index];
+            input_entry->input_object_ptr       = input_pic_demux->pcs_wrapper;
             enc_ctx->input_picture_queue_tail_index = (enc_ctx->input_picture_queue_tail_index ==
                                                        INPUT_QUEUE_MAX_DEPTH - 1)
                 ? 0
@@ -492,11 +492,11 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
         if (enc_ctx != (EncodeContext *)NULL) {
             input_queue_index = enc_ctx->input_picture_queue_head_index;
             while (input_queue_index != enc_ctx->input_picture_queue_tail_index) {
-                input_entry_ptr = enc_ctx->input_picture_queue[input_queue_index];
+                input_entry = enc_ctx->input_picture_queue[input_queue_index];
 
-                if (input_entry_ptr->input_object_ptr != NULL) {
+                if (input_entry->input_object_ptr != NULL) {
                     entry_ppcs = (PictureParentControlSet *)
-                                     input_entry_ptr->input_object_ptr->object_ptr;
+                                     input_entry->input_object_ptr->object_ptr;
                     entry_scs_ptr     = entry_ppcs->scs;
                     availability_flag = TRUE;
                     if (entry_ppcs->decode_order != decode_order && (scs->enable_dec_order))
@@ -580,32 +580,32 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         }
                         // Get New  Empty recon-coef from recon-coef  Pool
                         svt_get_empty_object(context_ptr->recon_coef_fifo_ptr,
-                                             &enc_dec_wrapper_ptr);
+                                             &enc_dec_wrapper);
                         // Child PCS is released by Packetization
-                        svt_object_inc_live_count(enc_dec_wrapper_ptr, 1);
-                        enc_dec_ptr = (EncDecSet *)enc_dec_wrapper_ptr->object_ptr;
-                        enc_dec_ptr->enc_dec_wrapper_ptr = enc_dec_wrapper_ptr;
+                        svt_object_inc_live_count(enc_dec_wrapper, 1);
+                        enc_dec_ptr = (EncDecSet *)enc_dec_wrapper->object_ptr;
+                        enc_dec_ptr->enc_dec_wrapper = enc_dec_wrapper;
 
                         // 1.Link The Child PCS to its Parent
-                        enc_dec_ptr->picture_parent_control_set_wrapper_ptr =
-                            input_entry_ptr->input_object_ptr;
+                        enc_dec_ptr->ppcs_wrapper =
+                            input_entry->input_object_ptr;
                         enc_dec_ptr->ppcs = entry_ppcs;
 
                         enc_dec_ptr->ppcs->enc_dec_ptr = enc_dec_ptr;
                         // Get New  Empty Child PCS from PCS Pool
                         svt_get_empty_object(context_ptr->picture_control_set_fifo_ptr,
-                                             &child_pcs_wrapper_ptr);
+                                             &child_pcs_wrapper);
 
                         // Child PCS is released by Packetization
-                        svt_object_inc_live_count(child_pcs_wrapper_ptr, 1);
+                        svt_object_inc_live_count(child_pcs_wrapper, 1);
 
-                        child_pcs = (PictureControlSet *)child_pcs_wrapper_ptr->object_ptr;
+                        child_pcs = (PictureControlSet *)child_pcs_wrapper->object_ptr;
 
-                        child_pcs->c_pcs_wrapper_ptr = child_pcs_wrapper_ptr;
+                        child_pcs->c_pcs_wrapper_ptr = child_pcs_wrapper;
 
                         // 1.Link The Child PCS to its Parent
-                        child_pcs->picture_parent_control_set_wrapper_ptr =
-                            input_entry_ptr->input_object_ptr;
+                        child_pcs->ppcs_wrapper =
+                            input_entry->input_object_ptr;
                         child_pcs->ppcs = entry_ppcs;
 
                         child_pcs->ppcs->child_pcs = child_pcs;
@@ -680,10 +680,10 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         svt_aom_init_enc_dec_segement(entry_ppcs);
 
                         int sb_size_log2 = entry_scs_ptr->seq_header.sb_size_log2;
-                        struct PictureParentControlSet *ppcs_ptr = child_pcs->ppcs;
-                        const int        tile_cols = ppcs_ptr->av1_cm->tiles_info.tile_cols;
-                        const int        tile_rows = ppcs_ptr->av1_cm->tiles_info.tile_rows;
-                        Av1Common *const cm        = ppcs_ptr->av1_cm;
+                        struct PictureParentControlSet *ppcs = child_pcs->ppcs;
+                        const int        tile_cols = ppcs->av1_cm->tiles_info.tile_cols;
+                        const int        tile_rows = ppcs->av1_cm->tiles_info.tile_rows;
+                        Av1Common *const cm        = ppcs->av1_cm;
                         uint16_t         tile_row, tile_col;
                         uint32_t         x_sb_index, y_sb_index;
                         TileInfo         tile_info;
@@ -733,7 +733,7 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         if ((entry_ppcs->frame_superres_enabled ||
                              entry_ppcs->frame_resize_enabled) &&
                             scs->static_config.encoder_bit_depth > EB_EIGHT_BIT) {
-                            svt_aom_copy_buffer_info(entry_ppcs->enhanced_downscaled_picture_ptr,
+                            svt_aom_copy_buffer_info(entry_ppcs->enhanced_downscaled_pic,
                                                      child_pcs->input_frame16bit);
                         }
 
@@ -927,21 +927,21 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                             // off in low layers.
                             child_pcs->ppcs->refresh_frame_context = REFRESH_FRAME_CONTEXT_BACKWARD;
                         }
-                        EbObjectWrapper *out_results_wrapper_ptr;
+                        EbObjectWrapper *out_results_wrapper;
                         // Get Empty Results Object
                         svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr,
-                                             &out_results_wrapper_ptr);
-                        RateControlTasks *rate_control_tasks_ptr =
-                            (RateControlTasks *)out_results_wrapper_ptr->object_ptr;
-                        rate_control_tasks_ptr->pcs_wrapper = child_pcs->c_pcs_wrapper_ptr;
-                        rate_control_tasks_ptr->task_type   = RC_INPUT;
+                                             &out_results_wrapper);
+                        RateControlTasks *rc_tasks =
+                            (RateControlTasks *)out_results_wrapper->object_ptr;
+                        rc_tasks->pcs_wrapper = child_pcs->c_pcs_wrapper_ptr;
+                        rc_tasks->task_type   = RC_INPUT;
 
-                        // printf("picMgr sending:%x \n", rate_control_tasks_ptr->pcs_wrapper);
+                        // printf("picMgr sending:%x \n", rc_tasks->pcs_wrapper);
 
                         // Post the Full Results Object
-                        svt_post_full_object(out_results_wrapper_ptr);
+                        svt_post_full_object(out_results_wrapper);
                         // Remove the Input Entry from the Input Queue
-                        input_entry_ptr->input_object_ptr = (EbObjectWrapper *)NULL;
+                        input_entry->input_object_ptr = (EbObjectWrapper *)NULL;
                         for (uint32_t i = 0; i < enc_ctx->ref_pic_list_length; i++) {
                             ref_entry = enc_ctx->ref_pic_list[i];
                             if (ref_entry->is_valid) {

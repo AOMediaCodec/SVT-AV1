@@ -61,7 +61,7 @@ EbErrorType svt_aom_entropy_coding_context_ctor(EbThreadContext   *thread_ctx,
 static void entropy_coding_reset_neighbor_arrays(PictureControlSet *pcs, uint16_t tile_idx) {
     svt_aom_neighbor_array_unit_reset(pcs->mode_type_na[tile_idx]);
 
-    svt_aom_neighbor_array_unit_reset(pcs->partition_context_neighbor_array[tile_idx]);
+    svt_aom_neighbor_array_unit_reset(pcs->partition_context_na[tile_idx]);
 
     svt_aom_neighbor_array_unit_reset(pcs->skip_flag_na[tile_idx]);
 
@@ -72,7 +72,7 @@ static void entropy_coding_reset_neighbor_arrays(PictureControlSet *pcs, uint16_
     svt_aom_neighbor_array_unit_reset(pcs->ref_frame_type_na[tile_idx]);
 
     svt_aom_neighbor_array_unit_reset(pcs->intra_luma_mode_na[tile_idx]);
-    svt_aom_neighbor_array_unit_reset32(pcs->interpolation_type_neighbor_array[tile_idx]);
+    svt_aom_neighbor_array_unit_reset32(pcs->interpolation_type_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->txfm_context_array[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->segmentation_id_pred_array[tile_idx]);
     return;
@@ -237,7 +237,7 @@ void *svt_aom_entropy_coding_kernel(void *input_ptr) {
     EntropyCodingContext *context_ptr = (EntropyCodingContext *)thread_ctx->priv;
 
     // Input
-    EbObjectWrapper *rest_results_wrapper_ptr;
+    EbObjectWrapper *rest_results_wrapper;
 
     // Output
     EbObjectWrapper      *entropy_coding_results_wrapper_ptr;
@@ -245,10 +245,10 @@ void *svt_aom_entropy_coding_kernel(void *input_ptr) {
 
     for (;;) {
         // Get Mode Decision Results
-        EB_GET_FULL_OBJECT(context_ptr->enc_dec_input_fifo_ptr, &rest_results_wrapper_ptr);
+        EB_GET_FULL_OBJECT(context_ptr->enc_dec_input_fifo_ptr, &rest_results_wrapper);
 
-        RestResults        *rest_results_ptr = (RestResults *)rest_results_wrapper_ptr->object_ptr;
-        PictureControlSet  *pcs = (PictureControlSet *)rest_results_ptr->pcs_wrapper->object_ptr;
+        RestResults        *rest_results = (RestResults *)rest_results_wrapper->object_ptr;
+        PictureControlSet  *pcs = (PictureControlSet *)rest_results->pcs_wrapper->object_ptr;
         SequenceControlSet *scs = pcs->scs;
         // SB Constants
 
@@ -256,7 +256,7 @@ void *svt_aom_entropy_coding_kernel(void *input_ptr) {
 
         uint8_t          sb_size_log2    = (uint8_t)svt_log2f(sb_size);
         uint32_t         pic_width_in_sb = (pcs->ppcs->aligned_width + sb_size - 1) >> sb_size_log2;
-        uint16_t         tile_idx        = rest_results_ptr->tile_index;
+        uint16_t         tile_idx        = rest_results->tile_index;
         Av1Common *const cm              = pcs->ppcs->av1_cm;
         const uint16_t   tile_cnt        = cm->tiles_info.tile_rows * cm->tiles_info.tile_cols;
         const uint16_t   tile_col        = tile_idx % cm->tiles_info.tile_cols;
@@ -355,14 +355,14 @@ void *svt_aom_entropy_coding_kernel(void *input_ptr) {
                                  &entropy_coding_results_wrapper_ptr);
             entropy_coding_results_ptr = (EntropyCodingResults *)
                                              entropy_coding_results_wrapper_ptr->object_ptr;
-            entropy_coding_results_ptr->pcs_wrapper = rest_results_ptr->pcs_wrapper;
+            entropy_coding_results_ptr->pcs_wrapper = rest_results->pcs_wrapper;
 
             // Post EntropyCoding Results
             svt_post_full_object(entropy_coding_results_wrapper_ptr);
         }
 
         // Release Mode Decision Results
-        svt_release_object(rest_results_wrapper_ptr);
+        svt_release_object(rest_results_wrapper);
     }
 
     return NULL;

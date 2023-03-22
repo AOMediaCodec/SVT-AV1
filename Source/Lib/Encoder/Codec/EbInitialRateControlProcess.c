@@ -132,16 +132,16 @@ static void push_to_lad_queue(PictureParentControlSet *pcs, InitialRateControlCo
 /* send picture out from irc process */
 static void irc_send_picture_out(InitialRateControlContext *ctx, PictureParentControlSet *pcs,
                                  Bool superres_recode) {
-    EbObjectWrapper *out_results_wrapper_ptr;
+    EbObjectWrapper *out_results_wrapper;
     // Get Empty Results Object
     svt_get_empty_object(ctx->initialrate_control_results_output_fifo_ptr,
-                         &out_results_wrapper_ptr);
-    InitialRateControlResults *out_results_ptr = (InitialRateControlResults *)
-                                                     out_results_wrapper_ptr->object_ptr;
+                         &out_results_wrapper);
+    InitialRateControlResults *out_results = (InitialRateControlResults *)
+                                                     out_results_wrapper->object_ptr;
     // SVT_LOG("iRC Out:%lld\n",pcs->picture_number);
-    out_results_ptr->pcs_wrapper     = pcs->p_pcs_wrapper_ptr;
-    out_results_ptr->superres_recode = superres_recode;
-    svt_post_full_object(out_results_wrapper_ptr);
+    out_results->pcs_wrapper     = pcs->p_pcs_wrapper_ptr;
+    out_results->superres_recode = superres_recode;
+    svt_post_full_object(out_results_wrapper);
 }
 static uint8_t is_frame_already_exists(PictureParentControlSet *pcs, uint32_t end_index,
                                        uint64_t pic_num) {

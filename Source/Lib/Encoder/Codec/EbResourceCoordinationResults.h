@@ -22,7 +22,7 @@ extern "C" {
 typedef struct InputCommand {
     EbDctor          dctor;
     EbObjectWrapper *eb_input_wrapper_ptr;
-    EbObjectWrapper *eb_y8b_wrapper_ptr;
+    EbObjectWrapper *y8b_wrapper;
 } InputCommand;
 
 /**************************************

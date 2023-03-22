@@ -146,7 +146,7 @@ static void tpl_regular_setup_me_refs(PictureParentControlSet *base_pcs,
             cur_pcs->tpl_data.tpl_ref_ds_ptr_array[list_index][ref_idx].picture_number =
                 ref_obj->picture_number;
             cur_pcs->tpl_data.tpl_ref_ds_ptr_array[list_index][ref_idx].picture_ptr =
-                ref_obj->input_padded_picture_ptr;
+                ref_obj->input_padded_pic;
             //not needed for TPL but could be linked.
             cur_pcs->tpl_data.tpl_ref_ds_ptr_array[list_index][ref_idx].sixteenth_picture_ptr =
                 NULL;
@@ -1381,21 +1381,21 @@ static Bool assign_tpl_segments(EncDecSegments *segmentPtr, uint16_t *segmentInO
         }
 
         if (feedback_row_index > 0) {
-            EbObjectWrapper *out_results_wrapper_ptr;
+            EbObjectWrapper *out_results_wrapper;
 
-            svt_get_empty_object(srmFifoPtr, &out_results_wrapper_ptr);
+            svt_get_empty_object(srmFifoPtr, &out_results_wrapper);
 
-            TplDispResults *out_results_ptr = (TplDispResults *)out_results_wrapper_ptr->object_ptr;
-            out_results_ptr->input_type     = TPL_TASKS_ENCDEC_INPUT;
+            TplDispResults *out_results = (TplDispResults *)out_results_wrapper->object_ptr;
+            out_results->input_type     = TPL_TASKS_ENCDEC_INPUT;
 
-            out_results_ptr->enc_dec_segment_row = feedback_row_index;
-            out_results_ptr->tile_group_index    = taskPtr->tile_group_index;
-            out_results_ptr->qIndex              = taskPtr->qIndex;
+            out_results->enc_dec_segment_row = feedback_row_index;
+            out_results->tile_group_index    = taskPtr->tile_group_index;
+            out_results->qIndex              = taskPtr->qIndex;
 
-            out_results_ptr->pcs_wrapper = taskPtr->pcs_wrapper;
-            out_results_ptr->pcs         = taskPtr->pcs;
-            out_results_ptr->frame_index = frame_idx;
-            svt_post_full_object(out_results_wrapper_ptr);
+            out_results->pcs_wrapper = taskPtr->pcs_wrapper;
+            out_results->pcs         = taskPtr->pcs;
+            out_results->frame_index = frame_idx;
+            svt_post_full_object(out_results_wrapper);
         }
 
         break;
@@ -1449,21 +1449,21 @@ static void tpl_mc_flow_dispenser(EncodeContext *enc_ctx, SequenceControlSet *sc
             // reset number of TPLed sbs per pic
             pcs->tpl_disp_coded_sb_count = 0;
 
-            EbObjectWrapper *out_results_wrapper_ptr;
+            EbObjectWrapper *out_results_wrapper;
 
             // TPL dispenser kernel
-            svt_get_empty_object(context_ptr->sbo_output_fifo_ptr, &out_results_wrapper_ptr);
+            svt_get_empty_object(context_ptr->sbo_output_fifo_ptr, &out_results_wrapper);
 
-            TplDispResults *out_results_ptr = (TplDispResults *)out_results_wrapper_ptr->object_ptr;
-            // out_results_ptr->pcs_wrapper = pcs->p_pcs_wrapper_ptr;
-            out_results_ptr->pcs              = pcs;
-            out_results_ptr->input_type       = TPL_TASKS_MDC_INPUT;
-            out_results_ptr->tile_group_index = /*tile_group_idx*/ 0;
+            TplDispResults *out_results = (TplDispResults *)out_results_wrapper->object_ptr;
+            // out_results->pcs_wrapper = pcs->p_pcs_wrapper_ptr;
+            out_results->pcs              = pcs;
+            out_results->input_type       = TPL_TASKS_MDC_INPUT;
+            out_results->tile_group_index = /*tile_group_idx*/ 0;
 
-            out_results_ptr->frame_index = frame_idx;
-            out_results_ptr->qIndex      = qIndex;
+            out_results->frame_index = frame_idx;
+            out_results->qIndex      = qIndex;
 
-            svt_post_full_object(out_results_wrapper_ptr);
+            svt_post_full_object(out_results_wrapper);
 
             svt_block_on_semaphore(pcs->tpl_disp_done_semaphore); // we can do all in // ?
         }
@@ -2195,7 +2195,7 @@ void *svt_aom_tpl_disp_kernel(void *input_ptr) {
 
 static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
                                  PictureParentControlSet *pcs, Bool superres_recode) {
-    EbObjectWrapper    *out_results_wrapper_ptr;
+    EbObjectWrapper    *out_results_wrapper;
     SequenceControlSet *scs = pcs->scs;
     // NB: overlay frames should be non-ref
     // Before sending pics out to pic mgr, ensure that pic mgr can handle them
@@ -2204,15 +2204,15 @@ static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
 
     // Get Empty Results Object
     svt_get_empty_object(context_ptr->picture_demux_results_output_fifo_ptr,
-                         &out_results_wrapper_ptr);
+                         &out_results_wrapper);
 
-    PictureDemuxResults *out_results_ptr = (PictureDemuxResults *)
-                                               out_results_wrapper_ptr->object_ptr;
-    out_results_ptr->pcs_wrapper  = pcs->p_pcs_wrapper_ptr;
-    out_results_ptr->picture_type = superres_recode ? EB_PIC_SUPERRES_INPUT : EB_PIC_INPUT;
+    PictureDemuxResults *out_results = (PictureDemuxResults *)
+                                               out_results_wrapper->object_ptr;
+    out_results->pcs_wrapper  = pcs->p_pcs_wrapper_ptr;
+    out_results->picture_type = superres_recode ? EB_PIC_SUPERRES_INPUT : EB_PIC_INPUT;
 
     // Post the Full Results Object
-    svt_post_full_object(out_results_wrapper_ptr);
+    svt_post_full_object(out_results_wrapper);
 }
 
 /************************************************

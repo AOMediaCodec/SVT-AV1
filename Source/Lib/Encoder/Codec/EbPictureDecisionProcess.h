@@ -37,9 +37,9 @@ void svt_aom_pad_picture_to_multiple_of_min_blk_size_dimensions_16bit(
 void svt_aom_picture_pre_processing_operations(PictureParentControlSet *pcs,
                                                SequenceControlSet      *scs);
 void svt_aom_pad_picture_to_multiple_of_sb_dimensions(
-    EbPictureBufferDesc *input_padded_picture_ptr);
+    EbPictureBufferDesc *input_padded_pic);
 void svt_aom_gathering_picture_statistics(SequenceControlSet *scs, PictureParentControlSet *pcs,
-                                          EbPictureBufferDesc *input_padded_picture_ptr,
+                                          EbPictureBufferDesc *input_padded_pic,
                                           EbPictureBufferDesc *sixteenth_decimated_picture_ptr);
 
 void svt_aom_down_sample_chroma(EbPictureBufferDesc *input_pic,

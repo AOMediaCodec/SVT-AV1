@@ -57,7 +57,7 @@ void        free_temporal_filtering_buffer(PictureControlSet *pcs, SequenceContr
 void        svt_aom_recon_output(PictureControlSet *pcs, SequenceControlSet *scs);
 void        svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSet *pcs);
 void        pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs);
-void        svt_aom_update_rc_counts(PictureParentControlSet *ppcs_ptr);
+void        svt_aom_update_rc_counts(PictureParentControlSet *ppcs);
 void svt_aom_ssim_calculations(PictureControlSet *pcs, SequenceControlSet *scs, Bool free_memory);
 
 // Extracts passthrough data from a linked list. The extracted data nodes are removed from the original linked list and
@@ -527,8 +527,8 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                     if (ppcs->ref_pic_wrapper != NULL) {
                         // update mi_rows and mi_cols for the reference pic wrapper (used in mfmv
                         // for other pictures)
-                        EbReferenceObject *reference_object = ppcs->ref_pic_wrapper->object_ptr;
-                        svt_reference_object_reset(reference_object, scs);
+                        EbReferenceObject *ref_object = ppcs->ref_pic_wrapper->object_ptr;
+                        svt_reference_object_reset(ref_object, scs);
                     }
 #if DEBUG_SUPERRES_RECODE
                     printf("\n%s - send superres recode task to open loop ME. Frame %d, denom %d\n",
@@ -586,10 +586,10 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                 svt_aom_update_rc_counts(ppcs);
 
             // Release pa me ptr. For non-superres-recode, it's released in svt_aom_mode_decision_kernel
-            assert(pcs->ppcs->me_data_wrapper_ptr != NULL);
+            assert(pcs->ppcs->me_data_wrapper != NULL);
             assert(pcs->ppcs->pa_me_data != NULL);
-            svt_release_object(pcs->ppcs->me_data_wrapper_ptr);
-            pcs->ppcs->me_data_wrapper_ptr = NULL;
+            svt_release_object(pcs->ppcs->me_data_wrapper);
+            pcs->ppcs->me_data_wrapper = NULL;
             pcs->ppcs->pa_me_data          = NULL;
 
             // Delayed call from Rest process
@@ -710,10 +710,10 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
         // Get Empty Rate Control Input Tasks
         svt_get_empty_object(context_ptr->rate_control_tasks_output_fifo_ptr,
                              &rate_control_tasks_wrapper_ptr);
-        RateControlTasks *rate_control_tasks_ptr = (RateControlTasks *)
+        RateControlTasks *rc_tasks = (RateControlTasks *)
                                                        rate_control_tasks_wrapper_ptr->object_ptr;
-        rate_control_tasks_ptr->pcs_wrapper = pcs->picture_parent_control_set_wrapper_ptr;
-        rate_control_tasks_ptr->task_type   = RC_PACKETIZATION_FEEDBACK_RESULT;
+        rc_tasks->pcs_wrapper = pcs->ppcs_wrapper;
+        rc_tasks->task_type   = RC_PACKETIZATION_FEEDBACK_RESULT;
         if (scs->enable_dec_order || (pcs->ppcs->is_ref == TRUE && pcs->ppcs->ref_pic_wrapper)) {
             if (pcs->ppcs->is_ref == TRUE &&
                 // Force each frame to update their data so future frames can use it,
@@ -871,7 +871,7 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             svt_post_full_object(picture_manager_results_wrapper_ptr);
         if (pcs->ppcs->frm_hdr.allow_intrabc)
             svt_av1_hash_table_destroy(&pcs->hash_table);
-        svt_release_object(pcs->ppcs->enc_dec_ptr->enc_dec_wrapper_ptr); // Child
+        svt_release_object(pcs->ppcs->enc_dec_ptr->enc_dec_wrapper); // Child
         // Release the Parent PCS then the Child PCS
         assert(entropy_coding_results_ptr->pcs_wrapper->live_count == 1);
         svt_release_object(entropy_coding_results_ptr->pcs_wrapper); // Child

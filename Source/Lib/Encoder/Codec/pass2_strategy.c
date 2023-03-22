@@ -788,7 +788,7 @@ static int av1_calc_iframe_target_size_one_pass_cbr(PictureParentControlSet *pcs
 static void av1_gop_bit_allocation(PictureParentControlSet *ppcs, RATE_CONTROL *const rc,
                                    int is_key_frame, int gf_interval, int use_arf,
                                    int64_t gf_group_bits);
-int         svt_aom_frame_is_kf_gf_arf(PictureParentControlSet *ppcs_ptr);
+int         svt_aom_frame_is_kf_gf_arf(PictureParentControlSet *ppcs);
 #define MAX_GF_BOOST 5400
 /***********************************************************************************
 * calculate_gf_stats()
@@ -1504,20 +1504,20 @@ static int set_gf_interval_update_onepass_rt(PictureParentControlSet *pcs) {
     return gf_update;
 }
 
-void svt_aom_reset_update_frame_target(PictureParentControlSet *ppcs_ptr) {
-    SequenceControlSet *scs     = ppcs_ptr->scs;
+void svt_aom_reset_update_frame_target(PictureParentControlSet *ppcs) {
+    SequenceControlSet *scs     = ppcs->scs;
     EncodeContext      *enc_ctx = scs->enc_ctx;
     RATE_CONTROL       *rc      = &enc_ctx->rc;
     rc->buffer_level            = rc->optimal_buffer_level;
     rc->bits_off_target         = rc->optimal_buffer_level;
-    ppcs_ptr->this_frame_target = av1_calc_pframe_target_size_one_pass_cbr(ppcs_ptr,
+    ppcs->this_frame_target = av1_calc_pframe_target_size_one_pass_cbr(ppcs,
                                                                            SVT_AV1_LF_UPDATE);
 }
 
-extern void svt_av1_resize_reset_rc(PictureParentControlSet *ppcs_ptr, int32_t resize_width,
+extern void svt_av1_resize_reset_rc(PictureParentControlSet *ppcs, int32_t resize_width,
                                     int32_t resize_height, int32_t prev_width, int32_t prev_height);
-static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs_ptr) {
-    SequenceControlSet *scs           = ppcs_ptr->scs;
+static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs) {
+    SequenceControlSet *scs           = ppcs->scs;
     EncodeContext      *enc_ctx       = scs->enc_ctx;
     RATE_CONTROL       *rc            = &enc_ctx->rc;
     RESIZE_ACTION       resize_action = NO_RESIZE;
@@ -1530,7 +1530,7 @@ static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs_ptr) {
 
     // Step 1: check frame type
     // Don't resize on key frame; reset the counters on key frame.
-    if (ppcs_ptr->frm_hdr.frame_type == KEY_FRAME) {
+    if (ppcs->frm_hdr.frame_type == KEY_FRAME) {
         rc->resize_avg_qp           = 0;
         rc->resize_count            = 0;
         rc->resize_buffer_underflow = 0;
@@ -1539,7 +1539,7 @@ static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs_ptr) {
 
     // Step 2: check frame size
     // No resizing down if frame size is below some limit.
-    if ((ppcs_ptr->frame_width * ppcs_ptr->frame_height) < min_width * min_height)
+    if ((ppcs->frame_width * ppcs->frame_height) < min_width * min_height)
         down_size_on = FALSE;
 
     // Step 3: calculate dynamic resize state
@@ -1592,8 +1592,8 @@ static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs_ptr) {
     // If decision is to resize, reset some quantities, and check is we should
     // reduce rate correction factor,
     if (resize_action != NO_RESIZE) {
-        int32_t resize_width     = ppcs_ptr->frame_width; // cpi->oxcf.frm_dim_cfg.width;
-        int32_t resize_height    = ppcs_ptr->frame_height; // cpi->oxcf.frm_dim_cfg.height;
+        int32_t resize_width     = ppcs->frame_width; // cpi->oxcf.frm_dim_cfg.width;
+        int32_t resize_height    = ppcs->frame_height; // cpi->oxcf.frm_dim_cfg.height;
         int32_t resize_scale_num = 1;
         int32_t resize_scale_den = 1;
         if (resize_action == DOWN_THREEFOUR || resize_action == UP_THREEFOUR) {
@@ -1606,7 +1606,7 @@ static void dynamic_resize_one_pass_cbr(PictureParentControlSet *ppcs_ptr) {
         resize_width  = resize_width * resize_scale_num / resize_scale_den;
         resize_height = resize_height * resize_scale_num / resize_scale_den;
         svt_av1_resize_reset_rc(
-            ppcs_ptr, resize_width, resize_height, ppcs_ptr->frame_width, ppcs_ptr->frame_height);
+            ppcs, resize_width, resize_height, ppcs->frame_width, ppcs->frame_height);
     }
     return;
 }
@@ -1932,9 +1932,9 @@ void svt_aom_find_init_qp_middle_pass(SequenceControlSet *scs, PictureParentCont
         enc_ctx->rc_cfg.cq_level = scs->static_config.qp << 2;
     }
 }
-int svt_aom_frame_is_kf_gf_arf(PictureParentControlSet *ppcs_ptr) {
-    return frame_is_intra_only(ppcs_ptr) || ppcs_ptr->update_type == SVT_AV1_ARF_UPDATE ||
-        ppcs_ptr->update_type == SVT_AV1_GF_UPDATE;
+int svt_aom_frame_is_kf_gf_arf(PictureParentControlSet *ppcs) {
+    return frame_is_intra_only(ppcs) || ppcs->update_type == SVT_AV1_ARF_UPDATE ||
+        ppcs->update_type == SVT_AV1_GF_UPDATE;
 }
 /*********************************************************************************************
  * Update the internal RC and TWO_PASS struct stats based on the received feedback
@@ -2047,8 +2047,8 @@ void svt_av1_twopass_postencode_update_gop_const(PictureParentControlSet *ppcs) 
         }
     }
 }
-void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs_ptr) {
-    SequenceControlSet         *scs     = ppcs_ptr->scs;
+void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs) {
+    SequenceControlSet         *scs     = ppcs->scs;
     EncodeContext              *enc_ctx = scs->enc_ctx;
     RATE_CONTROL *const         rc      = &enc_ctx->rc;
     TWO_PASS *const             twopass = &scs->twopass;
@@ -2059,7 +2059,7 @@ void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs_ptr) {
     // of subsequent frames, to try and push it back towards 0. This method
     // is designed to prevent extreme behaviour at the end of a clip
     // or group of frames.
-    rc->vbr_bits_off_target += ppcs_ptr->base_frame_target - ppcs_ptr->projected_frame_size;
+    rc->vbr_bits_off_target += ppcs->base_frame_target - ppcs->projected_frame_size;
     // Target vs actual bits for this arf group.
     int rate_error_estimate_target = 0;
     // Calculate the pct rc error.
@@ -2074,16 +2074,16 @@ void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs_ptr) {
     }
 
     // Update the active best quality pyramid.
-    if (!ppcs_ptr->is_overlay) {
-        const int pyramid_level = ppcs_ptr->layer_depth;
+    if (!ppcs->is_overlay) {
+        const int pyramid_level = ppcs->layer_depth;
         int       i;
         for (i = pyramid_level; i <= MAX_ARF_LAYERS; ++i) {
-            rc->active_best_quality[i] = ppcs_ptr->frm_hdr.quantization_params.base_q_idx;
+            rc->active_best_quality[i] = ppcs->frm_hdr.quantization_params.base_q_idx;
         }
     }
 
     // If the rate control is drifting consider adjustment to min or maxq.
-    if (!ppcs_ptr->is_overlay) {
+    if (!ppcs->is_overlay) {
         const int maxq_adj_limit = rc->worst_quality - rc->active_worst_quality;
         const int minq_adj_limit = MINQ_ADJ_LIMIT;
 
@@ -2101,8 +2101,8 @@ void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs_ptr) {
                     : 1;
         } else {
             // Adjustment for extreme local overshoot.
-            if (ppcs_ptr->projected_frame_size > (2 * ppcs_ptr->base_frame_target) &&
-                ppcs_ptr->projected_frame_size > (2 * rc->avg_frame_bandwidth))
+            if (ppcs->projected_frame_size > (2 * ppcs->base_frame_target) &&
+                ppcs->projected_frame_size > (2 * rc->avg_frame_bandwidth))
                 ++twopass->extend_maxq;
 
             // Unwind undershoot or overshoot adjustment.
@@ -2120,10 +2120,10 @@ void svt_av1_twopass_postencode_update(PictureParentControlSet *ppcs_ptr) {
         // bits back in quickly. One situation where this may happen is if a
         // frame is unexpectedly almost perfectly predicted by the ARF or GF
         // but not very well predcited by the previous frame.
-        if (!svt_aom_frame_is_kf_gf_arf(ppcs_ptr) && !ppcs_ptr->is_overlay) {
-            int fast_extra_thresh = ppcs_ptr->base_frame_target / HIGH_UNDERSHOOT_RATIO;
-            if (ppcs_ptr->projected_frame_size < fast_extra_thresh && rc->rate_error_estimate > 0) {
-                rc->vbr_bits_off_target_fast += fast_extra_thresh - ppcs_ptr->projected_frame_size;
+        if (!svt_aom_frame_is_kf_gf_arf(ppcs) && !ppcs->is_overlay) {
+            int fast_extra_thresh = ppcs->base_frame_target / HIGH_UNDERSHOOT_RATIO;
+            if (ppcs->projected_frame_size < fast_extra_thresh && rc->rate_error_estimate > 0) {
+                rc->vbr_bits_off_target_fast += fast_extra_thresh - ppcs->projected_frame_size;
                 rc->vbr_bits_off_target_fast = AOMMIN(rc->vbr_bits_off_target_fast,
                                                       (4 * rc->avg_frame_bandwidth));
 
@@ -2153,8 +2153,8 @@ int svt_aom_kf_low         = 400;
  * Update the qindex and active worse quality based on the already
  *  spent bits in the sliding window
  ******************************************************/
-void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
-    SequenceControlSet *scs     = ppcs_ptr->scs;
+void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs) {
+    SequenceControlSet *scs     = ppcs->scs;
     EncodeContext      *enc_ctx = scs->enc_ctx;
     RATE_CONTROL *const rc      = &enc_ctx->rc;
 
@@ -2163,7 +2163,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
     int64_t  spent_bits_sw       = 0, available_bit_sw;
     int      coded_frames_num_sw = 0;
     // Find the start and the end of the sliding window
-    int32_t start_index = ((ppcs_ptr->picture_number / frames_in_sw) * frames_in_sw) %
+    int32_t start_index = ((ppcs->picture_number / frames_in_sw) * frames_in_sw) %
         CODED_FRAMES_STAT_QUEUE_MAX_DEPTH;
     int32_t end_index   = start_index + frames_in_sw;
     frames_in_sw        = (scs->passes > 1)
@@ -2187,7 +2187,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
     available_bit_sw       = MAX(max_bits_sw - spent_bits_sw, 0);
     int64_t max_frame_size = 0;
     // Based on the kf boost, calculate the frame size for I frames
-    if (ppcs_ptr->slice_type == I_SLICE) {
+    if (ppcs->slice_type == I_SLICE) {
         int kf_interval = scs->static_config.intra_period_length > 0
             ? MIN(frames_in_sw, scs->static_config.intra_period_length + 1)
             : frames_in_sw;
@@ -2197,7 +2197,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
             max_frame_size = max_frame_size * 14 / 10;
 #if DEBUG_RC_CAP_LOG
         printf("SW_POC:%lld\t%lld\t%lld\t%d\tboost:%d\n",
-               ppcs_ptr->picture_number,
+               ppcs->picture_number,
                max_bits_sw,
                available_bit_sw,
                max_frame_size,
@@ -2205,25 +2205,25 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
 #endif
     }
     // Based on the gfu boost, calculate the frame size for I frames
-    else if (ppcs_ptr->temporal_layer_index == 0) {
-        int64_t gf_group_bits = available_bit_sw * (int64_t)(1 << ppcs_ptr->hierarchical_levels) /
+    else if (ppcs->temporal_layer_index == 0) {
+        int64_t gf_group_bits = available_bit_sw * (int64_t)(1 << ppcs->hierarchical_levels) /
             (frames_in_sw - coded_frames_num_sw);
         max_frame_size = calculate_boost_bits(
-            (1 << ppcs_ptr->hierarchical_levels), rc->gfu_boost, gf_group_bits);
+            (1 << ppcs->hierarchical_levels), rc->gfu_boost, gf_group_bits);
         int gfu_low_thr = svt_aom_gf_low_tpl_la +
             (svt_aom_gf_high_tpl_la - svt_aom_gf_low_tpl_la) / 3;
         if (rc->gfu_boost > gfu_low_thr)
             max_frame_size = max_frame_size * 12 / 10;
 #if DEBUG_RC_CAP_LOG
         printf("SW_POC:%lld\t%lld\t%lld\t%d\tboost:%d\n",
-               ppcs_ptr->picture_number,
+               ppcs->picture_number,
                gf_group_bits,
                available_bit_sw,
                max_frame_size,
                rc->gfu_boost);
 #endif
     }
-    FrameHeader *frm_hdr    = &ppcs_ptr->frm_hdr;
+    FrameHeader *frm_hdr    = &ppcs->frm_hdr;
     int32_t      new_qindex = frm_hdr->quantization_params.base_q_idx;
     // Increase the qindex based on the status of the spent bits in the window
     int remaining_frames       = frames_in_sw - coded_frames_num_sw;
@@ -2248,7 +2248,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
     }
 #if DEBUG_RC_CAP_LOG
     printf("SW_POC:%lld\t%lld\t%lld\t%d%%\t%d%%\tadj:\t%d\n",
-           ppcs_ptr->picture_number,
+           ppcs->picture_number,
            max_bits_sw,
            available_bit_sw,
            available_bit_ratio,
@@ -2257,7 +2257,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
 #endif
     new_qindex += adjustment;
     // Increase the active_worse_quality based on the adjustment
-    if (ppcs_ptr->temporal_layer_index == 0)
+    if (ppcs->temporal_layer_index == 0)
         rc->active_worst_quality += (adjustment / 2);
     // Decrease the active_worse_quality where undershoot happens and active_worst_quality is greater than the input QP
     if (available_bit_ratio > available_frames_ratio + 20 && available_frames_ratio < 10 &&
@@ -2274,11 +2274,11 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs_ptr) {
         (int32_t)quantizer_to_qindex[scs->static_config.max_qp_allowed],
         (int32_t)(new_qindex));
 
-    ppcs_ptr->picture_qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
+    ppcs->picture_qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
                                           (int32_t)scs->static_config.max_qp_allowed,
                                           (frm_hdr->quantization_params.base_q_idx + 2) >> 2);
     // clip the max frame size to 32 bits
-    ppcs_ptr->max_frame_size = (int)CLIP3(1, (0xFFFFFFFFull >> 1), (uint64_t)max_frame_size);
+    ppcs->max_frame_size = (int)CLIP3(1, (0xFFFFFFFFull >> 1), (uint64_t)max_frame_size);
     // The target is set to 80% of the max.
-    ppcs_ptr->this_frame_target = ppcs_ptr->max_frame_size * 8 / 10;
+    ppcs->this_frame_target = ppcs->max_frame_size * 8 / 10;
 }

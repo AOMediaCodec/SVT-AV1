@@ -5124,14 +5124,14 @@ EB_API EbErrorType svt_av1_enc_send_picture(
     enc_handle_ptr->frame_received = true;
 
     // Get new Luma-8b buffer & a new (Chroma-8b + Luma-Chroma-2bit) buffers; Lib will release once done.
-    EbObjectWrapper  *eb_y8b_wrapper_ptr;
+    EbObjectWrapper  *y8b_wrapper;
     svt_get_empty_object(
         enc_handle_ptr->input_y8b_buffer_producer_fifo_ptr,
-        &eb_y8b_wrapper_ptr);
+        &y8b_wrapper);
     //set live count to 1 to be decremented at the end of the encode in RC
-    svt_object_inc_live_count(eb_y8b_wrapper_ptr, 1);
+    svt_object_inc_live_count(y8b_wrapper, 1);
 
-   // svt_object_inc_live_count(eb_y8b_wrapper_ptr, 1);
+   // svt_object_inc_live_count(y8b_wrapper, 1);
 
     svt_get_empty_object(
         enc_handle_ptr->input_buffer_producer_fifo_ptr,
@@ -5145,7 +5145,7 @@ EB_API EbErrorType svt_av1_enc_send_picture(
         enc_handle_ptr->eos_received += p_buffer->flags & EB_BUFFERFLAG_EOS;
 
         //copy the Luma 8bit part into y8b buffer and the rest of samples into the regular buffer
-        EbBufferHeaderType *lib_y8b_hdr = (EbBufferHeaderType*)eb_y8b_wrapper_ptr->object_ptr;
+        EbBufferHeaderType *lib_y8b_hdr = (EbBufferHeaderType*)y8b_wrapper->object_ptr;
         EbBufferHeaderType *lib_reg_hdr = (EbBufferHeaderType*)eb_wrapper_ptr->object_ptr;
         copy_input_buffer(
             enc_handle_ptr->scs_instance_array[0]->scs,
@@ -5163,7 +5163,7 @@ EB_API EbErrorType svt_av1_enc_send_picture(
     InputCommand *input_cmd_obj = (InputCommand*)input_cmd_wrp->object_ptr;
     //Fill the command with two picture buffers
     input_cmd_obj->eb_input_wrapper_ptr = eb_wrapper_ptr;
-    input_cmd_obj->eb_y8b_wrapper_ptr = eb_y8b_wrapper_ptr;
+    input_cmd_obj->y8b_wrapper = y8b_wrapper;
     //Send to Lib
     svt_post_full_object(input_cmd_wrp);
 

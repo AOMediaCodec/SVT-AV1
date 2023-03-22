@@ -2286,7 +2286,7 @@ extern int32_t svt_av1_get_pred_context_switchable_interp_v2(MvReferenceFrame rf
 #define SWITCHABLE_INTERP_RATE_FACTOR 1
 extern int32_t svt_av1_get_pred_context_switchable_interp(
     NeighborArrayUnit *ref_frame_type_na, MvReferenceFrame rf0, MvReferenceFrame rf1,
-    NeighborArrayUnit32 *interpolation_type_neighbor_array, uint32_t blk_org_x, uint32_t blk_org_y,
+    NeighborArrayUnit32 *interpolation_type_na, uint32_t blk_org_x, uint32_t blk_org_y,
     int32_t dir);
 
 int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf, const Av1Common *const cm,

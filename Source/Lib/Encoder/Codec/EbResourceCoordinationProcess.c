@@ -546,14 +546,14 @@ static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs) {
     frm_hdr->frame_refs_short_signaling = 0;
     pcs->allow_comp_inter_inter         = 0;
     //  int32_t all_one_sided_refs;
-    pcs->me_data_wrapper_ptr             = NULL;
-    pcs->down_scaled_picture_wrapper_ptr = NULL;
+    pcs->me_data_wrapper             = NULL;
+    pcs->downscaled_pic_wrapper = NULL;
     pcs->ds_pics.picture_ptr             = NULL;
     pcs->ds_pics.quarter_picture_ptr     = NULL;
     pcs->ds_pics.sixteenth_picture_ptr   = NULL;
     pcs->max_number_of_pus_per_sb        = SQUARE_PU_COUNT;
 
-    svt_aom_atomic_set_u32(&pcs->pame_done, 0);
+    svt_aom_atomic_set_u32(&pcs->pa_me_done, 0);
 
     svt_create_cond_var(&pcs->me_ready);
 
@@ -806,10 +806,10 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
     EbObjectWrapper             *eb_input_wrapper_ptr;
     EbBufferHeaderType          *eb_input_ptr;
     EbObjectWrapper             *output_wrapper_ptr;
-    ResourceCoordinationResults *out_results_ptr;
+    ResourceCoordinationResults *out_results;
     EbObjectWrapper             *eb_input_cmd_wrapper;
     InputCommand                *input_cmd_obj;
-    EbObjectWrapper             *input_picture_wrapper_ptr;
+    EbObjectWrapper             *input_pic_wrapper;
     EbObjectWrapper             *ref_pic_wrapper;
 
     Bool             end_of_sequence_flag = FALSE;
@@ -823,8 +823,8 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
         input_cmd_obj = (InputCommand *)eb_input_cmd_wrapper->object_ptr;
 
-        EbObjectWrapper    *eb_y8b_wrapper_ptr = input_cmd_obj->eb_y8b_wrapper_ptr;
-        EbBufferHeaderType *y8b_header = (EbBufferHeaderType *)eb_y8b_wrapper_ptr->object_ptr;
+        EbObjectWrapper    *y8b_wrapper = input_cmd_obj->y8b_wrapper;
+        EbBufferHeaderType *y8b_header = (EbBufferHeaderType *)y8b_wrapper->object_ptr;
         uint8_t            *buff_y8b   = ((EbPictureBufferDesc *)y8b_header->p_buffer)->buffer_y;
         eb_input_wrapper_ptr           = input_cmd_obj->eb_input_wrapper_ptr;
         eb_input_ptr                   = (EbBufferHeaderType *)eb_input_wrapper_ptr->object_ptr;
@@ -941,7 +941,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 scs->enc_ctx->previous_picture_control_set_wrapper_ptr = pcs_wrapper;
             // Copy data from the svt buffer to the input frame
             // *Note - Assumes 4:2:0 planar
-            input_picture_wrapper_ptr = eb_input_wrapper_ptr;
+            input_pic_wrapper = eb_input_wrapper_ptr;
             pcs->enhanced_pic         = (EbPictureBufferDesc *)eb_input_ptr->p_buffer;
             // make pcs input buffer access the luma8bit part from the Luma8bit Pool
             pcs->enhanced_pic->buffer_y = buff_y8b;
@@ -955,9 +955,9 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             pcs->superres_recode_loop       = 0;
             svt_av1_get_time(&pcs->start_time_seconds, &pcs->start_time_u_seconds);
             pcs->scs                       = scs;
-            pcs->input_picture_wrapper_ptr = input_picture_wrapper_ptr;
+            pcs->input_pic_wrapper = input_pic_wrapper;
             //store the y8b warapper to be used for release later
-            pcs->eb_y8b_wrapper_ptr   = eb_y8b_wrapper_ptr;
+            pcs->y8b_wrapper   = y8b_wrapper;
             pcs->end_of_sequence_flag = end_of_sequence_flag;
             pcs->rc_reset_flag        = FALSE;
             update_frame_event(pcs, context_ptr->picture_number_array[instance_index]);
@@ -971,23 +971,23 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 svt_get_empty_object(scs->enc_ctx->overlay_input_picture_pool_fifo_ptr,
                                      &input_pic_wrapper_ptr);
 
-                // Copy from original picture (pcs->input_picture_wrapper_ptr), which is shared
+                // Copy from original picture (pcs->input_pic_wrapper), which is shared
                 // between overlay and alt_ref up to this point, to the new input picture.
-                if (pcs->alt_ref_ppcs_ptr->input_picture_wrapper_ptr->object_ptr != NULL) {
+                if (pcs->alt_ref_ppcs_ptr->input_pic_wrapper->object_ptr != NULL) {
                     copy_input_buffer_overlay(
                         scs,
                         (EbBufferHeaderType *)input_pic_wrapper_ptr->object_ptr,
                         (EbBufferHeaderType *)
-                            pcs->alt_ref_ppcs_ptr->input_picture_wrapper_ptr->object_ptr);
+                            pcs->alt_ref_ppcs_ptr->input_pic_wrapper->object_ptr);
                 }
                 // Assign the new picture to the new pointers
                 pcs->input_ptr    = (EbBufferHeaderType *)input_pic_wrapper_ptr->object_ptr;
                 pcs->enhanced_pic = (EbPictureBufferDesc *)pcs->input_ptr->p_buffer;
-                pcs->input_picture_wrapper_ptr = input_pic_wrapper_ptr;
+                pcs->input_pic_wrapper = input_pic_wrapper_ptr;
 
                 // overlay does NOT use y8b buffer, set to NULL to avoid
-                // eb_y8b_wrapper_ptr->live_count disorder
-                pcs->eb_y8b_wrapper_ptr = NULL;
+                // y8b_wrapper->live_count disorder
+                pcs->y8b_wrapper = NULL;
             }
             // Set Picture Control Flags
             pcs->idr_flag          = scs->enc_ctx->initial_picture;
@@ -1050,21 +1050,21 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             svt_get_empty_object(scs->enc_ctx->pa_reference_picture_pool_fifo_ptr,
                                  &ref_pic_wrapper);
 
-            pcs->pa_reference_picture_wrapper_ptr = ref_pic_wrapper;
+            pcs->pa_ref_pic_wrapper = ref_pic_wrapper;
             // make pa_ref full sample buffer access the luma8bit part from the y8b Pool
             EbPaReferenceObject *pa_ref_obj = (EbPaReferenceObject *)
-                                                  pcs->pa_reference_picture_wrapper_ptr->object_ptr;
-            EbPictureBufferDesc *input_padded_picture_ptr =
-                (EbPictureBufferDesc *)pa_ref_obj->input_padded_picture_ptr;
-            input_padded_picture_ptr->buffer_y = buff_y8b;
-            svt_object_inc_live_count(pcs->pa_reference_picture_wrapper_ptr, 1);
-            if (pcs->eb_y8b_wrapper_ptr) {
+                                                  pcs->pa_ref_pic_wrapper->object_ptr;
+            EbPictureBufferDesc *input_padded_pic =
+                (EbPictureBufferDesc *)pa_ref_obj->input_padded_pic;
+            input_padded_pic->buffer_y = buff_y8b;
+            svt_object_inc_live_count(pcs->pa_ref_pic_wrapper, 1);
+            if (pcs->y8b_wrapper) {
                 // y8b follows longest life cycle of pa ref and input. so it needs to build on top of live count of pa ref
-                svt_object_inc_live_count(pcs->eb_y8b_wrapper_ptr, 1);
+                svt_object_inc_live_count(pcs->y8b_wrapper, 1);
             }
             if (scs->static_config.restricted_motion_vector) {
-                struct PictureParentControlSet *ppcs_ptr = pcs;
-                Av1Common *const                cm       = ppcs_ptr->av1_cm;
+                struct PictureParentControlSet *ppcs = pcs;
+                Av1Common *const                cm       = ppcs->av1_cm;
                 uint8_t   pic_width_in_sb = (uint8_t)((pcs->aligned_width + scs->sb_size - 1) /
                                                     scs->sb_size);
                 int       tile_row, tile_col;
@@ -1118,14 +1118,14 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
                 svt_get_empty_object(context_ptr->resource_coordination_results_output_fifo_ptr,
                                      &output_wrapper_ptr);
-                out_results_ptr = (ResourceCoordinationResults *)output_wrapper_ptr->object_ptr;
+                out_results = (ResourceCoordinationResults *)output_wrapper_ptr->object_ptr;
 
                 if (scs->static_config.enable_overlays == TRUE) {
                     // ppcs live_count + 1 for PictureAnalysis & PictureDecision, will svt_release_object(ppcs) at the end of svt_aom_picture_decision_kernel.
                     svt_object_inc_live_count(prev_pcs_wrapper_ptr, 1);
                 }
 
-                out_results_ptr->pcs_wrapper = prev_pcs_wrapper_ptr;
+                out_results->pcs_wrapper = prev_pcs_wrapper_ptr;
                 // Post the finished Results Object
                 svt_post_full_object(output_wrapper_ptr);
             }

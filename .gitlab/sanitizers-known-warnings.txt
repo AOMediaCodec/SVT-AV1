@@ -6,7 +6,7 @@
 #1]
 race:mode_decision_kernel
 #mode_decision_kernel() is run two times with that same pcs in separated tasks,
-#when: enc_dec_tasks_ptr->input_type is ENCDEC_TASKS_MDC_INPUT or ENCDEC_TASKS_ENCDEC_INPUT.
+#when: enc_dec_tasks->input_type is ENCDEC_TASKS_MDC_INPUT or ENCDEC_TASKS_ENCDEC_INPUT.
 #Some calculation are done double on that same memory.
 #Example for one of the warnings is to change in mode_decision_kernel:
 #((EbReferenceObject *)

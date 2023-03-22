@@ -488,45 +488,45 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
 void svt_aom_reset_mode_decision_neighbor_arrays(PictureControlSet *pcs, uint16_t tile_idx) {
     uint8_t depth;
     for (depth = 0; depth < NA_TOT_CNT; depth++) {
-        svt_aom_neighbor_array_unit_reset(pcs->md_intra_luma_mode_neighbor_array[depth][tile_idx]);
-        svt_aom_neighbor_array_unit_reset(pcs->md_skip_flag_neighbor_array[depth][tile_idx]);
-        svt_aom_neighbor_array_unit_reset(pcs->md_mode_type_neighbor_array[depth][tile_idx]);
-        svt_aom_neighbor_array_unit_reset(pcs->mdleaf_partition_neighbor_array[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->md_intra_luma_mode_na[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->md_skip_flag_na[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->md_mode_type_na[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->mdleaf_partition_na[depth][tile_idx]);
         if (pcs->hbd_md != EB_10_BIT_MD) {
-            svt_aom_neighbor_array_unit_reset(pcs->md_luma_recon_neighbor_array[depth][tile_idx]);
+            svt_aom_neighbor_array_unit_reset(pcs->md_luma_recon_na[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_tx_depth_1_luma_recon_neighbor_array[depth][tile_idx]);
+                pcs->md_tx_depth_1_luma_recon_na[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_tx_depth_2_luma_recon_neighbor_array[depth][tile_idx]);
-            svt_aom_neighbor_array_unit_reset(pcs->md_cb_recon_neighbor_array[depth][tile_idx]);
-            svt_aom_neighbor_array_unit_reset(pcs->md_cr_recon_neighbor_array[depth][tile_idx]);
+                pcs->md_tx_depth_2_luma_recon_na[depth][tile_idx]);
+            svt_aom_neighbor_array_unit_reset(pcs->md_cb_recon_na[depth][tile_idx]);
+            svt_aom_neighbor_array_unit_reset(pcs->md_cr_recon_na[depth][tile_idx]);
         }
         if (pcs->hbd_md > EB_8_BIT_MD) {
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_luma_recon_neighbor_array16bit[depth][tile_idx]);
+                pcs->md_luma_recon_na_16bit[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_tx_depth_1_luma_recon_neighbor_array16bit[depth][tile_idx]);
+                pcs->md_tx_depth_1_luma_recon_na_16bit[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_tx_depth_2_luma_recon_neighbor_array16bit[depth][tile_idx]);
+                pcs->md_tx_depth_2_luma_recon_na_16bit[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_cb_recon_neighbor_array16bit[depth][tile_idx]);
+                pcs->md_cb_recon_na_16bit[depth][tile_idx]);
             svt_aom_neighbor_array_unit_reset(
-                pcs->md_cr_recon_neighbor_array16bit[depth][tile_idx]);
+                pcs->md_cr_recon_na_16bit[depth][tile_idx]);
         }
 
         svt_aom_neighbor_array_unit_reset(pcs->md_y_dcs_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(
-            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[depth][tile_idx]);
+            pcs->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(
-            pcs->md_cb_dc_sign_level_coeff_neighbor_array[depth][tile_idx]);
+            pcs->md_cb_dc_sign_level_coeff_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(
-            pcs->md_cr_dc_sign_level_coeff_neighbor_array[depth][tile_idx]);
+            pcs->md_cr_dc_sign_level_coeff_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(pcs->md_txfm_context_array[depth][tile_idx]);
-        svt_aom_neighbor_array_unit_reset(pcs->md_skip_coeff_neighbor_array[depth][tile_idx]);
-        svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_neighbor_array[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->md_skip_coeff_na[depth][tile_idx]);
+        svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_na[depth][tile_idx]);
 
         svt_aom_neighbor_array_unit_reset32(
-            pcs->md_interpolation_type_neighbor_array[depth][tile_idx]);
+            pcs->md_interpolation_type_na[depth][tile_idx]);
     }
 
     return;

@@ -26,7 +26,7 @@ EbErrorType svt_aom_picture_analysis_context_ctor(EbThreadContext   *thread_ctx,
 extern void *svt_aom_picture_analysis_kernel(void *input_ptr);
 
 void svt_aom_downsample_filtering_input_picture(PictureParentControlSet *pcs,
-                                                EbPictureBufferDesc     *input_padded_picture_ptr,
+                                                EbPictureBufferDesc     *input_padded_pic,
                                                 EbPictureBufferDesc     *quarter_picture_ptr,
                                                 EbPictureBufferDesc     *sixteenth_picture_ptr);
 

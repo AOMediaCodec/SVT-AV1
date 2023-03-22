@@ -229,9 +229,9 @@ typedef struct EncDecSet {
     EbPictureBufferDesc            *recon_pic;
     EbPictureBufferDesc            *recon_pic_16bit;
     EbPictureBufferDesc           **quantized_coeff;
-    EbObjectWrapper                *enc_dec_wrapper_ptr;
+    EbObjectWrapper                *enc_dec_wrapper;
     struct PictureParentControlSet *ppcs; // The parent of this PCS.
-    EbObjectWrapper                *picture_parent_control_set_wrapper_ptr;
+    EbObjectWrapper                *ppcs_wrapper;
     uint16_t                        b64_total_count;
 } EncDecSet;
 typedef struct CdefDirData {
@@ -250,7 +250,7 @@ typedef struct PictureControlSet {
     EbPictureBufferDesc       *input_frame16bit;
 
     struct PictureParentControlSet *ppcs; // The parent of this PCS.
-    EbObjectWrapper                *picture_parent_control_set_wrapper_ptr;
+    EbObjectWrapper                *ppcs_wrapper;
     // Packetization (used to encode SPS, PPS, etc)
     Bitstream *bitstream_ptr;
 
@@ -314,48 +314,48 @@ typedef struct PictureControlSet {
     // qindex per 64x64 using ME distortions (to be used for lambda modulation only; not at Q/Q-1)
     // Mode Decision Neighbor Arrays
     uint8_t            *b64_me_qindex;
-    NeighborArrayUnit **md_intra_luma_mode_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_skip_flag_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_mode_type_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_luma_recon_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_tx_depth_1_luma_recon_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_tx_depth_2_luma_recon_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_cb_recon_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_cr_recon_neighbor_array[NA_TOT_CNT];
+    NeighborArrayUnit **md_intra_luma_mode_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_skip_flag_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_mode_type_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_luma_recon_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_tx_depth_1_luma_recon_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_tx_depth_2_luma_recon_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_cb_recon_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_cr_recon_na[NA_TOT_CNT];
 
     uint8_t             hbd_md;
-    NeighborArrayUnit **md_luma_recon_neighbor_array16bit[NA_TOT_CNT];
-    NeighborArrayUnit **md_tx_depth_1_luma_recon_neighbor_array16bit[NA_TOT_CNT];
-    NeighborArrayUnit **md_tx_depth_2_luma_recon_neighbor_array16bit[NA_TOT_CNT];
-    NeighborArrayUnit **md_cb_recon_neighbor_array16bit[NA_TOT_CNT];
-    NeighborArrayUnit **md_cr_recon_neighbor_array16bit[NA_TOT_CNT];
+    NeighborArrayUnit **md_luma_recon_na_16bit[NA_TOT_CNT];
+    NeighborArrayUnit **md_tx_depth_1_luma_recon_na_16bit[NA_TOT_CNT];
+    NeighborArrayUnit **md_tx_depth_2_luma_recon_na_16bit[NA_TOT_CNT];
+    NeighborArrayUnit **md_cb_recon_na_16bit[NA_TOT_CNT];
+    NeighborArrayUnit **md_cr_recon_na_16bit[NA_TOT_CNT];
     NeighborArrayUnit **md_y_dcs_na[NA_TOT_CNT];
-    NeighborArrayUnit **md_tx_depth_1_luma_dc_sign_level_coeff_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_cb_dc_sign_level_coeff_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_cr_dc_sign_level_coeff_neighbor_array[NA_TOT_CNT];
+    NeighborArrayUnit **md_tx_depth_1_luma_dc_sign_level_coeff_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_cb_dc_sign_level_coeff_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_cr_dc_sign_level_coeff_na[NA_TOT_CNT];
     NeighborArrayUnit **md_txfm_context_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_skip_coeff_neighbor_array[NA_TOT_CNT];
-    NeighborArrayUnit **md_ref_frame_type_neighbor_array[NA_TOT_CNT];
+    NeighborArrayUnit **md_skip_coeff_na[NA_TOT_CNT];
+    NeighborArrayUnit **md_ref_frame_type_na[NA_TOT_CNT];
 
-    NeighborArrayUnit32 **md_interpolation_type_neighbor_array[NA_TOT_CNT];
+    NeighborArrayUnit32 **md_interpolation_type_na[NA_TOT_CNT];
 
-    NeighborArrayUnit **mdleaf_partition_neighbor_array[NA_TOT_CNT];
+    NeighborArrayUnit **mdleaf_partition_na[NA_TOT_CNT];
 
     // Encode Pass Neighbor Arrays
-    NeighborArrayUnit **ep_intra_luma_mode_neighbor_array;
-    NeighborArrayUnit **ep_intra_chroma_mode_neighbor_array;
-    NeighborArrayUnit **ep_mv_neighbor_array;
-    NeighborArrayUnit **ep_skip_flag_neighbor_array;
-    NeighborArrayUnit **ep_mode_type_neighbor_array;
-    NeighborArrayUnit **ep_luma_recon_neighbor_array;
-    NeighborArrayUnit **ep_cb_recon_neighbor_array;
-    NeighborArrayUnit **ep_cr_recon_neighbor_array;
-    NeighborArrayUnit **ep_luma_recon_neighbor_array16bit;
-    NeighborArrayUnit **ep_cb_recon_neighbor_array16bit;
-    NeighborArrayUnit **ep_cr_recon_neighbor_array16bit;
-    NeighborArrayUnit **ep_luma_dc_sign_level_coeff_neighbor_array;
-    NeighborArrayUnit **ep_cr_dc_sign_level_coeff_neighbor_array;
-    NeighborArrayUnit **ep_cb_dc_sign_level_coeff_neighbor_array;
+    NeighborArrayUnit **ep_intra_luma_mode_na;
+    NeighborArrayUnit **ep_intra_chroma_mode_na;
+    NeighborArrayUnit **ep_mv_na;
+    NeighborArrayUnit **ep_skip_flag_na;
+    NeighborArrayUnit **ep_mode_type_na;
+    NeighborArrayUnit **ep_luma_recon_na;
+    NeighborArrayUnit **ep_cb_recon_na;
+    NeighborArrayUnit **ep_cr_recon_na;
+    NeighborArrayUnit **ep_luma_recon_na_16bit;
+    NeighborArrayUnit **ep_cb_recon_na_16bit;
+    NeighborArrayUnit **ep_cr_recon_na_16bit;
+    NeighborArrayUnit **ep_luma_dc_sign_level_coeff_na;
+    NeighborArrayUnit **ep_cr_dc_sign_level_coeff_na;
+    NeighborArrayUnit **ep_cb_dc_sign_level_coeff_na;
     NeighborArrayUnit **ep_luma_dc_sign_level_coeff_na_update;
     NeighborArrayUnit **ep_cr_dc_sign_level_coeff_na_update;
     NeighborArrayUnit **ep_cb_dc_sign_level_coeff_na_update;
@@ -363,7 +363,7 @@ typedef struct PictureControlSet {
 
     // Entropy Coding Neighbor Arrays
     NeighborArrayUnit **mode_type_na;
-    NeighborArrayUnit **partition_context_neighbor_array;
+    NeighborArrayUnit **partition_context_na;
     NeighborArrayUnit **intra_luma_mode_na;
     NeighborArrayUnit **skip_flag_na;
     NeighborArrayUnit **skip_coeff_na;
@@ -378,7 +378,7 @@ typedef struct PictureControlSet {
     NeighborArrayUnit   **cb_dc_sign_level_coeff_na;
     NeighborArrayUnit   **txfm_context_array;
     NeighborArrayUnit   **ref_frame_type_na;
-    NeighborArrayUnit32 **interpolation_type_neighbor_array;
+    NeighborArrayUnit32 **interpolation_type_na;
 
     NeighborArrayUnit      **segmentation_id_pred_array;
     SegmentationNeighborMap *segmentation_neighbor_map;
@@ -720,16 +720,16 @@ typedef struct CyclicRefresh {
 //  to EC/ALF.
 typedef struct PictureParentControlSet {
     EbDctor          dctor;
-    EbObjectWrapper *input_picture_wrapper_ptr;
+    EbObjectWrapper *input_pic_wrapper;
     // when overlay: y8b buffer is not used, should set to NULL.
-    EbObjectWrapper     *eb_y8b_wrapper_ptr;
+    EbObjectWrapper     *y8b_wrapper;
     EbObjectWrapper     *ref_pic_wrapper;
-    EbObjectWrapper     *pa_reference_picture_wrapper_ptr;
+    EbObjectWrapper     *pa_ref_pic_wrapper;
     EbPictureBufferDesc *enhanced_pic;
-    EbPictureBufferDesc *enhanced_downscaled_picture_ptr;
+    EbPictureBufferDesc *enhanced_downscaled_pic;
     EbPictureBufferDesc *enhanced_unscaled_pic;
     // if 422/444 input, down sample to 420 for MD
-    EbPictureBufferDesc       *chroma_downsampled_picture_ptr;
+    EbPictureBufferDesc       *chroma_downsampled_pic;
     Bool                       is_chroma_downsampled_picture_ptr_owner;
     PredictionStructure       *pred_struct_ptr; // need to check
     struct SequenceControlSet *scs;
@@ -799,7 +799,7 @@ typedef struct PictureParentControlSet {
     double                                  cr_ssim;
     double                                  cb_ssim;
     // Pointer array for down scaled pictures
-    EbObjectWrapper            *down_scaled_picture_wrapper_ptr;
+    EbObjectWrapper            *downscaled_pic_wrapper;
     EbDownScaledBufDescPtrArray ds_pics;
 
     TPLData          tpl_data;
@@ -971,7 +971,7 @@ typedef struct PictureParentControlSet {
     uint16_t temp_filt_seg_acc;
     EbHandle tpl_disp_done_semaphore;
 
-    AtomicVarU32 pame_done; // set when PA ME is done.
+    AtomicVarU32 pa_me_done; // set when PA ME is done.
     CondVar      me_ready;
 
     int16_t     tf_segments_total_count;
@@ -979,7 +979,7 @@ typedef struct PictureParentControlSet {
     uint8_t     tf_segments_row_count;
     uint8_t     past_altref_nframes;
     uint8_t     future_altref_nframes;
-    Bool        temporal_filtering_on;
+    Bool        do_tf;
     uint64_t    filtered_sse_uv;
     FrameHeader frm_hdr;
     uint16_t   *altref_buffer_highbd[3];
@@ -1024,7 +1024,7 @@ typedef struct PictureParentControlSet {
     uint8_t superres_denom_array[NUM_SR_SCALES + 1]; // denom candidate array used in auto supreres
     double  superres_rdcost[NUM_SR_SCALES + 1]; // 9 slots, for denom 8 ~ 16
 
-    EbObjectWrapper      *me_data_wrapper_ptr;
+    EbObjectWrapper      *me_data_wrapper;
     MotionEstimationData *pa_me_data;
     // stores pcs pictures needed for tpl algorithm
     struct PictureParentControlSet *tpl_group[MAX_TPL_GROUP_SIZE];
