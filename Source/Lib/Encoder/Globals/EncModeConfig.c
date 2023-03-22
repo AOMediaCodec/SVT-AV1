@@ -277,7 +277,7 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
         me_ctx->me_sa.sa_min.height = (me_ctx->me_sa.sa_min.height * 3) >> 1;
     }
 }
-void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_level) {
+static void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_level) {
     MeHmeRefPruneCtrls *me_hme_prune_ctrls = &me_ctx->me_hme_prune_ctrls;
 
     switch (prune_level) {
@@ -326,7 +326,7 @@ void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_level) 
     }
 }
 
-void svt_aom_set_me_sr_adjustment_ctrls(MeContext *me_ctx, uint8_t sr_adjustment_level) {
+static void svt_aom_set_me_sr_adjustment_ctrls(MeContext *me_ctx, uint8_t sr_adjustment_level) {
     MeSrCtrls *me_sr_adjustment_ctrls = &me_ctx->me_sr_adjustment_ctrls;
 
     switch (sr_adjustment_level) {
@@ -397,7 +397,7 @@ void svt_aom_set_me_sr_adjustment_ctrls(MeContext *me_ctx, uint8_t sr_adjustment
     }
 }
 /*configure PreHme control*/
-void svt_aom_set_prehme_ctrls(MeContext *me_ctx, uint8_t level) {
+static void svt_aom_set_prehme_ctrls(MeContext *me_ctx, uint8_t level) {
     PreHmeCtrls *ctrl = &me_ctx->prehme_ctrl;
 
     switch (level) {
@@ -1391,7 +1391,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
     }
 }
 
-void svt_aom_set_wn_filter_ctrls(Av1Common *cm, uint8_t wn_filter_lvl) {
+static void svt_aom_set_wn_filter_ctrls(Av1Common *cm, uint8_t wn_filter_lvl) {
     WnFilterCtrls *ctrls = &cm->wn_filter_ctrls;
 
     switch (wn_filter_lvl) {
@@ -1448,7 +1448,7 @@ void svt_aom_set_wn_filter_ctrls(Av1Common *cm, uint8_t wn_filter_lvl) {
     }
 }
 
-void svt_aom_set_sg_filter_ctrls(Av1Common *cm, uint8_t sg_filter_lvl) {
+static void svt_aom_set_sg_filter_ctrls(Av1Common *cm, uint8_t sg_filter_lvl) {
     SgFilterCtrls *ctrls = &cm->sg_filter_ctrls;
 
     switch (sg_filter_lvl) {
@@ -1478,7 +1478,8 @@ void svt_aom_set_sg_filter_ctrls(Av1Common *cm, uint8_t sg_filter_lvl) {
 }
 
 // Returns the level for Wiener restoration filter
-uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resolution, Bool is_ref) {
+static uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resolution,
+                                           Bool is_ref) {
     uint8_t wn_filter_lvl = 0;
     if (enc_mode <= ENC_M4)
         wn_filter_lvl = 1;
@@ -1970,7 +1971,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         pcs->adjust_under_shoot_gf = enc_mode <= ENC_M11 ? 1 : 2;
 }
 /*set the skip_frame flag for ipp*/
-void svt_aom_set_skip_frame_in_ipp(PictureParentControlSet *pcs, MeContext *me_ctx) {
+static void svt_aom_set_skip_frame_in_ipp(PictureParentControlSet *pcs, MeContext *me_ctx) {
     me_ctx->skip_frame             = 0;
     int8_t   max_heirachical_level = (int8_t)pcs->scs->max_heirachical_level;
     int8_t   enc_mode              = pcs->scs->static_config.enc_mode;
@@ -2164,7 +2165,7 @@ extern void first_pass_svt_aom_sig_deriv_pre_analysis_pcs(PictureParentControlSe
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-extern void first_pass_svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
+extern void svt_aom_first_pass_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
     scs->seq_header.enable_intra_edge_filter   = 0;
     scs->seq_header.pic_based_rate_est         = 0;
     scs->seq_header.enable_restoration         = 0;
@@ -2188,7 +2189,7 @@ Input   : encoder mode and tune
 Output  : Multi-Processes signal(s)
 ******************************************************/
 
-void first_pass_svt_aom_sig_deriv_multi_processes(SequenceControlSet      *scs,
+void svt_aom_first_pass_sig_deriv_multi_processes(SequenceControlSet      *scs,
                                                   PictureParentControlSet *pcs) {
     FrameHeader *frm_hdr = &pcs->frm_hdr;
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
@@ -2811,8 +2812,8 @@ Bool svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t 
     return ref_obj->reference_picture->width == pcs->ppcs->frame_width &&
         ref_obj->reference_picture->height == pcs->ppcs->frame_height;
 }
-static void set_obmc_controls(ModeDecisionContext *mdctxt, uint8_t obmc_mode) {
-    ObmcControls *obmc_ctrls = &mdctxt->obmc_ctrls;
+static void set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
+    ObmcControls *obmc_ctrls = &ctx->obmc_ctrls;
     switch (obmc_mode) {
     case 0: obmc_ctrls->enabled = 0; break;
     case 1:
@@ -2834,13 +2835,13 @@ static void set_obmc_controls(ModeDecisionContext *mdctxt, uint8_t obmc_mode) {
     }
 }
 
-static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisionContext *mdctxt,
+static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                              uint8_t depth_removal_level) {
-    DepthRemovalCtrls *depth_removal_ctrls = &mdctxt->depth_removal_ctrls;
+    DepthRemovalCtrls *depth_removal_ctrls = &ctx->depth_removal_ctrls;
 
     if (pcs->slice_type == I_SLICE) {
         // Use b64_geom here because feature is only enabled when 64x64 SB size is used
-        B64Geom *b64_geom = &pcs->ppcs->b64_geom[mdctxt->sb_index];
+        B64Geom *b64_geom = &pcs->ppcs->b64_geom[ctx->sb_index];
 
         uint16_t disallow_below_16x16_variance_th = 0;
         uint16_t disallow_below_32x32_variance_th = 0;
@@ -2863,21 +2864,21 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
                 depth_removal_ctrls->disallow_below_16x16 = (b64_geom->width % 16 == 0 &&
                                                              b64_geom->height % 16 == 0)
                     ? (depth_removal_ctrls->disallow_below_16x16 ||
-                       pcs->ppcs->variance[mdctxt->sb_index][ME_TIER_ZERO_PU_64x64] <
+                       pcs->ppcs->variance[ctx->sb_index][ME_TIER_ZERO_PU_64x64] <
                            disallow_below_16x16_variance_th)
                     : 0;
 
                 depth_removal_ctrls->disallow_below_32x32 = (b64_geom->width % 32 == 0 &&
                                                              b64_geom->height % 32 == 0)
                     ? (depth_removal_ctrls->disallow_below_32x32 ||
-                       pcs->ppcs->variance[mdctxt->sb_index][ME_TIER_ZERO_PU_64x64] <
+                       pcs->ppcs->variance[ctx->sb_index][ME_TIER_ZERO_PU_64x64] <
                            disallow_below_32x32_variance_th)
                     : 0;
 
                 depth_removal_ctrls->disallow_below_64x64 = (b64_geom->width % 64 == 0 &&
                                                              b64_geom->height % 64 == 0)
                     ? (depth_removal_ctrls->disallow_below_64x64 ||
-                       pcs->ppcs->variance[mdctxt->sb_index][ME_TIER_ZERO_PU_64x64] <
+                       pcs->ppcs->variance[ctx->sb_index][ME_TIER_ZERO_PU_64x64] <
                            disallow_below_64x64_variance_th)
                     : 0;
             } else {
@@ -2898,13 +2899,13 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
             }
         }
     } else {
-        uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[mdctxt->sb_index];
+        uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
 
         // Use b64_geom here because feature is only enabled when 64x64 SB size is used
-        B64Geom *b64_geom = &pcs->ppcs->b64_geom[mdctxt->sb_index];
+        B64Geom *b64_geom = &pcs->ppcs->b64_geom[ctx->sb_index];
 
         // me_distortion => EB_8_BIT_MD
-        uint32_t fast_lambda = mdctxt->fast_lambda_md[EB_8_BIT_MD];
+        uint32_t fast_lambda = ctx->fast_lambda_md[EB_8_BIT_MD];
 
         uint32_t sb_size = 64 * 64;
 
@@ -2922,7 +2923,7 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
 
         // Modulate depth_removal level for Layer0 frames based on the qp_offset band
         if (pcs->ppcs->frm_hdr.delta_q_params.delta_q_present) {
-            int diff = mdctxt->sb_ptr->qindex - quantizer_to_qindex[pcs->ppcs->picture_qp];
+            int diff = ctx->sb_ptr->qindex - quantizer_to_qindex[pcs->ppcs->picture_qp];
             if (diff <= -12)
                 depth_removal_level = MAX(0, (int)depth_removal_level - 4);
             else if (diff <= -6)
@@ -3115,13 +3116,12 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
                 : 0;
 
             uint64_t cost_64x64 = RDCOST(
-                fast_lambda, 0, pcs->ppcs->me_64x64_distortion[mdctxt->sb_index]);
+                fast_lambda, 0, pcs->ppcs->me_64x64_distortion[ctx->sb_index]);
             uint64_t cost_32x32 = RDCOST(
-                fast_lambda, 0, pcs->ppcs->me_32x32_distortion[mdctxt->sb_index]);
+                fast_lambda, 0, pcs->ppcs->me_32x32_distortion[ctx->sb_index]);
             uint64_t cost_16x16 = RDCOST(
-                fast_lambda, 0, pcs->ppcs->me_16x16_distortion[mdctxt->sb_index]);
-            uint64_t cost_8x8 = RDCOST(
-                fast_lambda, 0, pcs->ppcs->me_8x8_distortion[mdctxt->sb_index]);
+                fast_lambda, 0, pcs->ppcs->me_16x16_distortion[ctx->sb_index]);
+            uint64_t cost_8x8 = RDCOST(fast_lambda, 0, pcs->ppcs->me_8x8_distortion[ctx->sb_index]);
 
             int64_t dev_32x32_to_16x16 =
                 (int64_t)(((int64_t)MAX(cost_32x32, 1) - (int64_t)MAX(cost_16x16, 1)) * 1000) /
@@ -3154,13 +3154,13 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
                    cost_16x16 < disallow_below_16x16_cost_th ||
                    dev_16x16_to_8x8 < dev_16x16_to_8x8_th)
                 : 0;
-            if (!mdctxt->disallow_4x4) {
+            if (!ctx->disallow_4x4) {
                 uint64_t disallow_4x4_cost_th_multiplier = 64;
                 uint64_t disallow_4x4_cost_th            = RDCOST(
                     fast_lambda, cost_th_rate, (sb_size >> 1) * disallow_4x4_cost_th_multiplier);
 
                 if (cost_8x8 < disallow_4x4_cost_th && me_8x8_cost_variance < LOW_8x8_DIST_VAR_TH)
-                    mdctxt->disallow_4x4 = 1;
+                    ctx->disallow_4x4 = 1;
             }
         }
     }
@@ -3168,9 +3168,9 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
 /*
  * Control NSQ search
  */
-static void md_nsq_motion_search_controls(ModeDecisionContext *mdctxt,
+static void md_nsq_motion_search_controls(ModeDecisionContext *ctx,
                                           uint8_t              md_nsq_mv_search_level) {
-    MdNsqMotionSearchCtrls *md_nsq_me_ctrls = &mdctxt->md_nsq_me_ctrls;
+    MdNsqMotionSearchCtrls *md_nsq_me_ctrls = &ctx->md_nsq_me_ctrls;
 
     switch (md_nsq_mv_search_level) {
     case 0: md_nsq_me_ctrls->enabled = 0; break;
@@ -3206,8 +3206,8 @@ static void md_nsq_motion_search_controls(ModeDecisionContext *mdctxt,
     default: assert(0); break;
     }
 }
-void svt_aom_md_pme_search_controls(ModeDecisionContext *mdctxt, uint8_t md_pme_level) {
-    MdPmeCtrls *md_pme_ctrls = &mdctxt->md_pme_ctrls;
+void svt_aom_md_pme_search_controls(ModeDecisionContext *ctx, uint8_t md_pme_level) {
+    MdPmeCtrls *md_pme_ctrls = &ctx->md_pme_ctrls;
 
     switch (md_pme_level) {
     case 0: md_pme_ctrls->enabled = 0; break;
@@ -3344,8 +3344,8 @@ void svt_aom_md_pme_search_controls(ModeDecisionContext *mdctxt, uint8_t md_pme_
     default: assert(0); break;
     }
 }
-static void set_subres_controls(ModeDecisionContext *mdctxt, uint8_t subres_level) {
-    SubresCtrls *subres_ctrls = &mdctxt->subres_ctrls;
+static void set_subres_controls(ModeDecisionContext *ctx, uint8_t subres_level) {
+    SubresCtrls *subres_ctrls = &ctx->subres_ctrls;
 
     switch (subres_level) {
     case 0: subres_ctrls->step = 0; break;
@@ -3359,8 +3359,8 @@ static void set_subres_controls(ModeDecisionContext *mdctxt, uint8_t subres_leve
     else
         subres_ctrls->odd_to_even_deviation_th = 5;
 }
-static void set_pf_controls(ModeDecisionContext *mdctxt, uint8_t pf_level) {
-    PfCtrls *pf_ctrls = &mdctxt->pf_ctrls;
+static void set_pf_controls(ModeDecisionContext *ctx, uint8_t pf_level) {
+    PfCtrls *pf_ctrls = &ctx->pf_ctrls;
 
     switch (pf_level) {
     case 0: pf_ctrls->pf_shape = ONLY_DC_SHAPE; break;
@@ -3373,9 +3373,8 @@ static void set_pf_controls(ModeDecisionContext *mdctxt, uint8_t pf_level) {
 /*
  * Control Adaptive ME search
  */
-static void md_sq_motion_search_controls(ModeDecisionContext *mdctxt,
-                                         uint8_t              md_sq_mv_search_level) {
-    MdSqMotionSearchCtrls *md_sq_me_ctrls = &mdctxt->md_sq_me_ctrls;
+static void md_sq_motion_search_controls(ModeDecisionContext *ctx, uint8_t md_sq_mv_search_level) {
+    MdSqMotionSearchCtrls *md_sq_me_ctrls = &ctx->md_sq_me_ctrls;
 
     switch (md_sq_mv_search_level) {
     case 0: md_sq_me_ctrls->enabled = 0; break;
@@ -3496,8 +3495,8 @@ static void md_sq_motion_search_controls(ModeDecisionContext *mdctxt,
 /*
  * Control Subpel search of ME MV(s)
  */
-static void md_subpel_me_controls(ModeDecisionContext *mdctxt, uint8_t md_subpel_me_level) {
-    MdSubPelSearchCtrls *md_subpel_me_ctrls = &mdctxt->md_subpel_me_ctrls;
+static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me_level) {
+    MdSubPelSearchCtrls *md_subpel_me_ctrls = &ctx->md_subpel_me_ctrls;
 
     switch (md_subpel_me_level) {
     case 0: md_subpel_me_ctrls->enabled = 0; break;
@@ -3688,8 +3687,8 @@ static void md_subpel_me_controls(ModeDecisionContext *mdctxt, uint8_t md_subpel
 /*
  * Control Subpel search of PME MV(s)
  */
-static void md_subpel_pme_controls(ModeDecisionContext *mdctxt, uint8_t md_subpel_pme_level) {
-    MdSubPelSearchCtrls *md_subpel_pme_ctrls = &mdctxt->md_subpel_pme_ctrls;
+static void md_subpel_pme_controls(ModeDecisionContext *ctx, uint8_t md_subpel_pme_level) {
+    MdSubPelSearchCtrls *md_subpel_pme_ctrls = &ctx->md_subpel_pme_ctrls;
 
     switch (md_subpel_pme_level) {
     case 0: md_subpel_pme_ctrls->enabled = 0; break;
@@ -3743,8 +3742,8 @@ static void md_subpel_pme_controls(ModeDecisionContext *mdctxt, uint8_t md_subpe
 /*
  * Control RDOQ
  */
-static void set_rdoq_controls(ModeDecisionContext *mdctxt, uint8_t rdoq_level) {
-    RdoqCtrls *rdoq_ctrls = &mdctxt->rdoq_ctrls;
+static void set_rdoq_controls(ModeDecisionContext *ctx, uint8_t rdoq_level) {
+    RdoqCtrls *rdoq_ctrls = &ctx->rdoq_ctrls;
 
     switch (rdoq_level) {
     case 0: rdoq_ctrls->enabled = 0; break;
@@ -4021,8 +4020,8 @@ static void set_parent_sq_coeff_area_based_cycles_reduction_ctrls(ModeDecisionCo
     default: assert(0); break;
     }
 }
-void svt_aom_set_txt_controls(ModeDecisionContext *mdctxt, uint8_t txt_level) {
-    TxtControls *txt_ctrls = &mdctxt->txt_ctrls;
+void svt_aom_set_txt_controls(ModeDecisionContext *ctx, uint8_t txt_level) {
+    TxtControls *txt_ctrls = &ctx->txt_ctrls;
 
     switch (txt_level) {
     case 0:
@@ -4622,8 +4621,8 @@ uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level) 
     return uv_mode;
 }
 
-static void set_wm_controls(ModeDecisionContext *mdctxt, uint8_t wm_level) {
-    WmCtrls *wm_ctrls = &mdctxt->wm_ctrls;
+static void set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
+    WmCtrls *wm_ctrls = &ctx->wm_ctrls;
 
     switch (wm_level) {
     case 0: wm_ctrls->enabled = 0; break;
@@ -5248,8 +5247,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 /*
 * This function is used in MD to set the NSQ controls.
 */
-static void set_nsq_ctrls(ModeDecisionContext *mdctxt, uint8_t nsq_level) {
-    NsqCtrls *nsq_ctrls = &mdctxt->nsq_ctrls;
+static void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level) {
+    NsqCtrls *nsq_ctrls = &ctx->nsq_ctrls;
 
     switch (nsq_level) {
     case 0: nsq_ctrls->enabled = 0; break;
@@ -5494,17 +5493,17 @@ static void set_nsq_ctrls(ModeDecisionContext *mdctxt, uint8_t nsq_level) {
 
     default: assert(0); break;
     }
-    if (mdctxt->pd_pass == PD_PASS_0) {
+    if (ctx->pd_pass == PD_PASS_0) {
         nsq_ctrls->sq_weight              = (uint32_t)~0;
         nsq_ctrls->max_part0_to_part1_dev = 0;
         nsq_ctrls->skip_hv4_on_best_part  = 0;
     }
     // Bypassing EncDec doesn't work if HVA_HVB_HV4 are enabled (for all bit depths; causes non-conformant bitstreams)
     if (nsq_ctrls->allow_HV4 || nsq_ctrls->allow_HVA_HVB)
-        mdctxt->bypass_encdec = 0;
+        ctx->bypass_encdec = 0;
 }
-void svt_aom_set_inter_intra_ctrls(ModeDecisionContext *mdctxt, uint8_t inter_intra_level) {
-    InterIntraCompCtrls *ii_ctrls = &mdctxt->inter_intra_comp_ctrls;
+void svt_aom_set_inter_intra_ctrls(ModeDecisionContext *ctx, uint8_t inter_intra_level) {
+    InterIntraCompCtrls *ii_ctrls = &ctx->inter_intra_comp_ctrls;
 
     switch (inter_intra_level) {
     case 0: ii_ctrls->enabled = 0; break;

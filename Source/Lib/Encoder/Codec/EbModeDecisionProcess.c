@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -16,8 +15,9 @@
 #include "EbModeDecisionProcess.h"
 #include "EbLambdaRateTables.h"
 #include "EbRateControlProcess.h"
+#include "EncModeConfig.h"
 
-void        set_block_based_depth_refinement_controls(ModeDecisionContext *mdctxt,
+void        set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
                                                       uint8_t block_based_depth_refinement_level);
 int         svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 static void mode_decision_context_dctor(EbPtr p) {

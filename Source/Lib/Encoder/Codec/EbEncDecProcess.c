@@ -1811,9 +1811,9 @@ void pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs) {
 
 #define LOW_8x8_DIST_VAR_TH 25000
 #define HIGH_8x8_DIST_VAR_TH 50000
-void set_block_based_depth_refinement_controls(ModeDecisionContext *mdctxt,
+void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
                                                uint8_t block_based_depth_refinement_level) {
-    DepthRefinementCtrls *depth_refinement_ctrls = &mdctxt->depth_refinement_ctrls;
+    DepthRefinementCtrls *depth_refinement_ctrls = &ctx->depth_refinement_ctrls;
 
     switch (block_based_depth_refinement_level) {
     case 0: depth_refinement_ctrls->enabled = 0; break;
@@ -2295,34 +2295,33 @@ void update_pred_th_offset(ModeDecisionContext *ctx, const BlockGeom *blk_geom, 
         *th_offset = 0;
     }
 }
-static uint8_t is_parent_to_current_deviation_small(ModeDecisionContext *mdctxt,
+static uint8_t is_parent_to_current_deviation_small(ModeDecisionContext *ctx,
                                                     const BlockGeom *blk_geom, int64_t th_offset) {
-    if (mdctxt->depth_refinement_ctrls.parent_to_current_th == MIN_SIGNED_VALUE)
+    if (ctx->depth_refinement_ctrls.parent_to_current_th == MIN_SIGNED_VALUE)
         return FALSE;
     // block-based depth refinement using cost is applicable for only [s_depth=-1, e_depth=1]
     // Get the parent of the current block
     uint32_t parent_depth_idx_mds = blk_geom->parent_depth_idx_mds;
-    if (mdctxt->avail_blk_flag[parent_depth_idx_mds]) {
-        mdctxt->parent_to_current_deviation =
-            (int64_t)(((int64_t)MAX(mdctxt->md_local_blk_unit[parent_depth_idx_mds].default_cost,
-                                    1) -
-                       (int64_t)MAX((mdctxt->md_local_blk_unit[blk_geom->sqi_mds].default_cost * 4),
+    if (ctx->avail_blk_flag[parent_depth_idx_mds]) {
+        ctx->parent_to_current_deviation =
+            (int64_t)(((int64_t)MAX(ctx->md_local_blk_unit[parent_depth_idx_mds].default_cost, 1) -
+                       (int64_t)MAX((ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost * 4),
                                     1)) *
                       100) /
-            (int64_t)MAX((mdctxt->md_local_blk_unit[blk_geom->sqi_mds].default_cost * 4), 1);
+            (int64_t)MAX((ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost * 4), 1);
     }
-    if (mdctxt->parent_to_current_deviation <=
-        (mdctxt->depth_refinement_ctrls.parent_to_current_th + th_offset))
+    if (ctx->parent_to_current_deviation <=
+        (ctx->depth_refinement_ctrls.parent_to_current_th + th_offset))
         return TRUE;
 
     return FALSE;
 }
 
 static uint8_t is_child_to_current_deviation_small(SequenceControlSet  *scs,
-                                                   ModeDecisionContext *mdctxt,
+                                                   ModeDecisionContext *ctx,
                                                    const BlockGeom *blk_geom, uint32_t blk_index,
                                                    int64_t th_offset) {
-    if (mdctxt->depth_refinement_ctrls.sub_to_current_th == MIN_SIGNED_VALUE)
+    if (ctx->depth_refinement_ctrls.sub_to_current_th == MIN_SIGNED_VALUE)
         return FALSE;
     const uint32_t ns_d1_offset = blk_geom->d1_depth_offset;
 
@@ -2337,40 +2336,40 @@ static uint8_t is_child_to_current_deviation_small(SequenceControlSet  *scs,
 
     uint64_t child_cost = 0;
     uint8_t  child_cnt  = 0;
-    if (mdctxt->avail_blk_flag[child_block_idx_1]) {
-        child_cost += mdctxt->md_local_blk_unit[child_block_idx_1].default_cost;
+    if (ctx->avail_blk_flag[child_block_idx_1]) {
+        child_cost += ctx->md_local_blk_unit[child_block_idx_1].default_cost;
         child_cnt++;
     }
-    if (mdctxt->avail_blk_flag[child_block_idx_2]) {
-        child_cost += mdctxt->md_local_blk_unit[child_block_idx_2].default_cost;
+    if (ctx->avail_blk_flag[child_block_idx_2]) {
+        child_cost += ctx->md_local_blk_unit[child_block_idx_2].default_cost;
         child_cnt++;
     }
-    if (mdctxt->avail_blk_flag[child_block_idx_3]) {
-        child_cost += mdctxt->md_local_blk_unit[child_block_idx_3].default_cost;
+    if (ctx->avail_blk_flag[child_block_idx_3]) {
+        child_cost += ctx->md_local_blk_unit[child_block_idx_3].default_cost;
         child_cnt++;
     }
-    if (mdctxt->avail_blk_flag[child_block_idx_4]) {
-        child_cost += mdctxt->md_local_blk_unit[child_block_idx_4].default_cost;
+    if (ctx->avail_blk_flag[child_block_idx_4]) {
+        child_cost += ctx->md_local_blk_unit[child_block_idx_4].default_cost;
         child_cnt++;
     }
 
     if (child_cnt) {
         child_cost = (child_cost / child_cnt) * 4;
-        mdctxt->child_to_current_deviation =
+        ctx->child_to_current_deviation =
             (int64_t)(((int64_t)MAX(child_cost, 1) -
-                       (int64_t)MAX(mdctxt->md_local_blk_unit[blk_geom->sqi_mds].default_cost, 1)) *
+                       (int64_t)MAX(ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost, 1)) *
                       100) /
-            (int64_t)(MAX(mdctxt->md_local_blk_unit[blk_geom->sqi_mds].default_cost, 1));
+            (int64_t)(MAX(ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost, 1));
     }
     if (blk_geom->bsize == BLOCK_8X8)
-        th_offset = th_offset - mdctxt->depth_refinement_ctrls.limit_4x4_depth;
-    if (mdctxt->lpd0_ctrls.pd0_level < VERY_LIGHT_PD0) {
-        if (mdctxt->md_local_blk_unit[blk_index].cnt_nz_coeff <
-            mdctxt->depth_refinement_ctrls.sub_to_current_pd0_coeff_th)
-            th_offset -= mdctxt->depth_refinement_ctrls.sub_to_current_pd0_coeff_offset;
+        th_offset = th_offset - ctx->depth_refinement_ctrls.limit_4x4_depth;
+    if (ctx->lpd0_ctrls.pd0_level < VERY_LIGHT_PD0) {
+        if (ctx->md_local_blk_unit[blk_index].cnt_nz_coeff <
+            ctx->depth_refinement_ctrls.sub_to_current_pd0_coeff_th)
+            th_offset -= ctx->depth_refinement_ctrls.sub_to_current_pd0_coeff_offset;
     }
-    if (mdctxt->child_to_current_deviation <=
-        (mdctxt->depth_refinement_ctrls.sub_to_current_th + th_offset))
+    if (ctx->child_to_current_deviation <=
+        (ctx->depth_refinement_ctrls.sub_to_current_th + th_offset))
         return TRUE;
 
     return FALSE;

@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -39,6 +38,8 @@
 #include "EbPictureDecisionResults.h"
 #include "EbResize.h"
 #include "EbSourceBasedOperationsProcess.h"
+#include "EncModeConfig.h"
+
 // Specifies the weights of the ref frame in calculating qindex of non base layer frames
 static const int non_base_qindex_weight_ref[EB_MAX_TEMPORAL_LAYERS] = {
     100, 100, 100, 100, 100, 100};

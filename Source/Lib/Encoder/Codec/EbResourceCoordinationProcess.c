@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -29,6 +28,8 @@
 #include "common_dsp_rtcd.h"
 #include "EbResize.h"
 #include "EbMetadataHandle.h"
+#include "EncModeConfig.h"
+
 typedef struct ResourceCoordinationContext {
     EbFifo                        *input_cmd_fifo_ptr;
     EbFifo                        *resource_coordination_results_output_fifo_ptr;
@@ -712,7 +713,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
             // Pre-Analysis Signal(s) derivation
             if (scs->static_config.pass == ENC_FIRST_PASS)
-                first_pass_svt_aom_sig_deriv_pre_analysis_scs(scs);
+                svt_aom_first_pass_sig_deriv_pre_analysis_scs(scs);
             else
                 svt_aom_sig_deriv_pre_analysis_scs(scs);
 

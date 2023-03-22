@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 // clang-format off
 /*
 * Copyright(c) 2019 Intel Corporation
@@ -34,6 +33,8 @@
 #include "EbRateControlTasks.h"
 #include "firstpass.h"
 #include "EbInitialRateControlProcess.h"
+#include "EncModeConfig.h"
+
 /* --32x32-
 |00||01|
 |02||03|

@@ -4841,7 +4841,7 @@ static void process_first_pass_frame(
 
     pcs->first_pass_seg_total_count = (uint16_t)(pcs->first_pass_seg_column_count  * pcs->first_pass_seg_row_count);
     pcs->first_pass_seg_acc = 0;
-    first_pass_svt_aom_sig_deriv_multi_processes(scs, pcs);
+    svt_aom_first_pass_sig_deriv_multi_processes(scs, pcs);
     if (pcs->me_data_wrapper_ptr == NULL) {
         EbObjectWrapper               *me_wrapper;
         svt_get_empty_object(pd_ctx->me_fifo_ptr, &me_wrapper);
@@ -6124,7 +6124,7 @@ static void init_pic_settings(SequenceControlSet* scs, PictureParentControlSet* 
     // TODO: put this in EbMotionEstimationProcess?
     // ME Kernel Multi-Processes Signal(s) derivation
     if (scs->static_config.pass == ENC_FIRST_PASS)
-        first_pass_svt_aom_sig_deriv_multi_processes(scs, pcs);
+        svt_aom_first_pass_sig_deriv_multi_processes(scs, pcs);
     else
         svt_aom_sig_deriv_multi_processes(scs, pcs, ctx);
 

@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved
@@ -28,6 +27,7 @@
 #include "EbCommonUtils.h"
 #include "EbResize.h"
 #include "EbInvTransforms.h"
+#include "EncModeConfig.h"
 
 #define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
 static MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {

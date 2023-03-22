@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 * Copyright (c) 2016, Alliance for Open Media. All rights reserved

@@ -21,7 +21,6 @@
 #include "aom_dsp_rtcd.h"
 #include "EbModeDecisionProcess.h"
 #include "EbEncInterPrediction.h"
-#include "EncModeConfig.h"
 
 #define DIVIDE_AND_ROUND(x, y) (((x) + ((y) >> 1)) / (y))
 

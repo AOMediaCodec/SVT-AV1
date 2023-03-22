@@ -1,4 +1,3 @@
-#include "EncModeConfig.h"
 /*
 * Copyright(c) 2019 Intel Corporation
 *
@@ -34,7 +33,7 @@
 #include "mcomp.h"
 #include "av1me.h"
 #include "EbEncInterPrediction.h"
-
+#include "EbResize.h"
 /**************************************
  * Context
  **************************************/
