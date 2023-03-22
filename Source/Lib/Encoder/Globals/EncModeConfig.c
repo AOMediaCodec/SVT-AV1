@@ -1592,7 +1592,8 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
 
     return dlf_level;
 }
-static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level, uint8_t bit_depth) {
+static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level,
+                                     uint8_t bit_depth) {
     DlfCtrls *ctrls = &pcs->dlf_ctrls;
 
     switch (dlf_level) {
@@ -2624,7 +2625,7 @@ static uint32_t hadamard_path(ModeDecisionContext *ctx, uint8_t *input, uint32_t
 }
 
 static EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *sb_ptr,
-                                              ModeDecisionContext *ctx) {
+                                           ModeDecisionContext *ctx) {
     EbErrorType         return_error   = EB_ErrorNone;
     SequenceControlSet *scs            = pcs->scs;
     uint8_t             ref_frame_type = NONE_FRAME;
@@ -6663,7 +6664,7 @@ static void set_skip_4x4_depth_ctrls(Skip4x4DepthCtrls *skip_4x4_depth_ctrls,
  * Generate per-SB MD settings (do not change per-PD)
  */
 void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet *pcs,
-                                       ModeDecisionContext *ctx) {
+                                      ModeDecisionContext *ctx) {
     EncMode enc_mode = pcs->enc_mode;
 
     SuperBlock *sb_ptr = pcs->sb_ptr_array[ctx->sb_index];
