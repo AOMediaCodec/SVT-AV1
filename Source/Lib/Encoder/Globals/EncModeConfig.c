@@ -1592,7 +1592,7 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
 
     return dlf_level;
 }
-void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level, uint8_t bit_depth) {
+static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level, uint8_t bit_depth) {
     DlfCtrls *ctrls = &pcs->dlf_ctrls;
 
     switch (dlf_level) {
@@ -2145,7 +2145,7 @@ static void *set_first_pass_me_hme_params_oq(MeContext *me_ctx, SequenceControlS
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-extern void first_pass_svt_aom_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
+void svt_aom_first_pass_sig_deriv_pre_analysis_pcs(PictureParentControlSet *pcs) {
     // Derive HME Flag
     pcs->enable_hme_flag        = 1;
     pcs->enable_hme_level0_flag = 1;
@@ -2165,7 +2165,7 @@ extern void first_pass_svt_aom_sig_deriv_pre_analysis_pcs(PictureParentControlSe
 Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
-extern void svt_aom_first_pass_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
+void svt_aom_first_pass_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
     scs->seq_header.enable_intra_edge_filter   = 0;
     scs->seq_header.pic_based_rate_est         = 0;
     scs->seq_header.enable_restoration         = 0;
@@ -2243,7 +2243,7 @@ void svt_aom_first_pass_sig_deriv_multi_processes(SequenceControlSet      *scs,
 Input   : encoder mode and tune
 Output  : EncDec Kernel signal(s)
 ******************************************************/
-void first_pass_svt_aom_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
+void svt_aom_first_pass_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
     // CDF
     pcs->cdf_ctrl.enabled = pcs->cdf_ctrl.update_coef = 0;
     pcs->cdf_ctrl.update_mv = pcs->cdf_ctrl.update_se = 0;
@@ -2623,7 +2623,7 @@ static uint32_t hadamard_path(ModeDecisionContext *ctx, uint8_t *input, uint32_t
     return (satd_cost);
 }
 
-EB_EXTERN EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *sb_ptr,
+static EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *sb_ptr,
                                               ModeDecisionContext *ctx) {
     EbErrorType         return_error   = EB_ErrorNone;
     SequenceControlSet *scs            = pcs->scs;
@@ -6662,7 +6662,7 @@ static void set_skip_4x4_depth_ctrls(Skip4x4DepthCtrls *skip_4x4_depth_ctrls,
 /*
  * Generate per-SB MD settings (do not change per-PD)
  */
-void svt_aom_sig_deriv_enc_dec__common(SequenceControlSet *scs, PictureControlSet *pcs,
+void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet *pcs,
                                        ModeDecisionContext *ctx) {
     EncMode enc_mode = pcs->enc_mode;
 

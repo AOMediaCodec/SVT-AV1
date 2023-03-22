@@ -872,7 +872,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 
             // Pre-Analysis Signal(s) derivation
             if (scs->static_config.pass == ENC_FIRST_PASS)
-                first_pass_svt_aom_sig_deriv_pre_analysis_pcs(pcs);
+                svt_aom_first_pass_sig_deriv_pre_analysis_pcs(pcs);
             else
                 svt_aom_sig_deriv_pre_analysis_pcs(pcs);
             // Rate Control

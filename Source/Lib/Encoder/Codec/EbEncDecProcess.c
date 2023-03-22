@@ -3355,7 +3355,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                 pcs, sb_ptr, scs->seq_header.sb_size == BLOCK_128X128));
 
                         // signals set once per SB (i.e. not per PD)
-                        svt_aom_sig_deriv_enc_dec__common(scs, pcs, ed_ctx->md_ctx);
+                        svt_aom_sig_deriv_enc_dec_common(scs, pcs, ed_ctx->md_ctx);
 
                         if (pcs->ppcs->palette_level)
                             // Status of palette info alloc
