@@ -1156,8 +1156,7 @@ void svt_aom_update_part_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, uint1
         const PartitionType partition = blk_ptr->part;
         int                 ctx;
 
-        NeighborArrayUnit *partition_context_na =
-            pcs->ep_partition_context_na[tile_idx];
+        NeighborArrayUnit *partition_context_na        = pcs->ep_partition_context_na[tile_idx];
         uint32_t partition_context_left_neighbor_index = get_neighbor_array_unit_left_index(
             partition_context_na, (mi_row << MI_SIZE_LOG2));
         uint32_t partition_context_top_neighbor_index = get_neighbor_array_unit_top_index(
@@ -1168,16 +1167,16 @@ void svt_aom_update_part_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, uint1
                   partition_context_na->top_array)[partition_context_top_neighbor_index]
                  .above == (char)INVALID_NEIGHBOR_DATA)
             ? 0
-            : ((PartitionContext *)partition_context_na
-                   ->top_array)[partition_context_top_neighbor_index]
+            : ((PartitionContext *)
+                   partition_context_na->top_array)[partition_context_top_neighbor_index]
                   .above;
         const PartitionContextType left_ctx =
-            (((PartitionContext *)partition_context_na
-                  ->left_array)[partition_context_left_neighbor_index]
+            (((PartitionContext *)
+                  partition_context_na->left_array)[partition_context_left_neighbor_index]
                  .left == (char)INVALID_NEIGHBOR_DATA)
             ? 0
-            : ((PartitionContext *)partition_context_na
-                   ->left_array)[partition_context_left_neighbor_index]
+            : ((PartitionContext *)
+                   partition_context_na->left_array)[partition_context_left_neighbor_index]
                   .left;
         const int32_t bsl   = mi_size_wide_log2[bsize] - mi_size_wide_log2[BLOCK_8X8];
         int32_t       above = (above_ctx >> bsl) & 1, left = (left_ctx >> bsl) & 1;

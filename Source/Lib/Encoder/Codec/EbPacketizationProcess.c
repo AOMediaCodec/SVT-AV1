@@ -590,7 +590,7 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             assert(pcs->ppcs->pa_me_data != NULL);
             svt_release_object(pcs->ppcs->me_data_wrapper);
             pcs->ppcs->me_data_wrapper = NULL;
-            pcs->ppcs->pa_me_data          = NULL;
+            pcs->ppcs->pa_me_data      = NULL;
 
             // Delayed call from Rest process
             {
@@ -710,10 +710,9 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
         // Get Empty Rate Control Input Tasks
         svt_get_empty_object(context_ptr->rate_control_tasks_output_fifo_ptr,
                              &rate_control_tasks_wrapper_ptr);
-        RateControlTasks *rc_tasks = (RateControlTasks *)
-                                                       rate_control_tasks_wrapper_ptr->object_ptr;
-        rc_tasks->pcs_wrapper = pcs->ppcs_wrapper;
-        rc_tasks->task_type   = RC_PACKETIZATION_FEEDBACK_RESULT;
+        RateControlTasks *rc_tasks = (RateControlTasks *)rate_control_tasks_wrapper_ptr->object_ptr;
+        rc_tasks->pcs_wrapper      = pcs->ppcs_wrapper;
+        rc_tasks->task_type        = RC_PACKETIZATION_FEEDBACK_RESULT;
         if (scs->enable_dec_order || (pcs->ppcs->is_ref == TRUE && pcs->ppcs->ref_pic_wrapper)) {
             if (pcs->ppcs->is_ref == TRUE &&
                 // Force each frame to update their data so future frames can use it,

@@ -613,8 +613,8 @@ void *svt_aom_rest_kernel(void *input_ptr) {
         // Get Cdef Results
         EB_GET_FULL_OBJECT(context_ptr->rest_input_fifo_ptr, &cdef_results_wrapper);
 
-        cdef_results = (CdefResults *)cdef_results_wrapper->object_ptr;
-        pcs              = (PictureControlSet *)cdef_results->pcs_wrapper->object_ptr;
+        cdef_results                  = (CdefResults *)cdef_results_wrapper->object_ptr;
+        pcs                           = (PictureControlSet *)cdef_results->pcs_wrapper->object_ptr;
         PictureParentControlSet *ppcs = pcs->ppcs;
         scs                           = pcs->scs;
         FrameHeader *frm_hdr          = &pcs->ppcs->frm_hdr;
@@ -839,8 +839,7 @@ void *svt_aom_rest_kernel(void *input_ptr) {
             for (int tile_row_idx = 0; tile_row_idx < tile_rows; tile_row_idx++) {
                 for (int tile_col_idx = 0; tile_col_idx < tile_cols; tile_col_idx++) {
                     const int tile_idx = tile_row_idx * tile_cols + tile_col_idx;
-                    svt_get_empty_object(context_ptr->rest_output_fifo_ptr,
-                                         &rest_results_wrapper);
+                    svt_get_empty_object(context_ptr->rest_output_fifo_ptr, &rest_results_wrapper);
                     rest_results = (struct RestResults *)rest_results_wrapper->object_ptr;
                     rest_results->pcs_wrapper = cdef_results->pcs_wrapper;
                     rest_results->tile_index  = tile_idx;

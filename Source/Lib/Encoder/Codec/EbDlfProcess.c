@@ -76,7 +76,7 @@ void *svt_aom_dlf_kernel(void *input_ptr) {
         EB_GET_FULL_OBJECT(context_ptr->dlf_input_fifo_ptr, &enc_dec_results_wrapper);
 
         enc_dec_results = (EncDecResults *)enc_dec_results_wrapper->object_ptr;
-        pcs                 = (PictureControlSet *)enc_dec_results->pcs_wrapper->object_ptr;
+        pcs             = (PictureControlSet *)enc_dec_results->pcs_wrapper->object_ptr;
         PictureParentControlSet *ppcs = pcs->ppcs;
         scs                           = pcs->scs;
 
@@ -165,8 +165,8 @@ void *svt_aom_dlf_kernel(void *input_ptr) {
         for (segment_index = 0; segment_index < pcs->cdef_segments_total_count; ++segment_index) {
             // Get Empty DLF Results to Cdef
             svt_get_empty_object(context_ptr->dlf_output_fifo_ptr, &dlf_results_wrapper);
-            dlf_results              = (struct DlfResults *)dlf_results_wrapper->object_ptr;
-            dlf_results->pcs_wrapper = enc_dec_results->pcs_wrapper;
+            dlf_results                = (struct DlfResults *)dlf_results_wrapper->object_ptr;
+            dlf_results->pcs_wrapper   = enc_dec_results->pcs_wrapper;
             dlf_results->segment_index = segment_index;
             // Post DLF Results
             svt_post_full_object(dlf_results_wrapper);

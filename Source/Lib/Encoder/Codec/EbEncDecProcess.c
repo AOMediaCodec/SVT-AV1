@@ -1684,8 +1684,7 @@ EbErrorType psnr_calculations(PictureControlSet *pcs, SequenceControlSet *scs, B
 }
 
 void pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs) {
-    EbReferenceObject *ref_object = (EbReferenceObject *)
-                                              pcs->ppcs->ref_pic_wrapper->object_ptr;
+    EbReferenceObject *ref_object = (EbReferenceObject *)pcs->ppcs->ref_pic_wrapper->object_ptr;
 
     //= (EbPictureBufferDesc *)ref_object->reference_picture;
     EbPictureBufferDesc *ref_pic_ptr;
@@ -7334,12 +7333,12 @@ void svt_aom_init_enc_dec_segement(PictureParentControlSet *ppcs);
 
 static void recode_loop_decision_maker(PictureControlSet *pcs, SequenceControlSet *scs,
                                        Bool *do_recode) {
-    PictureParentControlSet *ppcs = pcs->ppcs;
-    EncodeContext *const     enc_ctx  = ppcs->scs->enc_ctx;
-    RATE_CONTROL *const      rc       = &(enc_ctx->rc);
-    int32_t                  loop     = 0;
-    FrameHeader             *frm_hdr  = &ppcs->frm_hdr;
-    int32_t                  q        = frm_hdr->quantization_params.base_q_idx;
+    PictureParentControlSet *ppcs    = pcs->ppcs;
+    EncodeContext *const     enc_ctx = ppcs->scs->enc_ctx;
+    RATE_CONTROL *const      rc      = &(enc_ctx->rc);
+    int32_t                  loop    = 0;
+    FrameHeader             *frm_hdr = &ppcs->frm_hdr;
+    int32_t                  q       = frm_hdr->quantization_params.base_q_idx;
     if (ppcs->loop_count == 0) {
         ppcs->q_low  = ppcs->bottom_index;
         ppcs->q_high = ppcs->top_index;
@@ -7373,9 +7372,9 @@ static void recode_loop_decision_maker(PictureControlSet *pcs, SequenceControlSe
             q);
 
         ppcs->picture_qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
-                                              (int32_t)scs->static_config.max_qp_allowed,
-                                              (frm_hdr->quantization_params.base_q_idx + 2) >> 2);
-        pcs->picture_qp      = ppcs->picture_qp;
+                                          (int32_t)scs->static_config.max_qp_allowed,
+                                          (frm_hdr->quantization_params.base_q_idx + 2) >> 2);
+        pcs->picture_qp  = ppcs->picture_qp;
 
         // 2pass QPM with tpl_la
         if (scs->static_config.enable_adaptive_quantization == 2 && ppcs->tpl_ctrls.enable &&
@@ -7813,12 +7812,12 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
         // Get Mode Decision Results
         EB_GET_FULL_OBJECT(ed_ctx->mode_decision_input_fifo_ptr, &enc_dec_tasks_wrapper);
 
-        EncDecTasks       *enc_dec_tasks = (EncDecTasks *)enc_dec_tasks_wrapper->object_ptr;
-        PictureControlSet *pcs = (PictureControlSet *)enc_dec_tasks->pcs_wrapper->object_ptr;
-        SequenceControlSet             *scs    = pcs->scs;
-        ModeDecisionContext            *md_ctx = ed_ctx->md_ctx;
-        struct PictureParentControlSet *ppcs   = pcs->ppcs;
-        md_ctx->encoder_bit_depth              = (uint8_t)scs->static_config.encoder_bit_depth;
+        EncDecTasks         *enc_dec_tasks = (EncDecTasks *)enc_dec_tasks_wrapper->object_ptr;
+        PictureControlSet   *pcs    = (PictureControlSet *)enc_dec_tasks->pcs_wrapper->object_ptr;
+        SequenceControlSet  *scs    = pcs->scs;
+        ModeDecisionContext *md_ctx = ed_ctx->md_ctx;
+        struct PictureParentControlSet *ppcs = pcs->ppcs;
+        md_ctx->encoder_bit_depth            = (uint8_t)scs->static_config.encoder_bit_depth;
         md_ctx->corrupted_mv_check = (pcs->ppcs->aligned_width >= (1 << (MV_IN_USE_BITS - 3))) ||
             (pcs->ppcs->aligned_height >= (1 << (MV_IN_USE_BITS - 3)));
         ed_ctx->tile_group_index = enc_dec_tasks->tile_group_index;
@@ -7836,10 +7835,10 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
         if (scs->static_config.pass == ENC_FIRST_PASS || svt_aom_is_pic_skipped(pcs->ppcs)) {
             svt_release_object(pcs->ppcs->me_data_wrapper);
             pcs->ppcs->me_data_wrapper = (EbObjectWrapper *)NULL;
-            pcs->ppcs->pa_me_data          = NULL;
+            pcs->ppcs->pa_me_data      = NULL;
             // Get Empty EncDec Results
             svt_get_empty_object(ed_ctx->enc_dec_output_fifo_ptr, &enc_dec_results_wrapper);
-            enc_dec_results = (EncDecResults *)enc_dec_results_wrapper->object_ptr;
+            enc_dec_results              = (EncDecResults *)enc_dec_results_wrapper->object_ptr;
             enc_dec_results->pcs_wrapper = enc_dec_tasks->pcs_wrapper;
 
             // Post EncDec Results
@@ -8276,8 +8275,8 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
 
                         EncDecTasks *enc_dec_re_encode_tasks_ptr =
                             (EncDecTasks *)enc_dec_re_encode_tasks_wrapper->object_ptr;
-                        enc_dec_re_encode_tasks_ptr->pcs_wrapper = enc_dec_tasks->pcs_wrapper;
-                        enc_dec_re_encode_tasks_ptr->input_type  = ENCDEC_TASKS_MDC_INPUT;
+                        enc_dec_re_encode_tasks_ptr->pcs_wrapper      = enc_dec_tasks->pcs_wrapper;
+                        enc_dec_re_encode_tasks_ptr->input_type       = ENCDEC_TASKS_MDC_INPUT;
                         enc_dec_re_encode_tasks_ptr->tile_group_index = tile_group_idx;
 
                         // Post the Full Results Object
@@ -8317,11 +8316,10 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                     if (pcs->ppcs->superres_total_recode_loop == 0) {
                         svt_release_object(pcs->ppcs->me_data_wrapper);
                         pcs->ppcs->me_data_wrapper = (EbObjectWrapper *)NULL;
-                        pcs->ppcs->pa_me_data          = NULL;
+                        pcs->ppcs->pa_me_data      = NULL;
                     }
                     // Get Empty EncDec Results
-                    svt_get_empty_object(ed_ctx->enc_dec_output_fifo_ptr,
-                                         &enc_dec_results_wrapper);
+                    svt_get_empty_object(ed_ctx->enc_dec_output_fifo_ptr, &enc_dec_results_wrapper);
                     enc_dec_results = (EncDecResults *)enc_dec_results_wrapper->object_ptr;
                     enc_dec_results->pcs_wrapper = enc_dec_tasks->pcs_wrapper;
 

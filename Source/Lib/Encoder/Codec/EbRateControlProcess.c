@@ -1156,9 +1156,9 @@ int svt_aom_compute_rd_mult(PictureControlSet *pcs, uint8_t q_index, uint8_t me_
     return (int)rdmult;
 }
 static void sb_setup_lambda(PictureControlSet *pcs, SuperBlock *sb_ptr) {
-    const Av1Common *const   cm       = pcs->ppcs->av1_cm;
+    const Av1Common *const   cm   = pcs->ppcs->av1_cm;
     PictureParentControlSet *ppcs = pcs->ppcs;
-    SequenceControlSet      *scs      = ppcs->scs;
+    SequenceControlSet      *scs  = ppcs->scs;
 
     int mi_col = sb_ptr->org_x / 4;
     int mi_row = sb_ptr->org_y / 4;
@@ -1193,11 +1193,10 @@ static void sb_setup_lambda(PictureControlSet *pcs, SuperBlock *sb_ptr) {
     assert(base_block_count > 0);
 
     uint8_t   bit_depth   = pcs->hbd_md ? 10 : 8;
-    const int orig_rdmult = svt_aom_compute_rd_mult(
-        pcs,
-        ppcs->frm_hdr.quantization_params.base_q_idx,
-        ppcs->frm_hdr.quantization_params.base_q_idx,
-        bit_depth);
+    const int orig_rdmult = svt_aom_compute_rd_mult(pcs,
+                                                    ppcs->frm_hdr.quantization_params.base_q_idx,
+                                                    ppcs->frm_hdr.quantization_params.base_q_idx,
+                                                    bit_depth);
 
     const int new_rdmult = svt_aom_compute_rd_mult(
         pcs,
@@ -1211,7 +1210,7 @@ static void sb_setup_lambda(PictureControlSet *pcs, SuperBlock *sb_ptr) {
     for (row = mi_row / num_mi_w; row < num_rows && row < mi_row / num_mi_w + num_brows; ++row) {
         for (col = mi_col_sr / num_mi_h; col < num_cols && col < mi_col_sr / num_mi_h + num_bcols;
              ++col) {
-            const int index                                            = row * num_cols + col;
+            const int index                                        = row * num_cols + col;
             ppcs->pa_me_data->tpl_sb_rdmult_scaling_factors[index] = scale_adj *
                 ppcs->pa_me_data->tpl_rdmult_scaling_factors[index];
         }
@@ -1476,7 +1475,7 @@ static void generate_b64_me_qindex_map(PictureControlSet *pcs) {
  ******************************************************/
 void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->ppcs;
-    SequenceControlSet      *scs      = pcs->ppcs->scs;
+    SequenceControlSet      *scs  = pcs->ppcs->scs;
     SuperBlock              *sb_ptr;
     uint32_t                 sb_addr;
     if (ppcs->r0_based_qps_qpm)
@@ -1795,8 +1794,7 @@ static double get_rate_correction_factor(PictureParentControlSet *ppcs, int widt
         else
             rcf = rc->rate_correction_factors[INTER_NORMAL];
     }
-    rcf *= (double)(ppcs->av1_cm->frm_size.frame_width *
-                    ppcs->av1_cm->frm_size.frame_height) /
+    rcf *= (double)(ppcs->av1_cm->frm_size.frame_width * ppcs->av1_cm->frm_size.frame_height) /
         (width * height);
     svt_release_mutex(rc->rc_mutex);
     return fclamp(rcf, MIN_BPB_FACTOR, MAX_BPB_FACTOR);
@@ -1810,8 +1808,7 @@ static void set_rate_correction_factor(PictureParentControlSet *ppcs, double fac
     svt_block_on_mutex(rc->rc_mutex);
 
     // Normalize RCF to account for the size-dependent scaling factor.
-    factor /= (double)(ppcs->av1_cm->frm_size.frame_width *
-                       ppcs->av1_cm->frm_size.frame_height) /
+    factor /= (double)(ppcs->av1_cm->frm_size.frame_width * ppcs->av1_cm->frm_size.frame_height) /
         (width * height);
 
     factor = fclamp(factor, MIN_BPB_FACTOR, MAX_BPB_FACTOR);
@@ -1920,8 +1917,7 @@ static int adjust_q_cbr(PictureParentControlSet *ppcs, int q) {
     if (ppcs->frm_hdr.frame_type != KEY_FRAME && /*!cpi->use_svc &&*/
         rc->frames_since_key > 1 && !change_target_bits_mb &&
         (!enc_ctx->rc_cfg.gf_cbr_boost_pct ||
-         !(ppcs->update_type == SVT_AV1_GF_UPDATE ||
-           ppcs->update_type == SVT_AV1_ARF_UPDATE))) {
+         !(ppcs->update_type == SVT_AV1_GF_UPDATE || ppcs->update_type == SVT_AV1_ARF_UPDATE))) {
         // Make sure q is between oscillating Qs to prevent resonance.
         // Limit the decrease in Q from previous frame.
         if (rc->q_1_frame - q > max_delta)
@@ -2041,10 +2037,10 @@ static int calc_active_worst_quality_no_stats_cbr(PictureParentControlSet *ppcs)
 // Calculate the active_best_quality level.
 static int calc_active_best_quality_no_stats_cbr(PictureControlSet *pcs, int active_worst_quality,
                                                  int width, int height) {
-    PictureParentControlSet *ppcs = pcs->ppcs;
-    SequenceControlSet      *scs      = ppcs->scs;
-    EncodeContext           *enc_ctx  = scs->enc_ctx;
-    RATE_CONTROL            *rc       = &enc_ctx->rc;
+    PictureParentControlSet *ppcs    = pcs->ppcs;
+    SequenceControlSet      *scs     = ppcs->scs;
+    EncodeContext           *enc_ctx = scs->enc_ctx;
+    RATE_CONTROL            *rc      = &enc_ctx->rc;
     int                     *rtc_minq;
     const int                bit_depth           = scs->static_config.encoder_bit_depth;
     int                      active_best_quality = rc->best_quality;
@@ -2339,12 +2335,12 @@ static int av1_estimate_bits_at_q(FrameType frame_type, int q, int mbs, double c
 
 static void av1_rc_update_rate_correction_factors(PictureParentControlSet *ppcs, int width,
                                                   int height) {
-    SequenceControlSet *scs               = ppcs->scs;
-    EncodeContext      *enc_ctx           = scs->enc_ctx;
-    RATE_CONTROL       *rc                = &enc_ctx->rc;
-    int                 correction_factor = 100;
-    double rate_correction_factor         = get_rate_correction_factor(ppcs, width, height);
-    double adjustment_limit;
+    SequenceControlSet *scs                    = ppcs->scs;
+    EncodeContext      *enc_ctx                = scs->enc_ctx;
+    RATE_CONTROL       *rc                     = &enc_ctx->rc;
+    int                 correction_factor      = 100;
+    double              rate_correction_factor = get_rate_correction_factor(ppcs, width, height);
+    double              adjustment_limit;
     // const int MBs = av1_get_MBs(width, height);
     const int MBs = ((width + 15) / 16) * ((height + 15) / 16); // av1_get_MBs(width, height);
 
@@ -2381,9 +2377,8 @@ static void av1_rc_update_rate_correction_factors(PictureParentControlSet *ppcs,
         adjustment_limit = 0.75;
     }
 
-    rc->q_2_frame = rc->q_1_frame;
-    rc->q_1_frame =
-        ppcs->frm_hdr.quantization_params.base_q_idx; //cm->quant_params.base_qindex;
+    rc->q_2_frame  = rc->q_1_frame;
+    rc->q_1_frame  = ppcs->frm_hdr.quantization_params.base_q_idx; //cm->quant_params.base_qindex;
     rc->rc_2_frame = rc->rc_1_frame;
     if (correction_factor > 110)
         rc->rc_1_frame = -1;
@@ -2517,13 +2512,13 @@ static void av1_rc_postencode_update_gop_const(PictureParentControlSet *ppcs) {
         rc->frames_since_key = 0;
 }
 static void av1_rc_postencode_update(PictureParentControlSet *ppcs) {
-    SequenceControlSet *scs                = ppcs->scs;
-    EncodeContext      *enc_ctx            = scs->enc_ctx;
-    RATE_CONTROL       *rc                 = &enc_ctx->rc;
-    FrameHeader        *frm_hdr            = &ppcs->frm_hdr;
-    const int           width              = ppcs->av1_cm->frm_size.frame_width;
-    const int           height             = ppcs->av1_cm->frm_size.frame_height;
-    const int           is_intrnl_arf      = ppcs->update_type == SVT_AV1_INTNL_ARF_UPDATE;
+    SequenceControlSet *scs           = ppcs->scs;
+    EncodeContext      *enc_ctx       = scs->enc_ctx;
+    RATE_CONTROL       *rc            = &enc_ctx->rc;
+    FrameHeader        *frm_hdr       = &ppcs->frm_hdr;
+    const int           width         = ppcs->av1_cm->frm_size.frame_width;
+    const int           height        = ppcs->av1_cm->frm_size.frame_height;
+    const int           is_intrnl_arf = ppcs->update_type == SVT_AV1_INTNL_ARF_UPDATE;
 
     const int qindex = frm_hdr->quantization_params.base_q_idx;
 
@@ -2546,8 +2541,8 @@ static void av1_rc_postencode_update(PictureParentControlSet *ppcs) {
         enc_ctx->frame_updated++;
         svt_release_mutex(enc_ctx->frame_updated_mutex);
         if ((!ppcs->is_overlay &&
-             !(ppcs->update_type == SVT_AV1_GF_UPDATE ||
-               ppcs->update_type == SVT_AV1_ARF_UPDATE || is_intrnl_arf))) {
+             !(ppcs->update_type == SVT_AV1_GF_UPDATE || ppcs->update_type == SVT_AV1_ARF_UPDATE ||
+               is_intrnl_arf))) {
             rc->avg_frame_qindex[INTER_FRAME] = ROUND_POWER_OF_TWO(
                 3 * rc->avg_frame_qindex[INTER_FRAME] + qindex, 2);
             rc->last_q[INTER_FRAME] = (int32_t)svt_av1_convert_qindex_to_q(qindex,
@@ -2644,8 +2639,7 @@ static void av1_set_target_rate(PictureControlSet *pcs) {
         vbr_rate_correction(pcs, &target_rate);
     pcs->ppcs->this_frame_target = target_rate;
 }
-static double av1_get_compression_ratio(PictureParentControlSet *ppcs,
-                                        size_t                   encoded_frame_size) {
+static double av1_get_compression_ratio(PictureParentControlSet *ppcs, size_t encoded_frame_size) {
     const int upscaled_width = ppcs->av1_cm->frm_size.superres_upscaled_width;
     const int height         = ppcs->av1_cm->frm_size.frame_height; //cm->height;
     const int luma_pic_size  = upscaled_width * height;
@@ -2808,8 +2802,8 @@ static void capped_crf_reencode(PictureParentControlSet *ppcs, int *const q) {
         ppcs->q_high    = rc->active_worst_quality;
     }
     // Decrease the active worse quality based on the projected frame size and max frame size
-    else if (ppcs->projected_frame_size < ppcs->max_frame_size &&
-             ppcs->temporal_layer_index == 0 && ppcs->loop_count == 0 &&
+    else if (ppcs->projected_frame_size < ppcs->max_frame_size && ppcs->temporal_layer_index == 0 &&
+             ppcs->loop_count == 0 &&
              rc->active_worst_quality > quantizer_to_qindex[(uint8_t)scs->static_config.qp] &&
              (available_bit_ratio > available_frames_ratio)) {
         if (ppcs->projected_frame_size < ppcs->max_frame_size / 3)
@@ -2834,9 +2828,8 @@ static void av1_rc_compute_frame_size_bounds(PictureParentControlSet *ppcs, int 
     if (rc_cfg->mode == AOM_Q) {
         const int tolerance = (int)AOMMAX(
             100, ((int64_t)enc_ctx->recode_tolerance * ppcs->max_frame_size) / 100);
-        *frame_under_shoot_limit = ppcs->loop_count
-            ? AOMMAX(ppcs->max_frame_size - tolerance, 0)
-            : 0;
+        *frame_under_shoot_limit = ppcs->loop_count ? AOMMAX(ppcs->max_frame_size - tolerance, 0)
+                                                    : 0;
         *frame_over_shoot_limit  = AOMMIN(ppcs->max_frame_size + tolerance, INT_MAX);
     } else {
         // For very small rate targets where the fractional adjustment
@@ -2851,8 +2844,8 @@ static void av1_rc_compute_frame_size_bounds(PictureParentControlSet *ppcs, int 
 
 // Function to test for conditions that indicate we should loop
 // back and recode a frame.
-static AOM_INLINE int recode_loop_test(PictureParentControlSet *ppcs, int high_limit,
-                                       int low_limit, int q, int maxq, int minq) {
+static AOM_INLINE int recode_loop_test(PictureParentControlSet *ppcs, int high_limit, int low_limit,
+                                       int q, int maxq, int minq) {
     EncodeContext *const enc_ctx          = ppcs->scs->enc_ctx;
     RATE_CONTROL *const  rc               = &(enc_ctx->rc);
     const int            frame_is_kfgfarf = svt_aom_frame_is_kf_gf_arf(ppcs);
@@ -2877,21 +2870,13 @@ static int get_regulated_q_overshoot(PictureParentControlSet *ppcs, int q_low, i
 
     av1_rc_update_rate_correction_factors(ppcs, width, height);
 
-    int q_regulated = av1_rc_regulate_q(ppcs,
-                                        ppcs->this_frame_target,
-                                        bottom_index,
-                                        AOMMAX(q_high, top_index),
-                                        width,
-                                        height);
-    int retries     = 0;
+    int q_regulated = av1_rc_regulate_q(
+        ppcs, ppcs->this_frame_target, bottom_index, AOMMAX(q_high, top_index), width, height);
+    int retries = 0;
     while (q_regulated < q_low && retries < 10) {
         av1_rc_update_rate_correction_factors(ppcs, width, height);
-        q_regulated = av1_rc_regulate_q(ppcs,
-                                        ppcs->this_frame_target,
-                                        bottom_index,
-                                        AOMMAX(q_high, top_index),
-                                        width,
-                                        height);
+        q_regulated = av1_rc_regulate_q(
+            ppcs, ppcs->this_frame_target, bottom_index, AOMMAX(q_high, top_index), width, height);
         retries++;
     }
     return q_regulated;
@@ -2933,10 +2918,10 @@ void recode_loop_update_q(PictureParentControlSet *ppcs, int *const loop, int *c
         rc_cfg->min_cr > 0;
     if (do_dummy_pack) {
         svt_block_on_mutex(ppcs->pcs_total_rate_mutex);
-        ppcs->projected_frame_size =
-            (int)(((ppcs->pcs_total_rate + (1 << (AV1_PROB_COST_SHIFT - 1))) >>
-                   AV1_PROB_COST_SHIFT) +
-                  ((ppcs->frm_hdr.frame_type == KEY_FRAME) ? 13 : 0));
+        ppcs->projected_frame_size = (int)(((ppcs->pcs_total_rate +
+                                             (1 << (AV1_PROB_COST_SHIFT - 1))) >>
+                                            AV1_PROB_COST_SHIFT) +
+                                           ((ppcs->frm_hdr.frame_type == KEY_FRAME) ? 13 : 0));
         svt_release_mutex(ppcs->pcs_total_rate_mutex);
     } else {
         ppcs->projected_frame_size = 0;
@@ -2951,9 +2936,9 @@ void recode_loop_update_q(PictureParentControlSet *ppcs, int *const loop, int *c
     const int min_cr = rc_cfg->min_cr;
     if (min_cr > 0) {
         //aom_clear_system_state();
-        const double compression_ratio = av1_get_compression_ratio(
-            ppcs, ppcs->projected_frame_size >> 3);
-        const double target_cr = min_cr / 100.0;
+        const double compression_ratio = av1_get_compression_ratio(ppcs,
+                                                                   ppcs->projected_frame_size >> 3);
+        const double target_cr         = min_cr / 100.0;
         if (compression_ratio < target_cr) {
             *low_cr_seen = 1;
             if (*q < rc->worst_quality) {
@@ -3079,19 +3064,16 @@ static void restore_two_pass_param(PictureParentControlSet         *ppcs,
                                    RateControlIntervalParamContext *rate_control_param_ptr) {
     SequenceControlSet *scs     = ppcs->scs;
     TWO_PASS *const     twopass = &scs->twopass;
-    if (ppcs->scs->enable_dec_order == 1 && ppcs->scs->lap_rc &&
-        ppcs->temporal_layer_index == 0) {
-        for (uint64_t num_frames = ppcs->stats_in_offset;
-             num_frames < ppcs->stats_in_end_offset;
+    if (ppcs->scs->enable_dec_order == 1 && ppcs->scs->lap_rc && ppcs->temporal_layer_index == 0) {
+        for (uint64_t num_frames = ppcs->stats_in_offset; num_frames < ppcs->stats_in_end_offset;
              ++num_frames) {
             FIRSTPASS_STATS *cur_frame = ppcs->scs->twopass.stats_buf_ctx->stats_in_start +
                 num_frames;
             if ((int64_t)cur_frame->frame >
                 ppcs->scs->twopass.stats_buf_ctx->last_frame_accumulated) {
-                svt_av1_accumulate_stats(ppcs->scs->twopass.stats_buf_ctx->total_stats,
-                                         cur_frame);
+                svt_av1_accumulate_stats(ppcs->scs->twopass.stats_buf_ctx->total_stats, cur_frame);
                 ppcs->scs->twopass.stats_buf_ctx->last_frame_accumulated = (int64_t)
-                                                                                   cur_frame->frame;
+                                                                               cur_frame->frame;
             }
         }
     }
@@ -3346,8 +3328,8 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
         EB_GET_FULL_OBJECT(context_ptr->rate_control_input_tasks_fifo_ptr,
                            &rate_control_tasks_wrapper_ptr);
 
-        rc_tasks = (RateControlTasks *)rate_control_tasks_wrapper_ptr->object_ptr;
-        task_type              = rc_tasks->task_type;
+        rc_tasks  = (RateControlTasks *)rate_control_tasks_wrapper_ptr->object_ptr;
+        task_type = rc_tasks->task_type;
         Bool is_superres_recode_task = (task_type == RC_INPUT_SUPERRES_RECODE) ? TRUE : FALSE;
 
         // Modify these for different temporal layers later
@@ -3677,8 +3659,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
             // Get Empty Rate Control Results Buffer
             svt_get_empty_object(context_ptr->rate_control_output_results_fifo_ptr,
                                  &rc_results_wrapper);
-            rc_results = (RateControlResults *)
-                                           rc_results_wrapper->object_ptr;
+            rc_results                  = (RateControlResults *)rc_results_wrapper->object_ptr;
             rc_results->pcs_wrapper     = rc_tasks->pcs_wrapper;
             rc_results->superres_recode = is_superres_recode_task;
 
@@ -3731,8 +3712,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
             }
 
             // free private data list before release input picture buffer
-            free_private_data_list(
-                (EbBufferHeaderType *)ppcs->input_pic_wrapper->object_ptr);
+            free_private_data_list((EbBufferHeaderType *)ppcs->input_pic_wrapper->object_ptr);
 
             svt_release_object(ppcs->input_pic_wrapper);
 

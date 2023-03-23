@@ -1510,8 +1510,7 @@ void svt_aom_reset_update_frame_target(PictureParentControlSet *ppcs) {
     RATE_CONTROL       *rc      = &enc_ctx->rc;
     rc->buffer_level            = rc->optimal_buffer_level;
     rc->bits_off_target         = rc->optimal_buffer_level;
-    ppcs->this_frame_target = av1_calc_pframe_target_size_one_pass_cbr(ppcs,
-                                                                           SVT_AV1_LF_UPDATE);
+    ppcs->this_frame_target     = av1_calc_pframe_target_size_one_pass_cbr(ppcs, SVT_AV1_LF_UPDATE);
 }
 
 extern void svt_av1_resize_reset_rc(PictureParentControlSet *ppcs, int32_t resize_width,
@@ -2275,8 +2274,8 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs) {
         (int32_t)(new_qindex));
 
     ppcs->picture_qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
-                                          (int32_t)scs->static_config.max_qp_allowed,
-                                          (frm_hdr->quantization_params.base_q_idx + 2) >> 2);
+                                      (int32_t)scs->static_config.max_qp_allowed,
+                                      (frm_hdr->quantization_params.base_q_idx + 2) >> 2);
     // clip the max frame size to 32 bits
     ppcs->max_frame_size = (int)CLIP3(1, (0xFFFFFFFFull >> 1), (uint64_t)max_frame_size);
     // The target is set to 80% of the max.

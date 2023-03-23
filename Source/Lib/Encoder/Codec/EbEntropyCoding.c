@@ -1125,18 +1125,18 @@ static void encode_partition_av1(PictureControlSet *pcs, FRAME_CONTEXT *frame_co
 
     uint32_t context_index = 0;
 
-    const PartitionContextType above_ctx = (((PartitionContext *)partition_context_na
-                                                 ->top_array)[partition_context_top_neighbor_index]
-                                                .above == (char)INVALID_NEIGHBOR_DATA)
+    const PartitionContextType above_ctx =
+        (((PartitionContext *)partition_context_na->top_array)[partition_context_top_neighbor_index]
+             .above == (char)INVALID_NEIGHBOR_DATA)
         ? 0
         : ((PartitionContext *)
                partition_context_na->top_array)[partition_context_top_neighbor_index]
               .above;
-    const PartitionContextType left_ctx  = (((PartitionContext *)partition_context_na
+    const PartitionContextType left_ctx = (((PartitionContext *)partition_context_na
                                                 ->left_array)[partition_context_left_neighbor_index]
                                                .left == (char)INVALID_NEIGHBOR_DATA)
-         ? 0
-         : ((PartitionContext *)
+        ? 0
+        : ((PartitionContext *)
                partition_context_na->left_array)[partition_context_left_neighbor_index]
               .left;
 
@@ -1745,15 +1745,16 @@ void svt_av1_encode_mv(PictureParentControlSet *pcs, AomWriter *ec_writer, const
 #define INTER_FILTER_COMP_OFFSET (SWITCHABLE_FILTERS + 1)
 #define INTER_FILTER_DIR_OFFSET ((SWITCHABLE_FILTERS + 1) * 2)
 
-int32_t svt_av1_get_pred_context_switchable_interp(
-    NeighborArrayUnit *ref_frame_type_na, MvReferenceFrame rf0, MvReferenceFrame rf1,
-    NeighborArrayUnit32 *interpolation_type_na, uint32_t blk_org_x, uint32_t blk_org_y,
-    // const MacroBlockD *xd,
-    int32_t dir) {
+int32_t svt_av1_get_pred_context_switchable_interp(NeighborArrayUnit *ref_frame_type_na,
+                                                   MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                                   NeighborArrayUnit32 *interpolation_type_na,
+                                                   uint32_t blk_org_x, uint32_t blk_org_y,
+                                                   // const MacroBlockD *xd,
+                                                   int32_t dir) {
     uint32_t interp_type_left_neigh_idx = get_neighbor_array_unit_left_index32(
         interpolation_type_na, blk_org_y);
-    uint32_t interp_type_top_neigh_idx = get_neighbor_array_unit_top_index32(
-        interpolation_type_na, blk_org_x);
+    uint32_t interp_type_top_neigh_idx = get_neighbor_array_unit_top_index32(interpolation_type_na,
+                                                                             blk_org_x);
 
     uint32_t rf_left_neighbor_index = get_neighbor_array_unit_left_index(ref_frame_type_na,
                                                                          blk_org_y);
@@ -1774,8 +1775,8 @@ int32_t svt_av1_get_pred_context_switchable_interp(
     if (blk_org_x != 0) {
         MvReferenceFrame rf_left[2];
         av1_set_ref_frame(rf_left, ref_frame_type_na->left_array[rf_left_neighbor_index]);
-        uint32_t left_neigh =
-            (uint32_t)interpolation_type_na->left_array[interp_type_left_neigh_idx];
+        uint32_t left_neigh = (uint32_t)
+                                  interpolation_type_na->left_array[interp_type_left_neigh_idx];
         left_type = (rf_left[0] == ref_frame || rf_left[1] == ref_frame)
             ? av1_extract_interp_filter(left_neigh, dir & 0x01)
             : SWITCHABLE_FILTERS;
@@ -1785,8 +1786,8 @@ int32_t svt_av1_get_pred_context_switchable_interp(
     if (blk_org_y != 0) {
         MvReferenceFrame rf_above[2];
         av1_set_ref_frame(rf_above, ref_frame_type_na->top_array[rf_top_neighbor_index]);
-        uint32_t above_neigh =
-            (uint32_t)interpolation_type_na->top_array[interp_type_top_neigh_idx];
+        uint32_t above_neigh = (uint32_t)
+                                   interpolation_type_na->top_array[interp_type_top_neigh_idx];
 
         above_type = (rf_above[0] == ref_frame || rf_above[1] == ref_frame)
             ? av1_extract_interp_filter(above_neigh, dir & 0x01)
@@ -1882,8 +1883,8 @@ static void write_mb_interp_filter(NeighborArrayUnit *ref_frame_type_na, BlockSi
                                    MvReferenceFrame rf0, MvReferenceFrame rf1,
                                    PictureParentControlSet *pcs, AomWriter *ec_writer,
                                    BlkStruct *blk_ptr, EntropyCoder *ec,
-                                   NeighborArrayUnit32 *interpolation_type_na,
-                                   uint32_t blk_org_x, uint32_t blk_org_y) {
+                                   NeighborArrayUnit32 *interpolation_type_na, uint32_t blk_org_x,
+                                   uint32_t blk_org_y) {
     Av1Common *const cm = pcs->av1_cm; //&cpi->common;
     //const MbModeInfo *const mbmi = xd->mi[0];
     //FRAME_CONTEXT *ec_ctx = xd->tile_ctx;
@@ -1899,16 +1900,15 @@ static void write_mb_interp_filter(NeighborArrayUnit *ref_frame_type_na, BlockSi
         for (dir = 0; dir < 2; ++dir) {
             // SVT_LOG("\nP:%d\tX: %d\tY:%d\t %d",(pcs)->picture_number,blk_org_x,blk_org_y
             // ,((ec_writer)->ec).rng);
-            const int32_t ctx = svt_av1_get_pred_context_switchable_interp(
-                ref_frame_type_na,
-                rf0,
-                rf1,
-                interpolation_type_na,
-                blk_org_x,
-                blk_org_y,
-                // xd,
-                dir);
-            InterpFilter filter = av1_extract_interp_filter(blk_ptr->interp_filters, dir);
+            const int32_t ctx    = svt_av1_get_pred_context_switchable_interp(ref_frame_type_na,
+                                                                           rf0,
+                                                                           rf1,
+                                                                           interpolation_type_na,
+                                                                           blk_org_x,
+                                                                           blk_org_y,
+                                                                           // xd,
+                                                                           dir);
+            InterpFilter  filter = av1_extract_interp_filter(blk_ptr->interp_filters, dir);
             assert(ctx < SWITCHABLE_FILTER_CONTEXTS);
             assert(filter < CDF_SIZE(SWITCHABLE_FILTERS));
             aom_write_symbol(ec_writer,
@@ -4477,21 +4477,19 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                        uint16_t tile_idx, BlockSize bsize,
                                        EbPictureBufferDesc *coeff_ptr) {
     UNUSED(coeff_ptr);
-    EbErrorType        return_error = EB_ErrorNone;
-    NeighborArrayUnit *mode_type_na = pcs->mode_type_na[tile_idx];
-    NeighborArrayUnit *partition_context_na =
-        pcs->partition_context_na[tile_idx];
+    EbErrorType          return_error                = EB_ErrorNone;
+    NeighborArrayUnit   *mode_type_na                = pcs->mode_type_na[tile_idx];
+    NeighborArrayUnit   *partition_context_na        = pcs->partition_context_na[tile_idx];
     NeighborArrayUnit   *skip_flag_na                = pcs->skip_flag_na[tile_idx];
     NeighborArrayUnit   *skip_coeff_na               = pcs->skip_coeff_na[tile_idx];
     NeighborArrayUnit   *luma_dc_sign_level_coeff_na = pcs->luma_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *ref_frame_type_na           = pcs->ref_frame_type_na[tile_idx];
-    NeighborArrayUnit32 *interpolation_type_na =
-        pcs->interpolation_type_na[tile_idx];
-    const BlockGeom *blk_geom   = get_blk_geom_mds(blk_ptr->mds_idx);
-    uint8_t          skip_coeff = !blk_ptr->block_has_coeff;
-    PartitionContext partition;
+    NeighborArrayUnit32 *interpolation_type_na       = pcs->interpolation_type_na[tile_idx];
+    const BlockGeom     *blk_geom                    = get_blk_geom_mds(blk_ptr->mds_idx);
+    uint8_t              skip_coeff                  = !blk_ptr->block_has_coeff;
+    PartitionContext     partition;
 
     // Update the Leaf Depth Neighbor Array
     partition.above = partition_context_lookup[bsize].above;
@@ -5302,14 +5300,13 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *ref_frame_type_na           = pcs->ref_frame_type_na[tile_idx];
-    NeighborArrayUnit32 *interpolation_type_na =
-        pcs->interpolation_type_na[tile_idx];
-    NeighborArrayUnit *txfm_context_array = pcs->txfm_context_array[tile_idx];
-    const BlockGeom   *blk_geom           = get_blk_geom_mds(blk_ptr->mds_idx);
-    uint32_t           blk_org_x          = ec_ctx->sb_origin_x + blk_geom->org_x;
-    uint32_t           blk_org_y          = ec_ctx->sb_origin_y + blk_geom->org_y;
-    BlockSize          bsize              = blk_geom->bsize;
-    Bool               skip_coeff         = !blk_ptr->block_has_coeff;
+    NeighborArrayUnit32 *interpolation_type_na       = pcs->interpolation_type_na[tile_idx];
+    NeighborArrayUnit   *txfm_context_array          = pcs->txfm_context_array[tile_idx];
+    const BlockGeom     *blk_geom                    = get_blk_geom_mds(blk_ptr->mds_idx);
+    uint32_t             blk_org_x                   = ec_ctx->sb_origin_x + blk_geom->org_x;
+    uint32_t             blk_org_y                   = ec_ctx->sb_origin_y + blk_geom->org_y;
+    BlockSize            bsize                       = blk_geom->bsize;
+    Bool                 skip_coeff                  = !blk_ptr->block_has_coeff;
 
     assert(bsize < BlockSizeS_ALL);
     int32_t       mi_row    = blk_org_y >> MI_SIZE_LOG2;
@@ -5928,12 +5925,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 EB_EXTERN EbErrorType svt_aom_write_sb(EntropyCodingContext *ec_ctx, SuperBlock *tb_ptr,
                                        PictureControlSet *pcs, uint16_t tile_idx, EntropyCoder *ec,
                                        EbPictureBufferDesc *coeff_ptr) {
-    EbErrorType         return_error  = EB_ErrorNone;
-    FRAME_CONTEXT      *frame_context = ec->fc;
-    AomWriter          *ec_writer     = &ec->ec_writer;
-    SequenceControlSet *scs           = pcs->scs;
-    NeighborArrayUnit  *partition_context_na =
-        pcs->partition_context_na[tile_idx];
+    EbErrorType         return_error         = EB_ErrorNone;
+    FRAME_CONTEXT      *frame_context        = ec->fc;
+    AomWriter          *ec_writer            = &ec->ec_writer;
+    SequenceControlSet *scs                  = pcs->scs;
+    NeighborArrayUnit  *partition_context_na = pcs->partition_context_na[tile_idx];
 
     // CU Varaiables
     uint32_t blk_index       = 0;

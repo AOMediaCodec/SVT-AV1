@@ -46,8 +46,8 @@ void initialize_samples_neighboring_reference_picture_8bit(EbByte   recon_sample
 }
 
 static void initialize_samples_neighboring_reference_picture(
-    EbReferenceObject           *ref_object,
-    EbPictureBufferDescInitData *picture_buffer_desc_init_data_ptr, EbBitDepth bit_depth) {
+    EbReferenceObject *ref_object, EbPictureBufferDescInitData *picture_buffer_desc_init_data_ptr,
+    EbBitDepth bit_depth) {
     UNUSED(bit_depth);
     {
         initialize_samples_neighboring_reference_picture_8bit(
@@ -109,8 +109,7 @@ static void svt_reference_object_dctor(EbPtr p) {
  *  values that are fixed for the life of
  *  the descriptor.
  *****************************************/
-EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object,
-                                      EbPtr              object_init_data_ptr) {
+EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr object_init_data_ptr) {
     EbReferenceObjectDescInitData *ref_init_ptr = (EbReferenceObjectDescInitData *)
         object_init_data_ptr;
     EbPictureBufferDescInitData *picture_buffer_desc_init_data_ptr =
@@ -166,8 +165,7 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object,
         for (uint8_t resize_denom_idx = 0; resize_denom_idx < NUM_RESIZE_SCALES + 1;
              resize_denom_idx++) {
             ref_object->downscaled_reference_picture[sr_denom_idx][resize_denom_idx] = NULL;
-            ref_object->downscaled_picture_number[sr_denom_idx][resize_denom_idx] =
-                (uint64_t)~0;
+            ref_object->downscaled_picture_number[sr_denom_idx][resize_denom_idx]    = (uint64_t)~0;
             EB_CREATE_MUTEX(ref_object->resize_mutex[sr_denom_idx][resize_denom_idx]);
         }
     }
@@ -176,8 +174,7 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object,
     ref_object->mi_cols = mi_cols;
     EB_MALLOC_ARRAY(ref_object->sb_intra, picture_buffer_desc_init_data_ptr->sb_total_count);
     EB_MALLOC_ARRAY(ref_object->sb_skip, picture_buffer_desc_init_data_ptr->sb_total_count);
-    EB_MALLOC_ARRAY(ref_object->sb_64x64_mvp,
-                    picture_buffer_desc_init_data_ptr->sb_total_count);
+    EB_MALLOC_ARRAY(ref_object->sb_64x64_mvp, picture_buffer_desc_init_data_ptr->sb_total_count);
     EB_MALLOC_ARRAY(ref_object->sb_me_64x64_dist,
                     picture_buffer_desc_init_data_ptr->sb_total_count);
     EB_MALLOC_ARRAY(ref_object->sb_me_8x8_cost_var,
@@ -195,8 +192,7 @@ EbErrorType svt_reference_object_creator(EbPtr *object_dbl_ptr, EbPtr object_ini
     return EB_ErrorNone;
 }
 
-EbErrorType svt_reference_object_reset(EbReferenceObject  *ref_object,
-                                       SequenceControlSet *scs) {
+EbErrorType svt_reference_object_reset(EbReferenceObject *ref_object, SequenceControlSet *scs) {
     ref_object->mi_rows = scs->max_input_luma_height >> MI_SIZE_LOG2;
     ref_object->mi_cols = scs->max_input_luma_width >> MI_SIZE_LOG2;
 

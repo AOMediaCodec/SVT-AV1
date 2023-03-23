@@ -1586,14 +1586,11 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 
     for (;;) {
         // Get RateControl Results
-        EB_GET_FULL_OBJECT(context_ptr->rate_control_input_fifo_ptr,
-                           &rc_results_wrapper);
+        EB_GET_FULL_OBJECT(context_ptr->rate_control_input_fifo_ptr, &rc_results_wrapper);
 
-        RateControlResults *rc_results =
-            (RateControlResults *)rc_results_wrapper->object_ptr;
-        PictureControlSet *pcs = (PictureControlSet *)
-                                     rc_results->pcs_wrapper->object_ptr;
-        SequenceControlSet *scs = pcs->scs;
+        RateControlResults *rc_results = (RateControlResults *)rc_results_wrapper->object_ptr;
+        PictureControlSet  *pcs        = (PictureControlSet *)rc_results->pcs_wrapper->object_ptr;
+        SequenceControlSet *scs        = pcs->scs;
 
         pcs->coeff_lvl = INVALID_LVL;
         if (scs->static_config.pass != ENC_FIRST_PASS) {
@@ -1869,9 +1866,8 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 
             EncDecTasks *enc_dec_tasks = (EncDecTasks *)enc_dec_tasks_wrapper->object_ptr;
             enc_dec_tasks->pcs_wrapper = rc_results->pcs_wrapper;
-            enc_dec_tasks->input_type  = rc_results->superres_recode
-                 ? ENCDEC_TASKS_SUPERRES_INPUT
-                 : ENCDEC_TASKS_MDC_INPUT;
+            enc_dec_tasks->input_type  = rc_results->superres_recode ? ENCDEC_TASKS_SUPERRES_INPUT
+                                                                     : ENCDEC_TASKS_MDC_INPUT;
             enc_dec_tasks->tile_group_index = tile_group_idx;
 
             // Post the Full Results Object

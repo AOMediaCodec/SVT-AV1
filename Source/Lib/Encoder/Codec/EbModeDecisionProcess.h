@@ -279,9 +279,9 @@ typedef struct MdNsqMotionSearchCtrls {
 typedef struct MdSqMotionSearchCtrls {
     // 0: SQ motion search @ MD OFF; 1: SQ motion search @ MD ON
     uint8_t enabled;
-    // 0: search using SAD; 1: search using SSD TH for pa_me distortion to determine whether to
-    // search (distortion per pixel)
-    uint8_t  use_ssd;
+    // 0: search using SAD; 1: search using SSD
+    uint8_t use_ssd;
+    // TH for pa_me distortion to determine whether to search (distortion per pixel)
     uint16_t pame_distortion_th;
 
     // 0: OFF; 1: ON
@@ -328,17 +328,18 @@ typedef struct MdSqMotionSearchCtrls {
 typedef struct MdPmeCtrls {
     // 0: PME search @ MD OFF; 1: PME search @ MD ON
     uint8_t enabled;
-    // 0: search using SAD; 1: search using SSD Do not perform PME search for blocks that have a
-    // valid ME_MV unless the ME_MV has a different direction than all MVP(s) and the ME_MV mag is
-    // higher than MV_TH=f(early_check_mv_th_multiplier)
+    // 0: search using SAD; 1: search using SSD
     uint8_t use_ssd;
-    int     early_check_mv_th_multiplier;
+    // Do not perform PME search for blocks that have a valid ME_MV unless the ME_MV has a different
+    // direction than all MVP(s) and the ME_MV mag is higher than MV_TH=f(early_check_mv_th_multiplier)
+    int early_check_mv_th_multiplier;
     // Full Pel search area width
     uint8_t full_pel_search_width;
-    // Full Pel search area height If pre_fp_pme_to_me_cost higher than pre_fp_pme_to_me_cost_th
-    // then PME_MV = ME_MV and exit (decrease towards a faster level)
+    // Full Pel search area height
     uint8_t full_pel_search_height;
-    int     pre_fp_pme_to_me_cost_th;
+    // If pre_fp_pme_to_me_cost higher than pre_fp_pme_to_me_cost_th then PME_MV = ME_MV and exit
+    // (decrease towards a faster level)
+    int pre_fp_pme_to_me_cost_th;
     // If pre_fp_pme_to_me_mv smaller than pre_fp_pme_to_me_mv_th then PME_MV = ME_MV and exit
     // (increase towards a faster level)
     int pre_fp_pme_to_me_mv_th;
@@ -357,16 +358,13 @@ typedef struct MdSubPelSearchCtrls {
     // Specifies whether the Sub-Pel search will be performed or not (0: OFF, 1: ON)
     uint8_t enabled;
     // Specifies the interpolation filter tap (1: 2-tap filter, 2: 4-tap filter, 3: 8-tap filter)
-    SUBPEL_SEARCH_TYPE
-    subpel_search_type;
+    SUBPEL_SEARCH_TYPE subpel_search_type;
     // Specifies the refinement precision (or number of rounds) (0: 1/8-Pel (3 rounds), 1: 1/4-Pel
     // (2 rounds), 2: 1/2-Pel (1 round), 3: Full-Pel-no refinement (0 round))
-    SUBPEL_FORCE_STOP
-    max_precision;
+    SUBPEL_FORCE_STOP max_precision;
     // Specifies whether pruning will be applied to 1/2-Pel position(s) or not (SUBPEL_TREE: No,
     // SUBPEL_TREE_PRUNED: YES)
-    SUBPEL_SEARCH_METHODS
-    subpel_search_method;
+    SUBPEL_SEARCH_METHODS subpel_search_method;
     // Specifies the maximum number of steps in logarithmic subpel search before giving up
     int subpel_iters_per_step;
     // Specifies the Full-Pel prediction-block-variance threshold under which the Sub-Pel search is
@@ -390,9 +388,9 @@ typedef struct MdSubPelSearchCtrls {
 typedef struct ParentSqCmplxCtrls {
     Bool enabled;
 
-    // cutoff for the highest coeff-area band [0-100] level of action to use if luma coeff-area of
-    // parent SQ is >= high_freq_band1_th
+    // cutoff for the highest coeff-area band [0-100]
     uint8_t high_freq_band1_th;
+    // level of action to use if luma coeff-area of parent SQ is >= high_freq_band1_th
     uint8_t high_freq_band1_level;
     // cutoff for the second high coeff-area band [0-100]; should be less than high_freq_band1_th
     uint8_t high_freq_band2_th;
@@ -457,32 +455,42 @@ typedef struct NicScalingCtrls {
     uint8_t stage3_scaling_num;
 } NicScalingCtrls;
 typedef struct NicPruningCtrls {
-    // class pruning signal(s) mdsx_class_th (for class removal); reduce cand if deviation to the
-    // best_cand is higher than mdsx_cand_th All bands (except the last) are derived as follows: For
-    // band_index=0 to band_index=(mdsx_band_cnt-2), band=[band_index*band_width,
-    // (band_index+1)*band_width]; band_width = mdsx_class_th/(band_cnt-1) multiplier= 1 /
-    // ((band_index+1)*2) Last band is [mds1_class_th, +?] = kill (nic=0) e.g. mds1_class_th=20 and
-    // mds1_band_cnt=3 band_index |0 |1 | 2 | band |0 to 10 |10 to 20 | 20 to +?| action |nic * 1
-    // |nic * 1/2| nic * 0| Post mds0
+    // class pruning signal(s)
+    // mdsx_class_th (for class removal); reduce cand if deviation to the best_cand is higher than mdsx_cand_th
+
+    // All bands (except the last) are derived as follows:
+    // For band_index=0 to band_index=(mdsx_band_cnt-2),
+    //     band=[band_index*band_width, (band_index+1)*band_width]; band_width = mdsx_class_th/(band_cnt-1)
+    //     multiplier= 1 / ((band_index+1)*2)
+    // Last band is [mds1_class_th, +?] = kill (nic=0)
+
+    // e.g. mds1_class_th=20 and mds1_band_cnt=3
+    // band_index |0       |1         |2        |
+    // band       |0 to 10 |10 to 20  |20 to +? |
+    // action     |nic * 1 |nic * 1/2 |nic * 0  |
+
+    // Post mds0
     uint64_t mds1_class_th;
-    // >=2 Post mds1
+    // Post mds1
     uint8_t  mds1_band_cnt;
     uint64_t mds2_class_th;
     // >=2 Post mds2
     uint8_t  mds2_band_cnt;
     uint64_t mds3_class_th;
-    // >=2 cand pruning signal(s) mdsx_cand_th (for single cand removal per class); remove cand if
-    // deviation to the best_cand for @ the target class is higher than mdsx_cand_th mdsx_cand_th =
-    // base_th + sq_offset_th + intra_class_offset_th Post mds0
+    // cand pruning signal(s)
+    // mdsx_cand_th (for single cand removal per class); remove cand if
+    // deviation to the best_cand for @ the target class is higher than mdsx_cand_th
+    // mdsx_cand_th = base_th + sq_offset_th + intra_class_offset_th Post mds0
     uint8_t mds3_band_cnt;
     // Post-MDS0 candidate pruning TH for intra classes
     uint64_t mds1_cand_base_th_intra;
-    // Post-MDS0 candidate pruning TH for inter classes Use a more aggressive MDS0 candidate pruning
-    // TH based on how the candidate is ranked compared to others (2nd best candidate will use a
-    // safer pruning TH than the 3rd best, and so on). The new_th = mds1_cand_base_th /
-    // (mds1_cand_th_rank_factor * cand_count); where cand_count is the number of candidates with
-    // better cost than the current candidate. 0 is off. Higher is more aggressive.
+    // Post-MDS0 candidate pruning TH for inter classes
     uint64_t mds1_cand_base_th_inter;
+
+    // Use a more aggressive MDS0 candidate pruning TH based on how the candidate is ranked compared to others
+    // (2nd best candidate will use a safer pruning TH than the 3rd best, and so on).
+    // The new_th = mds1_cand_base_th / (mds1_cand_th_rank_factor * cand_count); where cand_count is the
+    // number of candidates with better cost than the current candidate. 0 is off. Higher is more aggressive.
     uint16_t mds1_cand_th_rank_factor;
 
     // Post mds1
@@ -523,9 +531,9 @@ typedef struct CandEliminationCtlrs {
     uint8_t th_multiplier;
 } CandEliminationCtlrs;
 typedef struct NsqCtrls {
-    // Enable or disable nsq signal. 0: disabled, 1: enabled Disables all nsq blocks for below a
-    // specified size. e.g. 8 = 8x8, 16 = 16x16
+    // Enable or disable nsq signal. 0: disabled, 1: enabled
     uint8_t enabled;
+    // Disables all nsq blocks for below a specified size. e.g. 8 = 8x8, 16 = 16x16
     uint8_t min_nsq_block_size;
     // Disallow H4/V4 when off. 0: OFF, 1: ON
     uint8_t allow_HV4;
@@ -537,11 +545,9 @@ typedef struct NsqCtrls {
     // b shapes should be skipped. Namely: skip HA, HB, and H4 if h_cost > (weighted sq_cost) skip
     // VA, VB, and V4 if v_cost > (weighted sq_cost)
     uint32_t sq_weight;
-    // max_part0_to_part1_dev is used to: (1) skip the H_Path if the deviation between the Parent-SQ
-    // src-to-recon distortion of (1st quadrant + 2nd quadrant) and the Parent-SQ src-to-recon
-    // distortion of (3rd quadrant + 4th quadrant) is less than TH, (2) skip the V_Path if the
-    // deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 3rd quadrant) and
-    // the Parent-SQ src-to-recon distortion of (2nd quadrant + 4th quadrant) is less than TH.
+    // max_part0_to_part1_dev is used to:
+    // (1) skip the H_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 2nd quadrant) and the Parent-SQ src-to-recon distortion of (3rd quadrant + 4th quadrant) is less than TH,
+    // (2) skip the V_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 3rd quadrant) and the Parent-SQ src-to-recon distortion of (2nd quadrant + 4th quadrant) is less than TH.
     uint32_t max_part0_to_part1_dev;
     uint32_t skip_hv4_on_best_part;
 } NsqCtrls;
@@ -574,8 +580,10 @@ typedef struct WmCtrls {
 } WmCtrls;
 typedef struct UvCtrls {
     uint8_t enabled;
-    // Indicates the chroma search mode CHROMA_MODE_0: Full chroma search @ MD CHROMA_MODE_1: Fast
-    // chroma search @ MD - No independent chroma mode search CHROMA_MODE_2: Chroma blind @ MD
+    // Indicates the chroma search mode
+    // CHROMA_MODE_0: Full chroma search @ MD
+    // CHROMA_MODE_1: Fast chroma search @ MD - No independent chroma mode search
+    // CHROMA_MODE_2: Chroma blind @ MD
     uint8_t uv_mode;
     // Non-direct chroma search 0: pre chroma search is used, 1: chroma search at last md_stage is
     // used

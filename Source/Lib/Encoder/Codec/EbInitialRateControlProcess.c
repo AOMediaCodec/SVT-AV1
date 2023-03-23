@@ -134,10 +134,9 @@ static void irc_send_picture_out(InitialRateControlContext *ctx, PictureParentCo
                                  Bool superres_recode) {
     EbObjectWrapper *out_results_wrapper;
     // Get Empty Results Object
-    svt_get_empty_object(ctx->initialrate_control_results_output_fifo_ptr,
-                         &out_results_wrapper);
+    svt_get_empty_object(ctx->initialrate_control_results_output_fifo_ptr, &out_results_wrapper);
     InitialRateControlResults *out_results = (InitialRateControlResults *)
-                                                     out_results_wrapper->object_ptr;
+                                                 out_results_wrapper->object_ptr;
     // SVT_LOG("iRC Out:%lld\n",pcs->picture_number);
     out_results->pcs_wrapper     = pcs->p_pcs_wrapper_ptr;
     out_results->superres_recode = superres_recode;

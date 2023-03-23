@@ -114,8 +114,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                 EbPaReferenceObject *ref_object;
                 EbPictureBufferDesc *ref_picture_ptr;
                 ref_object = (EbPaReferenceObject *)pcs
-                                       ->ref_pa_pic_ptr_array[list_index][ref_pic_index]
-                                       ->object_ptr;
+                                 ->ref_pa_pic_ptr_array[list_index][ref_pic_index]
+                                 ->object_ptr;
 
                 // Set the source and the reference picture to be used by the global motion search
                 // based on the input search mode
@@ -130,8 +130,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     ref_picture_ptr = quarter_ref_pic_ptr;
                     input_pic       = quarter_picture_ptr;
                 } else {
-                    ref_picture_ptr = (EbPictureBufferDesc *)
-                                          ref_object->input_padded_pic;
+                    ref_picture_ptr = (EbPictureBufferDesc *)ref_object->input_padded_pic;
                 }
 
                 compute_global_motion(

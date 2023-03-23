@@ -2203,13 +2203,11 @@ static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
         svt_block_on_semaphore(scs->ref_buffer_available_semaphore);
 
     // Get Empty Results Object
-    svt_get_empty_object(context_ptr->picture_demux_results_output_fifo_ptr,
-                         &out_results_wrapper);
+    svt_get_empty_object(context_ptr->picture_demux_results_output_fifo_ptr, &out_results_wrapper);
 
-    PictureDemuxResults *out_results = (PictureDemuxResults *)
-                                               out_results_wrapper->object_ptr;
-    out_results->pcs_wrapper  = pcs->p_pcs_wrapper_ptr;
-    out_results->picture_type = superres_recode ? EB_PIC_SUPERRES_INPUT : EB_PIC_INPUT;
+    PictureDemuxResults *out_results = (PictureDemuxResults *)out_results_wrapper->object_ptr;
+    out_results->pcs_wrapper         = pcs->p_pcs_wrapper_ptr;
+    out_results->picture_type        = superres_recode ? EB_PIC_SUPERRES_INPUT : EB_PIC_INPUT;
 
     // Post the Full Results Object
     svt_post_full_object(out_results_wrapper);

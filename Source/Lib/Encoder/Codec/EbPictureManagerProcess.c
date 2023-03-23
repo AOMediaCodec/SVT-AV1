@@ -354,10 +354,9 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
             // Get Empty Results Object
             svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr,
                                  &out_results_wrapper);
-            RateControlTasks *rc_tasks = (RateControlTasks *)
-                                                           out_results_wrapper->object_ptr;
-            rc_tasks->pcs_wrapper = pcs->child_pcs->c_pcs_wrapper_ptr;
-            rc_tasks->task_type   = RC_INPUT_SUPERRES_RECODE;
+            RateControlTasks *rc_tasks = (RateControlTasks *)out_results_wrapper->object_ptr;
+            rc_tasks->pcs_wrapper      = pcs->child_pcs->c_pcs_wrapper_ptr;
+            rc_tasks->task_type        = RC_INPUT_SUPERRES_RECODE;
             // Post the Full Results Object
             svt_post_full_object(out_results_wrapper);
 
@@ -382,7 +381,7 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
 
             // Place Picture in input queue
             input_entry = enc_ctx->input_picture_queue[enc_ctx->input_picture_queue_tail_index];
-            input_entry->input_object_ptr       = input_pic_demux->pcs_wrapper;
+            input_entry->input_object_ptr           = input_pic_demux->pcs_wrapper;
             enc_ctx->input_picture_queue_tail_index = (enc_ctx->input_picture_queue_tail_index ==
                                                        INPUT_QUEUE_MAX_DEPTH - 1)
                 ? 0
@@ -579,17 +578,15 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                             entry_ppcs->ref_pic_wrapper = NULL;
                         }
                         // Get New  Empty recon-coef from recon-coef  Pool
-                        svt_get_empty_object(context_ptr->recon_coef_fifo_ptr,
-                                             &enc_dec_wrapper);
+                        svt_get_empty_object(context_ptr->recon_coef_fifo_ptr, &enc_dec_wrapper);
                         // Child PCS is released by Packetization
                         svt_object_inc_live_count(enc_dec_wrapper, 1);
-                        enc_dec_ptr = (EncDecSet *)enc_dec_wrapper->object_ptr;
+                        enc_dec_ptr                  = (EncDecSet *)enc_dec_wrapper->object_ptr;
                         enc_dec_ptr->enc_dec_wrapper = enc_dec_wrapper;
 
                         // 1.Link The Child PCS to its Parent
-                        enc_dec_ptr->ppcs_wrapper =
-                            input_entry->input_object_ptr;
-                        enc_dec_ptr->ppcs = entry_ppcs;
+                        enc_dec_ptr->ppcs_wrapper = input_entry->input_object_ptr;
+                        enc_dec_ptr->ppcs         = entry_ppcs;
 
                         enc_dec_ptr->ppcs->enc_dec_ptr = enc_dec_ptr;
                         // Get New  Empty Child PCS from PCS Pool
@@ -604,9 +601,8 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         child_pcs->c_pcs_wrapper_ptr = child_pcs_wrapper;
 
                         // 1.Link The Child PCS to its Parent
-                        child_pcs->ppcs_wrapper =
-                            input_entry->input_object_ptr;
-                        child_pcs->ppcs = entry_ppcs;
+                        child_pcs->ppcs_wrapper = input_entry->input_object_ptr;
+                        child_pcs->ppcs         = entry_ppcs;
 
                         child_pcs->ppcs->child_pcs = child_pcs;
                         // 1b Link The Child PCS to av1_cm to be used by Restoration
@@ -681,9 +677,9 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
 
                         int sb_size_log2 = entry_scs_ptr->seq_header.sb_size_log2;
                         struct PictureParentControlSet *ppcs = child_pcs->ppcs;
-                        const int        tile_cols = ppcs->av1_cm->tiles_info.tile_cols;
-                        const int        tile_rows = ppcs->av1_cm->tiles_info.tile_rows;
-                        Av1Common *const cm        = ppcs->av1_cm;
+                        const int        tile_cols           = ppcs->av1_cm->tiles_info.tile_cols;
+                        const int        tile_rows           = ppcs->av1_cm->tiles_info.tile_rows;
+                        Av1Common *const cm                  = ppcs->av1_cm;
                         uint16_t         tile_row, tile_col;
                         uint32_t         x_sb_index, y_sb_index;
                         TileInfo         tile_info;
@@ -931,8 +927,8 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         // Get Empty Results Object
                         svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr,
                                              &out_results_wrapper);
-                        RateControlTasks *rc_tasks =
-                            (RateControlTasks *)out_results_wrapper->object_ptr;
+                        RateControlTasks *rc_tasks = (RateControlTasks *)
+                                                         out_results_wrapper->object_ptr;
                         rc_tasks->pcs_wrapper = child_pcs->c_pcs_wrapper_ptr;
                         rc_tasks->task_type   = RC_INPUT;
 

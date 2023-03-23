@@ -213,8 +213,7 @@ static void picture_control_set_dctor(EbPtr p) {
         EB_DELETE_PTR_ARRAY(obj->md_cr_recon_na[depth], tile_cnt);
 
         EB_DELETE_PTR_ARRAY(obj->md_y_dcs_na[depth], tile_cnt);
-        EB_DELETE_PTR_ARRAY(obj->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth],
-                            tile_cnt);
+        EB_DELETE_PTR_ARRAY(obj->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_cr_dc_sign_level_coeff_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_cb_dc_sign_level_coeff_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_txfm_context_array[depth], tile_cnt);
@@ -562,25 +561,20 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
         EB_ALLOC_PTR_ARRAY(object_ptr->md_y_dcs_na[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth],
                            total_tile_cnt);
-        EB_ALLOC_PTR_ARRAY(object_ptr->md_cr_dc_sign_level_coeff_na[depth],
-                           total_tile_cnt);
-        EB_ALLOC_PTR_ARRAY(object_ptr->md_cb_dc_sign_level_coeff_na[depth],
-                           total_tile_cnt);
+        EB_ALLOC_PTR_ARRAY(object_ptr->md_cr_dc_sign_level_coeff_na[depth], total_tile_cnt);
+        EB_ALLOC_PTR_ARRAY(object_ptr->md_cb_dc_sign_level_coeff_na[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_txfm_context_array[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_skip_coeff_na[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_ref_frame_type_na[depth], total_tile_cnt);
         if (init_data_ptr->hbd_md != EB_10_BIT_MD) {
             EB_ALLOC_PTR_ARRAY(object_ptr->md_luma_recon_na[depth], total_tile_cnt);
-            EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_1_luma_recon_na[depth],
-                               total_tile_cnt);
-            EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_2_luma_recon_na[depth],
-                               total_tile_cnt);
+            EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_1_luma_recon_na[depth], total_tile_cnt);
+            EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_2_luma_recon_na[depth], total_tile_cnt);
             EB_ALLOC_PTR_ARRAY(object_ptr->md_cb_recon_na[depth], total_tile_cnt);
             EB_ALLOC_PTR_ARRAY(object_ptr->md_cr_recon_na[depth], total_tile_cnt);
         }
         if (init_data_ptr->hbd_md > EB_8_BIT_MD) {
-            EB_ALLOC_PTR_ARRAY(object_ptr->md_luma_recon_na_16bit[depth],
-                               total_tile_cnt);
+            EB_ALLOC_PTR_ARRAY(object_ptr->md_luma_recon_na_16bit[depth], total_tile_cnt);
             EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_1_luma_recon_na_16bit[depth],
                                total_tile_cnt);
             EB_ALLOC_PTR_ARRAY(object_ptr->md_tx_depth_2_luma_recon_na_16bit[depth],
@@ -643,8 +637,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
                 },
                 // for each 4x4
                 {
-                    &object_ptr
-                         ->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth][tile_idx],
+                    &object_ptr->md_tx_depth_1_luma_dc_sign_level_coeff_na[depth][tile_idx],
                     na_max_pic_w,
                     na_max_pic_h,
                     sizeof(uint8_t),
@@ -1354,10 +1347,10 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
     object_ptr->dctor = picture_parent_control_set_dctor;
 
     object_ptr->input_pic_wrapper       = (EbObjectWrapper *)NULL;
-    object_ptr->ref_pic_wrapper                 = (EbObjectWrapper *)NULL;
-    object_ptr->enhanced_pic                    = (EbPictureBufferDesc *)NULL;
+    object_ptr->ref_pic_wrapper         = (EbObjectWrapper *)NULL;
+    object_ptr->enhanced_pic            = (EbPictureBufferDesc *)NULL;
     object_ptr->enhanced_downscaled_pic = (EbPictureBufferDesc *)NULL;
-    object_ptr->enhanced_unscaled_pic           = (EbPictureBufferDesc *)NULL;
+    object_ptr->enhanced_unscaled_pic   = (EbPictureBufferDesc *)NULL;
 
     if (init_data_ptr->color_format >= EB_YUV422) {
         EbPictureBufferDescInitData input_pic_buf_desc_init_data;
