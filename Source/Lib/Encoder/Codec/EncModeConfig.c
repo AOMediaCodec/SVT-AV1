@@ -42,7 +42,7 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs) {
     SequenceControlSet *scs      = pcs->scs;
     uint8_t             gm_level = 0;
     const EncMode       enc_mode = pcs->enc_mode;
-    const uint8_t       is_ref   = pcs->is_used_as_reference_flag;
+    const uint8_t       is_ref   = pcs->is_ref;
 
     // disable global motion when reference scaling enabled,
     // even if current pic is not scaled, because its reference
@@ -1554,11 +1554,11 @@ static void set_list0_only_base(PictureParentControlSet *pcs, uint8_t list0_only
 * 3 -- SB-Based DLF + skip DLF if SB has 0 coeffs
 */
 #if OPT_LD_M9
-static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit,
-                             Bool fast_decode, EbInputResolution resolution, bool rtc_tune) {
+static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit, Bool fast_decode,
+                             EbInputResolution resolution, bool rtc_tune) {
 #else
-static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag, uint8_t is_16bit,
-                             Bool fast_decode, EbInputResolution resolution) {
+static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit, Bool fast_decode,
+                             EbInputResolution resolution) {
 #endif
 
     uint8_t dlf_level;
@@ -1573,21 +1573,19 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_used_as_reference_flag
 #else
         else if (enc_mode <= ENC_M8)
 #endif
-            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2
-                                                            : (is_used_as_reference_flag ? 2 : 4);
+            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_ref ? 2 : 4);
         else if (enc_mode <= ENC_M11)
-            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2
-                                                            : (is_used_as_reference_flag ? 3 : 0);
+            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_ref ? 3 : 0);
 #if OPT_LD_M13
         else if (enc_mode <= ENC_M12 || rtc_tune)
 #else
         else if (enc_mode <= ENC_M12)
 #endif
-            dlf_level = is_used_as_reference_flag ? 4 : 0;
+            dlf_level = is_ref ? 4 : 0;
         else
-            dlf_level = (is_16bit && is_used_as_reference_flag) ? 4 : 0;
+            dlf_level = (is_16bit && is_ref) ? 4 : 0;
     } else {
-        dlf_level = is_used_as_reference_flag ? 4 : 0;
+        dlf_level = is_ref ? 4 : 0;
     }
 
     return dlf_level;
@@ -1739,7 +1737,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     FrameHeader            *frm_hdr          = &pcs->frm_hdr;
     EncMode                 enc_mode         = pcs->enc_mode;
     const uint8_t           is_islice        = pcs->slice_type == I_SLICE;
-    const uint8_t           is_ref           = pcs->is_used_as_reference_flag;
+    const uint8_t           is_ref           = pcs->is_ref;
     const uint8_t           is_base          = pcs->temporal_layer_index == 0;
     const EbInputResolution input_resolution = pcs->input_resolution;
     const uint32_t          bit_depth        = scs->static_config.encoder_bit_depth;
@@ -2637,7 +2635,7 @@ static EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *s
             ctx->detect_high_freq_ctrls.me_8x8_sad_var_th)
         return return_error;
 
-    EbPictureBufferDesc *input_pic = pcs->ppcs->enhanced_picture_ptr;
+    EbPictureBufferDesc *input_pic = pcs->ppcs->enhanced_pic;
 
     MotionEstimationData *pa_me_data = pcs->ppcs->pa_me_data;
 
@@ -4493,7 +4491,7 @@ static void set_cand_reduction_ctrls(PictureControlSet *pcs, ModeDecisionContext
 
         // reduce_unipred_candidates
         cand_reduction_ctrls->reduce_unipred_candidates =
-            (!pcs->ppcs->is_used_as_reference_flag ||
+            (!pcs->ppcs->is_ref ||
              ((l0_was_skip && l1_was_skip && ref_skip_perc > 35) &&
               me_8x8_cost_variance < (500 * picture_qp) &&
               me_64x64_distortion < (500 * picture_qp)))
@@ -4535,7 +4533,7 @@ static void set_cand_reduction_ctrls(PictureControlSet *pcs, ModeDecisionContext
 
         // reduce_unipred_candidates
         cand_reduction_ctrls->reduce_unipred_candidates =
-            (!pcs->ppcs->is_used_as_reference_flag ||
+            (!pcs->ppcs->is_ref ||
              ((l0_was_skip && l1_was_skip && ref_skip_perc > 35) &&
               me_8x8_cost_variance < (500 * picture_qp) &&
               me_64x64_distortion < (500 * picture_qp)))
@@ -6297,7 +6295,7 @@ static void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
         break;
     case 3:
         ctrls->zero_y_coeff_exit            = 1;
-        ctrls->chroma_detector_level        = ppcs->is_used_as_reference_flag ? 2 : 3;
+        ctrls->chroma_detector_level        = ppcs->is_ref ? 2 : 3;
         ctrls->skip_nrst_nrst_luma_tx       = 1;
         ctrls->skip_tx_th                   = 25;
         ctrls->use_uv_shortcuts_on_y_coeffs = 1;
@@ -6307,7 +6305,7 @@ static void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
         break;
     case 4:
         ctrls->zero_y_coeff_exit            = 1;
-        ctrls->chroma_detector_level        = ppcs->is_used_as_reference_flag ? 2 : 3;
+        ctrls->chroma_detector_level        = ppcs->is_ref ? 2 : 3;
         ctrls->skip_nrst_nrst_luma_tx       = 1;
         ctrls->skip_tx_th                   = 25;
         ctrls->use_uv_shortcuts_on_y_coeffs = 1;
@@ -6317,7 +6315,7 @@ static void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
         break;
     case 5:
         ctrls->zero_y_coeff_exit            = 1;
-        ctrls->chroma_detector_level        = ppcs->is_used_as_reference_flag ? 2 : 3;
+        ctrls->chroma_detector_level        = ppcs->is_ref ? 2 : 3;
         ctrls->skip_nrst_nrst_luma_tx       = 1;
         ctrls->skip_tx_th                   = 50;
         ctrls->use_uv_shortcuts_on_y_coeffs = 1;
@@ -6327,7 +6325,7 @@ static void set_lpd1_tx_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
         break;
     case 6:
         ctrls->zero_y_coeff_exit            = 1;
-        ctrls->chroma_detector_level        = ppcs->is_used_as_reference_flag ? 2 : 3;
+        ctrls->chroma_detector_level        = ppcs->is_ref ? 2 : 3;
         ctrls->skip_nrst_nrst_luma_tx       = 1;
         ctrls->skip_tx_th                   = 70;
         ctrls->use_uv_shortcuts_on_y_coeffs = 1;
@@ -6409,7 +6407,7 @@ static Bool get_sb_tpl_intra_stats(PictureControlSet *pcs, ModeDecisionContext *
     // Check that TPL data is available and that INTRA was tested in TPL.
     // Note that not all INTRA modes may be tested in TPL.
     if (ppcs->tpl_ctrls.enable && ppcs->tpl_src_data_ready &&
-        (ppcs->is_used_as_reference_flag || !ppcs->tpl_ctrls.disable_intra_pred_nref)) {
+        (ppcs->is_ref || !ppcs->tpl_ctrls.disable_intra_pred_nref)) {
         const int      aligned16_width = (ppcs->aligned_width + 15) >> 4;
         const uint32_t mb_origin_x     = ctx->sb_origin_x;
         const uint32_t mb_origin_y     = ctx->sb_origin_y;
@@ -6590,7 +6588,7 @@ static void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *c
         ctrls->bypass_tx_when_zcoeff = 1;
         ctrls->apply_pf_on_coeffs    = 1;
         ctrls->use_mds3_shortcuts_th = 25;
-        ctrls->chroma_detector_level = ppcs->is_used_as_reference_flag ? 1 : 0;
+        ctrls->chroma_detector_level = ppcs->is_ref ? 1 : 0;
         ctrls->use_neighbour_info    = 1;
         break;
     case 5:
@@ -6604,7 +6602,7 @@ static void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *c
     }
 
     // Chroma detector should be used in M12 and below (at least in REF frames) to prevent blurring artifacts in some clips
-    if (tx_shortcut_level && ppcs->is_used_as_reference_flag && pcs->enc_mode <= ENC_M12)
+    if (tx_shortcut_level && ppcs->is_ref && pcs->enc_mode <= ENC_M12)
         assert(ctrls->chroma_detector_level &&
                "Chroma detector should be used for ref frames in low presets to prevent blurring "
                "artifacts.");
@@ -6887,12 +6885,12 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
             } else if (pd0_level <= LPD0_LVL_2) {
                 if (pcs->slice_type == I_SLICE || pcs->ppcs->transition_present == 1)
                     subres_level = 1;
-                else if (pcs->ppcs->is_used_as_reference_flag)
+                else if (pcs->ppcs->is_ref)
                     subres_level = (cost_64x64 < use_subres_th) ? 1 : 0;
                 else
                     subres_level = 2;
             } else {
-                if (pcs->ppcs->is_used_as_reference_flag)
+                if (pcs->ppcs->is_ref)
                     subres_level = (ctx->depth_removal_ctrls.enabled &&
                                     (ctx->depth_removal_ctrls.disallow_below_16x16 ||
                                      ctx->depth_removal_ctrls.disallow_below_32x32 ||
@@ -6906,7 +6904,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
             if (pd0_level <= LPD0_LVL_1)
                 subres_level = 0;
             else
-                subres_level = pcs->ppcs->is_used_as_reference_flag ? 0 : 2;
+                subres_level = pcs->ppcs->is_ref ? 0 : 2;
         }
     }
     set_subres_controls(ctx, subres_level);
@@ -6925,7 +6923,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
 void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     Pd1Level                 lpd1_level       = ctx->lpd1_ctrls.pd1_level;
     PictureParentControlSet *ppcs             = pcs->ppcs;
-    const uint8_t            is_ref           = ppcs->is_used_as_reference_flag;
+    const uint8_t            is_ref           = ppcs->is_ref;
     const EbInputResolution  input_resolution = ppcs->input_resolution;
     const uint8_t            is_islice        = pcs->slice_type == I_SLICE;
     const SliceType          slice_type       = pcs->slice_type;
@@ -7145,7 +7143,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     EncMode                  enc_mode             = pcs->enc_mode;
     uint8_t                  pd_pass              = ctx->pd_pass;
     PictureParentControlSet *ppcs                 = pcs->ppcs;
-    const uint8_t            is_ref               = ppcs->is_used_as_reference_flag;
+    const uint8_t            is_ref               = ppcs->is_ref;
     const uint8_t            is_base              = ppcs->temporal_layer_index == 0;
     const EbInputResolution  input_resolution     = ppcs->input_resolution;
     const uint8_t            is_islice            = pcs->slice_type == I_SLICE;
@@ -7558,7 +7556,7 @@ uint8_t svt_aom_get_chroma_level(EncMode enc_mode) {
 void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
     PictureParentControlSet *ppcs                = pcs->ppcs;
     const EncMode            enc_mode            = pcs->enc_mode;
-    const uint8_t            is_ref              = ppcs->is_used_as_reference_flag;
+    const uint8_t            is_ref              = ppcs->is_ref;
     const uint8_t            is_base             = ppcs->temporal_layer_index == 0;
     const uint8_t            is_layer1           = ppcs->temporal_layer_index == 1;
     const EbInputResolution  input_resolution    = ppcs->input_resolution;

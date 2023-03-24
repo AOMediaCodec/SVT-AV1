@@ -4842,7 +4842,7 @@ static void process_first_pass_frame(
     pcs->first_pass_seg_total_count = (uint16_t)(pcs->first_pass_seg_column_count  * pcs->first_pass_seg_row_count);
     pcs->first_pass_seg_acc = 0;
     svt_aom_first_pass_sig_deriv_multi_processes(scs, pcs);
-    if (pcs->me_data_wrapper_ptr == NULL) {
+    if (pcs->me_data_wrapper == NULL) {
         EbObjectWrapper               *me_wrapper;
         svt_get_empty_object(pd_ctx->me_fifo_ptr, &me_wrapper);
         pcs->me_data_wrapper = me_wrapper;

@@ -1166,9 +1166,9 @@ static void sb_setup_lambda(PictureControlSet *pcs, SuperBlock *sb_ptr) {
     int mi_row = sb_ptr->org_y / 4;
 
     const int mi_col_sr = coded_to_superres_mi(mi_col, ppcs_ptr->superres_denom);
-    assert(ppcs_ptr->enhanced_unscaled_picture_ptr);
+    assert(ppcs_ptr->enhanced_unscaled_pic);
     // ALIGN_POWER_OF_TWO(pixels, 3) >> 2 ??
-    const int mi_cols_sr     = ((ppcs_ptr->enhanced_unscaled_picture_ptr->width + 15) / 16) << 2;
+    const int mi_cols_sr     = ((ppcs_ptr->enhanced_unscaled_pic->width + 15) / 16) << 2;
     const int sb_mi_width_sr = coded_to_superres_mi(mi_size_wide[scs->seq_header.sb_size],
                                                     ppcs_ptr->superres_denom);
     const int bsize_base     = ppcs_ptr->tpl_ctrls.synth_blk_size == 32 ? BLOCK_32X32 : BLOCK_16X16;

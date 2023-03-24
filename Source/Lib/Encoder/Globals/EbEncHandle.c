@@ -3681,7 +3681,7 @@ void set_multi_pass_params(SequenceControlSet *scs)
             scs->static_config.recode_loop = scs->static_config.enc_mode <= ENC_M2 ? ALLOW_RECODE_KFARFGF : ALLOW_RECODE_KFMAXBW;
     }
 
-    scs->encode_context_ptr->recode_loop = scs->static_config.recode_loop;
+    scs->enc_ctx->recode_loop = scs->static_config.recode_loop;
 }
 
 static void validate_scaling_params(SequenceControlSet *scs) {
