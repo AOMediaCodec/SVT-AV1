@@ -1512,7 +1512,7 @@ void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
 
     } else {
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb_ptr         = pcs->sb_ptr_array[sb_addr];
+            sb_ptr = pcs->sb_ptr_array[sb_addr];
 #if FIX_SEGMENT_ISSUE
             sb_ptr->qindex = ppcs_ptr->frm_hdr.quantization_params.base_q_idx;
 #else

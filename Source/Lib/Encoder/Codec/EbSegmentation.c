@@ -88,7 +88,7 @@ void svt_aom_apply_segmentation_based_quantization(const BlockGeom   *blk_geom,
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     uint16_t            variance            = get_variance_for_cu(blk_geom, variance_ptr);
 #if FIX_SEGMENT_ISSUE
-    blk_ptr->segment_id                     = 0;
+    blk_ptr->segment_id = 0;
     for (int i = MAX_SEGMENTS - 1; i >= 0; i--) {
         if (variance <= segmentation_params->variance_bin_edge[i]) {
             int32_t q_index = pcs->ppcs->frm_hdr.quantization_params.base_q_idx +
@@ -146,7 +146,7 @@ void calculate_segmentation_data(SegmentationParams *segmentation_params) {
 }
 
 void find_segment_qps(SegmentationParams *segmentation_params,
-                      PictureControlSet *pcs) { //QP needs to be specified as qpindex, not qp.
+                      PictureControlSet  *pcs) { //QP needs to be specified as qpindex, not qp.
     uint16_t    min_var = UINT16_MAX, max_var = MIN_UNSIGNED_VALUE, avg_var = 0;
     const float strength = 2; //to tune
 
@@ -168,11 +168,11 @@ void find_segment_qps(SegmentationParams *segmentation_params,
     //get variance bin edges & QPs
     uint16_t min_var_log = svt_log2f(MAX(1, min_var));
     uint16_t max_var_log = svt_log2f(MAX(1, max_var));
-    uint16_t step_size  = (uint16_t)(max_var_log - min_var_log) <= MAX_SEGMENTS
-         ? 1
-         : ROUND(((max_var_log - min_var_log)) / MAX_SEGMENTS);
-    uint16_t bin_edge   = min_var_log + step_size;
-    uint16_t bin_center = bin_edge >> 1;
+    uint16_t step_size   = (uint16_t)(max_var_log - min_var_log) <= MAX_SEGMENTS
+          ? 1
+          : ROUND(((max_var_log - min_var_log)) / MAX_SEGMENTS);
+    uint16_t bin_edge    = min_var_log + step_size;
+    uint16_t bin_center  = bin_edge >> 1;
 
 #if FIX_SEGMENT_ISSUE
     for (int i = MAX_SEGMENTS - 1; i >= 0; i--) {

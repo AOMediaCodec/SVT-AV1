@@ -5131,8 +5131,8 @@ static int get_spatial_seg_prediction(PictureControlSet *pcs, uint32_t blk_org_x
     bool left_available = xd->left_available;
     bool up_available   = xd->up_available;
 #else
-    Bool                     left_available   = mi_col > 0 ? TRUE : FALSE;
-    Bool                     up_available     = mi_row > 0 ? TRUE : FALSE;
+    Bool left_available = mi_col > 0 ? TRUE : FALSE;
+    Bool up_available = mi_row > 0 ? TRUE : FALSE;
 #endif
     Av1Common               *cm               = pcs->ppcs->av1_cm;
     SegmentationNeighborMap *segmentation_map = pcs->segmentation_neighbor_map;
@@ -5219,7 +5219,7 @@ void write_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context, AomW
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     if (!segmentation_params->segmentation_enabled)
         return;
-    int       cdf_num;
+    int cdf_num;
 #if FIX_SEGMENT_ISSUE
     const int spatial_pred = get_spatial_seg_prediction(
         pcs, blk_ptr->av1xd, blk_org_x, blk_org_y, &cdf_num);
