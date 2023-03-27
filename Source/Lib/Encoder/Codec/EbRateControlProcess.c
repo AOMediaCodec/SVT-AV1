@@ -3733,7 +3733,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
 #if FIX_SEGMENT_ISSUE
                     sb_ptr->qindex = frm_hdr->quantization_params.base_q_idx;
 #else
-                    sb_ptr->qindex     = quantizer_to_qindex[pcs->picture_qp];
+                    sb_ptr->qindex = quantizer_to_qindex[pcs->picture_qp];
 #endif
                 }
             }
