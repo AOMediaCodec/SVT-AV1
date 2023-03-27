@@ -5664,7 +5664,11 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     TxSize tx_size = ctx->blk_geom->txsize[0][0];
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
+#if OPT_LD_TX_SHORT_CUT_OFF
+    if (ctx->use_tx_shortcuts_mds3 && ctx->rtc_tx_shortcuts) {
+#else
     if (ctx->use_tx_shortcuts_mds3) {
+#endif
         pf_shape = N4_SHAPE;
     } else if (ctx->lpd1_tx_ctrls.use_neighbour_info) {
         MacroBlockD *xd = ctx->blk_ptr->av1xd;
@@ -5860,7 +5864,11 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     }
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
+#if OPT_LD_TX_SHORT_CUT_OFF
+    if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3 && ctx->rtc_tx_shortcuts) {
+#else
     if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3) {
+#endif
         pf_shape = N4_SHAPE;
     }
     // only have prev. stage coeff info if mds1/2 were performed
@@ -6584,6 +6592,52 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
             }
         }
     }
+#if OPT_LD_SKIPTX
+    if (pcs->rtc_tune && !pcs->ppcs->sc_class1) {
+        if (is_inter_mode(cand->pred_mode)) {
+            cand_bf->eob[0][0]                       = 0;
+            cand_bf->eob[1][0]                       = 0;
+            cand_bf->eob[2][0]                       = 0;
+            cand_bf->quantized_dc[0][0]              = 0;
+            cand_bf->quantized_dc[1][0]              = 0;
+            cand_bf->quantized_dc[2][0]              = 0;
+            cand_bf->y_has_coeff                     = 0;
+            cand_bf->u_has_coeff                     = 0;
+            cand_bf->v_has_coeff                     = 0;
+            y_full_distortion[DIST_CALC_RESIDUAL]    = 0;
+            y_full_distortion[DIST_CALC_PREDICTION]  = 0;
+            cb_full_distortion[DIST_CALC_RESIDUAL]   = 0;
+            cb_full_distortion[DIST_CALC_PREDICTION] = 0;
+            cr_full_distortion[DIST_CALC_RESIDUAL]   = 0;
+            cr_full_distortion[DIST_CALC_PREDICTION] = 0;
+            y_coeff_bits                             = 6000;
+            cb_coeff_bits                            = 6000;
+            cr_coeff_bits                            = 6000;
+            cand_bf->cand->transform_type[0]         = DCT_DCT;
+            // For Inter blocks, transform type of chroma follows luma transfrom type
+            if (is_inter_mode(cand_bf->cand->pred_mode))
+                cand_bf->cand->transform_type_uv = DCT_DCT;
+
+            svt_av1_product_full_cost_func_table[is_inter_mode(cand->pred_mode)](
+                pcs,
+                ctx,
+                cand_bf,
+                blk_ptr,
+                y_full_distortion,
+                cb_full_distortion,
+                cr_full_distortion,
+                ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD],
+                &y_coeff_bits,
+                &cb_coeff_bits,
+                &cr_coeff_bits,
+                ctx->blk_geom->bsize);
+
+            uint32_t th = (ctx->qp_index * ctx->blk_geom->bheight * ctx->blk_geom->bwidth) >> 2;
+            if (*(cand_bf->full_cost) < th)
+                perform_tx = 0;
+        }
+    }
+#endif
     const uint8_t recon_needed = do_md_recon(pcs->ppcs, ctx);
 
     // If need 10bit prediction, perform luma compensation before TX

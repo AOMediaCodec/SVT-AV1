@@ -480,6 +480,9 @@ typedef struct PictureControlSet {
     // scaled input picture is only used in loop restoration for recon size is
     // different with input frame when reference scaling is enabled
     EbPictureBufferDesc *scaled_input_pic;
+#if OPT_LD_SKIPTX
+    bool rtc_tune;
+#endif
 } PictureControlSet;
 
 // To optimize based on the max input size
@@ -1104,6 +1107,9 @@ typedef struct PictureParentControlSet {
     StatStruct                      stat_struct;
 #if OPT_LD_QPM
     CyclicRefresh cyclic_refresh;
+#endif
+#if OPT_LD_PD0
+    bool ld_enhanced_base_frame; // enhanced periodic base layer frames used in LD
 #endif
     uint8_t      partition_contexts;
     uint8_t      bypass_cost_table_gen;
