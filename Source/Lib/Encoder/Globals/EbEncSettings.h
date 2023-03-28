@@ -28,3 +28,36 @@ EbErrorType svt_av1_verify_settings(struct SequenceControlSet* scs);
 EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr);
 
 #endif // EbEncSettings_h
+
+struct SvtAv1PrivOptions {
+    /* Dynamic gop
+    *
+    * 0 = disable Dynamic GoP
+    * 1 = enable Dynamic GoP
+    *  Default is 1. */
+    Bool enable_dg;
+
+#if FTR_STARTUP_MG_SIZE
+    /**
+     * @brief startup_mg_size
+     *
+     * When enabled, a MG with specified size will be inserted after the key frame.
+     * The MG size is determined by 2^startup_mg_size.
+     *
+     * 0: off
+     * 2: set hierarchical levels to 2 (MG size 4)
+     * 3: set hierarchical levels to 3 (MG size 8)
+     * 4: set hierarchical levels to 4 (MG size 16)
+     * Default is 0.
+     */
+    uint8_t startup_mg_size;
+#endif
+
+    /* @brief reference scaling events for random access mode (reize-mode = 4)
+     *
+     * evt_num:          total count of events
+     * start_frame_nums: array of scaling start frame numbers
+     * resize_kf_denoms: array of scaling denominators of key-frame
+     * resize_denoms:    array of scaling denominators of non-key-frame
+     */
+};
