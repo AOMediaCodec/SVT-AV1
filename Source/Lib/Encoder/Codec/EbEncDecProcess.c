@@ -2223,7 +2223,7 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                 ? 0
                 : is_block_tagged;
 #endif
-            // SQ/NSQ block(s) filter based on the block validity
+        // SQ/NSQ block(s) filter based on the block validity
 #if FIX_2042
         if (is_block_tagged) {
 #else
@@ -2639,7 +2639,7 @@ static EbErrorType build_starting_cand_block_array(SequenceControlSet *scs, Pict
                 ? 0
                 : is_block_tagged;
 #endif
-            // SQ/NSQ block(s) filter based on the block validity
+        // SQ/NSQ block(s) filter based on the block validity
 #if FIX_2042
         if (is_block_tagged) {
 #else
@@ -2920,9 +2920,9 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
 #if OPT_LD_SPEED_M11_M12
 #if OPT_LD2_SC_M11
         if ((!(rtc_tune && pcs->ppcs->sc_class1) &&
-            pcs->ppcs->scs->static_config.enc_mode > ENC_M11) ||
+             pcs->ppcs->scs->static_config.enc_mode > ENC_M11) ||
             ((rtc_tune && pcs->ppcs->sc_class1) &&
-                pcs->ppcs->scs->static_config.enc_mode > ENC_M10)) {
+             pcs->ppcs->scs->static_config.enc_mode > ENC_M10)) {
 #else
         if (pcs->ppcs->scs->static_config.enc_mode > ENC_M11) {
 #endif
@@ -2931,19 +2931,19 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
 #endif
             if (pcs->temporal_layer_index > 0)
                 md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 3000
-                ? md_ctx->lpd1_ctrls.pd1_level
-                :
-                //  : me_8x8_cost_variance < 3000 ? LPD1_LVL_1
-                pcs->temporal_layer_index == 1 ? md_ctx->lpd1_ctrls.pd1_level - 2
-                : md_ctx->lpd1_ctrls.pd1_level - 1;
+                    ? md_ctx->lpd1_ctrls.pd1_level
+                    :
+                    //  : me_8x8_cost_variance < 3000 ? LPD1_LVL_1
+                    pcs->temporal_layer_index == 1 ? md_ctx->lpd1_ctrls.pd1_level - 2
+                                                   : md_ctx->lpd1_ctrls.pd1_level - 1;
         } else
             md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
-            : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
-            : REGULAR_PD1;
+                : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
+                                                                      : REGULAR_PD1;
 #else
-        md_ctx->lpd1_ctrls.pd1_level  = me_8x8_cost_variance < 500 ? LPD1_LVL_2
-             : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
-                                                                   : REGULAR_PD1;
+        md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
+            : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
+                                                                  : REGULAR_PD1;
 #endif
         return;
     }

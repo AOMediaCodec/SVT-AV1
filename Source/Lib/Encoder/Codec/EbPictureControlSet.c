@@ -104,8 +104,8 @@ EbErrorType svt_aom_me_sb_results_ctor(MeSbResults               *obj_ptr,
                                                         init_data_ptr->rtc_tune)
 #if OPT_LD_SPEED_M11_M12
         ? svt_aom_get_enable_me_8x8(init_data_ptr->enc_mode, init_data_ptr->rtc_tune)
-        ? SQUARE_PU_COUNT
-        : MAX_SB64_PU_COUNT_NO_8X8
+            ? SQUARE_PU_COUNT
+            : MAX_SB64_PU_COUNT_NO_8X8
 #else
         ? svt_aom_get_enable_me_8x8(init_data_ptr->enc_mode) ? SQUARE_PU_COUNT
                                                              : MAX_SB64_PU_COUNT_NO_8X8

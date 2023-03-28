@@ -31,7 +31,7 @@ uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode, bool rtc_tune);
 uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode);
 #endif
 
-Bool    svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t ref_idx);
+Bool svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t ref_idx);
 #if OPT_LD_SPEED_M11_M12
 uint8_t svt_aom_get_enable_me_8x8(EncMode enc_mode, bool rtc_tune);
 #else

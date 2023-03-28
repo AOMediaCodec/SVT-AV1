@@ -177,7 +177,7 @@ typedef struct {
     int32_t      last_q[FRAME_TYPES]; // Q used on last encoded frame of the given type.
 
 #if OPT_LD_RC3
-                                      // current and previous average base layer ME distortion
+        // current and previous average base layer ME distortion
     uint32_t cur_avg_base_me_dist;
     uint32_t prev_avg_base_me_dist;
 #endif

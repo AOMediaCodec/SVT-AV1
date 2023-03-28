@@ -1616,7 +1616,7 @@ static void av1_rc_init(SequenceControlSet *scs) {
 #else
     rc->rate_correction_factors[KF_STD] = 1.0;
 #endif
-    rc->baseline_gf_interval            = 1 << scs->static_config.hierarchical_levels;
+    rc->baseline_gf_interval = 1 << scs->static_config.hierarchical_levels;
 
     // Set absolute upper and lower quality limits
     rc->worst_quality = rc_cfg->worst_allowed_q;
@@ -1923,9 +1923,8 @@ static int adjust_q_cbr(PictureParentControlSet *ppcs, int q) {
     const int           max_delta =
         max_delta_per_layer[ppcs->hierarchical_levels][ppcs->temporal_layer_index];
 #if OPT_LD_RC3
-    const int max_delta_down = (ppcs->sc_class1)
-        ? AOMMIN(max_delta, AOMMAX(1, rc->q_1_frame / 2))
-        : AOMMIN(max_delta, AOMMAX(1, rc->q_1_frame / 3));
+    const int max_delta_down = (ppcs->sc_class1) ? AOMMIN(max_delta, AOMMAX(1, rc->q_1_frame / 2))
+                                                 : AOMMIN(max_delta, AOMMAX(1, rc->q_1_frame / 3));
 #endif
     const int change_avg_frame_bandwidth = abs(rc->avg_frame_bandwidth -
                                                rc->prev_avg_frame_bandwidth) >

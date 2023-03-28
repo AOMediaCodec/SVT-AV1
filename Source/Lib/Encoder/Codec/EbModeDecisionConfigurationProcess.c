@@ -630,7 +630,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
 #if OPT_LD_SKIPTX
         pcs->rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
-            : false;
+                                                                                        : false;
 #endif
         // Mode Decision Configuration Kernel Signal(s) derivation
         if (scs->static_config.pass == ENC_FIRST_PASS)
@@ -809,11 +809,11 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                         cdef_ctrls->pred_uv_f = 0;
                     }
 #else
-                    int8_t mid_filter             = MIN(63, MAX(0, (lowest_sg + highest_sg) / 2));
-                    cdef_ctrls->pred_y_f          = mid_filter;
-                    cdef_ctrls->pred_uv_f         = 0;
+                    int8_t mid_filter     = MIN(63, MAX(0, (lowest_sg + highest_sg) / 2));
+                    cdef_ctrls->pred_y_f  = mid_filter;
+                    cdef_ctrls->pred_uv_f = 0;
 #endif
-                    cdef_ctrls->first_pass_fs_num = 0;
+                    cdef_ctrls->first_pass_fs_num          = 0;
                     cdef_ctrls->default_second_pass_fs_num = 0;
                     // Set cdef to off if pred is.
                     if ((cdef_ctrls->pred_y_f == 0) && (cdef_ctrls->pred_uv_f == 0))
