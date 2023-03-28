@@ -21,14 +21,6 @@
  **************************************/
 #define DEFAULT_QP 35
 
-void svt_av1_print_lib_params(SequenceControlSet* scs);
-
-EbErrorType svt_av1_verify_settings(struct SequenceControlSet* scs);
-
-EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr);
-
-#endif // EbEncSettings_h
-
 struct SvtAv1PrivOptions {
     /* Dynamic gop
     *
@@ -52,12 +44,12 @@ struct SvtAv1PrivOptions {
      */
     uint8_t startup_mg_size;
 #endif
-
-    /* @brief reference scaling events for random access mode (reize-mode = 4)
-     *
-     * evt_num:          total count of events
-     * start_frame_nums: array of scaling start frame numbers
-     * resize_kf_denoms: array of scaling denominators of key-frame
-     * resize_denoms:    array of scaling denominators of non-key-frame
-     */
 };
+
+void svt_av1_print_lib_params(SequenceControlSet* scs);
+
+EbErrorType svt_av1_verify_settings(struct SequenceControlSet* scs);
+
+EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr);
+
+#endif // EbEncSettings_h

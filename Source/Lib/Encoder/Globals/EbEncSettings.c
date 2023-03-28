@@ -1080,11 +1080,11 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
 
     if (config_ptr->opaque)
         free(config_ptr->opaque);
-    config_ptr->opaque = malloc(sizeof(*config_ptr->opaque));
+    config_ptr->opaque             = malloc(sizeof(*config_ptr->opaque));
     struct SvtAv1PrivOptions *priv = config_ptr->opaque;
     if (!priv)
         return EB_ErrorInsufficientResources;
-    priv->enable_dg                    = 1;
+    priv->enable_dg = 1;
 
 #if FTR_STARTUP_MG_SIZE
     priv->startup_mg_size = 0;

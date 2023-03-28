@@ -900,10 +900,11 @@ static int crf_qindex_calc(PictureControlSet *pcs, RATE_CONTROL *rc, int qindex)
                                              [r0_weight_idx];
             } else {
                 // base layer weight
-                const uint32_t startup_mg_size = 1 << pcs->scs->static_config.opaque->startup_mg_size;
+                const uint32_t startup_mg_size = 1
+                    << pcs->scs->static_config.opaque->startup_mg_size;
                 if (ppcs->last_idr_picture + startup_mg_size == pcs->picture_number) {
-                    weight = r0_weight_startup_mg[pcs->scs->static_config.opaque->startup_mg_size - 2]
-                                                 [r0_weight_idx];
+                    weight = r0_weight_startup_mg[pcs->scs->static_config.opaque->startup_mg_size -
+                                                  2][r0_weight_idx];
                 }
             }
         }
