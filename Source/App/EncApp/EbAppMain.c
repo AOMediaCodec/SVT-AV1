@@ -29,10 +29,10 @@
 #include "EbAppConfig.h"
 #include "EbAppContext.h"
 #include "EbTime.h"
+#include <fcntl.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h> /* _setmode() */
-#include <fcntl.h> /* _O_BINARY */
 #else
 #include <pthread.h>
 #include <semaphore.h>
@@ -126,6 +126,7 @@ static void init_memory_file_map(EbConfig* app_cfg) {
     }
 #else
     app_cfg->mmap.fd         = fileno(app_cfg->input_file);
+    posix_fadvise(app_cfg->mmap.fd, 0, 0, POSIX_FADV_NOREUSE);
     app_cfg->mmap.align_mask = sysconf(_SC_PAGESIZE) - 1;
 #endif
 }
