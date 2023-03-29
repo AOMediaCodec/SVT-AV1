@@ -4308,9 +4308,6 @@ static void copy_api_from_app(
     // motion field motion vector
     scs->static_config.enable_mfmv                  = ((EbSvtAv1EncConfiguration*)config_struct)->enable_mfmv;
 
-    // Dynamic GoP
-    scs->static_config.opaque->enable_dg = ((EbSvtAv1EncConfiguration*)config_struct)->opaque->enable_dg;
-
     // Decoder Optimization Flag
     scs->static_config.fast_decode = ((EbSvtAv1EncConfiguration*)config_struct)->fast_decode;
 
@@ -4576,9 +4573,6 @@ static void copy_api_from_app(
         scs->static_config.enable_qm = 0;
     }
 
-#if FTR_STARTUP_MG_SIZE
-    scs->static_config.opaque->startup_mg_size = config_struct->opaque->startup_mg_size;
-#endif
     scs->static_config.opaque = config_struct->opaque;
     config_struct->opaque = NULL; // make sure this pointer is "moved" internally
 
