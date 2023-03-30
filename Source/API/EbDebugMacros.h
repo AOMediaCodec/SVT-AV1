@@ -107,6 +107,8 @@ extern "C" {
 #define OPT_LD_SC_MDS0           1 // Optimize intra cost syntax generation
 #define OPT_LD_SC_RDOQ           1 // Disable RDOQ for RTC SC in M13
 
+#define OPT_LD_CLEANUP           1 // clean up signal derivation functions with rtc checks
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
