@@ -126,7 +126,9 @@ static void init_memory_file_map(EbConfig* app_cfg) {
     }
 #else
     app_cfg->mmap.fd         = fileno(app_cfg->input_file);
+#if defined(__linux__)
     posix_fadvise(app_cfg->mmap.fd, 0, 0, POSIX_FADV_NOREUSE);
+#endif
     app_cfg->mmap.align_mask = sysconf(_SC_PAGESIZE) - 1;
 #endif
 }
