@@ -125,7 +125,7 @@ static void init_memory_file_map(EbConfig* app_cfg) {
         return;
     }
 #else
-    app_cfg->mmap.fd         = fileno(app_cfg->input_file);
+    app_cfg->mmap.fd = fileno(app_cfg->input_file);
 #if defined(__linux__)
     posix_fadvise(app_cfg->mmap.fd, 0, 0, POSIX_FADV_NOREUSE);
 #endif
