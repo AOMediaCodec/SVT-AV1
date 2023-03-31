@@ -903,8 +903,6 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     int32_t lambda_scale_factors[SVT_AV1_FRAME_UPDATE_TYPES];
 
-    struct SvtAv1PrivOptions *opaque;
-
     /* @brief reference scaling events for random access mode (reize-mode = 4)
      *
      * evt_num:          total count of events
@@ -913,6 +911,10 @@ typedef struct EbSvtAv1EncConfiguration {
      * resize_denoms:    array of scaling denominators of non-key-frame
      */
     SvtAv1FrameScaleEvts frame_scale_evts;
+
+    /*New feature fields should be added to this struct to avoid changing the size of the public configuration struct*/
+    struct SvtAv1PrivOptions *opaque;
+
 } EbSvtAv1EncConfiguration;
 
 /**

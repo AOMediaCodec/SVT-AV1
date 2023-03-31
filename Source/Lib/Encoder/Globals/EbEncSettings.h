@@ -22,6 +22,10 @@
 #define DEFAULT_QP 35
 
 struct SvtAv1PrivOptions {
+    /* This structure is meant to allow for the extension and shortening of features. 
+    * This allows library and end users to use these capabilities through svt_av1_enc_parse_parameter without requiring a wrapper extension. 
+    * New feature applications would no longer need recompilation and relinking. */
+
     /* Dynamic gop
     *
     * 0 = disable Dynamic GoP
