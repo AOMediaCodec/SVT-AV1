@@ -108,6 +108,7 @@ extern "C" {
 #define OPT_LD_SC_RDOQ           1 // Disable RDOQ for RTC SC in M13
 
 #define OPT_LD_CLEANUP           1 // clean up signal derivation functions with rtc checks
+#define OPT_LD_CLEANUP_II       1 // Refactor rtc check to use block level signals (like fast_decode)
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
