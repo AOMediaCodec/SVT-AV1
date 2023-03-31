@@ -7881,11 +7881,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
         } else if (enc_mode <= ENC_M12)
             ctx->rdoq_level = 1;
 #if OPT_LD_M13
-    else if (rtc_tune)
-        ctx->rdoq_level = 1;
+        else if (rtc_tune)
+            ctx->rdoq_level = 1;
 #endif
-    else
-        ctx->rdoq_level = 5;
+        else
+            ctx->rdoq_level = 5;
 #if OPT_LD_SC_RDOQ
     }
 #endif
