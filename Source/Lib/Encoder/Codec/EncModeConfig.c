@@ -2300,9 +2300,10 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     if (scs->passes == 1 && scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR)
         pcs->adjust_under_shoot_gf = enc_mode <= ENC_M11 ? 1 : 2;
 #if OPT_LD_PD0
+    static uint8_t ld_enhanced_base_frame_interval = 16;
     pcs->ld_enhanced_base_frame = (rtc_tune && pcs->temporal_layer_index == 0 &&
                                    pcs->slice_type != I_SLICE &&
-                                   ((pcs->picture_number - scs->enc_ctx->last_idr_picture) % 16 ==
+                                   ((pcs->picture_number - scs->enc_ctx->last_idr_picture) % ld_enhanced_base_frame_interval ==
                                     0))
         ? 1
         : 0;
@@ -8230,6 +8231,120 @@ uint8_t svt_aom_get_chroma_level(EncMode enc_mode) {
     return chroma_level;
 }
 
+#if OPT_LD_CLEANUP_II
+/*
+set lpd0_level
+*/
+static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
+    PictureParentControlSet *ppcs = pcs->ppcs;
+
+    const uint8_t            is_base = ppcs->temporal_layer_index == 0;
+    const uint8_t            is_islice = pcs->slice_type == I_SLICE;
+    const Bool               transition_present = (ppcs->transition_present == 1);
+    const bool rtc_tune = (ppcs->scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+        : false;
+    InputCoeffLvl           coeff_lvl = pcs->coeff_lvl;
+
+    if (rtc_tune) {
+        if (enc_mode <= ENC_M9) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 1;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = 2;
+            }
+        }
+        else if (enc_mode <= ENC_M10 && !pcs->ppcs->sc_class1) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 2;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
+            }
+        }
+        else if (enc_mode <= ENC_M11) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 2;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 4 : 6;
+            }
+        }
+        else if (enc_mode <= ENC_M12) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 4;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 4 : 6;
+            }
+        }
+        else
+            pcs->pic_lpd0_lvl = is_islice ? 4 : 7;
+    }
+    else {
+        if (enc_mode <= ENC_M2)
+            pcs->pic_lpd0_lvl = 0;
+        else if (enc_mode <= ENC_M5)
+            pcs->pic_lpd0_lvl = 1;
+        else if (enc_mode <= ENC_M9) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 1;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = 2;
+            }
+        }
+        else if (enc_mode <= ENC_M10) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = 2;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
+            }
+        }
+        else if (enc_mode <= ENC_M11) {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+            }
+            else { // Regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
+            }
+        }
+        else {
+            if (coeff_lvl == LOW_LVL) {
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
+            }
+            else if (coeff_lvl == HIGH_LVL) {
+                pcs->pic_lpd0_lvl = 7;
+            }
+            else { // regular
+                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
+            }
+        }
+    }
+}
+#endif
 void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
     PictureParentControlSet *ppcs = pcs->ppcs;
 #if OPT_LD_PD0
@@ -8992,87 +9107,16 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         /*
         set lpd0_level
     */
+
+#if OPT_LD_CLEANUP_II
+    // for the low delay enhance base layer frames, lower the enc_mode to improve the quality
+    set_pic_lpd0_lvl(pcs, (pcs->ppcs->ld_enhanced_base_frame) ? enc_mode - 1 : enc_mode);
+#else
 #if OPT_LD_PD0
     // for the low delay enhance base layer frames, lower the enc_mode to improve the quality
     if (pcs->ppcs->ld_enhanced_base_frame)
         enc_mode--;
 #endif
-#if OPT_LD_CLEANUP_II
-    if (rtc_tune) {
-        if (enc_mode <= ENC_M9) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 1;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = 2;
-            }
-        } else if (enc_mode <= ENC_M10 && !pcs->ppcs->sc_class1) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 2;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            }
-        } else if (enc_mode <= ENC_M11) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 2;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 4 : 6;
-            }
-        } else if (enc_mode <= ENC_M12) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 4;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 4 : 6;
-            }
-        } else
-            pcs->pic_lpd0_lvl = is_islice ? 4 : 7;
-    } else {
-        if (enc_mode <= ENC_M2)
-            pcs->pic_lpd0_lvl = 0;
-        else if (enc_mode <= ENC_M5)
-            pcs->pic_lpd0_lvl = 1;
-        else if (enc_mode <= ENC_M9) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 1;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = 2;
-            }
-        } else if (enc_mode <= ENC_M10) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = 2;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            }
-        } else if (enc_mode <= ENC_M11) {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 2 : 4;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            } else { // Regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-            }
-        } else {
-            if (pcs->coeff_lvl == LOW_LVL) {
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 6;
-            } else if (pcs->coeff_lvl == HIGH_LVL) {
-                pcs->pic_lpd0_lvl = 7;
-            } else { // regular
-                pcs->pic_lpd0_lvl = (is_base || transition_present) ? 5 : 7;
-            }
-        }
-    }
-#else
     if (enc_mode <= ENC_M2)
         pcs->pic_lpd0_lvl = 0;
     else if (enc_mode <= ENC_M5)
@@ -9152,10 +9196,10 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         }
 #endif
     }
-#endif
 #if OPT_LD_PD0
     // restore the default enc_mode value
     enc_mode = pcs->enc_mode;
+#endif
 #endif
 
     if (pcs->ppcs->sc_class1 || scs->static_config.pass == ENC_MIDDLE_PASS)

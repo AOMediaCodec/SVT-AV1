@@ -3403,7 +3403,7 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->sc_non_base_ref_list0_count = 1;
         mrp_ctrl->sc_non_base_ref_list1_count = 1;
         mrp_ctrl->base_ref_list0_count = 3;
-        mrp_ctrl->base_ref_list1_count = 1;
+        mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
         break;
