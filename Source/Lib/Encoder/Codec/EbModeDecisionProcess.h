@@ -1130,7 +1130,7 @@ typedef struct ModeDecisionContext {
     uint32_t b32_satd[4];
     uint8_t  high_freq_present;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    uint8_t rtc_tx_shortcuts; // used to signal when tx shortcuts can be used for rtc mode
+    uint8_t rtc_use_N4_dct_dct_shortcut; // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
 #endif
 } ModeDecisionContext;
 

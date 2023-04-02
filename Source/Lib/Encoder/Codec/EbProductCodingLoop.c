@@ -5668,7 +5668,7 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    if (ctx->use_tx_shortcuts_mds3 && ctx->rtc_tx_shortcuts) {
+    if (ctx->use_tx_shortcuts_mds3 && ctx->rtc_use_N4_dct_dct_shortcut) {
 #else
     if (ctx->use_tx_shortcuts_mds3) {
 #endif
@@ -5868,7 +5868,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3 && ctx->rtc_tx_shortcuts) {
+    if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3 && ctx->rtc_use_N4_dct_dct_shortcut) {
 #else
     if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3) {
 #endif

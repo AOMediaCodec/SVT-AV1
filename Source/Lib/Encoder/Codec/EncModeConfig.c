@@ -7383,12 +7383,6 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
 
     // set at pic-level b/c feature depends on some pic-level initializations
     ctx->approx_inter_rate = 1;
-#if OPT_LD_TX_SHORT_CUT_OFF
-    if (!pcs->rtc_tune || pcs->temporal_layer_index != 0)
-        ctx->rtc_tx_shortcuts = 1;
-    else
-        ctx->rtc_tx_shortcuts = 0;
-#endif
 }
 
 void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx) {
@@ -7440,10 +7434,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     // Set candidate reduction levels
     uint8_t cand_reduction_level = 0;
 #if OPT_LD_CAND_RED_LVL
-    if (rtc_tune) {
-        if (is_islice)
-            cand_reduction_level = 0;
-        else if (lpd1_level <= LPD1_LVL_0)
+    if (is_islice) {
+        cand_reduction_level = 0;
+    }
+    else if (rtc_tune) {
+        if (lpd1_level <= LPD1_LVL_0)
             cand_reduction_level = 3;
         else if (lpd1_level <= LPD1_LVL_2)
             cand_reduction_level = 4;
@@ -7451,12 +7446,8 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
             cand_reduction_level = 5;
         else
             cand_reduction_level = 6;
-        if (ppcs->scs->rc_stat_gen_pass_mode)
-            cand_reduction_level = 7;
     } else {
-        if (is_islice)
-            cand_reduction_level = 0;
-        else if (lpd1_level <= LPD1_LVL_0)
+        if (lpd1_level <= LPD1_LVL_0)
             cand_reduction_level = 4;
         else if (lpd1_level <= LPD1_LVL_2)
             cand_reduction_level = 5;
@@ -7464,9 +7455,9 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
             cand_reduction_level = 6;
         else
             cand_reduction_level = 7;
-        if (ppcs->scs->rc_stat_gen_pass_mode)
-            cand_reduction_level = 7;
     }
+    if (ppcs->scs->rc_stat_gen_pass_mode)
+        cand_reduction_level = 7;
 #else
     if (is_islice)
         cand_reduction_level = 0;
@@ -7741,12 +7732,6 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         intra_level = 5;
 
     set_intra_ctrls(pcs, ctx, intra_level);
-#if OPT_LD_TX_SHORT_CUT_OFF
-    if (!pcs->rtc_tune || pcs->temporal_layer_index != 0)
-        ctx->rtc_tx_shortcuts = 1;
-    else
-        ctx->rtc_tx_shortcuts = 0;
-#endif
 
     /* Set signals that have assumed values in the light-PD1 path (but need to be initialized as they may be checked) */
 
@@ -8054,12 +8039,6 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
         skip_4x4_depth_lvl = 1;
 
     set_skip_4x4_depth_ctrls(&ctx->skip_4x4_depth_ctrls, skip_4x4_depth_lvl);
-#if OPT_LD_TX_SHORT_CUT_OFF
-    if (!pcs->rtc_tune || pcs->temporal_layer_index != 0)
-        ctx->rtc_tx_shortcuts = 1;
-    else
-        ctx->rtc_tx_shortcuts = 0;
-#endif
 }
 /*
 * return the 4x4 level
