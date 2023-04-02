@@ -717,7 +717,7 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
                     n_cache,
                     pcs->ppcs->scs->encoder_bit_depth);
 #if OPT_LD_SC_MDS0
-                if (!ctx->reduce_intra_cost_precision)
+                if (!pcs->ppcs->palette_ctrls.reduce_palette_cost_precision)
 #endif
                     palette_mode_cost += svt_av1_cost_color_map(
                         cand, ctx->md_rate_est_ctx, blk_ptr, 0, blk_geom->bsize, PALETTE_MAP);

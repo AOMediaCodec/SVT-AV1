@@ -1773,10 +1773,6 @@ static void prehme_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_t or
             uint16_t             dist              = 0;
             EbPictureBufferDesc *sixteenth_ref_pic = get_me_reference(
                 pcs, me_ctx, list_i, ref_i, 0, &dist, input_ptr->width, input_ptr->height);
-#if OPT_LD_SC_ME
-            for (uint8_t sr_i = 0; sr_i < SEARCH_REGION_COUNT; sr_i++)
-                me_ctx->performed_phme[list_i][ref_i][sr_i] = 0;
-#endif
 
             if (me_ctx->temporal_layer_index > 0 || list_i == 0) {
 
@@ -1926,13 +1922,13 @@ static void hme_level0_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_
                 }
             }
 #if OPT_LD_SC_ME
-            if (me_ctx->me_stages_early_exit_th) {
+            if (me_ctx->prev_me_stage_based_exit_th) {
                 uint8_t sr_i = me_ctx->prehme_data[list_index][ref_pic_index][0].sad <=
                     me_ctx->prehme_data[list_index][ref_pic_index][1].sad
                     ? 0
                     : 1;
                 if (me_ctx->performed_phme[list_index][ref_pic_index][sr_i]) {
-                    if (me_ctx->prehme_data[list_index][ref_pic_index][sr_i].sad < (me_ctx->me_stages_early_exit_th >> 4)) {
+                    if (me_ctx->prehme_data[list_index][ref_pic_index][sr_i].sad < (me_ctx->prev_me_stage_based_exit_th >> 4)) {
                         for (uint32_t sr_idx_y = 0; sr_idx_y < me_ctx->num_hme_sa_h; sr_idx_y++) {
                             for (uint32_t sr_idx_x = 0; sr_idx_x < me_ctx->num_hme_sa_w; sr_idx_x++) {
                                 me_ctx->x_hme_level0_search_center[list_index][ref_pic_index][sr_idx_x]
@@ -2061,8 +2057,8 @@ static void hme_level1_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_
                 for (uint8_t sr_h = 0; sr_h < me_ctx->num_hme_sa_h; sr_h++) {
                     for (uint8_t sr_w = 0; sr_w < me_ctx->num_hme_sa_w; sr_w++) {
 #if OPT_LD_SC_ME
-                        if (me_ctx->me_stages_early_exit_th) {
-                            if (me_ctx->hme_level0_sad[list_index][ref_pic_index][sr_w][sr_h] < (me_ctx->me_stages_early_exit_th >> 5)) {
+                        if (me_ctx->prev_me_stage_based_exit_th) {
+                            if (me_ctx->hme_level0_sad[list_index][ref_pic_index][sr_w][sr_h] < (me_ctx->prev_me_stage_based_exit_th >> 5)) {
                                 me_ctx->x_hme_level1_search_center[list_index][ref_pic_index][sr_w][sr_h] =
                                     me_ctx->x_hme_level0_search_center[list_index][ref_pic_index][sr_w][sr_h];
                                 me_ctx->y_hme_level1_search_center[list_index][ref_pic_index][sr_w][sr_h] =
@@ -2121,8 +2117,8 @@ static void hme_level2_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_
                 for (uint8_t sr_h = 0; sr_h < me_ctx->num_hme_sa_h; sr_h++) {
                     for (uint8_t sr_w = 0; sr_w < me_ctx->num_hme_sa_w; sr_w++) {
 #if OPT_LD_SC_ME
-                        if (me_ctx->me_stages_early_exit_th) {
-                            if (me_ctx->hme_level1_sad[list_index][ref_pic_index][sr_w][sr_h] < (me_ctx->me_stages_early_exit_th >> 2)) {
+                        if (me_ctx->prev_me_stage_based_exit_th) {
+                            if (me_ctx->hme_level1_sad[list_index][ref_pic_index][sr_w][sr_h] < (me_ctx->prev_me_stage_based_exit_th >> 2)) {
                                 me_ctx->x_hme_level2_search_center[list_index][ref_pic_index][sr_w][sr_h] =
                                     me_ctx->x_hme_level1_search_center[list_index][ref_pic_index][sr_w][sr_h];
                                 me_ctx->y_hme_level2_search_center[list_index][ref_pic_index][sr_w][sr_h] =
@@ -2997,6 +2993,10 @@ static INLINE void init_me_hme_data(MeContext *me_ctx) {
             me_ctx->zz_sad[li][ri] = (uint32_t)~0;
         }
     }
+#if OPT_LD_SC_ME
+    memset(me_ctx->performed_phme,0, 
+        sizeof(uint8_t)*MAX_NUM_OF_REF_PIC_LIST*REF_LIST_MAX_DEPTH*SEARCH_REGION_COUNT);
+#endif
 }
 /*******************************************
 * motion_estimation

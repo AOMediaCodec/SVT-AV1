@@ -1129,9 +1129,6 @@ typedef struct ModeDecisionContext {
     uint8_t  scale_palette;
     uint32_t b32_satd[4];
     uint8_t  high_freq_present;
-#if OPT_LD_SC_MDS0
-    uint8_t reduce_intra_cost_precision;
-#endif
 #if OPT_LD_TX_SHORT_CUT_OFF
     uint8_t rtc_tx_shortcuts; // used to signal when tx shortcuts can be used for rtc mode
 #endif

@@ -422,6 +422,9 @@ typedef struct PictureControlSet {
     uint8_t  pic_disallow_below_16x16; // disallow_below_16x16 signal at pic level
     // depth_removal_level signal at the picture level
     uint8_t pic_depth_removal_level;
+#if OPT_LD_DR
+    uint8_t pic_depth_removal_level_rtc;
+#endif
     // block_based_depth_refinement_level signal set at the picture level
     uint8_t pic_block_based_depth_refinement_level;
     // Skip testing remaining blocks at the current depth if (curr_cost * 100 >
@@ -680,6 +683,9 @@ typedef struct PaletteCtrls {
     // only 3 candidates with palettes based on the most dominant 7, 5 and 3 colors are tested.
     // Range: [1 (test all), 7 (test one)]
     uint8_t dominant_color_step;
+#if OPT_LD_SC_MDS0
+    uint8_t reduce_palette_cost_precision;
+#endif
 } PaletteCtrls;
 
 #if OPT_LD_QPM

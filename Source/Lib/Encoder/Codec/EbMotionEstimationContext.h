@@ -478,7 +478,7 @@ typedef struct MeContext {
     uint32_t     b64_height;
 #if OPT_LD_SC_ME
     uint8_t  performed_phme[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH][2];
-    uint32_t me_stages_early_exit_th;
+    uint32_t prev_me_stage_based_exit_th;
 #endif
 } MeContext;
 

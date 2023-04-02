@@ -736,11 +736,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
 
     me_ctx->skip_frame = 0;
 #if OPT_LD_SC_ME
-    me_ctx->me_stages_early_exit_th = 0;
+    me_ctx->prev_me_stage_based_exit_th = 0;
     if (enc_mode <= ENC_M12) {
-        me_ctx->me_stages_early_exit_th = 0;
+        me_ctx->prev_me_stage_based_exit_th = 0;
     } else if (rtc_tune && pcs->sc_class1) {
-        me_ctx->me_stages_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
+        me_ctx->prev_me_stage_based_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
     }
 #endif
 };
@@ -778,7 +778,7 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     me_ctx->reduce_hme_l0_sr_th_max = 0;
     me_ctx->skip_frame              = 0;
 #if OPT_LD_SC_ME
-    me_ctx->me_stages_early_exit_th = 0;
+    me_ctx->prev_me_stage_based_exit_th = 0;
 #endif
 };
 
@@ -1913,11 +1913,24 @@ static void set_palette_level(PictureParentControlSet *pcs, uint8_t palette_leve
     case 1:
         palette_ctrls->enabled             = 1;
         palette_ctrls->dominant_color_step = 1;
+#if OPT_LD_SC_MDS0
+        palette_ctrls->reduce_palette_cost_precision = 0;
+#endif
         break;
     case 2:
         palette_ctrls->enabled             = 1;
         palette_ctrls->dominant_color_step = 2;
+#if OPT_LD_SC_MDS0
+        palette_ctrls->reduce_palette_cost_precision = 0;
+#endif
         break;
+#if OPT_LD_SC_MDS0
+    case 3:
+        palette_ctrls->enabled = 1;
+        palette_ctrls->dominant_color_step = 2;
+        palette_ctrls->reduce_palette_cost_precision = 1;
+        break;
+#endif
     default: assert(0); break;
     }
 }
@@ -2098,7 +2111,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         if (scs->palette_level == DEFAULT) { //auto mode; if not set by cfg
 #if OPT_LD_PALLET
             if (rtc_tune)
+#if OPT_LD_SC_MDS0
+                pcs->palette_level = is_islice && pcs->sc_class1 ? 3 : is_islice ?  2 : 0;
+#else
                 pcs->palette_level = is_islice ? 2 : 0;
+#endif
             else if (enc_mode <= ENC_M11)
 #else
             if (enc_mode <= ENC_M11)
@@ -3162,15 +3179,7 @@ static void set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
 void set_depth_removal_level_controls_rtc(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     DepthRemovalCtrls *depth_removal_ctrls = &ctx->depth_removal_ctrls;
     B64Geom           *b64_geom            = &pcs->ppcs->b64_geom[ctx->sb_index];
-    uint8_t            drl                 = pcs->ppcs->enc_mode <= ENC_M8 ||
-#if OPT_LD_SPEED_M11_M12
-            (pcs->ppcs->enc_mode <= ENC_M10 &&
-#else
-            (pcs->ppcs->enc_mode <= ENC_M11 &&
-#endif
-             pcs->ppcs->is_ref)
-        ? 0
-        : 1;
+    uint8_t            drl = pcs->pic_depth_removal_level_rtc;
     if (pcs->slice_type == I_SLICE) {
         switch (drl) {
         case 0: depth_removal_ctrls->enabled = 0; break;
@@ -7305,11 +7314,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
 
     uint8_t mds0_level = 4;
     set_mds0_controls(ctx, mds0_level);
-#if OPT_LD_SC_MDS0
-    ctx->reduce_intra_cost_precision = 0;
-    if (pcs->rtc_tune && pcs->ppcs->sc_class1)
-        ctx->reduce_intra_cost_precision = 1;
-#endif
+
     svt_aom_set_chroma_controls(ctx, 0 /*chroma off*/);
 
     // Using PF in LPD0 may cause some VQ issues
@@ -7403,6 +7408,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         ? true
         : false;
 #endif
+#if OPT_LD_SC_RDOQ
+    const uint8_t sc_class1 = ppcs->sc_class1;
+    const uint8_t enc_mode = pcs->enc_mode;
+    const Bool disable_rdoq_rtc = enc_mode <= ENC_M12 ? 0 : rtc_tune && sc_class1 ? 1 : 0;
+#endif
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
     // the reference pic unavailable to avoid using wrong info
@@ -7480,7 +7490,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
                              l1_was_skip,
                              ref_skip_perc);
 #if OPT_LD_SC_RDOQ
-    if (rtc_tune && ppcs->sc_class1 && pcs->enc_mode > ENC_M12) {
+    if (disable_rdoq_rtc) {
         ctx->rdoq_level = 0;
     } else {
 #endif
@@ -7524,11 +7534,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
             mds0_level = 0;
     }
     set_mds0_controls(ctx, mds0_level);
-#if OPT_LD_SC_MDS0
-    ctx->reduce_intra_cost_precision = 0;
-    if (pcs->rtc_tune && pcs->ppcs->sc_class1)
-        ctx->reduce_intra_cost_precision = 1;
-#endif
+
     uint8_t lpd1_tx_level = 0;
     if (lpd1_level <= LPD1_LVL_2)
         lpd1_tx_level = 3;
@@ -8035,11 +8041,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     set_intra_ctrls(pcs, ctx, intra_level);
 
     set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
-#if OPT_LD_SC_MDS0
-    ctx->reduce_intra_cost_precision = 0;
-    if (pcs->rtc_tune && pcs->ppcs->sc_class1)
-        ctx->reduce_intra_cost_precision = 1;
-#endif
+
     set_subres_controls(ctx, 0);
     ctx->inter_depth_bias = 0;
     uint8_t skip_4x4_depth_lvl;
@@ -9420,6 +9422,17 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 #endif
         }
     }
+#if OPT_LD_DR
+    pcs->pic_depth_removal_level_rtc = enc_mode <= ENC_M8 ||
+#if OPT_LD_SPEED_M11_M12
+        (enc_mode <= ENC_M10 &&
+#else
+            (enc_mode <= ENC_M11 &&
+#endif
+                is_ref)
+            ? 0
+            : 1;
+#endif
     if (pcs->ppcs->sc_class1) {
         if (enc_mode <= ENC_M6)
             pcs->pic_block_based_depth_refinement_level = 0;

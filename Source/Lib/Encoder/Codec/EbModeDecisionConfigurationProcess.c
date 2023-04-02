@@ -795,14 +795,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                     }
 #if OPT_LD_CDEF1
                     if (pcs->rtc_tune) {
-                        if (lowest_sg || highest_sg) {
-                            int8_t mid_filter     = MIN(63, MAX(0, MAX(lowest_sg, highest_sg)));
-                            cdef_ctrls->pred_y_f  = mid_filter;
-                            cdef_ctrls->pred_uv_f = 0;
-                        } else {
-                            cdef_ctrls->pred_y_f  = 0;
-                            cdef_ctrls->pred_uv_f = 0;
-                        }
+                        int8_t mid_filter     = MIN(63, MAX(0, MAX(lowest_sg, highest_sg)));
+                        cdef_ctrls->pred_y_f  = mid_filter;
+                        cdef_ctrls->pred_uv_f = 0;
                     } else {
                         int8_t mid_filter     = MIN(63, MAX(0, (lowest_sg + highest_sg) / 2));
                         cdef_ctrls->pred_y_f  = mid_filter;
