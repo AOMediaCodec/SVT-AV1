@@ -7515,6 +7515,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
                              l1_was_skip,
                              ref_skip_perc);
 #if OPT_LD_SC_RDOQ
+    // Rdoq is disabled in this case for light pd1 regardless lpd1 level
     if (disable_rdoq_rtc) {
         ctx->rdoq_level = 0;
     } else {
