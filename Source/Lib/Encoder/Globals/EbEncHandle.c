@@ -3462,7 +3462,11 @@ static void derive_tf_params(SequenceControlSet *scs) {
     if (do_tf == 0) {
         tf_level = 0;
     }
+#if TUNE_NEW_M0_MR
+    else if (enc_mode <= ENC_MRS) {
+#else
     else if (enc_mode <= ENC_MR) {
+#endif
         tf_level = 1;
     }
     else if (enc_mode <= ENC_M5) {
