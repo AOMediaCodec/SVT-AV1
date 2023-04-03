@@ -1098,6 +1098,10 @@ typedef struct ModeDecisionContext {
     // regular PD1 classifier uses the number of non-zero coefficient(s)). 3: Skip pd0 if block size
     // is equal to or greater than 32x32
     Lpd1Ctrls       lpd1_ctrls;
+#if OPT_LD_CLEANUP_II
+    // Refines the pd1_level per SB. 0: OFF, 1: conservative 2: Aggressive
+    uint8_t         pd1_refines_lvl;
+#endif
     SpatialSSECtrls spatial_sse_ctrls;
 
     uint16_t init_max_block_cnt;

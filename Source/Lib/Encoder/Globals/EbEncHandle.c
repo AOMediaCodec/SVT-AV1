@@ -4085,7 +4085,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         else {
             mrp_level = 8;
         }
-        }
+    }
     else {
         if (scs->static_config.enc_mode <= ENC_MRS) {
             mrp_level = 1;

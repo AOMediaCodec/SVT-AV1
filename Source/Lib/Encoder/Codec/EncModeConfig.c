@@ -2308,6 +2308,12 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         ? 1
         : 0;
 #endif
+#if OPT_LD_MRP3
+    if (enc_mode <= ENC_M12)
+        pcs->update_ref_count = 0;
+    else
+        pcs->update_ref_count = 1;
+#endif
 }
 /*set the skip_frame flag for ipp*/
 static void svt_aom_set_skip_frame_in_ipp(PictureParentControlSet *pcs, MeContext *me_ctx) {
@@ -2578,6 +2584,9 @@ void svt_aom_first_pass_sig_deriv_multi_processes(SequenceControlSet      *scs,
     svt_aom_set_gm_controls(pcs, 0);
 #if OPT_LD_PD0
     pcs->ld_enhanced_base_frame = 0;
+#endif
+#if OPT_LD_MRP3
+    pcs->update_ref_count = 0;
 #endif
 }
 /******************************************************
@@ -7265,6 +7274,15 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
                            ? MIN(pcs->pic_lpd1_lvl, ctx->detect_high_freq_ctrls.max_pic_lpd1_lvl)
                            : pcs->pic_lpd1_lvl);
 
+#if OPT_LD_CLEANUP_II
+    if (!rtc_tune)
+        ctx->pd1_refines_lvl = 0;
+    else if ((pcs->ppcs->sc_class1 && enc_mode <= ENC_M10) ||
+        (!pcs->ppcs->sc_class1 && enc_mode <= ENC_M11))
+        ctx->pd1_refines_lvl = 0;
+    else
+        ctx->pd1_refines_lvl = 1;
+#endif
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     set_nsq_ctrls(ctx, pcs->nsq_level);
 }

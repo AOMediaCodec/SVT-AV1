@@ -5618,7 +5618,7 @@ void update_count_try(SequenceControlSet* scs, PictureParentControlSet* pcs) {
             pcs->ref_list0_count_try = MIN(pcs->ref_list0_count, mrp_ctrl->base_ref_list0_count);
             pcs->ref_list1_count_try = MIN(pcs->ref_list1_count, mrp_ctrl->base_ref_list1_count);
 #if OPT_LD_MRP3
-            if (pcs->enc_mode == ENC_M13 && !pcs->ld_enhanced_base_frame && pcs->ref_list0_count_try > 2) {
+            if (pcs->update_ref_count && !pcs->ld_enhanced_base_frame && pcs->ref_list0_count_try > 2) {
                 pcs->ref_list0_count_try--;
             }
 #endif

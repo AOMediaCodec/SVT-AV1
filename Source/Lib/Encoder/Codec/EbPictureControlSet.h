@@ -1117,6 +1117,9 @@ typedef struct PictureParentControlSet {
 #if OPT_LD_PD0
     bool ld_enhanced_base_frame; // enhanced periodic base layer frames used in LD
 #endif
+#if OPT_LD_MRP3
+    bool update_ref_count; // Update ref count
+#endif
     uint8_t      partition_contexts;
     uint8_t      bypass_cost_table_gen;
     uint16_t     max_can_count;
