@@ -723,11 +723,11 @@ typedef struct CyclicRefresh {
 #if OPT_PRED_STRUCT_CLASSIFIER
 // struct stores the metrics used by the dynamic gop detector
 typedef struct DGDetectorMetrics {
-    uint64_t                 tot_dist;
-    uint32_t                 tot_cplx;
-    uint32_t                 tot_active;
-    int                      sum_in_vectors;
-    uint16_t                 dg_detector_seg_completed; // number of dynamic gop detector segments completed
+    uint64_t tot_dist;
+    uint32_t tot_cplx;
+    uint32_t tot_active;
+    int      sum_in_vectors;
+    uint16_t dg_detector_seg_completed; // number of dynamic gop detector segments completed
 } DGDetectorMetrics;
 #endif
 // CHKN
@@ -1147,10 +1147,13 @@ typedef struct PictureParentControlSet {
     bool     r0_based_qps_qpm;
     uint32_t dpb_order_hint[REF_FRAMES]; // spec 6.8.2. ref_order_hint[]
 #if OPT_PRED_STRUCT_CLASSIFIER
-    struct PictureParentControlSet *dg_detector_ref_pic; // 2nd picture used by the dynamic gop detector in order to determine whether to split the GoP
+    struct PictureParentControlSet *
+        dg_detector_ref_pic; // 2nd picture used by the dynamic gop detector in order to determine whether to split the GoP
     struct DGDetectorMetrics dg_detector_metrics;
-    EbHandle dg_detector_frame_done_semaphore; // semaphore that indicates whether all of the segments of the dynamic gop detector are finished
-    EbHandle dg_detector_metrics_mutex; // ensures that only one dynamic gop detector segment is modifying the dg detector metrics at any time
+    EbHandle
+        dg_detector_frame_done_semaphore; // semaphore that indicates whether all of the segments of the dynamic gop detector are finished
+    EbHandle
+        dg_detector_metrics_mutex; // ensures that only one dynamic gop detector segment is modifying the dg detector metrics at any time
 #endif
 } PictureParentControlSet;
 

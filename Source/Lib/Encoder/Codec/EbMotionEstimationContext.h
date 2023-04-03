@@ -47,7 +47,7 @@ typedef enum EbMeType {
     ME_TPL        = 2,
     ME_OPEN_LOOP  = 3,
 #if OPT_PRED_STRUCT_CLASSIFIER
-    ME_FIRST_PASS = 4,
+    ME_FIRST_PASS  = 4,
     ME_DG_DETECTOR = 5
 #else
     ME_FIRST_PASS = 4
