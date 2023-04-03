@@ -1989,11 +1989,18 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     const bool rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
                                                                                           : false;
 #endif
+#if OPT_LD_SC_MDS0
+    const uint8_t sc_class1 = pcs->sc_class1;
+#endif
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
     pcs->enable_hme_flag        = 1;
     pcs->enable_hme_level0_flag = 1;
+#if OPT_LD_SC_MDS0
+    if (sc_class1) {
+#else
     if (pcs->sc_class1) {
+#endif
         pcs->enable_hme_level1_flag = 1;
         pcs->enable_hme_level2_flag = 1;
     } else if (enc_mode <= ENC_M7) {
@@ -2042,7 +2049,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     //TODO: we can force all frames in GOP with the same detection status of leading I frame.
     uint8_t intrabc_level = 0;
     if (is_islice) {
+#if OPT_LD_SC_MDS0
+        frm_hdr->allow_screen_content_tools = sc_class1;
+#else
         frm_hdr->allow_screen_content_tools = pcs->sc_class1;
+#endif
         if (scs->intrabc_mode == DEFAULT) {
 #if OPT_LD_CLEANUP
             if (rtc_tune) {
@@ -2101,7 +2112,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         }
     } else {
         //this will enable sc tools for P frames. hence change Bitstream even if palette mode is OFF
+#if OPT_LD_SC_MDS0
+        frm_hdr->allow_screen_content_tools = sc_class1;
+#else
         frm_hdr->allow_screen_content_tools = pcs->sc_class1;
+#endif
         intrabc_level                       = 0;
     }
     set_intrabc_level(pcs, scs, intrabc_level);
@@ -2112,7 +2127,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
 #if OPT_LD_PALLET
             if (rtc_tune)
 #if OPT_LD_SC_MDS0
-                pcs->palette_level = is_islice && pcs->sc_class1 ? 3 : is_islice ?  2 : 0;
+                pcs->palette_level = is_islice && sc_class1 ? 3 : is_islice ?  2 : 0;
 #else
                 pcs->palette_level = is_islice ? 2 : 0;
 #endif
@@ -2141,7 +2156,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
                                   fast_decode,
                                   input_resolution,
                                   rtc_tune,
-                                  pcs->sc_class1);
+                                  sc_class1);
 #else
         dlf_level = get_dlf_level(
             enc_mode, is_ref, bit_depth > EB_EIGHT_BIT, fast_decode, input_resolution, rtc_tune);
