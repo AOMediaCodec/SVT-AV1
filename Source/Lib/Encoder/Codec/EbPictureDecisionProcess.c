@@ -591,13 +591,10 @@ static void early_hme(
     PictureParentControlSet* src_pcs,
     PictureParentControlSet* ref_pcs) {
 
-    EbPaReferenceObject* pa_src_obj =
-        (EbPaReferenceObject*)src_pcs->pa_ref_pic_wrapper->object_ptr;
 #if OPT_PRED_STRUCT_CLASSIFIER
     // store the ref pic so it can be used by dg detector when the src picture is sent to the motion estimation kernel
     src_pcs->dg_detector_ref_pic = (PictureParentControlSet*)ref_pcs;
 
-    SequenceControlSet *scs_ptr = src_pcs->scs;
     uint16_t dg_detector_seg_total_count = (uint16_t)(src_pcs->me_segments_column_count)  * (uint16_t)(src_pcs->me_segments_row_count);
     // reset all metrics for the frame, must be performed here since the frame can be used again in a future comparison
     src_pcs->dg_detector_metrics.dg_detector_seg_completed = 0;
@@ -633,6 +630,8 @@ static void early_hme(
     ctx->perc_cplx = (src_pcs->dg_detector_metrics.tot_cplx * 100) / (pic_height_in_b64 * pic_width_in_b64);
     ctx->perc_active = (src_pcs->dg_detector_metrics.tot_active * 100) / (pic_height_in_b64 * pic_width_in_b64);
 #else
+    EbPaReferenceObject* pa_src_obj =
+        (EbPaReferenceObject*)src_pcs->pa_ref_pic_wrapper->object_ptr;
     EbPaReferenceObject* pa_ref_obj =
         (EbPaReferenceObject*)ref_pcs->pa_ref_pic_wrapper->object_ptr;
 
