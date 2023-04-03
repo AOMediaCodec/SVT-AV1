@@ -2300,16 +2300,16 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     if (scs->passes == 1 && scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR)
         pcs->adjust_under_shoot_gf = enc_mode <= ENC_M11 ? 1 : 2;
 #if OPT_LD_PD0
-    static uint8_t ld_enhanced_base_frame_interval = 16;
-    pcs->ld_enhanced_base_frame = (rtc_tune && pcs->temporal_layer_index == 0 &&
-                                   pcs->slice_type != I_SLICE &&
-                                   ((pcs->picture_number - scs->enc_ctx->last_idr_picture) % ld_enhanced_base_frame_interval ==
+    const uint8_t ld_enhanced_base_frame_interval = 16;
+    pcs->ld_enhanced_base_frame                   = (rtc_tune && is_base && !is_islice &&
+                                   ((pcs->picture_number - scs->enc_ctx->last_idr_picture) %
+                                        ld_enhanced_base_frame_interval ==
                                     0))
-        ? 1
-        : 0;
+                          ? 1
+                          : 0;
 #endif
 #if OPT_LD_MRP3
-    if (enc_mode <= ENC_M12)
+    if (enc_mode <= ENC_M12 || !rtc_tune)
         pcs->update_ref_count = 0;
     else
         pcs->update_ref_count = 1;
@@ -7276,12 +7276,12 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
 
 #if OPT_LD_CLEANUP_II
     if (!rtc_tune)
-        ctx->pd1_refines_lvl = 0;
+        ctx->pd1_lvl_refinement = 0;
     else if ((pcs->ppcs->sc_class1 && enc_mode <= ENC_M10) ||
         (!pcs->ppcs->sc_class1 && enc_mode <= ENC_M11))
-        ctx->pd1_refines_lvl = 0;
+        ctx->pd1_lvl_refinement = 1;
     else
-        ctx->pd1_refines_lvl = 1;
+        ctx->pd1_lvl_refinement = 2;
 #endif
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     set_nsq_ctrls(ctx, pcs->nsq_level);

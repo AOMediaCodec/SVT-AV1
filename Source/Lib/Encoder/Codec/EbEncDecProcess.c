@@ -2911,9 +2911,9 @@ not performed, this detector is used (else lpd1_detector_post_pd0() is used). */
 static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *md_ctx,
                                    uint32_t pic_width_in_sb) {
 #if OPT_LD_CLEANUP_II
-    if (md_ctx->pd1_refines_lvl) {
+    if (md_ctx->pd1_lvl_refinement) {
         uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[md_ctx->sb_index];
-        if (md_ctx->pd1_refines_lvl == 2) {
+        if (md_ctx->pd1_lvl_refinement == 2) {
 
             if (pcs->temporal_layer_index > 0)
                 md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 3000

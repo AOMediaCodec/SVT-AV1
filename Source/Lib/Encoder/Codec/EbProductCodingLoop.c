@@ -6557,7 +6557,7 @@ static COMPONENT_TYPE chroma_complexity_check(PictureControlSet *pcs, ModeDecisi
     return COMPONENT_LUMA;
 }
 #if OPT_LD_SKIPTX
-Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
+static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
                          ModeDecisionCandidateBuffer *cand_bf,ModeDecisionCandidate *cand) {
     Bool perform_tx = 1;
     if (ctx->lpd1_allow_skipping_tx) {

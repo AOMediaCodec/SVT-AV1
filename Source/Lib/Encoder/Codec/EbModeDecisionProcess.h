@@ -1100,7 +1100,7 @@ typedef struct ModeDecisionContext {
     Lpd1Ctrls       lpd1_ctrls;
 #if OPT_LD_CLEANUP_II
     // Refines the pd1_level per SB. 0: OFF, 1: conservative 2: Aggressive
-    uint8_t         pd1_refines_lvl;
+    uint8_t         pd1_lvl_refinement;
 #endif
     SpatialSSECtrls spatial_sse_ctrls;
 
