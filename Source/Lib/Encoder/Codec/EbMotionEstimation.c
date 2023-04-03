@@ -2994,7 +2994,7 @@ static INLINE void init_me_hme_data(MeContext *me_ctx) {
         }
     }
 #if OPT_LD_SC_ME
-    memset(me_ctx->performed_phme,0, 
+    memset(me_ctx->performed_phme,0,
         sizeof(uint8_t)*MAX_NUM_OF_REF_PIC_LIST*REF_LIST_MAX_DEPTH*SEARCH_REGION_COUNT);
 #endif
 }
