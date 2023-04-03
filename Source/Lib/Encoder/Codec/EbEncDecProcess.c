@@ -2914,18 +2914,16 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
     if (md_ctx->pd1_lvl_refinement) {
         uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[md_ctx->sb_index];
         if (md_ctx->pd1_lvl_refinement == 2) {
-
             if (pcs->temporal_layer_index > 0)
                 md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 3000
-                ? md_ctx->lpd1_ctrls.pd1_level
-                :
-                pcs->temporal_layer_index == 1 ? MAX(md_ctx->lpd1_ctrls.pd1_level - 2, REGULAR_PD1)
-                : MAX(md_ctx->lpd1_ctrls.pd1_level - 1, REGULAR_PD1);
-        }
-        else
+                    ? md_ctx->lpd1_ctrls.pd1_level
+                    : pcs->temporal_layer_index == 1
+                    ? MAX(md_ctx->lpd1_ctrls.pd1_level - 2, REGULAR_PD1)
+                    : MAX(md_ctx->lpd1_ctrls.pd1_level - 1, REGULAR_PD1);
+        } else
             md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
-            : me_8x8_cost_variance < 3000 ? LPD1_LVL_1
-            : REGULAR_PD1;
+                : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
+                                                                      : REGULAR_PD1;
 
         return;
     }
@@ -2959,12 +2957,12 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
                                                    : md_ctx->lpd1_ctrls.pd1_level - 1;
         } else
             md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
-                : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
-                                                                      : REGULAR_PD1;
+                : me_8x8_cost_variance < 3000 ? LPD1_LVL_1
+                                              : REGULAR_PD1;
 #else
-        md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
-            : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
-                                                                  : REGULAR_PD1;
+    md_ctx->lpd1_ctrls.pd1_level = me_8x8_cost_variance < 500 ? LPD1_LVL_2
+        : me_8x8_cost_variance < 3000                         ? LPD1_LVL_1
+                                                              : REGULAR_PD1;
 #endif
         return;
     }

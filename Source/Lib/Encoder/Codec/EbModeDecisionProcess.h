@@ -1097,10 +1097,10 @@ typedef struct ModeDecisionContext {
     // rate(coefficient(s) rate is assumed to be 0), use the 2nd PD1-level classifier (as the
     // regular PD1 classifier uses the number of non-zero coefficient(s)). 3: Skip pd0 if block size
     // is equal to or greater than 32x32
-    Lpd1Ctrls       lpd1_ctrls;
+    Lpd1Ctrls lpd1_ctrls;
 #if OPT_LD_CLEANUP_II
     // Refines the pd1_level per SB. 0: OFF, 1: conservative 2: Aggressive
-    uint8_t         pd1_lvl_refinement;
+    uint8_t pd1_lvl_refinement;
 #endif
     SpatialSSECtrls spatial_sse_ctrls;
 
@@ -1134,7 +1134,8 @@ typedef struct ModeDecisionContext {
     uint32_t b32_satd[4];
     uint8_t  high_freq_present;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    uint8_t rtc_use_N4_dct_dct_shortcut; // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
+    uint8_t
+        rtc_use_N4_dct_dct_shortcut; // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
 #endif
 } ModeDecisionContext;
 

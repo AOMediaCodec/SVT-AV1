@@ -5868,7 +5868,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3 && ctx->rtc_use_N4_dct_dct_shortcut) {
+    if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3 &&
+        ctx->rtc_use_N4_dct_dct_shortcut) {
 #else
     if (ctx->md_stage == MD_STAGE_3 && ctx->use_tx_shortcuts_mds3) {
 #endif
@@ -6557,8 +6558,9 @@ static COMPONENT_TYPE chroma_complexity_check(PictureControlSet *pcs, ModeDecisi
     return COMPONENT_LUMA;
 }
 #if OPT_LD_SKIPTX
-static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
-                         ModeDecisionCandidateBuffer *cand_bf,ModeDecisionCandidate *cand) {
+static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
+                                ModeDecisionContext *ctx, ModeDecisionCandidateBuffer *cand_bf,
+                                ModeDecisionCandidate *cand) {
     Bool perform_tx = 1;
     if (ctx->lpd1_allow_skipping_tx) {
         if (ctx->lpd1_skip_inter_tx_level == 2 && is_inter_mode(cand->pred_mode))
@@ -6566,15 +6568,15 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, Mode
 
         MacroBlockD *xd = ctx->blk_ptr->av1xd;
         if (xd->left_available && xd->up_available) {
-            const BlockModeInfoEnc *const left_mi = &xd->left_mbmi->block_mi;
+            const BlockModeInfoEnc *const left_mi  = &xd->left_mbmi->block_mi;
             const BlockModeInfoEnc *const above_mi = &xd->above_mbmi->block_mi;
             if (left_mi->skip && above_mi->skip &&
                 ((left_mi->mode == NEAREST_NEARESTMV && above_mi->mode == NEAREST_NEARESTMV) ||
-                    ctx->lpd1_skip_inter_tx_level)) {
+                 ctx->lpd1_skip_inter_tx_level)) {
                 /* For M12 and below, do not skip TX for candidates other than NRST_NRST and do not remove the check on neighbouring
                     coeffs, as that may introduce blocking artifacts in certain clips. */
 
-                    // Skip TX for NRST_NRST
+                // Skip TX for NRST_NRST
                 if (ctx->lpd1_tx_ctrls.skip_nrst_nrst_luma_tx &&
                     cand->pred_mode == NEAREST_NEARESTMV)
                     perform_tx = 0;
@@ -6585,7 +6587,8 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, Mode
         }
     }
 
-    if (!perform_tx) return 0;
+    if (!perform_tx)
+        return 0;
     if (pcs->rtc_tune && !pcs->ppcs->sc_class1) {
         if (is_inter_mode(cand->pred_mode)) {
             uint64_t y_full_distortion[DIST_CALC_TOTAL];
@@ -6594,26 +6597,26 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr, Mode
             uint64_t y_coeff_bits;
             uint64_t cb_coeff_bits;
             uint64_t cr_coeff_bits;
-            cand_bf->eob[0][0] = 0;
-            cand_bf->eob[1][0] = 0;
-            cand_bf->eob[2][0] = 0;
-            cand_bf->quantized_dc[0][0] = 0;
-            cand_bf->quantized_dc[1][0] = 0;
-            cand_bf->quantized_dc[2][0] = 0;
-            cand_bf->y_has_coeff = 0;
-            cand_bf->u_has_coeff = 0;
-            cand_bf->v_has_coeff = 0;
-            y_full_distortion[DIST_CALC_RESIDUAL] = 0;
-            y_full_distortion[DIST_CALC_PREDICTION] = 0;
-            cb_full_distortion[DIST_CALC_RESIDUAL] = 0;
+            cand_bf->eob[0][0]                       = 0;
+            cand_bf->eob[1][0]                       = 0;
+            cand_bf->eob[2][0]                       = 0;
+            cand_bf->quantized_dc[0][0]              = 0;
+            cand_bf->quantized_dc[1][0]              = 0;
+            cand_bf->quantized_dc[2][0]              = 0;
+            cand_bf->y_has_coeff                     = 0;
+            cand_bf->u_has_coeff                     = 0;
+            cand_bf->v_has_coeff                     = 0;
+            y_full_distortion[DIST_CALC_RESIDUAL]    = 0;
+            y_full_distortion[DIST_CALC_PREDICTION]  = 0;
+            cb_full_distortion[DIST_CALC_RESIDUAL]   = 0;
             cb_full_distortion[DIST_CALC_PREDICTION] = 0;
-            cr_full_distortion[DIST_CALC_RESIDUAL] = 0;
+            cr_full_distortion[DIST_CALC_RESIDUAL]   = 0;
             cr_full_distortion[DIST_CALC_PREDICTION] = 0;
-            y_coeff_bits = INIT_BIT_EST;
-            cb_coeff_bits = INIT_BIT_EST;
-            cr_coeff_bits = INIT_BIT_EST;
-            cand_bf->cand->transform_type[0] = DCT_DCT;
-            cand_bf->cand->transform_type_uv = DCT_DCT;
+            y_coeff_bits                             = INIT_BIT_EST;
+            cb_coeff_bits                            = INIT_BIT_EST;
+            cr_coeff_bits                            = INIT_BIT_EST;
+            cand_bf->cand->transform_type[0]         = DCT_DCT;
+            cand_bf->cand->transform_type_uv         = DCT_DCT;
             svt_av1_product_full_cost_func_table[1](
                 pcs,
                 ctx,
