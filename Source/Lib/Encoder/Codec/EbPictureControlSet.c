@@ -449,10 +449,11 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
     object_ptr->temp_lf_recon_pic_16bit           = (EbPictureBufferDesc *)NULL;
     object_ptr->temp_lf_recon_pic                 = (EbPictureBufferDesc *)NULL;
     object_ptr->scaled_input_pic                  = (EbPictureBufferDesc *)NULL;
-    if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
-                                       init_data_ptr->static_config.opaque->enable_restoration_filtering,
-                                       init_data_ptr->input_resolution,
-                                       init_data_ptr->static_config.opaque->fast_decode)) {
+    if (svt_aom_get_enable_restoration(
+            init_data_ptr->enc_mode,
+            init_data_ptr->static_config.opaque->enable_restoration_filtering,
+            init_data_ptr->input_resolution,
+            init_data_ptr->static_config.opaque->fast_decode)) {
         set_restoration_unit_size(init_data_ptr->picture_width,
                                   init_data_ptr->picture_height,
                                   1,
@@ -1217,10 +1218,11 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
         EB_CALLOC_ALIGNED_ARRAY(object_ptr->tpl_mvs, mem_size);
     }
 
-    if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
-                                       init_data_ptr->static_config.opaque->enable_restoration_filtering,
-                                       init_data_ptr->input_resolution,
-                                       init_data_ptr->static_config.opaque->fast_decode))
+    if (svt_aom_get_enable_restoration(
+            init_data_ptr->enc_mode,
+            init_data_ptr->static_config.opaque->enable_restoration_filtering,
+            init_data_ptr->input_resolution,
+            init_data_ptr->static_config.opaque->fast_decode))
         EB_MALLOC_ALIGNED(object_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
 
     return EB_ErrorNone;

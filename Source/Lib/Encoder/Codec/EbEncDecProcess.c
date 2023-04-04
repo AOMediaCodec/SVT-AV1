@@ -139,8 +139,9 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext   *thread_ctx,
                .split_mode         = FALSE,
            });
 #if OPT_LD_M9
-    const bool rtc_tune = (static_config->opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
-                                                                                      : false;
+    const bool rtc_tune = (static_config->opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+        ? true
+        : false;
     // Mode Decision Context
     EB_NEW(ed_ctx->md_ctx,
            svt_aom_mode_decision_context_ctor,
@@ -2930,7 +2931,8 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
     }
 #else
 #if OPT_LD_P2
-    const bool rtc_tune = (pcs->scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (pcs->scs->static_config.opaque->pred_structure ==
+                           SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
     if (rtc_tune) {

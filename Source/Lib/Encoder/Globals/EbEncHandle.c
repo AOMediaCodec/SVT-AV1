@@ -247,28 +247,28 @@ void svt_set_thread_management_parameters(EbSvtAv1EncConfiguration *config_ptr)
     // For system with a single processor group(no more than 64 logic processors all together)
     // Affinity of the thread can be set to one or more logical processors
     if (num_groups == 1) {
-            const uint32_t lps = priv->logical_processors == 0 ? num_logical_processors :
-                priv->logical_processors < num_logical_processors ? priv->logical_processors : num_logical_processors;
+            const uint32_t lps = config_ptr->opaque->logical_processors == 0 ? num_logical_processors :
+                config_ptr->opaque->logical_processors < num_logical_processors ? config_ptr->opaque->logical_processors : num_logical_processors;
             svt_aom_group_affinity.Mask = get_affinity_mask(lps);
     }
     else if (num_groups > 1) { // For system with multiple processor group
-        if (priv->logical_processors == 0) {
+        if (config_ptr->opaque->logical_processors == 0) {
             if (config_ptr->target_socket != -1)
                 svt_aom_group_affinity.Group = config_ptr->target_socket;
         }
         else {
             const uint32_t num_lp_per_group = num_logical_processors / num_groups;
             if (config_ptr->target_socket == -1) {
-                if (priv->logical_processors > num_lp_per_group) {
+                if (config_ptr->opaque->logical_processors > num_lp_per_group) {
                     alternate_groups = TRUE;
                     SVT_WARN("-lp(logical processors) setting is ignored. Run on both sockets. \n");
                 }
                 else
-                    svt_aom_group_affinity.Mask = get_affinity_mask(priv->logical_processors);
+                    svt_aom_group_affinity.Mask = get_affinity_mask(config_ptr->opaque->logical_processors);
             }
             else {
                 const uint32_t lps =
-                    priv->logical_processors < num_lp_per_group ? priv->logical_processors : num_lp_per_group;
+                    config_ptr->opaque->logical_processors < num_lp_per_group ? config_ptr->opaque->logical_processors : num_lp_per_group;
                 svt_aom_group_affinity.Mask = get_affinity_mask(lps);
                 svt_aom_group_affinity.Group = config_ptr->target_socket;
             }
@@ -279,20 +279,20 @@ void svt_set_thread_management_parameters(EbSvtAv1EncConfiguration *config_ptr)
     CPU_ZERO(&svt_aom_group_affinity);
 
     if (num_groups == 1) {
-        const uint32_t lps = priv->logical_processors == 0 ? num_logical_processors :
-            priv->logical_processors < num_logical_processors ? priv->logical_processors : num_logical_processors;
+        const uint32_t lps = config_ptr->opaque->logical_processors == 0 ? num_logical_processors :
+            config_ptr->opaque->logical_processors < num_logical_processors ? config_ptr->opaque->logical_processors : num_logical_processors;
         for (uint32_t i = 0; i < lps; i++)
             CPU_SET(lp_group[0].group[i], &svt_aom_group_affinity);
     } else if (num_groups > 1) {
         const uint32_t num_lp_per_group = num_logical_processors / num_groups;
-        if (priv->logical_processors == 0) {
+        if (config_ptr->opaque->logical_processors == 0) {
             if (config_ptr->target_socket != -1)
                 for (uint32_t i = 0; i < lp_group[config_ptr->target_socket].num; i++)
                     CPU_SET(lp_group[config_ptr->target_socket].group[i], &svt_aom_group_affinity);
         } else {
             if (config_ptr->target_socket == -1) {
                 const uint32_t lps =
-                    priv->logical_processors < num_logical_processors ? priv->logical_processors : num_logical_processors;
+                    config_ptr->opaque->logical_processors < num_logical_processors ? config_ptr->opaque->logical_processors : num_logical_processors;
                 if (lps > num_lp_per_group) {
                     for (uint32_t i = 0; i < lp_group[0].num; i++)
                         CPU_SET(lp_group[0].group[i], &svt_aom_group_affinity);
@@ -303,7 +303,7 @@ void svt_set_thread_management_parameters(EbSvtAv1EncConfiguration *config_ptr)
                         CPU_SET(lp_group[0].group[i], &svt_aom_group_affinity);
             } else {
                 const uint32_t lps =
-                    priv->logical_processors < num_lp_per_group ? priv->logical_processors : num_lp_per_group;
+                    config_ptr->opaque->logical_processors < num_lp_per_group ? config_ptr->opaque->logical_processors : num_lp_per_group;
                 for (uint32_t i = 0; i < lps; i++)
                     CPU_SET(lp_group[config_ptr->target_socket].group[i], &svt_aom_group_affinity);
             }
@@ -2318,7 +2318,7 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
     * Thread Handles
     ************************************/
     EbSvtAv1EncConfiguration   *config_ptr = &enc_handle_ptr->scs_instance_array[0]->scs->static_config;
-    if (priv->pin_threads == 1)
+    if (config_ptr->opaque->pin_threads == 1)
         svt_set_thread_management_parameters(config_ptr);
 
     control_set_ptr = enc_handle_ptr->scs_instance_array[0]->scs;
@@ -4642,8 +4642,8 @@ static void copy_api_from_app(
     scs->static_config.matrix_coefficients = config_struct->matrix_coefficients;
     scs->static_config.color_range = config_struct->color_range;
     scs->static_config.chroma_sample_position = config_struct->chroma_sample_position;
-    scs->static_config.opaque->mastering_display = config_struct->opaque->mastering_display;
-    scs->static_config.opaque->content_light_level = config_struct->opaque->content_light_level;
+    scs->static_config.mastering_display = config_struct->mastering_display;
+    scs->static_config.content_light_level = config_struct->content_light_level;
 
     // switch frame
     scs->static_config.opaque->sframe_dist = config_struct->opaque->sframe_dist;

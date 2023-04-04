@@ -284,7 +284,6 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     uint32_t source_height;
 
-
     /* Frame rate numerator. When zero, the encoder will use -fps if
      * FrameRateDenominator is also zero, otherwise an error is returned.
      *
@@ -342,7 +341,6 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     uint32_t level;
 
-
     /* Color primaries
     * values are from EbColorPrimaries
     Default is 2 (CP_UNSPECIFIED). */
@@ -387,7 +385,6 @@ typedef struct EbSvtAv1EncConfiguration {
      * Default is 50. */
     uint32_t qp;
 
-
     /* Target bitrate in bits/second, only applicable when rate control mode is
      * set to 1 (VBR) or 2 (CBR).
      *
@@ -398,7 +395,6 @@ typedef struct EbSvtAv1EncConfiguration {
      *
      * Default is 0. */
     uint32_t max_bit_rate;
-
 
     /* Maxium QP value allowed for rate control use, only applicable when rate
      * control mode is set to 1. It has to be greater or equal to minQpAllowed.
@@ -412,7 +408,6 @@ typedef struct EbSvtAv1EncConfiguration {
     uint32_t min_qp_allowed;
 
     // DATARATE CONTROL OPTIONS
-
 
     /**
      * @brief Maximum Buffer Size in MilliSeconds
@@ -428,14 +423,12 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     int64_t maximum_buffer_size_ms;
 
-
     // End rate control tuning
 
     /* Flag to enable the scene change detection algorithm.
      *
      * Default is 1. */
     uint32_t scene_change_detection;
-
 
     /* Log 2 Tile Rows and columns . 0 means no tiling,1 means that we split the dimension
         * into 2
@@ -460,9 +453,8 @@ typedef struct EbSvtAv1EncConfiguration {
 
     // Application Specific parameters
 
-
     // 1.0.0: Any additional fields shall go after here
-    
+
 #if !SVT_AV1_CHECK_VERSION(1, 5, 0)
     /* DEPRECATED: to be removed in 1.5.0. */
     uint32_t compressed_ten_bit_format;
@@ -514,7 +506,7 @@ typedef struct EbSvtAv1EncConfiguration {
      * Default is false.
      */
     Bool recon_enabled;
-    
+
     /**
      * @brief Signal to the library to treat intra_period_length as seconds and
      * multiply by fps_num/fps_den.
@@ -536,6 +528,15 @@ typedef struct EbSvtAv1EncConfiguration {
     * Default is 0.*/
     Bool use_qp_file;
 
+    /* Mastering display metadata
+    * values are from set using svt_aom_parse_mastering_display()
+    */
+    struct EbSvtAv1MasteringDisplayInfo mastering_display;
+
+    /* Content light level
+    * values are from set using svt_aom_parse_content_light_level()
+    */
+    struct EbContentLightLevel content_light_level;
 
     /*New feature fields should be added to this struct to avoid changing the size of the public configuration struct*/
     struct SvtAv1PrivOptions *opaque;

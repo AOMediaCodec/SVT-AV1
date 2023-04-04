@@ -501,7 +501,7 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
     ctx->fast_lambda_md[1] *= 4;
 
     SequenceControlSet *scs = pcs->scs;
-    uint64_t scale_factor   = scs->static_config.opaque->lambda_scale_factors[pcs->ppcs->update_type];
+    uint64_t scale_factor = scs->static_config.opaque->lambda_scale_factors[pcs->ppcs->update_type];
     ctx->full_lambda_md[0]  = (uint32_t)((ctx->full_lambda_md[0] * scale_factor) >> 7);
     ctx->full_lambda_md[1]  = (uint32_t)((ctx->full_lambda_md[1] * scale_factor) >> 7);
     ctx->fast_lambda_md[0]  = (uint32_t)((ctx->fast_lambda_md[0] * scale_factor) >> 7);
@@ -536,9 +536,9 @@ static void av1_lambda_assign(PictureControlSet *pcs, uint32_t *fast_lambda, uin
 
     // NM: To be done: tune lambda based on the picture type and layer.
     SequenceControlSet *scs = pcs->scs;
-    uint64_t scale_factor   = scs->static_config.opaque->lambda_scale_factors[pcs->ppcs->update_type];
-    *full_lambda            = (uint32_t)((*full_lambda * scale_factor) >> 7);
-    *fast_lambda            = (uint32_t)((*fast_lambda * scale_factor) >> 7);
+    uint64_t scale_factor = scs->static_config.opaque->lambda_scale_factors[pcs->ppcs->update_type];
+    *full_lambda          = (uint32_t)((*full_lambda * scale_factor) >> 7);
+    *fast_lambda          = (uint32_t)((*fast_lambda * scale_factor) >> 7);
 }
 
 const EbAv1LambdaAssignFunc svt_aom_av1_lambda_assignment_function_table[4] = {

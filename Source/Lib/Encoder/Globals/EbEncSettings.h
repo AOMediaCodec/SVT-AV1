@@ -81,7 +81,6 @@ struct SvtAv1PrivOptions {
     int32_t chroma_u_ac_qindex_offset;
     int32_t chroma_v_dc_qindex_offset;
     int32_t chroma_v_ac_qindex_offset;
-    
 
     /**
     * @brief Determines how much denoising is used.
@@ -126,15 +125,13 @@ struct SvtAv1PrivOptions {
      * Default is 0  */
     uint8_t enable_tpl_la;
 
-
-
     /**
      * @brief Signal to the library to enable quantisation matrices
      *
      * Default is false.
      */
     Bool enable_qm;
-    
+
 #if !SVT_AV1_CHECK_VERSION(1, 5, 0)
     /* DEPRECATED: to be removed in 1.5.0. */
     PredictionStructureConfigEntry pred_struct[1 << (MAX_HIERARCHICAL_LEVEL - 1)];
@@ -145,7 +142,6 @@ struct SvtAv1PrivOptions {
     /* DEPRECATED: to be removed in 1.5.0. */
     int32_t manual_pred_struct_entry_num;
 #endif
-
 
     /**
      * @brief Tune for a particular metric; 0: VQ, 1: PSNR
@@ -169,7 +165,7 @@ struct SvtAv1PrivOptions {
      * Default is 8.
      */
     uint8_t min_qm_level;
-    
+
     /* Color description present flag
     *
     * It is not necessary to set this parameter manually.
@@ -178,8 +174,6 @@ struct SvtAv1PrivOptions {
     *
     Default is false. */
     Bool color_description_present_flag;
-    
-
 
     /* Prediction structure used to construct GOP. There are two main structures
      * supported, which are: Low Delay (P or B) and Random Access.
@@ -200,8 +194,7 @@ struct SvtAv1PrivOptions {
      *
      * Default is SVT_AV1_PRED_RANDOM_ACCESS. */
     uint8_t pred_structure;
-    
-    
+
     /**
      * @brief Optimal Buffer Level in MilliSeconds
      *
@@ -216,7 +209,7 @@ struct SvtAv1PrivOptions {
      * Default is 600.
      */
     int64_t optimal_buffer_level_ms;
-    
+
     /* motion field motion vector
     *
     *  Default is -1. */
@@ -235,11 +228,6 @@ struct SvtAv1PrivOptions {
      * Default is 25.
      */
     uint32_t under_shoot_pct;
-
-    /* Content light level
-    * values are from set using svt_aom_parse_content_light_level()
-    */
-    struct EbContentLightLevel content_light_level;
 
     /* @brief reference scaling events for random access mode (reize-mode = 4)
      *
@@ -270,13 +258,11 @@ struct SvtAv1PrivOptions {
      */
     uint32_t vbr_max_section_pct;
 
-
     /* Decoder-speed-targeted encoder optimization level (produce bitstreams that can be decoded faster).
     * 0: No decoder speed optimization
     * 1: Decoder speed optimization enabled (fast decode)
     */
     Bool fast_decode;
-
 
     /* Film grain denoising the input picture
     * Flag to enable the denoising
@@ -302,8 +288,6 @@ struct SvtAv1PrivOptions {
     * Default is 0. */
     uint32_t screen_content_mode;
 
-
-
     /* Specifies the maximum frame width/height for the frames represented by the sequence header
      * (max_frame_width_minus_1 and max_frame_height_minus_1, spec 5.5.1).
      * Actual frame height could be equal to or less than this value. E.g. Use this value to indicate
@@ -311,7 +295,7 @@ struct SvtAv1PrivOptions {
      */
     uint32_t forced_max_frame_width;
     uint32_t forced_max_frame_height;
-    
+
 #if !SVT_AV1_CHECK_VERSION(1, 5, 0)
     /* DEPRECATED: to be removed in 1.5.0. */
     uint32_t vbv_bufsize;
@@ -328,11 +312,6 @@ struct SvtAv1PrivOptions {
      */
     uint32_t recode_loop;
 
-    /* Mastering display metadata
-    * values are from set using svt_aom_parse_mastering_display()
-    */
-    struct EbSvtAv1MasteringDisplayInfo mastering_display;
-
     /**
      * @brief API signal to constrain motion vectors.
      *
@@ -346,7 +325,6 @@ struct SvtAv1PrivOptions {
      * resolution in both width and height
      */
     uint8_t resize_denom;
-    
 
     /**
      * @brief Enable use of ALT-REF (temporally filtered) frames.
@@ -372,7 +350,6 @@ struct SvtAv1PrivOptions {
      */
     uint32_t mbr_over_shoot_pct;
 
-
     /* Unpin the execution .This option does not
     * set the execution to be pinned to a specific number of cores when set to 1. this allows the execution
     * of multiple encodes on the CPU without having to pin them to a specific mask
@@ -388,7 +365,6 @@ struct SvtAv1PrivOptions {
      * Default is 15.
      */
     uint8_t max_qm_level;
-
 
     /**
      * @brief Currently unused.
@@ -437,8 +413,6 @@ struct SvtAv1PrivOptions {
      * OS thread scheduler. */
     uint32_t logical_processors;
 
-
-
     /* CPU FLAGS to limit assembly instruction set used by encoder.
     * Default is EB_CPU_FLAGS_ALL. */
     EbCpuFlags use_cpu_flags;
@@ -461,9 +435,8 @@ struct SvtAv1PrivOptions {
     * >0: S-Frame on and indicates the number of frames after which a frame may be coded as an S-Frame
     */
     int32_t sframe_dist;
-
 };
-struct SvtAv1PrivOptions *priv;
+struct SvtAv1PrivOptions;
 
 void svt_av1_print_lib_params(SequenceControlSet* scs);
 

@@ -92,7 +92,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->starting_buffer_level_ms < 20 || config->opaque->starting_buffer_level_ms > 10000) {
+    if (config->opaque->starting_buffer_level_ms < 20 ||
+        config->opaque->starting_buffer_level_ms > 10000) {
         SVT_ERROR("Instance %u: The initial buffer size must be between [20, 10000] \n",
                   channel_number + 1);
         return_error = EB_ErrorBadParameter;
@@ -104,7 +105,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         config->opaque->starting_buffer_level_ms = (config->maximum_buffer_size_ms - 1);
     }
 
-    if (config->opaque->optimal_buffer_level_ms < 20 || config->opaque->optimal_buffer_level_ms > 10000) {
+    if (config->opaque->optimal_buffer_level_ms < 20 ||
+        config->opaque->optimal_buffer_level_ms > 10000) {
         SVT_ERROR("Instance %u: The optimal buffer size must be between [20, 10000]\n",
                   channel_number + 1);
         return_error = EB_ErrorBadParameter;
@@ -357,7 +359,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->key_frame_qindex_offset < -64 || config->opaque->key_frame_qindex_offset > 63) {
+    if (config->opaque->key_frame_qindex_offset < -64 ||
+        config->opaque->key_frame_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid key_frame_qindex_offset. key_frame_qindex_offset must be [-64 - "
             "63]\n",
@@ -380,35 +383,40 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->luma_y_dc_qindex_offset < -64 || config->opaque->luma_y_dc_qindex_offset > 63) {
+    if (config->opaque->luma_y_dc_qindex_offset < -64 ||
+        config->opaque->luma_y_dc_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid luma_y_dc_qindex_offset. luma_y_dc_qindex_offset "
             "must be [-64 - 63]\n",
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->chroma_u_dc_qindex_offset < -64 || config->opaque->chroma_u_dc_qindex_offset > 63) {
+    if (config->opaque->chroma_u_dc_qindex_offset < -64 ||
+        config->opaque->chroma_u_dc_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid chroma_u_dc_qindex_offset. chroma_u_dc_qindex_offset "
             "must be [-64 - 63]\n",
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->chroma_u_ac_qindex_offset < -64 || config->opaque->chroma_u_ac_qindex_offset > 63) {
+    if (config->opaque->chroma_u_ac_qindex_offset < -64 ||
+        config->opaque->chroma_u_ac_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid chroma_u_ac_qindex_offset. chroma_u_ac_qindex_offset "
             "must be [-64 - 63]\n",
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->chroma_v_dc_qindex_offset < -64 || config->opaque->chroma_v_dc_qindex_offset > 63) {
+    if (config->opaque->chroma_v_dc_qindex_offset < -64 ||
+        config->opaque->chroma_v_dc_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid chroma_v_dc_qindex_offset. chroma_v_dc_qindex_offset "
             "must be [-64 - 63]\n",
             channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->chroma_v_ac_qindex_offset < -64 || config->opaque->chroma_v_ac_qindex_offset > 63) {
+    if (config->opaque->chroma_v_ac_qindex_offset < -64 ||
+        config->opaque->chroma_v_ac_qindex_offset > 63) {
         SVT_ERROR(
             "Instance %u : Invalid chroma_v_ac_qindex_offset. chroma_v_ac_qindex_offset "
             "must be [-64 - 63]\n",
@@ -417,7 +425,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
     }
 
     for (uint8_t i = 0; i < config->hierarchical_levels + 1; ++i) {
-        if (config->opaque->chroma_qindex_offsets[i] < -64 || config->opaque->chroma_qindex_offsets[i] > 63) {
+        if (config->opaque->chroma_qindex_offsets[i] < -64 ||
+            config->opaque->chroma_qindex_offsets[i] > 63) {
             SVT_ERROR(
                 "Instance %u : Invalid chroma_qindex_offsets. chroma_qindex_offsets must be [-64 - "
                 "63]\n",
@@ -553,7 +562,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
     }
 
     // Restoration Filtering
-    if (config->opaque->enable_restoration_filtering != 0 && config->opaque->enable_restoration_filtering != 1 &&
+    if (config->opaque->enable_restoration_filtering != 0 &&
+        config->opaque->enable_restoration_filtering != 1 &&
         config->opaque->enable_restoration_filtering != -1) {
         SVT_ERROR("Instance %u: Invalid restoration flag [0 - 1, -1 for auto], your input: %d\n",
                   channel_number + 1,
@@ -561,7 +571,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->enable_mfmv != 0 && config->opaque->enable_mfmv != 1 && config->opaque->enable_mfmv != -1) {
+    if (config->opaque->enable_mfmv != 0 && config->opaque->enable_mfmv != 1 &&
+        config->opaque->enable_mfmv != -1) {
         SVT_ERROR(
             "Instance %u: Invalid motion field motion vector flag [0/1 or -1 for auto], your "
             "input: %d\n",
@@ -657,7 +668,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->resize_kf_denom < MIN_RESIZE_DENOM || config->opaque->resize_kf_denom > MAX_RESIZE_DENOM) {
+    if (config->opaque->resize_kf_denom < MIN_RESIZE_DENOM ||
+        config->opaque->resize_kf_denom > MAX_RESIZE_DENOM) {
         SVT_LOG(
             "Error instance %u: invalid resize-kf-denom %d, should be in the range [%d - %d] \n",
             channel_number + 1,
@@ -667,7 +679,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->resize_denom < MIN_RESIZE_DENOM || config->opaque->resize_denom > MAX_RESIZE_DENOM) {
+    if (config->opaque->resize_denom < MIN_RESIZE_DENOM ||
+        config->opaque->resize_denom > MAX_RESIZE_DENOM) {
         SVT_LOG("Error instance %u: invalid resize-denom %d, should be in the range [%d - %d] \n",
                 channel_number + 1,
                 config->opaque->resize_denom,
@@ -749,7 +762,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         SVT_ERROR("Error instance %u: switch frame interval must be >= 0\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
     }
-    if (config->opaque->sframe_dist > 0 && config->opaque->pred_structure != SVT_AV1_PRED_LOW_DELAY_P &&
+    if (config->opaque->sframe_dist > 0 &&
+        config->opaque->pred_structure != SVT_AV1_PRED_LOW_DELAY_P &&
         config->opaque->pred_structure != SVT_AV1_PRED_LOW_DELAY_B) {
         SVT_ERROR(
             "Error instance %u: switch frame feature only supports low delay prediction "
@@ -845,7 +859,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
 
-    if (config->opaque->film_grain_denoise_apply != 0 && config->opaque->film_grain_denoise_apply != 1) {
+    if (config->opaque->film_grain_denoise_apply != 0 &&
+        config->opaque->film_grain_denoise_apply != 1) {
         SVT_ERROR(
             "Instance %u: The film grain denoise apply signal can only have a value of 0 or 1\n",
             channel_number + 1);
@@ -942,7 +957,8 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
 Set Default Library Params
 **********************************/
 EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
-    EbErrorType return_error = EB_ErrorNone;
+    EbErrorType               return_error = EB_ErrorNone;
+    struct SvtAv1PrivOptions *priv         = config_ptr->opaque;
 
     if (!config_ptr) {
         SVT_ERROR("The EbSvtAv1EncConfiguration structure is empty!\n");
@@ -954,14 +970,14 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     config_ptr->compressed_ten_bit_format = 0;
     config_ptr->source_width              = 0;
     config_ptr->source_height             = 0;
-    priv->forced_max_frame_width    = 0;
-    priv->forced_max_frame_height   = 0;
+    priv->forced_max_frame_width          = 0;
+    priv->forced_max_frame_height         = 0;
     config_ptr->stat_report               = 0;
     config_ptr->tile_rows                 = DEFAULT;
     config_ptr->tile_columns              = DEFAULT;
     config_ptr->qp                        = DEFAULT_QP;
     config_ptr->use_qp_file               = FALSE;
-    priv->use_fixed_qindex_offsets  = 0;
+    priv->use_fixed_qindex_offsets        = 0;
     memset(priv->qindex_offsets, 0, sizeof(priv->qindex_offsets));
     priv->key_frame_chroma_qindex_offset = 0;
     priv->key_frame_qindex_offset        = 0;
@@ -977,7 +993,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     config_ptr->scene_change_detection = 0;
     config_ptr->rate_control_mode      = SVT_AV1_RC_MODE_CQP_OR_CRF;
     config_ptr->look_ahead_distance    = (uint32_t)~0;
-    priv->enable_tpl_la          = 1;
+    priv->enable_tpl_la                = 1;
     config_ptr->target_bit_rate        = 2000000;
     config_ptr->max_bit_rate           = 0;
     config_ptr->max_qp_allowed         = 63;
@@ -989,27 +1005,27 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     config_ptr->multiply_keyint              = FALSE;
     config_ptr->intra_refresh_type           = 2;
     config_ptr->hierarchical_levels          = 0;
-    priv->pred_structure               = SVT_AV1_PRED_RANDOM_ACCESS;
-    priv->enable_dlf_flag              = TRUE;
+    priv->pred_structure                     = SVT_AV1_PRED_RANDOM_ACCESS;
+    priv->enable_dlf_flag                    = TRUE;
     config_ptr->cdef_level                   = DEFAULT;
-    priv->enable_restoration_filtering = DEFAULT;
-    priv->enable_mfmv                  = DEFAULT;
-    priv->fast_decode                  = 0;
+    priv->enable_restoration_filtering       = DEFAULT;
+    priv->enable_mfmv                        = DEFAULT;
+    priv->fast_decode                        = 0;
     config_ptr->encoder_color_format         = EB_YUV420;
     // Rate control options
     // Set the default value toward more flexible rate allocation
-    priv->vbr_bias_pct             = 100;
-    priv->vbr_min_section_pct      = 0;
-    priv->vbr_max_section_pct      = 2000;
-    priv->under_shoot_pct          = 25;
-    priv->over_shoot_pct           = 25;
-    priv->mbr_over_shoot_pct       = 50;
-    priv->gop_constraint_rc        = 0;
-    config_ptr->maximum_buffer_size_ms   = 1000; // default settings for CBR
-    priv->starting_buffer_level_ms = 600; // default settings for CBR
-    priv->optimal_buffer_level_ms  = 600; // default settings for CBR
-    priv->recode_loop              = ALLOW_RECODE_DEFAULT;
-    priv->restricted_motion_vector = FALSE;
+    priv->vbr_bias_pct                 = 100;
+    priv->vbr_min_section_pct          = 0;
+    priv->vbr_max_section_pct          = 2000;
+    priv->under_shoot_pct              = 25;
+    priv->over_shoot_pct               = 25;
+    priv->mbr_over_shoot_pct           = 50;
+    priv->gop_constraint_rc            = 0;
+    config_ptr->maximum_buffer_size_ms = 1000; // default settings for CBR
+    priv->starting_buffer_level_ms     = 600; // default settings for CBR
+    priv->optimal_buffer_level_ms      = 600; // default settings for CBR
+    priv->recode_loop                  = ALLOW_RECODE_DEFAULT;
+    priv->restricted_motion_vector     = FALSE;
 
     priv->high_dynamic_range_input = 0;
     priv->screen_content_mode      = 2;
@@ -1027,8 +1043,8 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
     priv->use_cpu_flags = EB_CPU_FLAGS_ALL;
 
     // Channel info
-    priv->logical_processors   = 0;
-    priv->pin_threads          = 0;
+    priv->logical_processors         = 0;
+    priv->pin_threads                = 0;
     config_ptr->target_socket        = -1;
     config_ptr->channel_id           = 0;
     config_ptr->active_channel_count = 1;
@@ -1054,18 +1070,18 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
 
     // Color description default values
     priv->color_description_present_flag = FALSE;
-    config_ptr->color_primaries                = 2;
-    config_ptr->transfer_characteristics       = 2;
-    config_ptr->matrix_coefficients            = 2;
-    config_ptr->color_range                    = EB_CR_STUDIO_RANGE;
-    config_ptr->chroma_sample_position         = EB_CSP_UNKNOWN;
-    config_ptr->pass                           = 0;
-    memset(&priv->mastering_display, 0, sizeof(priv->mastering_display));
-    memset(&priv->content_light_level, 0, sizeof(priv->content_light_level));
+    config_ptr->color_primaries          = 2;
+    config_ptr->transfer_characteristics = 2;
+    config_ptr->matrix_coefficients      = 2;
+    config_ptr->color_range              = EB_CR_STUDIO_RANGE;
+    config_ptr->chroma_sample_position   = EB_CSP_UNKNOWN;
+    config_ptr->pass                     = 0;
+    memset(&config_ptr->mastering_display, 0, sizeof(config_ptr->mastering_display));
+    memset(&config_ptr->content_light_level, 0, sizeof(config_ptr->content_light_level));
 
     // Switch frame default values
-    priv->sframe_dist      = 0;
-    priv->sframe_mode      = SFRAME_NEAREST_BASE;
+    priv->sframe_dist            = 0;
+    priv->sframe_mode            = SFRAME_NEAREST_BASE;
     config_ptr->force_key_frames = 0;
 
     // Quant Matrices (QM)
@@ -1075,8 +1091,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration *config_ptr) {
 
     if (config_ptr->opaque)
         free(config_ptr->opaque);
-    config_ptr->opaque             = malloc(sizeof(*config_ptr->opaque));
-    struct SvtAv1PrivOptions *priv = config_ptr->opaque;
+    config_ptr->opaque = malloc(sizeof(*config_ptr->opaque));
     if (!priv)
         return EB_ErrorInsufficientResources;
     priv->enable_dg = 1;
@@ -1142,7 +1157,7 @@ void svt_av1_print_lib_params(SequenceControlSet *scs) {
                  config->opaque->tune == 0 ? "VQ" : "PSNR",
                  config->opaque->pred_structure == 1       ? "low delay"
                      : config->opaque->pred_structure == 2 ? "random access"
-                                                   : "Unknown pred structure");
+                                                           : "Unknown pred structure");
         SVT_INFO(
             "SVT [config]: gop size / mini-gop size / key-frame type \t\t\t: "
             "%d / %d / %s\n",
@@ -1893,7 +1908,7 @@ static EbErrorType str_to_resz_denoms(const char *nptr, SvtAv1FrameScaleEvts *ev
 #define COLOR_METADATA_OPT(par, opt)                                                       \
     do {                                                                                   \
         if (!strcmp(name, par))                                                            \
-            return svt_aom_parse_##opt(&config_struct->opaque->opt, value) ? EB_ErrorNone          \
+            return svt_aom_parse_##opt(&config_struct->opt, value) ? EB_ErrorNone          \
                                                                    : EB_ErrorBadParameter; \
     } while (0)
 
@@ -1941,7 +1956,8 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
             : EB_ErrorNone;
 
     if (!strcmp(name, "sframe-mode"))
-        return str_to_sframe_mode(value, &config_struct->opaque->sframe_mode) == EB_ErrorBadParameter
+        return str_to_sframe_mode(value, &config_struct->opaque->sframe_mode) ==
+                EB_ErrorBadParameter
             ? str_to_uint(value, (uint32_t *)&config_struct->opaque->sframe_mode, NULL)
             : EB_ErrorNone;
 
@@ -1963,7 +1979,8 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
         return parse_list_s32(value, config_struct->opaque->qindex_offsets, EB_MAX_TEMPORAL_LAYERS);
 
     if (!strcmp(name, "chroma-qindex-offsets"))
-        return parse_list_s32(value, config_struct->opaque->chroma_qindex_offsets, EB_MAX_TEMPORAL_LAYERS);
+        return parse_list_s32(
+            value, config_struct->opaque->chroma_qindex_offsets, EB_MAX_TEMPORAL_LAYERS);
 
     if (!strcmp(name, "lambda-scale-factors"))
         return parse_list_s32(

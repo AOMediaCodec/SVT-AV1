@@ -50,8 +50,8 @@ static INLINE int32_t derive_rmv_setting(const SequenceControlSet      *scs,
                                          const PictureParentControlSet *ppcs) {
     // force RMV on to fix quality issue caused by MVs out of picture boundary
     int32_t rmv = scs->static_config.opaque->restricted_motion_vector ? 1
-        : ppcs->frm_hdr.frame_type == S_FRAME                 ? 1
-                                                              : 0;
+        : ppcs->frm_hdr.frame_type == S_FRAME                         ? 1
+                                                                      : 0;
     return rmv;
 }
 

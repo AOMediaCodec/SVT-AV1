@@ -630,8 +630,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
 #if OPT_LD_SKIPTX
-        pcs->rtc_tune = (scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
-                                                                                        : false;
+        pcs->rtc_tune = (scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+            ? true
+            : false;
 #endif
         // Mode Decision Configuration Kernel Signal(s) derivation
         if (scs->static_config.pass == ENC_FIRST_PASS)

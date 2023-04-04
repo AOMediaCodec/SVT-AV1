@@ -3504,14 +3504,15 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                         }
 
                         if (scs->static_config.opaque->use_fixed_qindex_offsets) {
-                            int32_t qindex = scs->static_config.opaque->use_fixed_qindex_offsets == 1
+                            int32_t qindex = scs->static_config.opaque->use_fixed_qindex_offsets ==
+                                    1
                                 ? quantizer_to_qindex[(uint8_t)scs->static_config.qp]
                                 : frm_hdr->quantization_params
                                       .base_q_idx; // do not shut the auto QPS if use_fixed_qindex_offsets 2
 
                             if (!frame_is_intra_only(pcs->ppcs)) {
-                                qindex +=
-                                    scs->static_config.opaque->qindex_offsets[pcs->temporal_layer_index];
+                                qindex += scs->static_config.opaque
+                                              ->qindex_offsets[pcs->temporal_layer_index];
                             } else {
                                 qindex += scs->static_config.opaque->key_frame_qindex_offset;
                             }
@@ -3532,8 +3533,8 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                     if (frame_is_intra_only(pcs->ppcs)) {
                         chroma_qindex += scs->static_config.opaque->key_frame_chroma_qindex_offset;
                     } else {
-                        chroma_qindex +=
-                            scs->static_config.opaque->chroma_qindex_offsets[pcs->temporal_layer_index];
+                        chroma_qindex += scs->static_config.opaque
+                                             ->chroma_qindex_offsets[pcs->temporal_layer_index];
                     }
 
                     chroma_qindex = CLIP3(quantizer_to_qindex[scs->static_config.min_qp_allowed],

@@ -1631,7 +1631,8 @@ void svt_aom_one_pass_rt_rate_alloc(PictureParentControlSet *pcs) {
      */
     // resize dynamic mode only works with 1-pass CBR low delay mode
     if (scs->static_config.opaque->resize_mode == RESIZE_DYNAMIC &&
-        scs->static_config.pass == ENC_SINGLE_PASS && scs->static_config.opaque->pred_structure == 1) {
+        scs->static_config.pass == ENC_SINGLE_PASS &&
+        scs->static_config.opaque->pred_structure == 1) {
         dynamic_resize_one_pass_cbr(pcs);
         if (rc->resize_state != scs->resize_pending_params.resize_state) {
             if (rc->resize_state == ORIG)
@@ -1768,10 +1769,12 @@ void svt_aom_set_rc_param(SequenceControlSet *scs) {
     enc_ctx->rc_cfg.cq_level                 = quantizer_to_qindex[scs->static_config.qp];
     enc_ctx->rc_cfg.maximum_buffer_size_ms   = is_vbr ? 240000
                                                       : scs->static_config.maximum_buffer_size_ms;
-    enc_ctx->rc_cfg.starting_buffer_level_ms = is_vbr ? 60000
-                                                      : scs->static_config.opaque->starting_buffer_level_ms;
-    enc_ctx->rc_cfg.optimal_buffer_level_ms  = is_vbr ? 60000
-                                                      : scs->static_config.opaque->optimal_buffer_level_ms;
+    enc_ctx->rc_cfg.starting_buffer_level_ms = is_vbr
+        ? 60000
+        : scs->static_config.opaque->starting_buffer_level_ms;
+    enc_ctx->rc_cfg.optimal_buffer_level_ms  = is_vbr
+         ? 60000
+         : scs->static_config.opaque->optimal_buffer_level_ms;
 
     // todo: to expose to a cli parameter
     enc_ctx->rc_cfg.max_intra_bitrate_pct = 300;
