@@ -21,6 +21,7 @@
 #include "EbReferenceObject.h"
 #include "EbCommonUtils.h"
 //#include "EbLog.h"
+#include "EbEncSettings.h"
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 /*************************************************************************************************
@@ -1151,8 +1152,8 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
             : 0;
     } else {
         uint16_t padding = scs->super_block_size + 32;
-        if (scs->static_config.superres_mode > SUPERRES_NONE ||
-            scs->static_config.resize_mode > RESIZE_NONE) {
+        if (scs->static_config.opaque->superres_mode > SUPERRES_NONE ||
+            scs->static_config.opaque->resize_mode > RESIZE_NONE) {
             padding += scs->super_block_size;
         }
         EbPictureBufferDescInitData temp_lf_recon_desc_init_data;

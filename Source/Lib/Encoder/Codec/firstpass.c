@@ -32,6 +32,7 @@
 #endif
 #include "EbMotionEstimation.h"
 #include "EbPictureDecisionResults.h"
+#include "EbEncSettings.h"
 
 //#include "EbMotionEstimationProcess.h"
 #undef _MM_HINT_T2

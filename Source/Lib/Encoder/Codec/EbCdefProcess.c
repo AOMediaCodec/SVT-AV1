@@ -25,6 +25,7 @@
 #include "EbUtility.h"
 #include "EbPictureControlSet.h"
 #include "EbResize.h"
+#include "EbEncSettings.h"
 
 void svt_aom_copy_sb8_16(uint16_t *dst, int32_t dstride, const uint8_t *src, int32_t src_voffset,
                          int32_t src_hoffset, int32_t sstride, int32_t vsize, int32_t hsize,
@@ -454,7 +455,7 @@ void *svt_aom_cdef_kernel(void *input_ptr) {
             if (frm_hdr->allow_intrabc == 0 && pcs->ppcs->frame_superres_enabled) {
                 svt_av1_superres_upscale_frame(cm, pcs, scs);
             }
-            if (scs->static_config.resize_mode != RESIZE_NONE) {
+            if (scs->static_config.opaque->resize_mode != RESIZE_NONE) {
                 EbPictureBufferDesc *recon = NULL;
                 svt_aom_get_recon_pic(pcs, &recon, is_16bit);
                 recon->width  = pcs->ppcs->render_width;

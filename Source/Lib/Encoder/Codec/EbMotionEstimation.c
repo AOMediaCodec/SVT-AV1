@@ -30,6 +30,7 @@
 
 #include "EbLog.h"
 #include "EbResize.h"
+#include "EbEncSettings.h"
 
 /********************************************
  * Constants
@@ -1393,7 +1394,7 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
             x_search_area_origin = x_search_center - (search_area_width >> 1);
             y_search_area_origin = y_search_center - (search_area_height >> 1);
 
-            if (scs->static_config.restricted_motion_vector) {
+            if (scs->static_config.opaque->restricted_motion_vector) {
                 // b64_geom in scs and ppcs are different when super-res is enabled
                 // ME_OPEN_LOOP is performed on downscaled frames while others (ME_MCTF and ME_FIRST_PASS) are performed on unscaled frames
                 B64Geom *b64_geom = me_ctx->me_type != ME_OPEN_LOOP
@@ -1455,7 +1456,7 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
                 search_area_width = (search_area_width < 8) ? search_area_width
                                                             : search_area_width & ~0x07;
             }
-            if (scs->static_config.restricted_motion_vector) {
+            if (scs->static_config.opaque->restricted_motion_vector) {
                 // b64_geom in scs and ppcs are different when super-res is enabled
                 // ME_OPEN_LOOP is performed on downscaled frames while others (ME_MCTF and ME_FIRST_PASS) are performed on unscaled frames
                 B64Geom *b64_geom = me_ctx->me_type != ME_OPEN_LOOP

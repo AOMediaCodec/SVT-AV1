@@ -29,6 +29,7 @@
 #include "EbResize.h"
 #include "EbMetadataHandle.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 typedef struct ResourceCoordinationContext {
     EbFifo                        *input_cmd_fifo_ptr;
@@ -340,18 +341,18 @@ static EbErrorType reset_pcs_av1(PictureParentControlSet *pcs) {
     frm_hdr->quantization_params.base_q_idx              = 31;
     frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_Y] = 0;
     frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y] =
-        pcs->scs->static_config.luma_y_dc_qindex_offset;
+        pcs->scs->static_config.opaque->luma_y_dc_qindex_offset;
     frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_U] =
-        pcs->scs->static_config.chroma_u_ac_qindex_offset;
+        pcs->scs->static_config.opaque->chroma_u_ac_qindex_offset;
     frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_U] =
-        pcs->scs->static_config.chroma_u_dc_qindex_offset;
+        pcs->scs->static_config.opaque->chroma_u_dc_qindex_offset;
     frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_V] =
-        pcs->scs->static_config.chroma_v_ac_qindex_offset;
+        pcs->scs->static_config.opaque->chroma_v_ac_qindex_offset;
     frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_V] =
-        pcs->scs->static_config.chroma_v_dc_qindex_offset;
+        pcs->scs->static_config.opaque->chroma_v_dc_qindex_offset;
 
     // Encoder
-    frm_hdr->quantization_params.using_qmatrix   = pcs->scs->static_config.enable_qm;
+    frm_hdr->quantization_params.using_qmatrix   = pcs->scs->static_config.opaque->enable_qm;
     frm_hdr->quantization_params.qm[AOM_PLANE_Y] = 5;
     frm_hdr->quantization_params.qm[AOM_PLANE_U] = 5;
     frm_hdr->quantization_params.qm[AOM_PLANE_V] = 5;
@@ -597,9 +598,9 @@ static EbErrorType realloc_sb_param(SequenceControlSet *scs, PictureParentContro
 }
 
 static void retrieve_resize_event(SequenceControlSet *scs, uint64_t pic_num, Bool *rc_reset_flag) {
-    if (scs->static_config.resize_mode != RESIZE_RANDOM_ACCESS)
+    if (scs->static_config.opaque->resize_mode != RESIZE_RANDOM_ACCESS)
         return;
-    const SvtAv1FrameScaleEvts *events = &scs->static_config.frame_scale_evts;
+    const SvtAv1FrameScaleEvts *events = &scs->static_config.opaque->frame_scale_evts;
     for (uint32_t i = 0; i < events->evt_num; i++) {
         if (!events->start_frame_nums || pic_num != events->start_frame_nums[i])
             continue;
@@ -736,7 +737,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
         // picture, 2. potential Overlay picture. In Picture Decision Process, where the overlay
         // frames are known, they extra pictures are released
         uint8_t has_overlay =
-            (scs->static_config.enable_overlays == FALSE ||
+            (scs->static_config.opaque->enable_overlays == FALSE ||
              context_ptr->scs_instance_array[instance_index]->enc_ctx->initial_picture)
             ? 0
             : 1;
@@ -768,8 +769,8 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             pcs->p_pcs_wrapper_ptr = pcs_wrapper;
 
             // reallocate sb_param_array and sb_geom for super-res or reference scaling mode on
-            if (scs->static_config.superres_mode > SUPERRES_NONE ||
-                scs->static_config.resize_mode > RESIZE_NONE)
+            if (scs->static_config.opaque->superres_mode > SUPERRES_NONE ||
+                scs->static_config.opaque->resize_mode > RESIZE_NONE)
                 realloc_sb_param(scs, pcs);
             else {
                 pcs->b64_geom         = scs->b64_geom;
@@ -831,8 +832,8 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             pcs->end_of_sequence_flag = end_of_sequence_flag;
             pcs->rc_reset_flag        = FALSE;
             update_frame_event(pcs, context_ptr->picture_number_array[instance_index]);
-            pcs->is_not_scaled = (scs->static_config.superres_mode == SUPERRES_NONE) &&
-                scs->static_config.resize_mode == RESIZE_NONE;
+            pcs->is_not_scaled = (scs->static_config.opaque->superres_mode == SUPERRES_NONE) &&
+                scs->static_config.opaque->resize_mode == RESIZE_NONE;
             if (loop_index == 1) {
                 // Get a new input picture for overlay.
                 EbObjectWrapper *input_pic_wrapper_ptr;
@@ -931,7 +932,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 // y8b follows longest life cycle of pa ref and input. so it needs to build on top of live count of pa ref
                 svt_object_inc_live_count(pcs->y8b_wrapper, 1);
             }
-            if (scs->static_config.restricted_motion_vector) {
+            if (scs->static_config.opaque->restricted_motion_vector) {
                 struct PictureParentControlSet *ppcs = pcs;
                 Av1Common *const                cm   = ppcs->av1_cm;
                 uint8_t   pic_width_in_sb = (uint8_t)((pcs->aligned_width + scs->sb_size - 1) /
@@ -989,7 +990,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                                      &output_wrapper_ptr);
                 out_results = (ResourceCoordinationResults *)output_wrapper_ptr->object_ptr;
 
-                if (scs->static_config.enable_overlays == TRUE) {
+                if (scs->static_config.opaque->enable_overlays == TRUE) {
                     // ppcs live_count + 1 for PictureAnalysis & PictureDecision, will svt_release_object(ppcs) at the end of svt_aom_picture_decision_kernel.
                     svt_object_inc_live_count(prev_pcs_wrapper_ptr, 1);
                 }

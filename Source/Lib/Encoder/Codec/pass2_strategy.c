@@ -24,6 +24,7 @@
 #include "firstpass.h"
 #include "EbSequenceControlSet.h"
 #include "EbEntropyCoding.h"
+#include "EbEncSettings.h"
 
 static void init_gf_stats(GF_GROUP_STATS *gf_stats);
 
@@ -922,7 +923,7 @@ static void calculate_active_worst_quality(PictureParentControlSet *ppcs, GF_GRO
             rate_error = (int)((rc->vbr_bits_off_target * 100) / bits);
             rate_error = clamp(rate_error, -100, 100);
             if (rate_error > 0) {
-                double rc_factor_min = scs->static_config.gop_constraint_rc
+                double rc_factor_min = scs->static_config.opaque->gop_constraint_rc
                     ? RC_FACTOR_MIN_GOP_CONST
                     : (scs->static_config.pass == ENC_SINGLE_PASS) ? RC_FACTOR_MIN_1P_VBR
                                                                    : RC_FACTOR_MIN;
@@ -1629,8 +1630,8 @@ void svt_aom_one_pass_rt_rate_alloc(PictureParentControlSet *pcs) {
      * other pictures already in pipeline use their own resolution without resizing
      */
     // resize dynamic mode only works with 1-pass CBR low delay mode
-    if (scs->static_config.resize_mode == RESIZE_DYNAMIC &&
-        scs->static_config.pass == ENC_SINGLE_PASS && scs->static_config.pred_structure == 1) {
+    if (scs->static_config.opaque->resize_mode == RESIZE_DYNAMIC &&
+        scs->static_config.pass == ENC_SINGLE_PASS && scs->static_config.opaque->pred_structure == 1) {
         dynamic_resize_one_pass_cbr(pcs);
         if (rc->resize_state != scs->resize_pending_params.resize_state) {
             if (rc->resize_state == ORIG)
@@ -1745,9 +1746,9 @@ void svt_aom_set_rc_param(SequenceControlSet *scs) {
     frame_info->num_mbs   = frame_info->mb_cols * frame_info->mb_rows;
     frame_info->bit_depth = scs->static_config.encoder_bit_depth;
     // input config  from options
-    enc_ctx->two_pass_cfg.vbrmin_section = scs->static_config.vbr_min_section_pct;
-    enc_ctx->two_pass_cfg.vbrmax_section = scs->static_config.vbr_max_section_pct;
-    enc_ctx->two_pass_cfg.vbrbias        = scs->static_config.vbr_bias_pct;
+    enc_ctx->two_pass_cfg.vbrmin_section = scs->static_config.opaque->vbr_min_section_pct;
+    enc_ctx->two_pass_cfg.vbrmax_section = scs->static_config.opaque->vbr_max_section_pct;
+    enc_ctx->two_pass_cfg.vbrbias        = scs->static_config.opaque->vbr_bias_pct;
     enc_ctx->rc_cfg.gf_cbr_boost_pct     = 0;
     enc_ctx->rc_cfg.mode           = scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR
                   ? AOM_VBR
@@ -1757,26 +1758,26 @@ void svt_aom_set_rc_param(SequenceControlSet *scs) {
     enc_ctx->rc_cfg.worst_allowed_q = (int32_t)
         quantizer_to_qindex[scs->static_config.max_qp_allowed];
 
-    if (scs->static_config.gop_constraint_rc) {
+    if (scs->static_config.opaque->gop_constraint_rc) {
         enc_ctx->rc_cfg.over_shoot_pct  = 0;
         enc_ctx->rc_cfg.under_shoot_pct = 0;
     } else {
-        enc_ctx->rc_cfg.over_shoot_pct  = scs->static_config.over_shoot_pct;
-        enc_ctx->rc_cfg.under_shoot_pct = scs->static_config.under_shoot_pct;
+        enc_ctx->rc_cfg.over_shoot_pct  = scs->static_config.opaque->over_shoot_pct;
+        enc_ctx->rc_cfg.under_shoot_pct = scs->static_config.opaque->under_shoot_pct;
     }
     enc_ctx->rc_cfg.cq_level                 = quantizer_to_qindex[scs->static_config.qp];
     enc_ctx->rc_cfg.maximum_buffer_size_ms   = is_vbr ? 240000
                                                       : scs->static_config.maximum_buffer_size_ms;
     enc_ctx->rc_cfg.starting_buffer_level_ms = is_vbr ? 60000
-                                                      : scs->static_config.starting_buffer_level_ms;
+                                                      : scs->static_config.opaque->starting_buffer_level_ms;
     enc_ctx->rc_cfg.optimal_buffer_level_ms  = is_vbr ? 60000
-                                                      : scs->static_config.optimal_buffer_level_ms;
+                                                      : scs->static_config.opaque->optimal_buffer_level_ms;
 
     // todo: to expose to a cli parameter
     enc_ctx->rc_cfg.max_intra_bitrate_pct = 300;
 
-    enc_ctx->sf_cfg.sframe_dist = scs->static_config.sframe_dist;
-    enc_ctx->sf_cfg.sframe_mode = scs->static_config.sframe_mode;
+    enc_ctx->sf_cfg.sframe_dist = scs->static_config.opaque->sframe_dist;
+    enc_ctx->sf_cfg.sframe_mode = scs->static_config.opaque->sframe_mode;
 }
 /******************************************************
  * Read Stat from File
@@ -2170,7 +2171,7 @@ void svt_aom_crf_assign_max_rate(PictureParentControlSet *ppcs) {
                : frames_in_sw;
     int64_t max_bits_sw = (int64_t)scs->static_config.max_bit_rate * (int32_t)frames_in_sw /
         frame_rate;
-    max_bits_sw += (max_bits_sw * scs->static_config.mbr_over_shoot_pct / 100);
+    max_bits_sw += (max_bits_sw * scs->static_config.opaque->mbr_over_shoot_pct / 100);
 
     // Loop over the sliding window and calculated the spent bits
     for (int index = start_index; index < end_index; index++) {

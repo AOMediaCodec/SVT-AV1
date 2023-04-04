@@ -518,7 +518,7 @@ void *svt_aom_initial_rate_control_kernel(void *input_ptr) {
             //   1. TPL is OFF and
             //   2. super-res mode is NONE or FIXED or RANDOM.
             //     For other super-res modes, pa_ref_objs are needed in TASK_SUPERRES_RE_ME task
-            if (pcs->tpl_ctrls.enable == 0 && scs->static_config.superres_mode <= SUPERRES_RANDOM)
+            if (pcs->tpl_ctrls.enable == 0 && scs->static_config.opaque->superres_mode <= SUPERRES_RANDOM)
                 svt_aom_release_pa_reference_objects(scs, pcs);
 
             /*In case Look-Ahead is zero there is no need to place pictures in the

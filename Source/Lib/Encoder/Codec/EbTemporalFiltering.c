@@ -34,6 +34,7 @@
 #include "EbLog.h"
 #include <limits.h>
 #include "EbPackUnPack_C.h"
+#include "EbEncSettings.h"
 
 #undef _MM_HINT_T2
 #define _MM_HINT_T2 1
@@ -5424,9 +5425,9 @@ EbErrorType svt_av1_init_temporal_filtering(
         // if stat_report is enabled for PSNR computation
         // or if superres recode is enabled
         SUPERRES_MODE superres_mode =
-            centre_pcs->scs->static_config.superres_mode;
+            centre_pcs->scs->static_config.opaque->superres_mode;
         SUPERRES_AUTO_SEARCH_TYPE search_type =
-            centre_pcs->scs->static_config.superres_auto_search_type;
+            centre_pcs->scs->static_config.opaque->superres_auto_search_type;
         uint32_t frame_update_type = svt_aom_get_frame_update_type(centre_pcs->scs,
                                                            centre_pcs);
         Bool   superres_recode_enabled = (superres_mode == SUPERRES_AUTO) &&

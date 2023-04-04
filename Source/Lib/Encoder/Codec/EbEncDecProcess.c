@@ -27,6 +27,7 @@
 #include "EbPictureAnalysisProcess.h"
 #include "EbResize.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
@@ -138,7 +139,7 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext   *thread_ctx,
                .split_mode         = FALSE,
            });
 #if OPT_LD_M9
-    const bool rtc_tune = (static_config->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+    const bool rtc_tune = (static_config->opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
                                                                                       : false;
     // Mode Decision Context
     EB_NEW(ed_ctx->md_ctx,
@@ -151,7 +152,7 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext   *thread_ctx,
            0,
            0,
            enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
-           static_config->screen_content_mode,
+           static_config->opaque->screen_content_mode,
            rtc_tune,
            static_config->hierarchical_levels);
 #else
@@ -166,7 +167,7 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext   *thread_ctx,
            0,
            0,
            enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
-           static_config->screen_content_mode,
+           static_config->opaque->screen_content_mode,
            static_config->hierarchical_levels);
 #endif
 
@@ -510,7 +511,7 @@ void svt_aom_recon_output(PictureControlSet *pcs, SequenceControlSet *scs) {
             // easy to display in tool and analysis
             uint16_t recon_w = recon_ptr->width;
             uint16_t recon_h = recon_ptr->height;
-            if (scs->static_config.resize_mode != RESIZE_NONE) {
+            if (scs->static_config.opaque->resize_mode != RESIZE_NONE) {
                 recon_w = recon_ptr->max_width; //ALIGN_POWER_OF_TWO(recon_ptr->width, 3);
                 recon_h = recon_ptr->max_height; //ALIGN_POWER_OF_TWO(recon_ptr->height, 3);
             }
@@ -2929,7 +2930,7 @@ static void lpd1_detector_skip_pd0(PictureControlSet *pcs, ModeDecisionContext *
     }
 #else
 #if OPT_LD_P2
-    const bool rtc_tune = (pcs->scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
+    const bool rtc_tune = (pcs->scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B)
         ? true
         : false;
     if (rtc_tune) {
@@ -3469,7 +3470,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
 
                                 // If LPD0 is used, a more conservative level can be set for complex SBs
 #if OPT_LD_P2
-                        const bool rtc_tune = (scs->static_config.pred_structure ==
+                        const bool rtc_tune = (scs->static_config.opaque->pred_structure ==
                                                SVT_AV1_PRED_LOW_DELAY_B)
                             ? true
                             : false;

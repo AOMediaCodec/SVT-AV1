@@ -29,6 +29,7 @@
 #include "EbInterPrediction.h"
 #include "EbModeDecision.h"
 #include "EbRestoration.h"
+#include "EbEncSettings.h"
 
 static void mem_put_varsize(uint8_t *const dst, const int sz, const int val) {
     switch (sz) {
@@ -3049,10 +3050,10 @@ static AOM_INLINE void write_color_config(const SequenceControlSet *const scs,
             svt_aom_wb_write_literal(wb, scs->static_config.chroma_sample_position, 2);
         }
     }
-    Bool separate_uv_delta_q = (scs->static_config.chroma_u_ac_qindex_offset !=
-                                    scs->static_config.chroma_v_ac_qindex_offset ||
-                                scs->static_config.chroma_u_dc_qindex_offset !=
-                                    scs->static_config.chroma_v_dc_qindex_offset);
+    Bool separate_uv_delta_q = (scs->static_config.opaque->chroma_u_ac_qindex_offset !=
+                                    scs->static_config.opaque->chroma_v_ac_qindex_offset ||
+                                scs->static_config.opaque->chroma_u_dc_qindex_offset !=
+                                    scs->static_config.opaque->chroma_v_dc_qindex_offset);
     svt_aom_wb_write_bit(wb, separate_uv_delta_q);
 }
 

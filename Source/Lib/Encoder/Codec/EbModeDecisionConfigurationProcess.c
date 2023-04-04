@@ -28,6 +28,7 @@
 #include "EbResize.h"
 #include "EbInvTransforms.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 #define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
 static MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
@@ -203,8 +204,8 @@ void svt_av1_qm_init(PictureParentControlSet *pcs) {
     }
 
     if (pcs->frm_hdr.quantization_params.using_qmatrix) {
-        const int32_t min_qmlevel = pcs->scs->static_config.min_qm_level;
-        const int32_t max_qmlevel = pcs->scs->static_config.max_qm_level;
+        const int32_t min_qmlevel = pcs->scs->static_config.opaque->min_qm_level;
+        const int32_t max_qmlevel = pcs->scs->static_config.opaque->max_qm_level;
         const int32_t base_qindex = pcs->frm_hdr.quantization_params.base_q_idx;
 
         pcs->frm_hdr.quantization_params.qm[AOM_PLANE_Y] = aom_get_qmlevel(
@@ -614,7 +615,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         // reference scaling resizes reference frame to different size, need check each reference frame for scaling
         // -------
         if ((pcs->ppcs->frame_superres_enabled == 1 ||
-             scs->static_config.resize_mode != RESIZE_NONE) &&
+             scs->static_config.opaque->resize_mode != RESIZE_NONE) &&
             pcs->slice_type != I_SLICE) {
             if (pcs->ppcs->is_ref == TRUE && pcs->ppcs->ref_pic_wrapper != NULL) {
                 // update mi_rows and mi_cols for the reference pic wrapper (used in mfmv for other
@@ -629,7 +630,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
 #if OPT_LD_SKIPTX
-        pcs->rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+        pcs->rtc_tune = (scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
                                                                                         : false;
 #endif
         // Mode Decision Configuration Kernel Signal(s) derivation

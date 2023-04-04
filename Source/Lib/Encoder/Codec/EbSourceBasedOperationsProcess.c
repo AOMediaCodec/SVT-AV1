@@ -34,6 +34,8 @@
 #include "av1me.h"
 #include "EbEncInterPrediction.h"
 #include "EbResize.h"
+#include "EbEncSettings.h"
+
 /**************************************
  * Context
  **************************************/
@@ -2037,7 +2039,7 @@ static EbErrorType tpl_mc_flow(EncodeContext *enc_ctx, SequenceControlSet *scs,
 
     // When super-res recode is actived, don't release pa_ref_objs until final loop is finished
     // Although tpl-la won't be enabled in super-res FIXED or RANDOM mode, here we use the condition to align with that in initial rate control process
-    Bool release_pa_ref = (scs->static_config.superres_mode <= SUPERRES_RANDOM) ? TRUE : FALSE;
+    Bool release_pa_ref = (scs->static_config.opaque->superres_mode <= SUPERRES_RANDOM) ? TRUE : FALSE;
     for (uint32_t i = 0; i < pcs->tpl_group_size; i++) {
         if (release_pa_ref) {
             if (pcs->tpl_group[i]->slice_type == P_SLICE) {
@@ -2245,7 +2247,7 @@ void *svt_aom_source_based_operations_kernel(void *input_ptr) {
                 tpl_prep_info(pcs);
                 tpl_mc_flow(scs->enc_ctx, scs, pcs, context_ptr);
             }
-            Bool release_pa_ref = (scs->static_config.superres_mode <= SUPERRES_RANDOM) ? TRUE
+            Bool release_pa_ref = (scs->static_config.opaque->superres_mode <= SUPERRES_RANDOM) ? TRUE
                                                                                         : FALSE;
             // Release Pa Ref if lad_mg is 0 and P slice and not flat struct (not belonging to any TPL group)
             if (release_pa_ref && /*scs->lad_mg == 0 &&*/ pcs->reference_released == 0) {

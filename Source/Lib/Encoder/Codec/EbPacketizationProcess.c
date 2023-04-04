@@ -26,6 +26,7 @@
 #include "EbRestoration.h" // RDCOST_DBL
 #include "EbRateControlProcess.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 #define RDCOST_DBL_WITH_NATIVE_BD_DIST(RM, R, D, BD) \
     RDCOST_DBL((RM), (R), (double)((D) >> (2 * (BD - 8))))
@@ -666,16 +667,16 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                                                     output_stream_wrapper_ptr->object_ptr;
 
         if (frm_hdr->frame_type == KEY_FRAME) {
-            if (scs->static_config.mastering_display.max_luma)
+            if (scs->static_config.opaque->mastering_display.max_luma)
                 svt_add_metadata(pcs->ppcs->input_ptr,
                                  EB_AV1_METADATA_TYPE_HDR_MDCV,
-                                 (const uint8_t *)&scs->static_config.mastering_display,
-                                 sizeof(scs->static_config.mastering_display));
-            if (scs->static_config.content_light_level.max_cll)
+                                 (const uint8_t *)&scs->static_config.opaque->mastering_display,
+                                 sizeof(scs->static_config.opaque->mastering_display));
+            if (scs->static_config.opaque->content_light_level.max_cll)
                 svt_add_metadata(pcs->ppcs->input_ptr,
                                  EB_AV1_METADATA_TYPE_HDR_CLL,
-                                 (const uint8_t *)&scs->static_config.content_light_level,
-                                 sizeof(scs->static_config.content_light_level));
+                                 (const uint8_t *)&scs->static_config.opaque->content_light_level,
+                                 sizeof(scs->static_config.opaque->content_light_level));
         }
 
         output_stream_ptr->flags = 0;

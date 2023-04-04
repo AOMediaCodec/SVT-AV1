@@ -20,6 +20,7 @@
 #include "EbResourceCoordinationProcess.h"
 #include "EbModeDecisionConfigurationProcess.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 void svt_aom_set_tile_info(PictureParentControlSet *pcs);
 
@@ -281,7 +282,7 @@ static EbErrorType create_neighbor_array_units(InitData *data, size_t count) {
 
 EbErrorType rtime_alloc_palette_tokens(SequenceControlSet *scs, PictureControlSet *child_pcs) {
     if (child_pcs->ppcs->frm_hdr.allow_screen_content_tools) {
-        if (scs->static_config.screen_content_mode) {
+        if (scs->static_config.opaque->screen_content_mode) {
             uint32_t     mi_cols = scs->max_input_luma_width >> MI_SIZE_LOG2;
             uint32_t     mi_rows = scs->max_input_luma_height >> MI_SIZE_LOG2;
             uint32_t     mb_cols = (mi_cols + 2) >> 2;
@@ -449,9 +450,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
     object_ptr->temp_lf_recon_pic                 = (EbPictureBufferDesc *)NULL;
     object_ptr->scaled_input_pic                  = (EbPictureBufferDesc *)NULL;
     if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
-                                       init_data_ptr->static_config.enable_restoration_filtering,
+                                       init_data_ptr->static_config.opaque->enable_restoration_filtering,
                                        init_data_ptr->input_resolution,
-                                       init_data_ptr->static_config.fast_decode)) {
+                                       init_data_ptr->static_config.opaque->fast_decode)) {
         set_restoration_unit_size(init_data_ptr->picture_width,
                                   init_data_ptr->picture_height,
                                   1,
@@ -1217,9 +1218,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
     }
 
     if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
-                                       init_data_ptr->static_config.enable_restoration_filtering,
+                                       init_data_ptr->static_config.opaque->enable_restoration_filtering,
                                        init_data_ptr->input_resolution,
-                                       init_data_ptr->static_config.fast_decode))
+                                       init_data_ptr->static_config.opaque->fast_decode))
         EB_MALLOC_ALIGNED(object_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
 
     return EB_ErrorNone;

@@ -21,6 +21,7 @@
 #include "aom_dsp_rtcd.h"
 #include "EbModeDecisionProcess.h"
 #include "EbEncInterPrediction.h"
+#include "EbEncSettings.h"
 
 #define DIVIDE_AND_ROUND(x, y) (((x) + ((y) >> 1)) / (y))
 
@@ -1232,8 +1233,8 @@ static double get_energy_by_q2_thresh(const RATE_CONTROL *rc, int frame_update_t
 static int av1_superres_in_recode_allowed(SequenceControlSet *scs) {
     const EbSvtAv1EncConfiguration *const static_config = &scs->static_config;
     // Empirically found to not be beneficial for image coding.
-    return static_config->superres_mode == SUPERRES_AUTO &&
-        static_config->superres_auto_search_type != SUPERRES_AUTO_SOLO /* &&
+    return static_config->opaque->superres_mode == SUPERRES_AUTO &&
+        static_config->opaque->superres_auto_search_type != SUPERRES_AUTO_SOLO /* &&
         scs->enc_ctx->rc.frames_to_key > 1*/
         ;
 }
@@ -1306,7 +1307,7 @@ static uint8_t get_superres_denom_for_qindex(SequenceControlSet *scs, PicturePar
 #endif
 
     if (av1_superres_in_recode_allowed(scs)) {
-        assert(scs->static_config.superres_mode != SUPERRES_NONE);
+        assert(scs->static_config.opaque->superres_mode != SUPERRES_NONE);
         // Force superres to be tried in the recode loop, as full-res is also going
         // to be tried anyway.
         denom = AOMMAX(denom, SCALE_NUMERATOR + 1);
@@ -1326,11 +1327,11 @@ static void calc_superres_params(superres_params_type *spr_params, SequenceContr
     static unsigned int seed        = 34567;
     FrameHeader        *frm_hdr     = &pcs->frm_hdr;
 
-    uint8_t superres_mode      = scs->static_config.superres_mode;
-    uint8_t cfg_denom          = scs->static_config.superres_denom;
-    uint8_t cfg_kf_denom       = scs->static_config.superres_kf_denom;
-    uint8_t superres_qthres    = quantizer_to_qindex[scs->static_config.superres_qthres];
-    uint8_t superres_kf_qthres = quantizer_to_qindex[scs->static_config.superres_kf_qthres];
+    uint8_t superres_mode      = scs->static_config.opaque->superres_mode;
+    uint8_t cfg_denom          = scs->static_config.opaque->superres_denom;
+    uint8_t cfg_kf_denom       = scs->static_config.opaque->superres_kf_denom;
+    uint8_t superres_qthres    = quantizer_to_qindex[scs->static_config.opaque->superres_qthres];
+    uint8_t superres_kf_qthres = quantizer_to_qindex[scs->static_config.opaque->superres_kf_qthres];
 
     // super-res can only be enabled in case allow_intrabc is disabled
     if (frm_hdr->allow_intrabc)
@@ -1362,7 +1363,7 @@ static void calc_superres_params(superres_params_type *spr_params, SequenceContr
     case SUPERRES_AUTO: {
         const int q = quantizer_to_qindex[pcs->picture_qp];
 
-        const int sr_search_type = scs->static_config.superres_auto_search_type;
+        const int sr_search_type = scs->static_config.opaque->superres_auto_search_type;
         const int qthresh        = (sr_search_type == SUPERRES_AUTO_SOLO) ? 128 : 0;
         if (q <= qthresh) {
             spr_params->superres_denom = SCALE_NUMERATOR; // Don't use superres.
@@ -1639,7 +1640,7 @@ void scale_source_references(SequenceControlSet *scs, PictureParentControlSet *p
                                                                    [resize_denom_idx] == NULL) {
                     superres_params_type spr_params = {pcs->frame_width, // aligned_width
                                                        pcs->frame_height, // aligned_height
-                                                       scs->static_config.superres_mode};
+                                                       scs->static_config.opaque->superres_mode};
 
                     // Allocate downsampled reference picture buffer descriptors
                     allocate_downscaled_source_reference_pics(
@@ -1945,13 +1946,13 @@ static uint8_t calculate_next_resize_scale(const SequenceControlSet      *scs,
     uint8_t                         new_denom = SCALE_NUMERATOR;
 
     // if (reduced_still_picture_hdr) return SCALE_NUMERATOR; // TODO: reduced_still_picture_hdr not supported
-    switch (cfg->resize_mode) {
+    switch (cfg->opaque->resize_mode) {
     case RESIZE_NONE: new_denom = SCALE_NUMERATOR; break;
     case RESIZE_FIXED:
         if (pcs->frm_hdr.frame_type == KEY_FRAME)
-            new_denom = cfg->resize_kf_denom;
+            new_denom = cfg->opaque->resize_kf_denom;
         else
-            new_denom = cfg->resize_denom;
+            new_denom = cfg->opaque->resize_denom;
         break;
     case RESIZE_RANDOM: new_denom = lcg_rand16(&seed) % 9 + 8; break;
     case RESIZE_DYNAMIC: new_denom = scs->resize_pending_params.resize_denom; break;
@@ -2047,12 +2048,12 @@ void svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSe
 
     superres_params_type spr_params = {input_pic->width, // encoding_width
                                        input_pic->height, // encoding_height
-                                       scs->static_config.superres_denom};
+                                       scs->static_config.opaque->superres_denom};
     Bool                 do_resize  = FALSE;
 
     // step 1: calculate resized resolution
     pcs->resize_denom = SCALE_NUMERATOR;
-    if (scs->static_config.resize_mode > RESIZE_NONE)
+    if (scs->static_config.opaque->resize_mode > RESIZE_NONE)
         pcs->resize_denom = calculate_next_resize_scale(scs, pcs);
     pcs->frame_resize_enabled = (pcs->resize_denom == SCALE_NUMERATOR ? FALSE : TRUE);
     if (pcs->frame_resize_enabled == TRUE) {
@@ -2063,8 +2064,8 @@ void svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSe
     pcs->render_height = spr_params.encoding_height;
 
     // step 2: calculate super-res resolution
-    if (scs->static_config.superres_mode > SUPERRES_NONE) {
-        Bool first_loop = !(scs->static_config.superres_mode == SUPERRES_AUTO &&
+    if (scs->static_config.opaque->superres_mode > SUPERRES_NONE) {
+        Bool first_loop = !(scs->static_config.opaque->superres_mode == SUPERRES_AUTO &&
                             pcs->superres_recode_loop > 0);
         if (first_loop) { // first loop of multiple coding loop (auto-dual or auto-all mode) or the only loop (all the other modes)
             // determine super-res denom
@@ -2079,8 +2080,8 @@ void svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSe
         }
         if (spr_params.superres_denom != SCALE_NUMERATOR) {
             uint8_t resize_denom = pcs->resize_denom;
-            if (!validate_size_scales(scs->static_config.resize_mode,
-                                      scs->static_config.superres_mode,
+            if (!validate_size_scales(scs->static_config.opaque->resize_mode,
+                                      scs->static_config.opaque->superres_mode,
                                       input_pic->width,
                                       input_pic->height,
                                       &spr_params,

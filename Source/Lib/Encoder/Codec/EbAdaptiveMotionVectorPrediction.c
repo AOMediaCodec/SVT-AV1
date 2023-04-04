@@ -20,6 +20,7 @@
 #include "EbEntropyCoding.h"
 #include "EbInterPrediction.h"
 #include "aom_dsp_rtcd.h"
+#include "EbEncSettings.h"
 
 int svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
 
@@ -1158,7 +1159,7 @@ void svt_aom_generate_av1_mvp_table(ModeDecisionContext *ctx, BlkStruct *blk_ptr
     uint8_t symteric_refs = 0;
     IntMv   mv_ref0[64];
     if (pcs->temporal_layer_index > 0)
-        if (pcs->ppcs->scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS)
+        if (pcs->ppcs->scs->static_config.opaque->pred_structure == SVT_AV1_PRED_RANDOM_ACCESS)
             if (tot_refs == 3 && ref_frames[0] == LAST_FRAME && ref_frames[1] == BWDREF_FRAME &&
                 ref_frames[2] == LAST_BWD_FRAME)
                 symteric_refs = 1;

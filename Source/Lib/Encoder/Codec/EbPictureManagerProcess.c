@@ -25,6 +25,7 @@
 #include "EbSvtAv1ErrorCodes.h"
 #include "EbEntropyCoding.h"
 #include "EbLog.h"
+#include "EbEncSettings.h"
 
 // Token buffer is only used for palette tokens.
 static INLINE unsigned int get_token_alloc(int mb_rows, int mb_cols, int sb_size_log2,
@@ -344,8 +345,8 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
             pcs = (PictureParentControlSet *)input_pic_demux->pcs_wrapper->object_ptr;
             scs = pcs->scs;
 
-            assert(scs->static_config.superres_mode == SUPERRES_QTHRESH ||
-                   scs->static_config.superres_mode == SUPERRES_AUTO);
+            assert(scs->static_config.opaque->superres_mode == SUPERRES_QTHRESH ||
+                   scs->static_config.opaque->superres_mode == SUPERRES_AUTO);
 
             // setup child pcs to reflect superres config. E.g. sb count, sb orig, tile info, etc.
             superres_setup_child_pcs(scs, pcs);
@@ -688,8 +689,8 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
 
                         // force re-ctor sb_ptr since child_pcs_ptrs are reused, and sb_ptr could be
                         // altered by superres tool when coding previous pictures
-                        if (scs->static_config.superres_mode > SUPERRES_NONE ||
-                            scs->static_config.resize_mode > RESIZE_NONE) {
+                        if (scs->static_config.opaque->superres_mode > SUPERRES_NONE ||
+                            scs->static_config.opaque->resize_mode > RESIZE_NONE) {
                             // Modify sb_prt_array in child pcs
                             uint16_t sb_index;
                             uint16_t sb_origin_x = 0;

@@ -31,6 +31,7 @@
 #include "EbPictureOperators.h"
 #include "EbResize.h"
 #include "av1me.h"
+#include "EbEncSettings.h"
 
 void svt_aom_generate_padding_compressed_10bit(
     EbByte   src_pic, //output paramter, pointer to the source picture to be padded.
@@ -1522,13 +1523,13 @@ static int32_t apply_denoise_2d(SequenceControlSet *scs, PictureParentControlSet
     DenoiseAndModelInitData fg_init_data;
     fg_init_data.encoder_bit_depth    = pcs->enhanced_pic->bit_depth;
     fg_init_data.encoder_color_format = pcs->enhanced_pic->color_format;
-    fg_init_data.noise_level          = scs->static_config.film_grain_denoise_strength;
+    fg_init_data.noise_level          = scs->static_config.opaque->film_grain_denoise_strength;
     fg_init_data.width                = pcs->enhanced_pic->width;
     fg_init_data.height               = pcs->enhanced_pic->height;
     fg_init_data.stride_y             = pcs->enhanced_pic->stride_y;
     fg_init_data.stride_cb            = pcs->enhanced_pic->stride_cb;
     fg_init_data.stride_cr            = pcs->enhanced_pic->stride_cr;
-    fg_init_data.denoise_apply        = scs->static_config.film_grain_denoise_apply;
+    fg_init_data.denoise_apply        = scs->static_config.opaque->film_grain_denoise_apply;
     EB_NEW(denoise_and_model, svt_aom_denoise_and_model_ctor, (EbPtr)&fg_init_data);
 
     if (svt_aom_denoise_and_model_run(denoise_and_model,
@@ -1550,7 +1551,7 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs,
     EbPictureBufferDesc *input_pic         = pcs->enhanced_pic;
     frm_hdr->film_grain_params.apply_grain = 0;
 
-    if (scs->static_config.film_grain_denoise_strength) {
+    if (scs->static_config.opaque->film_grain_denoise_strength) {
         if (apply_denoise_2d(scs, pcs, input_pic) < 0)
             return 1;
     }
@@ -1568,7 +1569,7 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet      *scs,
  ************************************************/
 void svt_aom_picture_pre_processing_operations(PictureParentControlSet *pcs,
                                                SequenceControlSet      *scs) {
-    if (scs->static_config.film_grain_denoise_strength)
+    if (scs->static_config.opaque->film_grain_denoise_strength)
         denoise_estimate_film_grain(scs, pcs);
     return;
 }
@@ -2362,10 +2363,10 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
                     (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
 
             // If running multi-threaded mode, perform SC detection in svt_aom_picture_analysis_kernel, else in svt_aom_picture_decision_kernel
-            if (scs->static_config.logical_processors != 1) {
+            if (scs->static_config.opaque->logical_processors != 1) {
                 if ((scs->static_config.pass != ENC_FIRST_PASS || copy_frame) == 0) {
                     pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = 0;
-                } else if (scs->static_config.screen_content_mode == 2) { // auto detect
+                } else if (scs->static_config.opaque->screen_content_mode == 2) { // auto detect
                     // SC Detection is OFF for 4K and higher
                     if (scs->input_resolution <= INPUT_SIZE_1080p_RANGE)
                         svt_aom_is_screen_content(pcs);
@@ -2374,7 +2375,7 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
 
                 } else // off / on
                     pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 =
-                        scs->static_config.screen_content_mode;
+                        scs->static_config.opaque->screen_content_mode;
             }
         }
         // Get Empty Results Object

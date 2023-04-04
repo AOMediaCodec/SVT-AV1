@@ -54,6 +54,8 @@
 #if LOG_ENC_DONE
 int tot_frames_done = 0;
 #endif
+
+
 /***************************************
  * External Functions
  ***************************************/

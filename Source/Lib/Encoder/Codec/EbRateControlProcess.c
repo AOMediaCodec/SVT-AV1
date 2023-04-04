@@ -750,7 +750,7 @@ static void adjust_active_best_and_worst_quality_org(PictureControlSet *pcs, RAT
     // Extension to max or min Q if undershoot or overshoot is outside
     // the permitted range.
     if (frame_is_intra_only(pcs->ppcs) ||
-        (scs->static_config.gop_constraint_rc && pcs->ppcs->is_ref) ||
+        (scs->static_config.opaque->gop_constraint_rc && pcs->ppcs->is_ref) ||
         (pcs->ppcs->temporal_layer_index < 2 && scs->is_short_clip) ||
         (pcs->ppcs->is_ref && !scs->is_short_clip)) {
         active_best_quality -= (twopass->extend_minq + twopass->extend_minq_fast);
@@ -1042,8 +1042,8 @@ static int cqp_qindex_calc(PictureControlSet *pcs, int qindex) {
         : MAX(q_val - (q_val * percents[pcs->ppcs->hierarchical_levels <= 4][offset_idx] / 100),
               0.0);
 
-    if (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
-        scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+    if (scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_P ||
+        scs->static_config.opaque->pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
         if (pcs->ppcs->temporal_layer_index) {
             int8_t boost = non_base_boost(pcs);
             if (boost)
@@ -1385,7 +1385,7 @@ static void sb_qp_derivation(PictureControlSet *pcs) {
         pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
     // super res pictures scaled with different sb count, should use sb_total_count for each picture
     uint16_t sb_cnt = scs->sb_total_count;
-    if (scs->static_config.superres_mode > SUPERRES_NONE)
+    if (scs->static_config.opaque->superres_mode > SUPERRES_NONE)
         sb_cnt = ppcs->b64_total_count;
     if (pcs->ppcs->frm_hdr.delta_q_params.delta_q_present) {
         uint64_t avg_me_dist = 0;
@@ -2805,7 +2805,7 @@ static void capped_crf_reencode(PictureParentControlSet *ppcs, int *const q) {
                : frames_in_sw;
     int64_t max_bits_sw = (int64_t)scs->static_config.max_bit_rate * (int32_t)frames_in_sw /
         frame_rate;
-    max_bits_sw += (max_bits_sw * scs->static_config.mbr_over_shoot_pct / 100);
+    max_bits_sw += (max_bits_sw * scs->static_config.opaque->mbr_over_shoot_pct / 100);
     // Loop over the sliding window and calculated the spent bits
     for (int index = start_index; index < end_index; index++) {
         int32_t queue_entry_index                 = (index > CODED_FRAMES_STAT_QUEUE_MAX_DEPTH - 1)
@@ -3146,7 +3146,7 @@ static void restore_two_pass_param(PictureParentControlSet         *ppcs,
         ppcs->stats_in_end_offset;
     twopass->kf_group_bits       = rate_control_param_ptr->kf_group_bits;
     twopass->kf_group_error_left = rate_control_param_ptr->kf_group_error_left;
-    if (scs->static_config.gop_constraint_rc) {
+    if (scs->static_config.opaque->gop_constraint_rc) {
         twopass->extend_minq         = rate_control_param_ptr->extend_minq;
         twopass->extend_maxq         = rate_control_param_ptr->extend_maxq;
         twopass->extend_minq_fast    = rate_control_param_ptr->extend_minq_fast;
@@ -3169,7 +3169,7 @@ static void restore_param(PictureParentControlSet         *ppcs,
     SequenceControlSet *scs    = ppcs->scs;
     EncodeContext      *ec_ctx = scs->enc_ctx;
 
-    if (scs->static_config.gop_constraint_rc &&
+    if (scs->static_config.opaque->gop_constraint_rc &&
         rate_control_param_ptr->first_poc == ppcs->picture_number) {
         rate_control_param_ptr->rolling_target_bits = ec_ctx->rc.avg_frame_bandwidth;
         rate_control_param_ptr->rolling_actual_bits = ec_ctx->rc.avg_frame_bandwidth;
@@ -3398,8 +3398,8 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
         // Modify these for different temporal layers later
         switch (task_type) {
         case RC_INPUT_SUPERRES_RECODE:
-            assert(scs->static_config.superres_mode == SUPERRES_QTHRESH ||
-                   scs->static_config.superres_mode == SUPERRES_AUTO);
+            assert(scs->static_config.opaque->superres_mode == SUPERRES_QTHRESH ||
+                   scs->static_config.opaque->superres_mode == SUPERRES_AUTO);
             // intentionally reuse code in RC_INPUT
         case RC_INPUT:
             pcs = (PictureControlSet *)rc_tasks->pcs_wrapper->object_ptr;
@@ -3503,17 +3503,17 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                                 (int32_t)(new_qindex));
                         }
 
-                        if (scs->static_config.use_fixed_qindex_offsets) {
-                            int32_t qindex = scs->static_config.use_fixed_qindex_offsets == 1
+                        if (scs->static_config.opaque->use_fixed_qindex_offsets) {
+                            int32_t qindex = scs->static_config.opaque->use_fixed_qindex_offsets == 1
                                 ? quantizer_to_qindex[(uint8_t)scs->static_config.qp]
                                 : frm_hdr->quantization_params
                                       .base_q_idx; // do not shut the auto QPS if use_fixed_qindex_offsets 2
 
                             if (!frame_is_intra_only(pcs->ppcs)) {
                                 qindex +=
-                                    scs->static_config.qindex_offsets[pcs->temporal_layer_index];
+                                    scs->static_config.opaque->qindex_offsets[pcs->temporal_layer_index];
                             } else {
-                                qindex += scs->static_config.key_frame_qindex_offset;
+                                qindex += scs->static_config.opaque->key_frame_qindex_offset;
                             }
 
                             qindex = CLIP3(quantizer_to_qindex[scs->static_config.min_qp_allowed],
@@ -3530,10 +3530,10 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                     }
                     int32_t chroma_qindex = frm_hdr->quantization_params.base_q_idx;
                     if (frame_is_intra_only(pcs->ppcs)) {
-                        chroma_qindex += scs->static_config.key_frame_chroma_qindex_offset;
+                        chroma_qindex += scs->static_config.opaque->key_frame_chroma_qindex_offset;
                     } else {
                         chroma_qindex +=
-                            scs->static_config.chroma_qindex_offsets[pcs->temporal_layer_index];
+                            scs->static_config.opaque->chroma_qindex_offsets[pcs->temporal_layer_index];
                     }
 
                     chroma_qindex = CLIP3(quantizer_to_qindex[scs->static_config.min_qp_allowed],
@@ -3585,7 +3585,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                         if ((pcs->slice_type == B_SLICE) &&
                             (pcs->ref_slice_type_array[1][0] != I_SLICE))
                             ref_qp = MAX(ref_qp, pcs->ref_pic_qp_array[1][0]);
-                        if (scs->static_config.gop_constraint_rc) {
+                        if (scs->static_config.opaque->gop_constraint_rc) {
                             if (ref_qp > 2 && pcs->picture_qp < ref_qp - 2) {
                                 pcs->picture_qp = (uint8_t)CLIP3(scs->static_config.min_qp_allowed,
                                                                  scs->static_config.max_qp_allowed,
@@ -3650,7 +3650,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                 // if superres_mode is SUPERRES_QTHRESH or SUPERRES_AUTO.
                 // SUPERRES_FIXED and SUPERRES_RANDOM modes are handled in picture decision process.
                 if (scs->static_config.pass == ENC_SINGLE_PASS) {
-                    if (scs->static_config.superres_mode > SUPERRES_RANDOM) {
+                    if (scs->static_config.opaque->superres_mode > SUPERRES_RANDOM) {
                         // determine denom and scale down picture by selected denom
                         svt_aom_init_resize_picture(scs, pcs->ppcs);
                         if (pcs->ppcs->frame_superres_enabled || pcs->ppcs->frame_resize_enabled) {
@@ -3769,7 +3769,7 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                 svt_release_mutex(scs->enc_ctx->rc_param_queue_mutex);
             }
             if (scs->static_config.rate_control_mode) {
-                if (scs->static_config.gop_constraint_rc) {
+                if (scs->static_config.opaque->gop_constraint_rc) {
                     av1_rc_postencode_update_gop_const(ppcs);
                     // Qindex calculating
                     if (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR)

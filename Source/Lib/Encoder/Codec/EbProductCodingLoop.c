@@ -34,6 +34,7 @@
 #include "EbPackUnPack_C.h"
 #include "EbEncInterPrediction.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 #include "EbInterPrediction.h"
 #if OPT_LD_SKIPTX

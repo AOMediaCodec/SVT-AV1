@@ -13,6 +13,7 @@
 
 #include "EbSequenceControlSet.h"
 #include "EbUtility.h"
+#include "EbEncSettings.h"
 
 static void free_scale_evts(SvtAv1FrameScaleEvts *evts) {
     EB_FREE_ARRAY(evts->resize_denoms);
@@ -27,7 +28,7 @@ static void svt_sequence_control_set_dctor(EbPtr p) {
         return;
     EB_FREE_ARRAY(obj->b64_geom);
     EB_FREE_ARRAY(obj->sb_geom);
-    free_scale_evts(&obj->static_config.frame_scale_evts);
+    free_scale_evts(&obj->static_config.opaque->frame_scale_evts);
     free(obj->static_config.opaque);
 }
 /**************************************************************************************************

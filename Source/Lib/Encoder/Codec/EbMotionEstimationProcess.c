@@ -34,6 +34,7 @@
 #include "firstpass.h"
 #include "EbInitialRateControlProcess.h"
 #include "EncModeConfig.h"
+#include "EbEncSettings.h"
 
 /* --32x32-
 |00||01|
