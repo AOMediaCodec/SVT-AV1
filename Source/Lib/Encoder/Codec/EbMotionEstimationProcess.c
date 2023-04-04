@@ -63,7 +63,7 @@ EbErrorType check_00_center(PictureParentControlSet *pcs, EbPictureBufferDesc *r
 void open_loop_first_pass(struct PictureParentControlSet *ppcs_ptr,
                           MotionEstimationContext_t *me_context_ptr, int32_t segment_index);
 #if OPT_PRED_STRUCT_CLASSIFIER
-void dg_detector_hme_level0(struct PictureParentControlSet *ppcs_ptr, uint32_t segment_index);
+void dg_detector_hme_level0(struct PictureParentControlSet *ppcs, uint32_t seg_idx);
 #endif
 
 static void motion_estimation_context_dctor(EbPtr p) {

@@ -47,6 +47,22 @@ static void set_restoration_unit_size(int32_t width, int32_t height, int32_t sx,
     rst[1].restoration_unit_size = rst[0].restoration_unit_size >> s;
     rst[2].restoration_unit_size = rst[1].restoration_unit_size;
 }
+#if OPT_PRED_STRUCT_CLASSIFIER
+static void dg_detector_seg_dctor(EbPtr p) {
+    DGDetectorSeg *obj = (DGDetectorSeg *)p;
+
+    EB_DESTROY_SEMAPHORE(obj->frame_done_sem);
+    EB_DESTROY_MUTEX(obj->metrics_mutex);
+}
+
+EbErrorType svt_aom_dg_detector_seg_ctor(DGDetectorSeg *obj_ptr) {
+    obj_ptr->dctor = dg_detector_seg_dctor;
+
+    EB_CREATE_SEMAPHORE(obj_ptr->frame_done_sem, 0, 1);
+    EB_CREATE_MUTEX(obj_ptr->metrics_mutex);
+    return EB_ErrorNone;
+}
+#endif
 
 static void segmentation_map_dctor(EbPtr p) {
     SegmentationNeighborMap *obj = (SegmentationNeighborMap *)p;
@@ -1314,8 +1330,8 @@ static void picture_parent_control_set_dctor(EbPtr ptr) {
     EB_DELETE_PTR_ARRAY(obj->tpl_disp_segment_ctrl, tile_cnt);
     EB_DESTROY_MUTEX(obj->pcs_total_rate_mutex);
 #if OPT_PRED_STRUCT_CLASSIFIER
-    EB_DESTROY_SEMAPHORE(obj->dg_detector_frame_done_semaphore);
-    EB_DESTROY_MUTEX(obj->dg_detector_metrics_mutex);
+    if (obj->dg_detector)
+        EB_DELETE(obj->dg_detector);
 #endif
 }
 static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
@@ -1525,8 +1541,7 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
 #endif
         : 0;
 #if OPT_PRED_STRUCT_CLASSIFIER
-    EB_CREATE_SEMAPHORE(object_ptr->dg_detector_frame_done_semaphore, 0, 1);
-    EB_CREATE_MUTEX(object_ptr->dg_detector_metrics_mutex);
+    EB_NEW(object_ptr->dg_detector, svt_aom_dg_detector_seg_ctor);
 #endif
     return return_error;
 }
