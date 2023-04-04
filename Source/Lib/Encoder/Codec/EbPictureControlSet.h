@@ -1158,7 +1158,7 @@ typedef struct PictureParentControlSet {
     bool     r0_based_qps_qpm;
     uint32_t dpb_order_hint[REF_FRAMES]; // spec 6.8.2. ref_order_hint[]
 #if OPT_PRED_STRUCT_CLASSIFIER
-    struct DGDetectorSeg *dg_detector; // dg detector segments control struct
+    DGDetectorSeg *dg_detector; // dg detector segments control struct
 #endif
 } PictureParentControlSet;
 

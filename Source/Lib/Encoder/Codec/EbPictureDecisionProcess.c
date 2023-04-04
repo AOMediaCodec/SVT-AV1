@@ -385,8 +385,7 @@ static void early_hme_b64(
     int16_t    sa_height, // search area height
     EbPictureBufferDesc* sixteenth_ref_pic_ptr, // sixteenth-downsampled reference picture
     uint64_t* best_sad, // output: Level0 SAD
-    int16_t* hme_l0_sc_x, // output: Level0 xMV
-    int16_t* hme_l0_sc_y // output: Level0 yMV
+    MV* sr_center // output: Level0 xMV, Level0 yMV
 ) {
     // round up the search region width to nearest multiple of 8 because the SAD calculation performance (for
     // intrinsic functions) is the same for search region width from 1 to 8
@@ -460,8 +459,8 @@ static void early_hme_b64(
         block_width,
         /* results */
         best_sad,
-        hme_l0_sc_x,
-        hme_l0_sc_y,
+        &sr_center->col,
+        &sr_center->row,
         /* range */
         sixteenth_ref_pic_ptr->stride_y,
         0, // skip search line
@@ -472,10 +471,10 @@ static void early_hme_b64(
         ? *best_sad
         : *best_sad * 2; // Multiply by 2 because considered only ever other line
 
-    *hme_l0_sc_x += sa_origin_x;
-    *hme_l0_sc_x *= 4; // Multiply by 4 because operating on 1/4 resolution
-    *hme_l0_sc_y += sa_origin_y;
-    *hme_l0_sc_y *= 4; // Multiply by 4 because operating on 1/4 resolution
+    sr_center->col += sa_origin_x;
+    sr_center->col *= 4; // Multiply by 4 because operating on 1/4 resolution
+    sr_center->row += sa_origin_y;
+    sr_center->row *= 4; // Multiply by 4 because operating on 1/4 resolution
 
     return;
 }
@@ -528,8 +527,7 @@ void dg_detector_hme_level0(struct PictureParentControlSet *ppcs, uint32_t seg_i
                 sa_height,
                 ref_sixt_ds_pic,
                 &hme_level0_sad,
-                &sr_center.col,
-                &sr_center.row);
+                &sr_center);
 
             // lock the dg metrics calculation using a mutex, only one segment can modify the data at a time
             svt_block_on_mutex(ppcs->dg_detector->metrics_mutex);
