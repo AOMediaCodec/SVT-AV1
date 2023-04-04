@@ -123,6 +123,20 @@ typedef struct MrpCtrls {
     uint8_t base_ref_list1_count;
     uint8_t non_base_ref_list0_count;
     uint8_t non_base_ref_list1_count;
+
+#if LIMIT_NREF
+    bool safe_limit_nref; // Limit references to (1,1) if it's safe to do so based on avg luma
+#endif
+#if ONLY_L_BWD
+    bool only_l_bwd; // Limit candidate types to LAST, BWD and LAST-BWD
+#endif
+#if PME_REF0_ONLY
+    bool pme_ref0_only; // Limit PME to ref index 0 only
+#endif
+#if OPT_MRP
+    bool use_best_references; // Use only best references
+#endif
+
 } MrpCtrls;
 typedef struct TfControls {
     // Filtering set
@@ -661,9 +675,18 @@ typedef enum CandClass {
     CAND_CLASS_3,
     CAND_CLASS_TOTAL
 } CandClass;
-
+#if OPT_WARP_REFINEMENT_MDS1 || OPT_OBMC_REFINEMENT_MDS1
+typedef enum MdStage {
+    MD_STAGE_0,
+    MD_STAGE_1,
+    MD_STAGE_2,
+    MD_STAGE_3,
+    MD_STAGE_TOTAL,
+    INVALID
+} MdStage;
+#else
 typedef enum MdStage { MD_STAGE_0, MD_STAGE_1, MD_STAGE_2, MD_STAGE_3, MD_STAGE_TOTAL } MdStage;
-
+#endif
 typedef enum MdStagingMode {
     MD_STAGING_MODE_0,
     MD_STAGING_MODE_1,

@@ -410,7 +410,11 @@ typedef struct PictureControlSet {
     uint32_t max_part0_to_part1_dev;
     // if true, skip H4/V4 shapes when best partition so far is not H/V
     uint32_t skip_hv4_on_best_part;
+#if OPT_II
+    uint8_t inter_intra_level;
+#else
     uint8_t  md_inter_intra_level;
+#endif
     uint8_t  txs_level;
     uint8_t  nic_level;
     uint8_t  md_sq_mv_search_level;
@@ -427,10 +431,14 @@ typedef struct PictureControlSet {
 #endif
     // block_based_depth_refinement_level signal set at the picture level
     uint8_t pic_block_based_depth_refinement_level;
+#if OPT_DEPTH_RATE_SHORTCUT
+    uint8_t pic_depth_early_exit_lvl;
+#else
     // Skip testing remaining blocks at the current depth if (curr_cost * 100 >
     // pic_depth_early_exit_th * parent_cost); [0-100], 0 is OFF, lower percentage is more
     // aggressive
     uint8_t          pic_depth_early_exit_th;
+#endif
     uint8_t          pic_lpd0_lvl; // lpd0_lvl signal set at the picture level
     uint8_t          pic_lpd1_lvl; // lpd1_lvl signal set at the picture level
     Bool             pic_bypass_encdec;
@@ -475,6 +483,11 @@ typedef struct PictureControlSet {
     int32_t rst_end_stripe[MAX_TILE_ROWS];
     uint8_t ref_intra_percentage;
     uint8_t ref_skip_percentage;
+#if OPTIMIZE_DEPTH_LEVEL
+    uint64_t avg_me_clpx;
+    uint64_t min_me_clpx;
+    uint64_t max_me_clpx;
+#endif
     // use approximate rate for inter cost (set at pic-level b/c some pic-level initializations will
     // be removed)
     uint8_t    approx_inter_rate;
@@ -613,6 +626,15 @@ typedef struct GmControls {
     // of 2 in each dimension; GM_TRAN_ONLY: Translation only using ME MV.
     uint8_t params_refinement_steps;
     uint8_t downsample_level;
+#if GM_CORNERS
+    uint8_t corners; //use a fraction of corner points  1:1/4   2:2/4   3:3/4   4:all
+#endif
+#if GM_CHESS_REFN
+    uint8_t chess_rfn; //skip the refinement using a chess pattern to
+#endif
+#if GM_WD
+    uint8_t match_sz; //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
+#endif
 } GmControls;
 typedef struct CdefControls {
     uint8_t enabled;
@@ -662,6 +684,17 @@ typedef struct DlfCtrls {
     // TH, the filter level is set to 0
     uint8_t sb_based_dlf;
     uint8_t min_filter_level;
+#if DLF_REF
+    bool dlf_avg; // Start search from average DLF instead of 0
+#endif
+#if DLF_UV_QP
+    bool
+        dlf_avg_uv; // Use average DLF as a starting point for qp based filter strength selection for Chroma planes
+#endif
+#if DLF_STEP
+    uint8_t
+        early_exit_convergence; // Number of convergence points before exiting the filter search, 1 = exit on first convergence point, 2 = exit on second, 0 = off
+#endif
 } DlfCtrls;
 typedef struct IntraBCCtrls {
     // Shift for full_pixel_exhaustive search threshold:   0: No Shift   1:Shift to left by 1
@@ -796,6 +829,11 @@ typedef struct PictureParentControlSet {
     uint8_t   pred_struct_index;
     uint8_t   temporal_layer_index;
     uint64_t  decode_order;
+
+#if FIX_AVG_Y
+    uint64_t avg_luma; //avg luma intensity of the picture  256: invalid value  0..255 valid value
+#endif
+
     // Each picture can release up to 8 references from the DPB (8 is the max number of entries in
     // the DPB). Each frame may also release itself at EOS, which is only done in the encoder to
     // satisfy CI unit tests for MacOS.
@@ -828,6 +866,7 @@ typedef struct PictureParentControlSet {
     double                                  luma_ssim;
     double                                  cr_ssim;
     double                                  cb_ssim;
+
     // Pointer array for down scaled pictures
     EbObjectWrapper            *downscaled_pic_wrapper;
     EbDownScaledBufDescPtrArray ds_pics;

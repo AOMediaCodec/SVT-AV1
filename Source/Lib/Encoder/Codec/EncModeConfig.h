@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "EbPictureControlSet.h"
 #include "EbResize.h"
 #include "EbEncDecProcess.h"
 #include "EbPictureDecisionProcess.h"
@@ -23,8 +24,11 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
 #endif
 
+#if OPTIMIZE_DEPTH_LEVEL
+void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t depth_level);
+#else
 void svt_aom_set_depth_ctrls(ModeDecisionContext *ctx, uint8_t depth_level);
-
+#endif
 #if OPT_LD_M13
 uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode, bool rtc_tune);
 #else

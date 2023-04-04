@@ -1058,9 +1058,6 @@ static INLINE void update_list0_only_base(SequenceControlSet* scs, PictureParent
     }
 }
 
-
-
-
 Bool svt_aom_is_pic_skipped(PictureParentControlSet *pcs) {
     if (!pcs->is_ref &&
         pcs->scs->rc_stat_gen_pass_mode &&
@@ -5584,7 +5581,20 @@ static void send_picture_out(
 
     //every picture enherits latest motion direction from TF
     pcs->tf_motion_direction = ctx->tf_motion_direction;
+#if LIMIT_NREF
+    MrpCtrls* mrp_ctrl = &(scs->mrp_ctrls);
 
+    //limit (1,1) for picture that have very close references.
+    if (scs->mrp_ctrls.safe_limit_nref && pcs->slice_type == B_SLICE && !pcs->is_ref) {  
+        EbPaReferenceObject *refobj0 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[0][0]->object_ptr;
+        EbPaReferenceObject *refobj1 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[1][0]->object_ptr;
+        if (ABS((int)refobj0->avg_luma - (int)pcs->avg_luma) < 100 &&
+            ABS((int)refobj1->avg_luma - (int)pcs->avg_luma) < 100) 
+        {
+            pcs->ref_list0_count_try = pcs->ref_list1_count_try = 1;
+        }
+    }
+#endif
 
         //get a new ME data buffer
         if (pcs->me_data_wrapper == NULL) {
@@ -5594,7 +5604,10 @@ static void send_picture_out(
             //printf("[%ld]: Got me data [NORMAL] %p\n", pcs->picture_number, pcs->pa_me_data);
         }
 
+#if !LIMIT_NREF
         MrpCtrls* mrp_ctrl = &(scs->mrp_ctrls);
+#endif
+
         uint8_t ref_count_used_list0 =
             MAX(mrp_ctrl->sc_base_ref_list0_count,
                 MAX(mrp_ctrl->base_ref_list0_count,
@@ -5631,6 +5644,7 @@ static void send_picture_out(
     uint8_t gm_level = svt_aom_derive_gm_level(pcs);
     svt_aom_set_gm_controls(pcs, gm_level);
     pcs->me_processed_b64_count = 0;
+
     for (uint32_t segment_index = 0; segment_index < pcs->me_segments_total_count; ++segment_index) {
         // Get Empty Results Object
         svt_get_empty_object(

@@ -141,6 +141,9 @@ typedef struct ModeDecisionCandidateBuffer {
     uint8_t   u_has_coeff;
     uint8_t   v_has_coeff;
     uint16_t  y_has_coeff;
+#if OPT_OBMC_TRANS_FACE_OFF
+    bool valid_pred;
+#endif
 } ModeDecisionCandidateBuffer;
 
 /**************************************
@@ -167,6 +170,23 @@ uint32_t svt_aom_product_full_mode_decision(struct ModeDecisionContext *ctx, Blk
                                             ModeDecisionCandidateBuffer **buffer_ptr_array,
                                             uint32_t                      candidate_total_count,
                                             uint32_t *best_candidate_index_array);
+#if OPT_WARP_REFINEMENT_MDS1
+extern uint8_t wm_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                    ModeDecisionCandidateBuffer *candidate_buffer,
+                                    ModeDecisionCandidate *candidate, uint8_t list_idx,
+                                    int early_exit);
+#endif
+#if OPT_OBMC_REFINEMENT_MDS1
+extern void single_motion_search(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                 ModeDecisionCandidate *cand, const MvReferenceFrame *rf,
+                                 IntMv best_pred_mv, IntraBcContext *x, BlockSize bsize, MV *ref_mv,
+                                 int *rate_mv, int refine_level);
+
+extern uint8_t obmc_motion_refinement(PictureControlSet *         pcs,
+                                      struct ModeDecisionContext *ctx,
+                                      ModeDecisionCandidate *candidate, uint8_t ref_list_idx,
+                                      int refine_level);
+#endif
 void     svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
 
 typedef EbErrorType (*EB_INTRA_4x4_FAST_LUMA_COST_FUNC)(struct ModeDecisionContext  *ctx,
