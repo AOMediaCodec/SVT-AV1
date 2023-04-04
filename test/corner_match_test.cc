@@ -20,6 +20,12 @@
 #include "acm_random.h"
 #include "corner_match.h"
 
+
+#define MATCH_SZ 13
+#define MATCH_SZ_BY2 ((MATCH_SZ - 1) / 2)
+#define MATCH_SZ_SQ (MATCH_SZ * MATCH_SZ)
+
+
 using libaom_test::ACMRandom;
 
 namespace {
@@ -93,19 +99,19 @@ void AV1CornerMatchTest::RunCheckOutput(int run_times) {
         int y2 = MATCH_SZ_BY2 + rnd_.PseudoUniform(h - 2 * MATCH_SZ_BY2);
 
         double res_c = svt_av1_compute_cross_correlation_c(
-            input1, w, x1, y1, input2, w, x2, y2);
-        double res_simd = target_func(input1, w, x1, y1, input2, w, x2, y2);
+            input1, w, x1, y1, input2, w, x2, y2, MATCH_SZ);
+        double res_simd = target_func(input1, w, x1, y1, input2, w, x2, y2, MATCH_SZ);
 
         if (run_times > 1) {
             svt_av1_get_time(&start_time_seconds, &start_time_useconds);
             for (j = 0; j < run_times; j++) {
                 svt_av1_compute_cross_correlation_c(
-                    input1, w, x1, y1, input2, w, x2, y2);
+                    input1, w, x1, y1, input2, w, x2, y2, MATCH_SZ);
             }
             svt_av1_get_time(&middle_time_seconds, &middle_time_useconds);
 
             for (j = 0; j < run_times; j++) {
-                target_func(input1, w, x1, y1, input2, w, x2, y2);
+                target_func(input1, w, x1, y1, input2, w, x2, y2, MATCH_SZ);
             }
 
             svt_av1_get_time(&finish_time_seconds, &finish_time_useconds);
