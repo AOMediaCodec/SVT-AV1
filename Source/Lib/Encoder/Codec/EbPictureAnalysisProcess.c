@@ -2374,14 +2374,23 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
                 pcs->ds_pics.sixteenth_picture_ptr = pa_ref_obj_->sixteenth_downsampled_picture_ptr;
             }
             // Gathering statistics of input picture, including Variance Calculation, Histogram Bins
+#if FIX_AVG_Y
+            if (scs->static_config.pass != ENC_FIRST_PASS) {
+                svt_aom_gathering_picture_statistics(
+                    scs,
+                    pcs,
+                    input_padded_pic,
+                    (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
+
+                pa_ref_obj_->avg_luma = pcs->avg_luma;
+            }
+#else
             if (scs->static_config.pass != ENC_FIRST_PASS)
                 svt_aom_gathering_picture_statistics(
                     scs,
                     pcs,
                     input_padded_pic,
                     (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
-#if FIX_AVG_Y
-            pa_ref_obj_->avg_luma = pcs->avg_luma;
 #endif
             // If running multi-threaded mode, perform SC detection in svt_aom_picture_analysis_kernel, else in svt_aom_picture_decision_kernel
             if (scs->static_config.logical_processors != 1) {

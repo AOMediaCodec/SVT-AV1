@@ -40,11 +40,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
     sixteenth_picture_ptr = (EbPictureBufferDesc *)
                                 pa_reference_object->sixteenth_downsampled_picture_ptr;
 
-#if GM_MIX_DS
-    EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement, *ref_refinement;
-#endif
-
-
     uint32_t num_of_list_to_search =
         (pcs->slice_type == P_SLICE) ? 1 /*List 0 only*/ : 2 /*List 0 + 1*/;
     // Initilize global motion to be OFF for all references frames.
@@ -129,6 +124,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
 
 #if GM_MIX_DS
                 uint8_t det_refn_sf;
+                EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement,
+                    *ref_refinement;
 #if GM_CHESS_REFN
                 uint8_t chess_refn;
 #endif

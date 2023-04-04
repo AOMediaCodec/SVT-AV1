@@ -7531,7 +7531,6 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *          
                                                    ModeDecisionCandidateBuffer *cand_bf,
                                                    ModeDecisionCandidate *      cand,
                                                    int *                        refined) {
-    uint8_t motion_mode_valid;
 #if OPT_WARP_REFINEMENT_MDS1
     MdStage warp_refine_mds = ctx->wm_ctrls.refine_level == 1 ? MD_STAGE_1
         : ctx->wm_ctrls.refine_level == 2                     ? MD_STAGE_3
@@ -7541,6 +7540,7 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *          
         ctx->md_stage == warp_refine_mds &&
         cand_bf->cand->motion_mode == WARPED_CAUSAL &&
         cand_bf->cand->pred_mode == NEWMV) {
+        uint8_t motion_mode_valid;
         MvReferenceFrame rf[2];
         av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
         uint8_t list_idx = get_list_idx(rf[0]);
@@ -7561,7 +7561,7 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *          
             MvUnit mv_unit;
             mv_unit.mv[list_idx]   = cand_bf->cand->mv[list_idx];
             mv_unit.pred_direction = list_idx;
-            motion_mode_valid      = svt_aom_warped_motion_parameters(
+            svt_aom_warped_motion_parameters(
                 pcs,
                 ctx->blk_ptr,
                 &mv_unit,

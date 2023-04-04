@@ -190,7 +190,7 @@ static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, in
 
     int i_itr = 0;
     for (int i = p_row; i < p_row + p_height; i += WARP_ERROR_BLOCK) {
-        int jstart = i_itr & 1 ? p_col : p_col + WARP_ERROR_BLOCK;
+        int jstart = (i_itr & 1) ? p_col : p_col + WARP_ERROR_BLOCK;
         int jstep  = 2;
 
         if (chess_refn == 0) {

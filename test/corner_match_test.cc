@@ -26,7 +26,7 @@ namespace {
 
 typedef double (*ComputeCrossCorrFunc)(unsigned char *im1, int stride1, int x1,
                                        int y1, unsigned char *im2, int stride2,
-                                       int x2, int y2);
+                                       int x2, int y2, uint8_t match_sz);
 
 using ::testing::make_tuple;
 using ::testing::tuple;

@@ -2982,8 +2982,8 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
 
         // BASE TF Params
         scs->tf_params_per_type[1].enabled = 1;
-        scs->tf_params_per_type[1].num_past_pics = (scs->static_config.hierarchical_levels < 5) ? 3 : 3;
-        scs->tf_params_per_type[1].num_future_pics = (scs->static_config.hierarchical_levels < 5) ? 3 : 3;
+        scs->tf_params_per_type[1].num_past_pics = 3;
+        scs->tf_params_per_type[1].num_future_pics = 3;
         scs->tf_params_per_type[1].noise_adjust_past_pics = 1;
         scs->tf_params_per_type[1].noise_adjust_future_pics = 1;
 #if FIX_LAYER_SIGNAL
