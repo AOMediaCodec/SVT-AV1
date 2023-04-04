@@ -1451,7 +1451,12 @@ static void set_ref_list_counts(PictureParentControlSet* pcs) {
         MIN(list1_count,
             is_sc ? (is_base ? mrp_ctrls->sc_base_ref_list1_count : mrp_ctrls->sc_non_base_ref_list1_count)
             : (is_base ? mrp_ctrls->base_ref_list1_count    : mrp_ctrls->non_base_ref_list1_count));
+#if TUNE_M11_M12_M13
+    // Old assert fails when M13 uses non-zero mrp
+    assert(!(pcs->ref_list1_count == 0 && pcs->scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS && pcs->scs->static_config.pass != ENC_FIRST_PASS));
+#else
     assert(!(pcs->ref_list1_count == 0 && pcs->scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS));
+#endif
 }
 #endif
 static INLINE void update_ref_poc_array(uint8_t* ref_dpb_idx, uint64_t* ref_poc_array, DpbEntry* dpb) {

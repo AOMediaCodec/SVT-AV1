@@ -4789,10 +4789,18 @@ static void set_param_based_on_input(SequenceControlSet *scs)
 #else
         if (scs->static_config.enc_mode <= ENC_M12) {
 #endif
+#if OPT_MRP
+            mrp_level = 8;
+#else
             mrp_level = 6;
+#endif
         }
         else {
+#if OPT_MRP
+            mrp_level = 10;
+#else
             mrp_level = 8;
+#endif
         }
     }
     else {
@@ -4805,21 +4813,53 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         else if (scs->static_config.enc_mode <= ENC_M4) {
             mrp_level = 3;
         }
+#if OPT_MRP
+        else if (scs->static_config.enc_mode <= ENC_M6) {
+            mrp_level = 4;
+        }
+#if TUNE_M7
+        else if (scs->static_config.enc_mode <= ENC_M7) {
+            mrp_level = 5;
+        }
+#else
+#if TUNE_M6
+        else if (scs->static_config.enc_mode <= ENC_M6) {
+            mrp_level = 4;
+        }
+#else
         else if (scs->static_config.enc_mode <= ENC_M5) {
             mrp_level = 4;
         }
         else if (scs->static_config.enc_mode <= ENC_M6) {
             mrp_level = 5;
         }
-        else if (scs->static_config.enc_mode <= ENC_M7) {
-            if (scs->static_config.hierarchical_levels <= 3)
-                mrp_level = 7;
+#endif
+#endif
+        else if (scs->static_config.enc_mode <= ENC_M8){
+#if TUNE_MRP_M8_5L
+            if (scs->static_config.hierarchical_levels <= 4)
+#if OPT_LD_MRP5
+                mrp_level = 11;
+#else
+                mrp_level = 10;
+#endif
             else
-                mrp_level = 5;
+                mrp_level = 6;
         }
-        else if (scs->static_config.enc_mode <= ENC_M12) {
-            mrp_level = 9;
-        }
+#else
+            mrp_level = 6;
+#endif
+#endif
+
+#if TUNE_M11_M12_M13
+    else if (scs->static_config.enc_mode <= ENC_M13) {
+        mrp_level = 11;
+    }
+#else
+    else if (scs->static_config.enc_mode <= ENC_M12) {
+        mrp_level = 9;
+    }
+#endif
         else {
             mrp_level = 0;
         }

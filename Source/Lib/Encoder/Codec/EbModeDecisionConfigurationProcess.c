@@ -618,19 +618,24 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         PictureControlSet  *pcs        = (PictureControlSet *)rc_results->pcs_wrapper->object_ptr;
         SequenceControlSet *scs        = pcs->scs;
 #if OPTIMIZE_DEPTH_LEVEL
-        uint32_t b64_idx;
-        uint64_t avg_me_clpx = 0;
-        uint64_t min_dist    = (uint64_t)~0;
-        uint64_t max_dist    = 0;
+        pcs->min_me_clpx = 0;
+        pcs->max_me_clpx = 0;
+        pcs->avg_me_clpx = 0;
+        if (scs->static_config.pass != ENC_FIRST_PASS && pcs->slice_type != I_SLICE) {
+            uint32_t b64_idx;
+            uint64_t avg_me_clpx = 0;
+            uint64_t min_dist    = (uint64_t)~0;
+            uint64_t max_dist    = 0;
 
-        for (b64_idx = 0; b64_idx < pcs->ppcs->b64_total_count; ++b64_idx) {
-            avg_me_clpx += pcs->ppcs->me_8x8_cost_variance[b64_idx];
-            min_dist = MIN(pcs->ppcs->me_8x8_cost_variance[b64_idx], min_dist);
-            max_dist = MAX(pcs->ppcs->me_8x8_cost_variance[b64_idx], max_dist);
+            for (b64_idx = 0; b64_idx < pcs->ppcs->b64_total_count; ++b64_idx) {
+                avg_me_clpx += pcs->ppcs->me_8x8_cost_variance[b64_idx];
+                min_dist = MIN(pcs->ppcs->me_8x8_cost_variance[b64_idx], min_dist);
+                max_dist = MAX(pcs->ppcs->me_8x8_cost_variance[b64_idx], max_dist);
+            }
+            pcs->min_me_clpx = min_dist;
+            pcs->max_me_clpx = max_dist;
+            pcs->avg_me_clpx = avg_me_clpx / pcs->ppcs->b64_total_count;
         }
-        pcs->min_me_clpx = min_dist;
-        pcs->max_me_clpx = max_dist;
-        pcs->avg_me_clpx = avg_me_clpx / pcs->ppcs->b64_total_count;
 #endif
         pcs->coeff_lvl = INVALID_LVL;
         if (scs->static_config.pass != ENC_FIRST_PASS) {
