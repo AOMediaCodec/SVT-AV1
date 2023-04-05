@@ -204,7 +204,9 @@ extern "C" {
 #define LIMIT_NREF        1 //allows limiting mrp to 1,1 based on avg luma
 
 #define TUNE_MRP_M8_5L    1 // Adjust m8 mrp level for 5L
-#define TUNE_NEW_M0_MR    1 // Tune M0 to be M0.5 and MR to be old
+#define TUNE_NEW_M0_MR    1 // Tune M0 to be M0.5 and MR to be old M0
+
+#define DIS_MRS                  1 // Disable MRS preset
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
