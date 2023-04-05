@@ -17,7 +17,7 @@
 #include <memory.h>
 #include "EbDebugMacros.h"
 
-#if GM_WD
+#if OPT_GM_WD
 #else
 #define MATCH_SZ 13
 #define MATCH_SZ_BY2 ((MATCH_SZ - 1) / 2)
@@ -32,7 +32,7 @@ typedef struct {
 int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int num_frm_corners,
                                      unsigned char *ref, int *ref_corners, int num_ref_corners,
                                      int width, int height, int frm_stride, int ref_stride,
-#if GM_WD
+#if OPT_GM_WD
                                      int *correspondence_pts, uint8_t match_sz);
 #else
                                      int *correspondence_pts);

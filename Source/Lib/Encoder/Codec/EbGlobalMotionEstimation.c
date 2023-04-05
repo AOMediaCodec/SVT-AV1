@@ -121,11 +121,11 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                  ->ref_pa_pic_ptr_array[list_index][ref_pic_index]
                                  ->object_ptr;
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
                 uint8_t              det_refn_sf;
                 EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement,
                     *ref_refinement;
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                 uint8_t chess_refn;
 #endif
 
@@ -141,7 +141,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     ref_refinement = sixteenth_ref_pic_ptr;
 
                     det_refn_sf = 1;
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                     chess_refn = 0;
 #endif
                 } else if (pcs->gm_downsample_level == GM_DOWN) {
@@ -152,7 +152,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     ref_refinement = quarter_ref_pic_ptr;
 
                     det_refn_sf = 1;
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                     chess_refn = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
 #endif
                 } else {
@@ -163,7 +163,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     ref_refinement = ref_picture_ptr;
 
                     det_refn_sf = 1;
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                     chess_refn = pcs->gm_ctrls.chess_rfn;
 #endif
                 }
@@ -175,7 +175,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     inp_refinement,
                     ref_refinement,
                     det_refn_sf,
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                     chess_refn,
 #endif
                     &pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index],
@@ -230,7 +230,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
         }
     }
 }
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
 
 void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor) {
     // Upscale the translation parameters by 2 or 4,
@@ -246,7 +246,7 @@ void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor) {
                                            GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
     }
 }
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
 void compute_global_motion(PictureParentControlSet *pcs,
                            EbPictureBufferDesc     *det_input_pic, //src frame for detection
                            EbPictureBufferDesc     *det_ref_pic, //ref frame for detection
@@ -287,7 +287,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
     unsigned char *ref_buffer = ref_pic->buffer_y + ref_pic->org_x +
         ref_pic->org_y * ref_pic->stride_y;
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
     unsigned char *det_frm_buffer = det_input_pic->buffer_y + det_input_pic->org_x +
         det_input_pic->org_y * det_input_pic->stride_y;
     unsigned char *det_ref_buffer = det_ref_pic->buffer_y + det_ref_pic->org_x +
@@ -305,7 +305,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
         int frm_corners[2 * MAX_CORNERS], inliers_by_motion[RANSAC_NUM_MOTIONS];
         // compute interest points using FAST features
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
         int num_frm_corners = svt_av1_fast_corner_detect(det_frm_buffer,
                                                          det_input_pic->width,
                                                          det_input_pic->height,
@@ -313,7 +313,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                                                          frm_corners,
                                                          MAX_CORNERS);
 
-#if GM_CORNERS
+#if OPT_GM_CORNERS
         num_frm_corners = num_frm_corners * pcs->gm_ctrls.corners / 4;
 #endif
 
@@ -343,9 +343,9 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                 params_by_motion[i].num_inliers = 0;
             }
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
             svt_av1_compute_global_motion(model,
-#if GM_CORNERS
+#if OPT_GM_CORNERS
                                           pcs->gm_ctrls.corners,
 #endif
                                           det_frm_buffer,
@@ -360,7 +360,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                                           gm_estimation_type,
                                           inliers_by_motion,
                                           params_by_motion,
-#if GM_WD
+#if OPT_GM_WD
                                           RANSAC_NUM_MOTIONS,
                                           pcs->gm_ctrls.match_sz);
 #else
@@ -369,7 +369,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
 #else
 
             svt_av1_compute_global_motion(model,
-#if GM_CORNERS
+#if OPT_GM_CORNERS
                                           pcs->gm_ctrls.corners,
 #endif
                                           frm_buffer,
@@ -384,7 +384,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                                           gm_estimation_type,
                                           inliers_by_motion,
                                           params_by_motion,
-#if GM_WD
+#if OPT_GM_WD
                                           RANSAC_NUM_MOTIONS,
                                           pcs->gm_ctrls.match_sz);
 #else
@@ -397,7 +397,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                     continue;
                 svt_av1_convert_model_to_params(params_by_motion[i].params, &tmp_wm_params);
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
                 //upscale the param before doing refinement
                 upscale_wm_params(&tmp_wm_params, sf);
 #endif
@@ -417,7 +417,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                         input_pic->height,
                         input_pic->stride_y,
                         pcs->gm_ctrls.params_refinement_steps,
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                         chess_refn,
 #endif
 

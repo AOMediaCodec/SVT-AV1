@@ -3800,7 +3800,7 @@ static void pme_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
             uint8_t ref_idx                      = get_ref_frame_idx(rf[0]);
             ctx->valid_pme_mv[list_idx][ref_idx] = 0;
 
-#if PME_REF0_ONLY //shut pme for further refs
+#if OPT_PME_REF0_ONLY //shut pme for further refs
             if (pcs->ppcs->scs->mrp_ctrls.pme_ref0_only && pcs->temporal_layer_index > 0)
                 if (ref_idx > 0)
                     continue;
@@ -7535,7 +7535,7 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
                                              ctx->blk_org_y,
                                              cand_bf->cand->ref_frame_type,
                                              &cand_bf->cand->wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                              &cand_bf->cand->num_proj_ref,
                                              ctx->wm_ctrls.min_neighbour_perc,
                                              ctx->wm_ctrls.corner_perc_bias,
@@ -10178,7 +10178,7 @@ void tx_shortcut_detector(PictureControlSet *pcs, ModeDecisionContext *ctx,
     }
 }
 
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
 void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                        ModeDecisionCandidateBuffer *candidate_buffer) {
     // That's a non-conformant tx-partitioning
@@ -10770,7 +10770,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     if (!ctx->skip_intra) {
         copy_recon_md(pcs, ctx, cand_bf);
     }
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
 #if OPT_SKIP_USELESS_SQ_PREP
     if (!ctx->md_disallow_nsq && ctx->nsq_ctrls.sq_txs_th && ctx->blk_geom->shape == PART_N &&
         ctx->blk_geom->bsize >= BLOCK_8X8 &&
@@ -11237,7 +11237,7 @@ static uint8_t update_md_settings_based_on_sq_coeff_area(ModeDecisionContext *ct
     }
     return skip_nsq;
 }
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
 Bool update_skip_nsq_based_on_sq_txs(ModeDecisionContext *ctx) {
     const BlockGeom *blk_geom = ctx->blk_geom;
 
@@ -11775,7 +11775,7 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
             skip_processing_block |= update_skip_nsq_based_on_sq_recon_dist(ctx);
             skip_processing_block |= update_skip_nsq_shapes(ctx);
             skip_processing_block |= update_md_settings_based_on_sq_coeff_area(ctx);
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
             skip_processing_block |= update_skip_nsq_based_on_sq_txs(ctx);
 #endif
         }

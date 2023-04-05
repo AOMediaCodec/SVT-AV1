@@ -86,7 +86,7 @@ typedef struct MdBlkStruct {
     uint8_t u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint8_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint8_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
     uint32_t cnt_non_zero_h[2];
     uint32_t cnt_non_zero_v[2];
 #endif
@@ -600,10 +600,10 @@ typedef struct NsqCtrls {
         non_HV_split_rate_th; // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
     // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
 #endif
-#if NO_GLB_INJ
+#if OPT_NO_GLB_INJ
     bool inj_psq_glb; //Inject global only if Parent SQ is global
 #endif
-#if TRANSFORM_H_V
+#if OPT_TRANSFORM_H_V
     uint32_t
         sq_txs_th; // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
 #endif
@@ -650,7 +650,7 @@ typedef struct WmCtrls {
     uint8_t
         refine_level; // Specifies the MD Stage where the wm refinement will take place. 0: Before MDS0.  1: At MDS1.  2: At MDS3.
 #endif
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
     uint8_t  min_neighbour_perc; // Specifies minimum neighbour percentage for WM
     uint8_t  corner_perc_bias; // Specifies corner bias for WM
     uint16_t lower_band_th; // Skip if alpha/ beta / gamma / delta is lower than threshold value

@@ -483,7 +483,7 @@ typedef struct PictureControlSet {
     int32_t rst_end_stripe[MAX_TILE_ROWS];
     uint8_t ref_intra_percentage;
     uint8_t ref_skip_percentage;
-#if OPTIMIZE_DEPTH_LEVEL
+#if OPT_DEPTH_LEVEL
     uint64_t avg_me_clpx;
     uint64_t min_me_clpx;
     uint64_t max_me_clpx;
@@ -626,13 +626,13 @@ typedef struct GmControls {
     // of 2 in each dimension; GM_TRAN_ONLY: Translation only using ME MV.
     uint8_t params_refinement_steps;
     uint8_t downsample_level;
-#if GM_CORNERS
+#if OPT_GM_CORNERS
     uint8_t corners; //use a fraction of corner points  1:1/4   2:2/4   3:3/4   4:all
 #endif
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
     uint8_t chess_rfn; //skip the refinement using a chess pattern to
 #endif
-#if GM_WD
+#if OPT_GM_WD
     uint8_t
         match_sz; //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
 #endif

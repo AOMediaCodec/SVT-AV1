@@ -3765,7 +3765,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                 lpd1_detector_post_pd0(pcs, md_ctx);
                             // Force pred depth only for modes where that is not the default
                             if (md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1) {
-#if OPTIMIZE_DEPTH_LEVEL
+#if OPT_DEPTH_LEVEL
                                 svt_aom_set_depth_ctrls(pcs, md_ctx, 0);
 #else
                                 svt_aom_set_depth_ctrls(md_ctx, 0);

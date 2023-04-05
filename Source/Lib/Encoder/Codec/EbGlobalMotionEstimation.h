@@ -18,7 +18,7 @@
 
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs, EbPictureBufferDesc *input_pic);
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
 void compute_global_motion(PictureParentControlSet *pcs,
                            EbPictureBufferDesc     *det_input_pic, //src frame for detection
                            EbPictureBufferDesc     *det_ref_pic, //ref frame for detection

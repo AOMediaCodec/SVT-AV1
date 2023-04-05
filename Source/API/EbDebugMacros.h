@@ -20,6 +20,7 @@
 * - bug fixes should be prefixed by FIX_
 * - code refactors should be prefixed by RFCTR_
 * - code cleanups should be prefixed by CLN_
+* - optimizations should be prefixed by OPT_
 * - all macros must have a coherent comment explaining what the MACRO is doing
 * - #if 0 / #if 1 are not to be used
 */
@@ -117,8 +118,8 @@ extern "C" {
 // Warp Optimizations
 #define OPT_WARP_REFINEMENT_POS                    1
 #define OPT_WARP_REFINEMENT_MDS1                   1
-#define USE_NSAMPLES                               1
-#define DETECT_ID                                  1
+#define OPT_USE_NSAMPLES                               1
+#define OPT_DETECT_ID                                  1
 #define TUNE_WM                                    1
 
 // OBMC Optimizations
@@ -138,10 +139,10 @@ extern "C" {
 #define OPT_H_VS_V_RATE                            1 // Skip testing H/V when the rate cost of H/V is significantly higher than the rate cost of V/H
 #define OPT_HV4_RATE                               1 // Skip testing H4/V4 when the rate cost of H4/V4 is significantly higher than the rate cost of the best partition
 
-#define GM_MIX_DS                                  1 //allow mixing scale factors for global motion detection and refinement
-#define GM_CHESS_REFN                              1 //refine parameters in a checkerboard pattern
-#define GM_CORNERS                                 1 //allow modulation of corner points for RANSAC
-#define GM_WD                                      1 //allow modulation of window size for corner matching
+#define OPT_GM_MIX_DS                                  1 //allow mixing scale factors for global motion detection and refinement
+#define OPT_GM_CHESS_REFN                              1 //refine parameters in a checkerboard pattern
+#define OPT_GM_CORNERS                                 1 //allow modulation of corner points for RANSAC
+#define OPT_GM_WD                                      1 //allow modulation of window size for corner matching
 
 #define OPT_DLF                                    1 //Optimize DLF
 #if OPT_DLF
@@ -163,7 +164,7 @@ extern "C" {
 #define TUNE_M6_0324                               1 // Tune M6 03-24 adoptions
 #define TUNE_M8                                    1 // Tune M8
 
-#define NO_GLB_INJ                                 1 // Inject Global only if parent sq is global
+#define OPT_NO_GLB_INJ                                 1 // Inject Global only if parent sq is global
 
 #define OPT_DEPTH_EARLY_EXIT_RATE                  1 // Improve cost estimate for lower depth cost
 #define CLN_PART_CTX                               1 // Always perform partition context rate updates
@@ -186,22 +187,22 @@ extern "C" {
 #define OPT_4X4_GEOM                               1
 #define OPT_NSQ_CTRL                               1
 #define OPT_BLOCK_QUEUE_PREP                       1
-#define TRANSFORM_H_V                              1 // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+#define OPT_TRANSFORM_H_V                              1 // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
 
-#define OPTIMIZE_DEPTH_LEVEL                       1
-#define OPTIMIZE_DEPTH_REFINE                      1
-#define OPTIMIZE_DEPTH_LEVEL_FASTER                1
+#define OPT_DEPTH_LEVEL                       1
+#define OPT_DEPTH_REFINE                      1
+#define OPT_DEPTH_LEVEL_FASTER                1
 
 #define OPT_4X8_8X4_GEOM                           1
 #define OPT_SKIP_USELESS_SQ_PREP                   1
 
-#define PME_REF0_ONLY     1
+#define OPT_PME_REF0_ONLY     1
 #define CLN_MRP           1 // MRP infrastructure change
 #define OPT_MRP           1 // determine the best references to forward
-#define ONLY_L_BWD        1 //Last, BWD, Last-BWD candidates only
+#define OPT_ONLY_L_BWD        1 //Last, BWD, Last-BWD candidates only
 
 #define FIX_AVG_Y         1 //fix bug with avg luma
-#define LIMIT_NREF        1 //allows limiting mrp to 1,1 based on avg luma
+#define OPT_LIMIT_NREF        1 //allows limiting mrp to 1,1 based on avg luma
 
 #define TUNE_MRP_M8_5L    1 // Adjust m8 mrp level for 5L
 #define TUNE_NEW_M0_MR    1 // Tune M0 to be M0.5 and MR to be old M0

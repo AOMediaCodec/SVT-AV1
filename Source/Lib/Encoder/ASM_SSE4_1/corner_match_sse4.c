@@ -13,7 +13,7 @@
 #include "corner_match.h"
 #include "EbDefinitions.h"
 
-#if GM_WD
+#if OPT_GM_WD
 DECLARE_ALIGNED(16, static const uint8_t, byte_mask[8][16]) = {
     {255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //1x1
     {255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //3x3
@@ -37,7 +37,7 @@ DECLARE_ALIGNED(16, static const uint8_t, byte_mask[16]) = {
    of each image, centered at (x1, y1) and (x2, y2) respectively.
 */
 double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1, int x1, int y1,
-#if GM_WD
+#if OPT_GM_WD
                                                 unsigned char *im2, int stride2, int x2, int y2,
                                                 uint8_t match_sz) {
 #else
@@ -51,7 +51,7 @@ double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1,
     // 4 32-bit partial sums of squares
     __m128i sumsq2_vec = _mm_setzero_si128();
     __m128i cross_vec  = _mm_setzero_si128();
-#if GM_WD
+#if OPT_GM_WD
     const uint8_t match_sz_by2 = ((match_sz - 1) / 2);
     const uint8_t match_sz_sq  = (match_sz * match_sz);
 
@@ -62,7 +62,7 @@ double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1,
 #endif
     const __m128i zero = _mm_setzero_si128();
 
-#if GM_WD
+#if OPT_GM_WD
     im1 += (y1 - match_sz_by2) * stride1 + (x1 - match_sz_by2);
     im2 += (y2 - match_sz_by2) * stride2 + (x2 - match_sz_by2);
 #else
@@ -70,7 +70,7 @@ double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1,
     im2 += (y2 - MATCH_SZ_BY2) * stride2 + (x2 - MATCH_SZ_BY2);
 #endif
 
-#if GM_WD
+#if OPT_GM_WD
     for (i = 0; i < match_sz; ++i) {
 #else
     for (i = 0; i < MATCH_SZ; ++i) {
@@ -116,7 +116,7 @@ double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1,
     int sumsq2 = _mm_extract_epi32(res, 2);
     int cross  = _mm_extract_epi32(res, 3);
 
-#if GM_WD
+#if OPT_GM_WD
     int var2 = sumsq2 * match_sz_sq - sum2 * sum2;
     int cov  = cross * match_sz_sq - sum1 * sum2;
 #else

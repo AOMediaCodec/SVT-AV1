@@ -24,7 +24,7 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels);
 #endif
 
-#if OPTIMIZE_DEPTH_LEVEL
+#if OPT_DEPTH_LEVEL
 void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t depth_level);
 #else
 void    svt_aom_set_depth_ctrls(ModeDecisionContext *ctx, uint8_t depth_level);

@@ -174,7 +174,7 @@ int64_t svt_av1_calc_frame_error_c(const uint8_t *const ref, int stride, const u
 static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, int width, int height,
                           int stride, const uint8_t *const dst, int p_col, int p_row, int p_width,
                           int p_height, int p_stride, int subsampling_x, int subsampling_y,
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                           uint8_t chess_refn,
 #endif
                           int64_t best_error) {
@@ -186,7 +186,7 @@ static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, in
     ConvolveParams conv_params   = get_conv_params(0, 0, 0, 8);
     conv_params.use_jnt_comp_avg = 0;
 
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
 
     int i_itr = 0;
     for (int i = p_row; i < p_row + p_height; i += WARP_ERROR_BLOCK) {
@@ -228,12 +228,12 @@ static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, in
                 return gm_sumerr;
         }
 
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
         i_itr++;
 #endif
     }
 
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
     gm_sumerr = chess_refn ? gm_sumerr * 2 : gm_sumerr;
 #endif
 
@@ -258,7 +258,7 @@ int64_t svt_av1_warp_error(EbWarpedMotionParams *wm, int use_hbd, int bd, const 
                            const uint8_t *ref_2b, int width, int height, int stride, uint8_t *dst,
                            int p_col, int p_row, int p_width, int p_height, int p_stride,
                            int subsampling_x, int subsampling_y,
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                            uint8_t chess_refn,
 #endif
 
@@ -296,7 +296,7 @@ int64_t svt_av1_warp_error(EbWarpedMotionParams *wm, int use_hbd, int bd, const 
                       p_stride,
                       subsampling_x,
                       subsampling_y,
-#if GM_CHESS_REFN
+#if OPT_GM_CHESS_REFN
                       chess_refn,
 #endif
 

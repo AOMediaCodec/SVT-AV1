@@ -29,7 +29,7 @@
 #include "EbInvTransforms.h"
 #include "EncModeConfig.h"
 
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
 void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor);
 #endif
 
@@ -80,7 +80,7 @@ void           set_global_motion_field(PictureControlSet *pcs) {
         if (ppcs->is_global_motion[get_list_idx(frame_index)][get_ref_frame_idx(frame_index)])
             ppcs->global_motion[frame_index] = ppcs->svt_aom_global_motion_estimation[get_list_idx(
                 frame_index)][get_ref_frame_idx(frame_index)];
-#if GM_MIX_DS
+#if OPT_GM_MIX_DS
         uint8_t sf = ppcs->gm_downsample_level == GM_DOWN ? 2
             : ppcs->gm_downsample_level == GM_DOWN16      ? 4
                                                           : 1;
@@ -616,7 +616,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         RateControlResults *rc_results = (RateControlResults *)rc_results_wrapper->object_ptr;
         PictureControlSet  *pcs        = (PictureControlSet *)rc_results->pcs_wrapper->object_ptr;
         SequenceControlSet *scs        = pcs->scs;
-#if OPTIMIZE_DEPTH_LEVEL
+#if OPT_DEPTH_LEVEL
         pcs->min_me_clpx = 0;
         pcs->max_me_clpx = 0;
         pcs->avg_me_clpx = 0;

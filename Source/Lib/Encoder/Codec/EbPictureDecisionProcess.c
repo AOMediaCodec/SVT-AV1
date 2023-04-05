@@ -5586,7 +5586,7 @@ static void send_picture_out(
 
     //every picture enherits latest motion direction from TF
     pcs->tf_motion_direction = ctx->tf_motion_direction;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
     MrpCtrls* mrp_ctrl = &(scs->mrp_ctrls);
 
     //limit (1,1) for picture that have very close references.
@@ -5609,7 +5609,7 @@ static void send_picture_out(
             //printf("[%ld]: Got me data [NORMAL] %p\n", pcs->picture_number, pcs->pa_me_data);
         }
 
-#if !LIMIT_NREF
+#if !OPT_LIMIT_NREF
         MrpCtrls* mrp_ctrl = &(scs->mrp_ctrls);
 #endif
 

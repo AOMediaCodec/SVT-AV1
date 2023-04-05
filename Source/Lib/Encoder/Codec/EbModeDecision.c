@@ -1904,7 +1904,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                                 ctx->blk_org_y,
                                 cand_array[cand_idx].ref_frame_type,
                                 &cand_array[cand_idx].wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                 &cand_array[cand_idx].num_proj_ref,
                                 ctx->wm_ctrls.min_neighbour_perc,
                                 ctx->wm_ctrls.corner_perc_bias,
@@ -2031,7 +2031,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                                     ctx->blk_org_y,
                                     cand_array[cand_idx].ref_frame_type,
                                     &cand_array[cand_idx].wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                     &cand_array[cand_idx].num_proj_ref,
                                     ctx->wm_ctrls.min_neighbour_perc,
                                     ctx->wm_ctrls.corner_perc_bias,
@@ -2687,7 +2687,7 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
                 ctx->blk_org_y,
                 candidate->ref_frame_type,
                 &candidate->wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                 &candidate->num_proj_ref,
                 ctx->wm_ctrls.min_neighbour_perc,
                 ctx->wm_ctrls.corner_perc_bias,
@@ -3574,7 +3574,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                         ctx->blk_org_y,
                                         cand_array[cand_total_cnt].ref_frame_type,
                                         &cand_array[cand_total_cnt].wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                         &cand_array[cand_total_cnt].num_proj_ref,
                                         ctx->wm_ctrls.min_neighbour_perc,
                                         ctx->wm_ctrls.corner_perc_bias,
@@ -3768,7 +3768,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                             ctx->blk_org_y,
                                             cand_array[cand_total_cnt].ref_frame_type,
                                             &cand_array[cand_total_cnt].wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                             &cand_array[cand_total_cnt].num_proj_ref,
                                             ctx->wm_ctrls.min_neighbour_perc,
                                             ctx->wm_ctrls.corner_perc_bias,
@@ -4322,7 +4322,7 @@ static void inject_pme_candidates(
                                             ctx->blk_org_y,
                                             cand_array[cand_total_cnt].ref_frame_type,
                                             &cand_array[cand_total_cnt].wm_params_l0,
-#if USE_NSAMPLES
+#if OPT_USE_NSAMPLES
                                             &cand_array[cand_total_cnt].num_proj_ref,
                                             ctx->wm_ctrls.min_neighbour_perc,
                                             ctx->wm_ctrls.corner_perc_bias,

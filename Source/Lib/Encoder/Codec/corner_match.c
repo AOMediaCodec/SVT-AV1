@@ -20,12 +20,12 @@
 /* Compute var(im) * MATCH_SZ_SQ over a MATCH_SZ by MATCH_SZ window of im,
    centered at (x, y).
 */
-#if GM_WD
+#if OPT_GM_WD
 static int32_t compute_variance(unsigned char *im, int stride, int x, int y, uint8_t match_sz) {
 #else
 static int32_t compute_variance(unsigned char *im, int stride, int x, int y) {
 #endif
-#if GM_WD
+#if OPT_GM_WD
     const uint8_t match_sz_by2 = ((match_sz - 1) / 2);
     const uint8_t match_sz_sq  = (match_sz * match_sz);
 #endif
@@ -33,7 +33,7 @@ static int32_t compute_variance(unsigned char *im, int stride, int x, int y) {
     int sumsq = 0;
     int var;
     int i, j;
-#if GM_WD
+#if OPT_GM_WD
     for (i = 0; i < match_sz; ++i)
         for (j = 0; j < match_sz; ++j) {
             sum += im[(i + y - match_sz_by2) * stride + (j + x - match_sz_by2)];
@@ -59,13 +59,13 @@ static int32_t compute_variance(unsigned char *im, int stride, int x, int y) {
    of each image, centered at (x1, y1) and (x2, y2) respectively.
 */
 double svt_av1_compute_cross_correlation_c(unsigned char *im1, int stride1, int x1, int y1,
-#if GM_WD
+#if OPT_GM_WD
                                            unsigned char *im2, int stride2, int x2, int y2,
                                            uint8_t match_sz) {
 #else
                                            unsigned char *im2, int stride2, int x2, int y2) {
 #endif
-#if GM_WD
+#if OPT_GM_WD
     const uint8_t match_sz_by2 = ((match_sz - 1) / 2);
     const uint8_t match_sz_sq  = (match_sz * match_sz);
 #endif
@@ -77,7 +77,7 @@ double svt_av1_compute_cross_correlation_c(unsigned char *im1, int stride1, int 
     int cross  = 0;
     int var2, cov;
     int i, j;
-#if GM_WD
+#if OPT_GM_WD
     for (i = 0; i < match_sz; ++i)
         for (j = 0; j < match_sz; ++j) {
             v1 = im1[(i + y1 - match_sz_by2) * stride1 + (j + x1 - match_sz_by2)];
@@ -108,7 +108,7 @@ double svt_av1_compute_cross_correlation_c(unsigned char *im1, int stride1, int 
     return ((double)cov * cov) / ((double)var2);
 }
 
-#if GM_WD
+#if OPT_GM_WD
 static INLINE int is_eligible_point(int pointx, int pointy, int width, int height,
                                     uint8_t match_sz) {
     const uint8_t match_sz_by2 = ((match_sz - 1) / 2);
@@ -132,7 +132,7 @@ static INLINE int is_eligible_distance(int point1x, int point1y, int point2x, in
 
 static void improve_correspondence(unsigned char *frm, unsigned char *ref, int width, int height,
                                    int frm_stride, int ref_stride, Correspondence *correspondences,
-#if GM_WD
+#if OPT_GM_WD
                                    int num_correspondences, uint8_t match_sz) {
 #else
                                    int num_correspondences) {
@@ -146,7 +146,7 @@ static void improve_correspondence(unsigned char *frm, unsigned char *ref, int w
         for (y = -SEARCH_SZ_BY2; y <= SEARCH_SZ_BY2; ++y) {
             for (x = -SEARCH_SZ_BY2; x <= SEARCH_SZ_BY2; ++x) {
                 double match_ncc;
-#if GM_WD
+#if OPT_GM_WD
                 if (!is_eligible_point(correspondences[i].rx + x,
                                        correspondences[i].ry + y,
                                        width,
@@ -170,7 +170,7 @@ static void improve_correspondence(unsigned char *frm, unsigned char *ref, int w
                                                               ref,
                                                               ref_stride,
                                                               correspondences[i].rx + x,
-#if GM_WD
+#if OPT_GM_WD
                                                               correspondences[i].ry + y,
                                                               match_sz);
 #else
@@ -192,7 +192,7 @@ static void improve_correspondence(unsigned char *frm, unsigned char *ref, int w
         for (y = -SEARCH_SZ_BY2; y <= SEARCH_SZ_BY2; ++y)
             for (x = -SEARCH_SZ_BY2; x <= SEARCH_SZ_BY2; ++x) {
                 double match_ncc;
-#if GM_WD
+#if OPT_GM_WD
                 if (!is_eligible_point(correspondences[i].x + x,
                                        correspondences[i].y + y,
                                        width,
@@ -209,7 +209,7 @@ static void improve_correspondence(unsigned char *frm, unsigned char *ref, int w
                                           correspondences[i].ry,
                                           threshSqr))
                     continue;
-#if GM_WD
+#if OPT_GM_WD
                 match_ncc = svt_av1_compute_cross_correlation(ref,
                                                               ref_stride,
                                                               correspondences[i].rx,
@@ -243,7 +243,7 @@ static void improve_correspondence(unsigned char *frm, unsigned char *ref, int w
 int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int num_frm_corners,
                                      unsigned char *ref, int *ref_corners, int num_ref_corners,
                                      int width, int height, int frm_stride, int ref_stride,
-#if GM_WD
+#if OPT_GM_WD
                                      int *correspondence_pts, uint8_t match_sz) {
 #else
                                      int *correspondence_pts) {
@@ -257,7 +257,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
         double  best_match_ncc = 0.0;
         int32_t template_norm;
         int     best_match_j = -1;
-#if GM_WD
+#if OPT_GM_WD
         if (!is_eligible_point(frm_corners[2 * i], frm_corners[2 * i + 1], width, height, match_sz))
 #else
         if (!is_eligible_point(frm_corners[2 * i], frm_corners[2 * i + 1], width, height))
@@ -265,7 +265,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
             continue;
         for (j = 0; j < num_ref_corners; ++j) {
             double match_ncc;
-#if GM_WD
+#if OPT_GM_WD
             if (!is_eligible_point(
                     ref_corners[2 * j], ref_corners[2 * j + 1], width, height, match_sz))
 #else
@@ -278,7 +278,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
                                       ref_corners[2 * j + 1],
                                       threshSqr))
                 continue;
-#if GM_WD
+#if OPT_GM_WD
             match_ncc = svt_av1_compute_cross_correlation(frm,
                                                           frm_stride,
                                                           frm_corners[2 * i],
@@ -306,7 +306,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
         // Note: We want to test if the best correlation is >= THRESHOLD_NCC,
         // but need to account for the normalization in
         // av1_compute_cross_correlation.
-#if GM_WD
+#if OPT_GM_WD
         template_norm = compute_variance(
             frm, frm_stride, frm_corners[2 * i], frm_corners[2 * i + 1], match_sz);
 
@@ -329,7 +329,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
             num_correspondences++;
         }
     }
-#if GM_WD
+#if OPT_GM_WD
     improve_correspondence(frm,
                            ref,
                            width,

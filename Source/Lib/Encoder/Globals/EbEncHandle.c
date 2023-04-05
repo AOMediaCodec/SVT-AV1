@@ -3545,13 +3545,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 1;
         mrp_ctrl->non_base_ref_list0_count    = 1;
         mrp_ctrl->non_base_ref_list1_count    = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3569,13 +3569,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 3;
         mrp_ctrl->non_base_ref_list0_count    = 4;
         mrp_ctrl->non_base_ref_list1_count    = 3;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3593,13 +3593,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 3;
         mrp_ctrl->non_base_ref_list0_count    = 4;
         mrp_ctrl->non_base_ref_list1_count    = 3;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3617,13 +3617,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 3;
         mrp_ctrl->non_base_ref_list0_count    = 4;
         mrp_ctrl->non_base_ref_list1_count    = 3;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3641,13 +3641,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3665,13 +3665,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 1;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 1;
 #endif
 #if OPT_MRP
@@ -3688,13 +3688,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 1;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 1;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 1;
 #endif
 #if OPT_MRP
@@ -3715,13 +3715,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3743,13 +3743,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 2;
         mrp_ctrl->non_base_ref_list1_count = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3771,13 +3771,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 2;
         mrp_ctrl->non_base_ref_list1_count = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3795,13 +3795,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3818,13 +3818,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3842,13 +3842,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3871,13 +3871,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 2;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3895,13 +3895,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 1;
         mrp_ctrl->non_base_ref_list1_count    = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3925,13 +3925,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3953,13 +3953,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 2;
         mrp_ctrl->non_base_ref_list1_count = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -3981,13 +3981,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 2;
         mrp_ctrl->non_base_ref_list1_count = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -4005,13 +4005,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count = 2;
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -4033,13 +4033,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 2;
         mrp_ctrl->non_base_ref_list1_count    = 2;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP
@@ -4057,13 +4057,13 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->base_ref_list1_count        = 2;
         mrp_ctrl->non_base_ref_list0_count    = 1;
         mrp_ctrl->non_base_ref_list1_count    = 1;
-#if LIMIT_NREF
+#if OPT_LIMIT_NREF
         mrp_ctrl->safe_limit_nref             = 0;
 #endif
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
         mrp_ctrl->only_l_bwd                  = 0;
 #endif
-#if PME_REF0_ONLY
+#if OPT_PME_REF0_ONLY
         mrp_ctrl->pme_ref0_only               = 0;
 #endif
 #if OPT_MRP

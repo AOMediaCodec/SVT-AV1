@@ -2716,7 +2716,7 @@ static void construct_me_candidate_array(PictureParentControlSet *pcs, MeContext
                 for (uint32_t second_list_ref_pict_idx = 0;
                      second_list_ref_pict_idx < me_ctx->num_of_ref_pic_to_search[REF_LIST_1];
                      second_list_ref_pict_idx++) {
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
                     if (pcs->scs->mrp_ctrls.only_l_bwd && (first_list_ref_pict_idx > 0 || second_list_ref_pict_idx > 0))
                         continue;
 #endif
@@ -2731,7 +2731,7 @@ static void construct_me_candidate_array(PictureParentControlSet *pcs, MeContext
                     }
                 }
             }
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
             if (!pcs->scs->mrp_ctrls.only_l_bwd) {
 #endif
             // 2nd set of BIPRED cand: (LAST,LAST2) (LAST,LAST3) (LAST,GOLD)
@@ -2747,12 +2747,12 @@ static void construct_me_candidate_array(PictureParentControlSet *pcs, MeContext
                     me_cand_offset++;
                 }
             }
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
             }
 #endif
 
             // 3rd set of BIPRED cand: (BWD, ALT)
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
             if (!pcs->scs->mrp_ctrls.only_l_bwd) {
 #endif
 
@@ -2767,7 +2767,7 @@ static void construct_me_candidate_array(PictureParentControlSet *pcs, MeContext
                     me_cand_offset++;
                 }
             }
-#if ONLY_L_BWD
+#if OPT_ONLY_L_BWD
             }
 #endif
         }
