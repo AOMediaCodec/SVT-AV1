@@ -92,7 +92,7 @@ typedef struct EbPaReferenceObject {
 #if FIX_AVG_Y
     uint64_t avg_luma;
 #endif
-    uint8_t  dummy_obj;
+    uint8_t dummy_obj;
 } EbPaReferenceObject;
 
 typedef struct EbPaReferenceObjectDescInitData {

@@ -1440,13 +1440,13 @@ static INLINE void record_samples(MbModeInfo *mbmi, int *pts, int *pts_inref, in
 // Sample are the neighbor block center point's coordinates relative to the
 // left-top pixel of current block.
 #if USE_NSAMPLES
-static int av1_find_samples(const Av1Common *cm, const BlockSize sb_size, MacroBlockD *xd, int mi_row,
-                     int mi_col, MvReferenceFrame rf0, int *pts, int *pts_inref,
-                     int *adjacent_samples, int *top_left_present, int *top_right_present) {
-#else
 static int av1_find_samples(const Av1Common *cm, const BlockSize sb_size, MacroBlockD *xd,
-                            int mi_row, int mi_col, MvReferenceFrame rf0, int *pts,
-                            int *pts_inref) {
+                            int mi_row, int mi_col, MvReferenceFrame rf0, int *pts, int *pts_inref,
+                            int *adjacent_samples, int *top_left_present, int *top_right_present) {
+#else
+static int      av1_find_samples(const Av1Common *cm, const BlockSize sb_size, MacroBlockD *xd,
+                                 int mi_row, int mi_col, MvReferenceFrame rf0, int *pts,
+                                 int *pts_inref) {
 #endif
     int up_available   = xd->up_available;
     int left_available = xd->left_available;
@@ -1762,11 +1762,12 @@ static uint16_t wm_find_samples(BlkStruct *blk_ptr, const BlockGeom *blk_geom, u
 
 #if USE_NSAMPLES
 Bool svt_aom_warped_motion_parameters(PictureControlSet *pcs, BlkStruct *blk_ptr, MvUnit *mv_unit,
-                              const BlockGeom *blk_geom, uint16_t blk_org_x,
-                              uint16_t blk_org_y, uint8_t ref_frame_type,
-                              EbWarpedMotionParams *wm_params, uint16_t *num_samples,
-                              uint8_t min_neighbour_perc, uint8_t corner_perc_bias,
-                              uint16_t lower_band_th, uint16_t upper_band_th, Bool shut_approx) {
+                                      const BlockGeom *blk_geom, uint16_t blk_org_x,
+                                      uint16_t blk_org_y, uint8_t ref_frame_type,
+                                      EbWarpedMotionParams *wm_params, uint16_t *num_samples,
+                                      uint8_t min_neighbour_perc, uint8_t corner_perc_bias,
+                                      uint16_t lower_band_th, uint16_t upper_band_th,
+                                      Bool shut_approx) {
 #else
 Bool svt_aom_warped_motion_parameters(PictureControlSet *pcs, BlkStruct *blk_ptr, MvUnit *mv_unit,
                                       const BlockGeom *blk_geom, uint16_t blk_org_x,

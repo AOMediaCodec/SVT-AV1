@@ -27,7 +27,7 @@
 #define GMV_PIC_VAR_TH 750
 
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
-                                      EbPictureBufferDesc *    input_pic) {
+                                      EbPictureBufferDesc     *input_pic) {
     // Get downsampled pictures with a downsampling factor of 2 in each dimension
     EbPaReferenceObject *pa_reference_object;
     EbPictureBufferDesc *quarter_ref_pic_ptr;
@@ -101,7 +101,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
             global_motion_estimation_level = 0;
     }
 
-
     if (global_motion_estimation_level)
         for (uint32_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
             uint32_t num_of_ref_pic_to_search;
@@ -123,64 +122,64 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                  ->object_ptr;
 
 #if GM_MIX_DS
-                uint8_t det_refn_sf;
+                uint8_t              det_refn_sf;
                 EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement,
                     *ref_refinement;
 #if GM_CHESS_REFN
                 uint8_t chess_refn;
 #endif
 
-                    ref_picture_ptr       = ref_object->input_padded_pic;
-                    quarter_ref_pic_ptr   = ref_object->quarter_downsampled_picture_ptr;
-                    sixteenth_ref_pic_ptr = ref_object->sixteenth_downsampled_picture_ptr;
+                ref_picture_ptr       = ref_object->input_padded_pic;
+                quarter_ref_pic_ptr   = ref_object->quarter_downsampled_picture_ptr;
+                sixteenth_ref_pic_ptr = ref_object->sixteenth_downsampled_picture_ptr;
 
-                    if (pcs->gm_downsample_level == GM_DOWN16) {
-                        inp_detection = sixteenth_picture_ptr;
-                        ref_detection = sixteenth_ref_pic_ptr;
+                if (pcs->gm_downsample_level == GM_DOWN16) {
+                    inp_detection = sixteenth_picture_ptr;
+                    ref_detection = sixteenth_ref_pic_ptr;
 
-                        inp_refinement = sixteenth_picture_ptr;
-                        ref_refinement = sixteenth_ref_pic_ptr;
+                    inp_refinement = sixteenth_picture_ptr;
+                    ref_refinement = sixteenth_ref_pic_ptr;
 
-                        det_refn_sf = 1;
+                    det_refn_sf = 1;
 #if GM_CHESS_REFN
-                        chess_refn  = 0;
+                    chess_refn = 0;
 #endif
-                    } else if (pcs->gm_downsample_level == GM_DOWN) {
-                        inp_detection = quarter_picture_ptr; //sixteenth_picture_ptr;//
-                        ref_detection = quarter_ref_pic_ptr; //sixteenth_ref_pic_ptr; //
+                } else if (pcs->gm_downsample_level == GM_DOWN) {
+                    inp_detection = quarter_picture_ptr; //sixteenth_picture_ptr;//
+                    ref_detection = quarter_ref_pic_ptr; //sixteenth_ref_pic_ptr; //
 
-                        inp_refinement = quarter_picture_ptr;
-                        ref_refinement = quarter_ref_pic_ptr;
+                    inp_refinement = quarter_picture_ptr;
+                    ref_refinement = quarter_ref_pic_ptr;
 
-                        det_refn_sf = 1;
+                    det_refn_sf = 1;
 #if GM_CHESS_REFN
-                        chess_refn  = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
+                    chess_refn = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
 #endif
-                    } else {
-                        inp_detection = input_pic; //quarter_picture_ptr;//
-                        ref_detection = ref_picture_ptr; //quarter_ref_pic_ptr; //
+                } else {
+                    inp_detection = input_pic; //quarter_picture_ptr;//
+                    ref_detection = ref_picture_ptr; //quarter_ref_pic_ptr; //
 
-                        inp_refinement = input_pic;
-                        ref_refinement = ref_picture_ptr;
+                    inp_refinement = input_pic;
+                    ref_refinement = ref_picture_ptr;
 
-                        det_refn_sf = 1;
+                    det_refn_sf = 1;
 #if GM_CHESS_REFN
-                        chess_refn  = pcs->gm_ctrls.chess_rfn;
+                    chess_refn = pcs->gm_ctrls.chess_rfn;
 #endif
-                    }
+                }
 
-
-                compute_global_motion(pcs,
-                                      inp_detection,
-                                      ref_detection,
-                                      inp_refinement,
-                                      ref_refinement,
-                                      det_refn_sf,
+                compute_global_motion(
+                    pcs,
+                    inp_detection,
+                    ref_detection,
+                    inp_refinement,
+                    ref_refinement,
+                    det_refn_sf,
 #if GM_CHESS_REFN
-                                      chess_refn,
+                    chess_refn,
 #endif
-                                      &pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index],
-                                      pcs->frm_hdr.allow_high_precision_mv);
+                    &pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index],
+                    pcs->frm_hdr.allow_high_precision_mv);
 #else
 
                 // Set the source and the reference picture to be used by the global motion search
@@ -249,22 +248,21 @@ void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor) {
 }
 #if GM_CHESS_REFN
 void compute_global_motion(PictureParentControlSet *pcs,
-                           EbPictureBufferDesc *    det_input_pic, //src frame for detection
-                           EbPictureBufferDesc *    det_ref_pic, //ref frame for detection
-                           EbPictureBufferDesc *    input_pic, //src frame for refinement
-                           EbPictureBufferDesc *    ref_pic, //ref frame for refinement
+                           EbPictureBufferDesc     *det_input_pic, //src frame for detection
+                           EbPictureBufferDesc     *det_ref_pic, //ref frame for detection
+                           EbPictureBufferDesc     *input_pic, //src frame for refinement
+                           EbPictureBufferDesc     *ref_pic, //ref frame for refinement
                            uint8_t sf, //downsacle factor between det and refinement
                            uint8_t chess_refn, EbWarpedMotionParams *bestWarpedMotion,
                            int allow_high_precision_mv) {
 #else
 void compute_global_motion(PictureParentControlSet *pcs,
-                           EbPictureBufferDesc *    det_input_pic, //src frame for detection
-                           EbPictureBufferDesc *    det_ref_pic, //ref frame for detection
-                           EbPictureBufferDesc *    input_pic, //src frame for refinement
-                           EbPictureBufferDesc *    ref_pic, //ref frame for refinement
-                           uint8_t sf, //downsacle factor between det and refinement
-                           EbWarpedMotionParams *bestWarpedMotion,
-                           int allow_high_precision_mv) {
+                           EbPictureBufferDesc     *det_input_pic, //src frame for detection
+                           EbPictureBufferDesc     *det_ref_pic, //ref frame for detection
+                           EbPictureBufferDesc     *input_pic, //src frame for refinement
+                           EbPictureBufferDesc     *ref_pic, //ref frame for refinement
+                           uint8_t               sf, //downsacle factor between det and refinement
+                           EbWarpedMotionParams *bestWarpedMotion, int allow_high_precision_mv) {
 #endif
 #else
 void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *input_pic,
@@ -460,7 +458,6 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
 
             if (ref_frame_error == 0)
                 continue;
-
 
             // If the best error advantage found doesn't meet the threshold for
             // this motion type, revert to IDENTITY.

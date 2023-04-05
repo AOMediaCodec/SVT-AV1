@@ -503,8 +503,7 @@ int64_t pick_wedge_fixed_sign(PictureControlSet *pcs, ModeDecisionContext *ctx,
 #if OPT_II
         int64_t rd = sse;
         if (ctx->inter_intra_comp_ctrls.use_rd_model) {
-            model_rd_with_curvfit(
-                pcs, bsize, sse, N, &rate, &dist, ctx, full_lambda);
+            model_rd_with_curvfit(pcs, bsize, sse, N, &rate, &dist, ctx, full_lambda);
             rate += ctx->md_rate_est_ctx->wedge_idx_fac_bits[bsize][wedge_index];
             rd = RDCOST(full_lambda, rate, dist);
         }
@@ -5827,8 +5826,7 @@ EbErrorType av1_inter_prediction_obmc(PictureControlSet *pcs, BlkStruct *blk_ptr
     }
 
     uint8_t *final_dst_ptr_y = pred_pic->buffer_y +
-        ((pred_pic->org_x + dst_origin_x +
-          (pred_pic->org_y + dst_origin_y) * pred_pic->stride_y)
+        ((pred_pic->org_x + dst_origin_x + (pred_pic->org_y + dst_origin_y) * pred_pic->stride_y)
          << is16bit);
     uint16_t final_dst_stride_y = pred_pic->stride_y;
 
@@ -5866,8 +5864,8 @@ EbErrorType av1_inter_prediction_obmc(PictureControlSet *pcs, BlkStruct *blk_ptr
 }
 
 EbErrorType inter_pu_prediction_av1_obmc(uint8_t                      hbd_mode_decision,
-                                         ModeDecisionContext *        md_context_ptr,
-                                         PictureControlSet *          picture_control_set_ptr,
+                                         ModeDecisionContext         *md_context_ptr,
+                                         PictureControlSet           *picture_control_set_ptr,
                                          ModeDecisionCandidateBuffer *candidate_buffer_ptr) {
     EbErrorType return_error = EB_ErrorNone;
 

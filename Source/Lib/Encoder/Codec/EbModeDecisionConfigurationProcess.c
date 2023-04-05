@@ -29,7 +29,6 @@
 #include "EbInvTransforms.h"
 #include "EncModeConfig.h"
 
-
 #if GM_MIX_DS
 void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor);
 #endif
@@ -84,7 +83,7 @@ void           set_global_motion_field(PictureControlSet *pcs) {
 #if GM_MIX_DS
         uint8_t sf = ppcs->gm_downsample_level == GM_DOWN ? 2
             : ppcs->gm_downsample_level == GM_DOWN16      ? 4
-                                                                    : 1;
+                                                          : 1;
         upscale_wm_params(&ppcs->global_motion[frame_index], sf);
 
 #else

@@ -2106,9 +2106,9 @@ uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDecisionC
 #if OPT_DEPTH_EARLY_EXIT_RATE
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_mds_idx);
 #else
-    const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
+    const BlockGeom           *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
 #endif
-    const BlockSize  bsize    = blk_geom->bsize;
+    const BlockSize bsize = blk_geom->bsize;
     assert(mi_size_wide_log2[bsize] == mi_size_high_log2[bsize]);
     assert(bsize < BlockSizeS_ALL);
     const Bool is_partition_point = (bsize >= BLOCK_8X8);
@@ -2153,11 +2153,11 @@ uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDecisionC
 
     const int above = (above_ctx >> bsl) & 1, left = (left_ctx >> bsl) & 1;
 #if CLN_PART_CTX
-    const int      partitio_ploffset = use_accurate_part_ctx ? PARTITION_PLOFFSET : 0;
+    const int partitio_ploffset = use_accurate_part_ctx ? PARTITION_PLOFFSET : 0;
 #else
-    const int      partitio_ploffset = pcs->partition_contexts == 4 ? 0 : PARTITION_PLOFFSET;
+    const int partitio_ploffset = pcs->partition_contexts == 4 ? 0 : PARTITION_PLOFFSET;
 #endif
-    const uint32_t context_index     = (left * 2 + above) + bsl * partitio_ploffset;
+    const uint32_t context_index = (left * 2 + above) + bsl * partitio_ploffset;
 
     uint64_t split_rate = 0;
 

@@ -156,7 +156,6 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
     ref_object->quarter_reference_picture   = NULL;
     ref_object->sixteenth_reference_picture = NULL;
 
-
     ref_object->ds_pics.picture_ptr           = ref_object->reference_picture;
     ref_object->ds_pics.quarter_picture_ptr   = ref_object->quarter_reference_picture;
     ref_object->ds_pics.sixteenth_picture_ptr = ref_object->sixteenth_reference_picture;

@@ -1084,8 +1084,8 @@ static int32_t search_filter_level(
 #if DLF_UV_QP
 EbErrorType qp_based_dlf_param(PictureControlSet *pcs, int32_t *filter_level_y,
                                int32_t *filter_level_uv) {
-    SequenceControlSet *scs = pcs->scs;
-    FrameHeader *       frm_hdr = &pcs->ppcs->frm_hdr;
+    SequenceControlSet *scs     = pcs->scs;
+    FrameHeader        *frm_hdr = &pcs->ppcs->frm_hdr;
 
     const int32_t min_filter_level = 0;
     const int32_t max_filter_level = MAX_LOOP_FILTER;
@@ -1113,8 +1113,7 @@ EbErrorType qp_based_dlf_param(PictureControlSet *pcs, int32_t *filter_level_y,
                "or EB_TWELVE_BIT");
         return EB_ErrorNone;
     }
-    if (scs->static_config.encoder_bit_depth != EB_EIGHT_BIT &&
-        frm_hdr->frame_type == KEY_FRAME)
+    if (scs->static_config.encoder_bit_depth != EB_EIGHT_BIT && frm_hdr->frame_type == KEY_FRAME)
         filt_guess -= 4;
 
     filt_guess = filt_guess > 2 ? filt_guess - 2 : filt_guess > 1 ? filt_guess - 1 : filt_guess;
@@ -1247,16 +1246,14 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         }
 
 #if DLF_REF //avg
-        if (pcs->ppcs->dlf_ctrls.dlf_avg &&
-            pcs->ppcs->tot_ref_frame_types > 0) {
+        if (pcs->ppcs->dlf_ctrls.dlf_avg && pcs->ppcs->tot_ref_frame_types > 0) {
             int32_t tot_ref_filter_level[2] = {0, 0};
             int32_t tot_ref_filter_level_u  = 0;
             int32_t tot_ref_filter_level_v  = 0;
 
             int32_t tot_refs = 0;
 
-            for (uint32_t ref_it = 0; ref_it < pcs->ppcs->tot_ref_frame_types;
-                 ++ref_it) {
+            for (uint32_t ref_it = 0; ref_it < pcs->ppcs->tot_ref_frame_types; ++ref_it) {
                 MvReferenceFrame ref_pair = pcs->ppcs->ref_frame_type_arr[ref_it];
                 MvReferenceFrame rf[2];
                 av1_set_ref_frame(rf, ref_pair);
@@ -1299,8 +1296,7 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
             0,
             2);
 #if DLF_UV_QP
-        bool use_qp_for_chroma = pcs->ppcs->dlf_ctrls.dlf_avg_uv &&
-            pcs->temporal_layer_index > 0;
+        bool use_qp_for_chroma = pcs->ppcs->dlf_ctrls.dlf_avg_uv && pcs->temporal_layer_index > 0;
 
         if (use_qp_for_chroma) {
             int32_t filter_level_y, filter_level_uv;
@@ -1315,22 +1311,22 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         } else {
 #endif
 
-        lf->filter_level_u = search_filter_level(srcBuffer,
-                                                 temp_lf_recon_buffer,
-                                                 pcs,
-                                                 method == LPF_PICK_FROM_SUBIMAGE,
-                                                 last_frame_filter_level,
-                                                 NULL,
-                                                 1,
-                                                 0);
-        lf->filter_level_v = search_filter_level(srcBuffer,
-                                                 temp_lf_recon_buffer,
-                                                 pcs,
-                                                 method == LPF_PICK_FROM_SUBIMAGE,
-                                                 last_frame_filter_level,
-                                                 NULL,
-                                                 2,
-                                                 0);
+            lf->filter_level_u = search_filter_level(srcBuffer,
+                                                     temp_lf_recon_buffer,
+                                                     pcs,
+                                                     method == LPF_PICK_FROM_SUBIMAGE,
+                                                     last_frame_filter_level,
+                                                     NULL,
+                                                     1,
+                                                     0);
+            lf->filter_level_v = search_filter_level(srcBuffer,
+                                                     temp_lf_recon_buffer,
+                                                     pcs,
+                                                     method == LPF_PICK_FROM_SUBIMAGE,
+                                                     last_frame_filter_level,
+                                                     NULL,
+                                                     2,
+                                                     0);
 #if DLF_UV_QP
         }
 #endif

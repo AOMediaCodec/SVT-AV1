@@ -413,7 +413,7 @@ typedef struct PictureControlSet {
 #if OPT_II
     uint8_t inter_intra_level;
 #else
-    uint8_t  md_inter_intra_level;
+    uint8_t md_inter_intra_level;
 #endif
     uint8_t  txs_level;
     uint8_t  nic_level;
@@ -437,7 +437,7 @@ typedef struct PictureControlSet {
     // Skip testing remaining blocks at the current depth if (curr_cost * 100 >
     // pic_depth_early_exit_th * parent_cost); [0-100], 0 is OFF, lower percentage is more
     // aggressive
-    uint8_t          pic_depth_early_exit_th;
+    uint8_t pic_depth_early_exit_th;
 #endif
     uint8_t          pic_lpd0_lvl; // lpd0_lvl signal set at the picture level
     uint8_t          pic_lpd1_lvl; // lpd1_lvl signal set at the picture level
@@ -633,7 +633,8 @@ typedef struct GmControls {
     uint8_t chess_rfn; //skip the refinement using a chess pattern to
 #endif
 #if GM_WD
-    uint8_t match_sz; //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
+    uint8_t
+        match_sz; //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
 #endif
 } GmControls;
 typedef struct CdefControls {

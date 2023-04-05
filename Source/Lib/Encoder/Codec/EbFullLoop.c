@@ -2469,19 +2469,20 @@ uint64_t svt_aom_d1_non_square_block_decision(ModeDecisionContext *ctx, uint32_t
     for (blk_it = 0; blk_it < ctx->blk_geom->totns; blk_it++) {
         tot_cost += ctx->md_local_blk_unit[first_blk_idx + blk_it].cost;
     }
-    uint64_t split_cost = svt_aom_partition_rate_cost(ctx->sb_ptr->pcs->ppcs,
-                                                      ctx,
+    uint64_t split_cost = svt_aom_partition_rate_cost(
+        ctx->sb_ptr->pcs->ppcs,
+        ctx,
 #if OPT_DEPTH_EARLY_EXIT_RATE
-                                                      ctx->blk_geom->sqi_mds,
+        ctx->blk_geom->sqi_mds,
 #else
-                                                      &ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds],
+        &ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds],
 #endif
-                                                      from_shape_to_part[ctx->blk_geom->shape],
-                                                      full_lambda,
+        from_shape_to_part[ctx->blk_geom->shape],
+        full_lambda,
 #if CLN_PART_CTX
-                                                      ctx->sb_ptr->pcs->ppcs->partition_contexts == PARTITION_CONTEXTS,
+        ctx->sb_ptr->pcs->ppcs->partition_contexts == PARTITION_CONTEXTS,
 #endif
-                                                      ctx->md_rate_est_ctx);
+        ctx->md_rate_est_ctx);
 
     tot_cost += split_cost;
     if ((d1_block_itr == 0) || (tot_cost < ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].cost)) {
@@ -2598,7 +2599,8 @@ uint32_t svt_aom_d2_inter_depth_block_decision(SequenceControlSet *scs, PictureC
     return last_blk_index;
 }
 #if OPT_DEPTH_EARLY_EXIT_RATE
-void svt_aom_compute_depth_costs_md_skip_light_pd0(PictureParentControlSet* pcs, ModeDecisionContext* ctx,
+void svt_aom_compute_depth_costs_md_skip_light_pd0(PictureParentControlSet *pcs,
+                                                   ModeDecisionContext     *ctx,
 #else
 void svt_aom_compute_depth_costs_md_skip_light_pd0(ModeDecisionContext *ctx,
 #endif
@@ -2624,9 +2626,8 @@ void svt_aom_compute_depth_costs_md_skip_light_pd0(ModeDecisionContext *ctx,
     }
 #if OPT_DEPTH_EARLY_EXIT_RATE
     // Parent neighbour arrays should be set in case parent depth was not allowed
-    ctx->md_local_blk_unit[above_depth_mds].left_neighbor_partition = INVALID_NEIGHBOR_DATA;
-    ctx->md_local_blk_unit[above_depth_mds].above_neighbor_partition =
-        INVALID_NEIGHBOR_DATA;
+    ctx->md_local_blk_unit[above_depth_mds].left_neighbor_partition  = INVALID_NEIGHBOR_DATA;
+    ctx->md_local_blk_unit[above_depth_mds].above_neighbor_partition = INVALID_NEIGHBOR_DATA;
     *curr_depth_cost += svt_aom_partition_rate_cost(pcs,
                                                     ctx,
                                                     above_depth_mds,

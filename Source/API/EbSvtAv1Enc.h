@@ -44,7 +44,7 @@ extern "C" {
 #endif /* ATTRIBUTE_PACKED */
 typedef enum ATTRIBUTE_PACKED {
 #if !DIS_MRS
-    ENC_MRS        = -2, // Highest quality research mode (slowest)
+    ENC_MRS = -2, // Highest quality research mode (slowest)
 #endif
     ENC_MR         = -1, //Research mode with higher quality than M0
     ENC_M0         = 0,

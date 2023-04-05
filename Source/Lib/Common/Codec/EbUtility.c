@@ -365,7 +365,7 @@ static INLINE TxSize av1_get_tx_size(BlockSize sb_type, int32_t plane /*, const 
 }
 #if OPT_4X8_8X4_GEOM
 static void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t y,
-                      int32_t is_last_quadrant, uint8_t quad_it, uint8_t min_nsq_bsize) {
+                             int32_t is_last_quadrant, uint8_t quad_it, uint8_t min_nsq_bsize) {
 #else
 static void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t y,
                              int32_t is_last_quadrant, uint8_t quad_it) {

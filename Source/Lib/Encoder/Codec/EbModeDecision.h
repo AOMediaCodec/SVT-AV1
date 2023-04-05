@@ -182,12 +182,11 @@ extern void single_motion_search(PictureControlSet *pcs, struct ModeDecisionCont
                                  IntMv best_pred_mv, IntraBcContext *x, BlockSize bsize, MV *ref_mv,
                                  int *rate_mv, int refine_level);
 
-extern uint8_t obmc_motion_refinement(PictureControlSet *         pcs,
-                                      struct ModeDecisionContext *ctx,
+extern uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                       ModeDecisionCandidate *candidate, uint8_t ref_list_idx,
                                       int refine_level);
 #endif
-void     svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
+void svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
 
 typedef EbErrorType (*EB_INTRA_4x4_FAST_LUMA_COST_FUNC)(struct ModeDecisionContext  *ctx,
                                                         uint32_t                     pu_index,

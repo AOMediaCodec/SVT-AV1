@@ -148,8 +148,10 @@ typedef struct InterIntraCompCtrls {
     uint8_t enabled;
 #if OPT_II
     uint8_t use_rd_model; // if 1 use curvefit model to estimate RD cost; if 0 use SSE
-    uint8_t wedge_mode_sq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
-    uint8_t wedge_mode_nsq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
+    uint8_t
+        wedge_mode_sq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
+    uint8_t
+        wedge_mode_nsq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
 #endif
 } InterIntraCompCtrls;
 typedef struct ObmcControls {
@@ -163,7 +165,8 @@ typedef struct ObmcControls {
         // 0: Full/Sub @ MDS0, 1: Full/Sub @ MDS1, 2: Only Sub MDS1, 3: Full/Sub @ MDS3, 4: Only Sub MDS3
 #endif
 #if OPT_OBMC_TRANS_FACE_OFF
-    uint8_t trans_face_off; // if true, a face-off between simple-translation and obmc will take place at mds0
+    uint8_t
+        trans_face_off; // if true, a face-off between simple-translation and obmc will take place at mds0
 #endif
 #if OPT_OBMC_FASTER
     uint8_t
@@ -577,37 +580,44 @@ typedef struct NsqCtrls {
     uint32_t max_part0_to_part1_dev;
     uint32_t skip_hv4_on_best_part;
 #if OPT_SPLIT_RATE_SHORTCUT
-    uint32_t nsq_split_cost_th; // If the rate cost of splitting into NSQ shapes is greater than the percentage threshold of the cost of the SQ block, skip testing the NSQ shape.
-        // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the NSQ shape if the split rate cost is > 7% of the SQ cost).
-        // 0 is off.  Lower values are more aggressive.
+    uint32_t
+        nsq_split_cost_th; // If the rate cost of splitting into NSQ shapes is greater than the percentage threshold of the cost of the SQ block, skip testing the NSQ shape.
+    // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the NSQ shape if the split rate cost is > 7% of the SQ cost).
+    // 0 is off.  Lower values are more aggressive.
 #endif
 #if OPT_NSQ_VS_SPLIT
-    uint32_t lower_depth_split_cost_th; // If the rate cost of splitting the SQ into lower depths is smaller than the percentage threshold of the cost of the SQ block, skip testing the NSQ shapes.
-                                        // depth_split_cost_th is specified as a perentage * 100 (i.e. a value of 700 corresponds to skipping the NSQ shapes if the split rate cost is < 7% of the SQ cost).
-                                        // 0 is off.  Higher values are more aggressive.
+    uint32_t
+        lower_depth_split_cost_th; // If the rate cost of splitting the SQ into lower depths is smaller than the percentage threshold of the cost of the SQ block, skip testing the NSQ shapes.
+    // depth_split_cost_th is specified as a perentage * 100 (i.e. a value of 700 corresponds to skipping the NSQ shapes if the split rate cost is < 7% of the SQ cost).
+    // 0 is off.  Higher values are more aggressive.
 #endif
 #if OPT_H_VS_V_RATE
-    uint32_t H_vs_V_split_rate_th; // Skip testing H or V if the signaling rate of H/V is significantly higher than the rate of V/H. Specified as a percentage TH. 0 is off, higher is more aggressive.
+    uint32_t
+        H_vs_V_split_rate_th; // Skip testing H or V if the signaling rate of H/V is significantly higher than the rate of V/H. Specified as a percentage TH. 0 is off, higher is more aggressive.
 #endif
 #if OPT_HV4_RATE
-    uint32_t non_HV_split_rate_th; // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
-                                   // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
+    uint32_t
+        non_HV_split_rate_th; // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
+    // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
 #endif
 #if NO_GLB_INJ
-    bool inj_psq_glb;              //Inject global only if Parent SQ is global
+    bool inj_psq_glb; //Inject global only if Parent SQ is global
 #endif
 #if TRANSFORM_H_V
-    uint32_t sq_txs_th; // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+    uint32_t
+        sq_txs_th; // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
 #endif
 } NsqCtrls;
 #if OPT_DEPTH_RATE_SHORTCUT
 typedef struct DepthEarlyExitCtrls {
-    uint16_t split_cost_th; // If the rate cost of splitting into lower depths is greater than the percentage threshold of the cost of the parent block, skip testing the lower depth.
-                            // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the lower depth if the split rate cost is > 7% of the parent cost).
-                            // 0 is off.  Lower values are more aggressive. Evaluated for quadrant 0.
-    uint16_t early_exit_th; // Skip testing remaining blocks at the current depth if (curr_cost * 1000 > early_exit_th * parent_cost)
-                            // Tested before each quadrant greater than quadrant 0 (use split_cost_th to skip quadrant 0). Specified as a perentage * 10. 0 is off.  Lower values are
-                            // more aggressive.
+    uint16_t
+        split_cost_th; // If the rate cost of splitting into lower depths is greater than the percentage threshold of the cost of the parent block, skip testing the lower depth.
+    // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the lower depth if the split rate cost is > 7% of the parent cost).
+    // 0 is off.  Lower values are more aggressive. Evaluated for quadrant 0.
+    uint16_t
+        early_exit_th; // Skip testing remaining blocks at the current depth if (curr_cost * 1000 > early_exit_th * parent_cost)
+    // Tested before each quadrant greater than quadrant 0 (use split_cost_th to skip quadrant 0). Specified as a perentage * 10. 0 is off.  Lower values are
+    // more aggressive.
 } DepthEarlyExitCtrls;
 #endif
 typedef struct TxsControls {
@@ -637,7 +647,8 @@ typedef struct WmCtrls {
     // neighbours around the best-so-far position; 0 is no refinement
     uint8_t refinement_iterations;
 #if OPT_WARP_REFINEMENT_MDS1
-    uint8_t refine_level; // Specifies the MD Stage where the wm refinement will take place. 0: Before MDS0.  1: At MDS1.  2: At MDS3.
+    uint8_t
+        refine_level; // Specifies the MD Stage where the wm refinement will take place. 0: Before MDS0.  1: At MDS1.  2: At MDS3.
 #endif
 #if USE_NSAMPLES
     uint8_t  min_neighbour_perc; // Specifies minimum neighbour percentage for WM
@@ -715,8 +726,10 @@ typedef struct Lpd0Ctrls {
     // me_8x8_cost_variance_th beyond which the PD0 is used (instead of light-PD0)
     uint32_t me_8x8_cost_variance_th[LPD0_LEVELS];
 #if OPT_LPD0_DET
-    uint32_t edge_dist_th[LPD0_LEVELS]; // ME_64x64_dist threshold used for edge SBs when PD0 is skipped
-    uint16_t neigh_me_dist_shift[LPD0_LEVELS]; // Shift applied to ME dist and var of top and left SBs when PD0 is skipped
+    uint32_t
+        edge_dist_th[LPD0_LEVELS]; // ME_64x64_dist threshold used for edge SBs when PD0 is skipped
+    uint16_t neigh_me_dist_shift
+        [LPD0_LEVELS]; // Shift applied to ME dist and var of top and left SBs when PD0 is skipped
 #endif
 } Lpd0Ctrls;
 
@@ -1067,7 +1080,7 @@ typedef struct ModeDecisionContext {
 #if !OPT_DEPTH_RATE_SHORTCUT
     // Skip testing remaining blocks at the current depth if (curr_cost * 100 >
     // pic_depth_early_exit_th * parent_cost) [0-100], 0 is OFF, lower percentage is more aggressive
-    uint8_t        md_depth_early_exit_th;
+    uint8_t md_depth_early_exit_th;
 #endif
     IntraCtrls     intra_ctrls;
     MdRateEstCtrls rate_est_ctrls;
@@ -1076,10 +1089,10 @@ typedef struct ModeDecisionContext {
     // Control fast_coeff_est_level per mds
     uint8_t mds_fast_coeff_est_level;
     // Control subres_step per mds
-    uint8_t           mds_subres_step;
-    uint8_t           md_pic_obmc_level;
+    uint8_t mds_subres_step;
+    uint8_t md_pic_obmc_level;
 #if !OPT_II
-    uint8_t           md_inter_intra_level;
+    uint8_t md_inter_intra_level;
 #endif
     uint8_t           md_filter_intra_level;
     uint8_t           md_allow_intrabc;
@@ -1119,9 +1132,9 @@ typedef struct ModeDecisionContext {
 #if OPT_DEPTH_RATE_SHORTCUT
     DepthEarlyExitCtrls depth_early_exit_ctrls;
 #endif
-    RdoqCtrls          rdoq_ctrls;
-    uint8_t            disallow_4x4;
-    uint8_t            md_disallow_nsq;
+    RdoqCtrls rdoq_ctrls;
+    uint8_t   disallow_4x4;
+    uint8_t   md_disallow_nsq;
     // was parent_sq_coeff_area_based_cycles_reduction_ctrls
     ParentSqCmplxCtrls   psq_cplx_ctrls;
     uint8_t              sb_size;
@@ -1153,7 +1166,7 @@ typedef struct ModeDecisionContext {
     uint32_t        mds0_best_idx;
     CandClass       mds0_best_class_it;
 #if OPT_OBMC_FASTER
-    uint64_t        mds0_best_class0_cost;
+    uint64_t mds0_best_class0_cost;
 #endif
     uint32_t        mds1_best_idx;
     CandClass       mds1_best_class_it;

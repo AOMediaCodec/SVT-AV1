@@ -1659,7 +1659,6 @@ static void sub_sample_luma_generate_pixel_intensity_histogram_bins(
     *sum_avg_intensity_ttl_regions_luma /= (input_pic->width * input_pic->height);
 #endif
 
-
     return;
 }
 /************************************************
