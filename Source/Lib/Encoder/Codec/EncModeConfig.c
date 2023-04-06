@@ -1855,13 +1855,13 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
         if (sc_class1) {
 #if OPT_DLF
             if (enc_mode <= ENC_M10)
-                dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_ref ? 4 : 0);
+                dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 4 : 0);
             else
                 dlf_level = is_ref ? 5 : 0;
         } else if (enc_mode <= ENC_M10)
-            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_ref ? 2 : 5);
+            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 3 : 5);
         else if (enc_mode <= ENC_M11)
-            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : (is_ref ? 4 : 0);
+            dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 4 : 0);
         else
             dlf_level = is_ref ? 5 : 0;
     }
@@ -1904,7 +1904,7 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 3 : 5);
         else if (enc_mode <= ENC_M11)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 4 : 0);
-        else if (enc_mode <= ENC_M12 || rtc_tune)
+        else if (enc_mode <= ENC_M12)
             dlf_level = is_ref ? 5 : 0;
         else
             dlf_level = (is_16bit && is_ref) ? 5 : 0;
