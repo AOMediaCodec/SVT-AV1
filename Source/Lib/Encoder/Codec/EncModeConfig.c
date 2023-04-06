@@ -1912,12 +1912,10 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
         dlf_level = is_ref ? 5 : 0;
     }
 #else
-
-        if (fast_decode == 0 || resolution <= INPUT_SIZE_360p_RANGE) {
-            if (enc_mode <= ENC_M5)
-                dlf_level = 1;
-            else if (enc_mode <= ENC_M7)
-                dlf_level = 2;
+        if (enc_mode <= ENC_M5)
+            dlf_level = 1;
+        else if (enc_mode <= ENC_M7)
+            dlf_level = 2;
 #if OPT_LD_M10 && !OPT_LD_CLEANUP
 #if OPT_LD2_SC_M10
 #if OPT_LD2_SC_M9
