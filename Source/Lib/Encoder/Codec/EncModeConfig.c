@@ -11808,6 +11808,18 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->pic_lpd1_lvl = is_ref ? 0 : 1;
             }
         } else if (enc_mode <= ENC_M10) {
+#if OPT_LPD_M10
+            if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                pcs->pic_lpd1_lvl = is_ref ? 0 : 1;
+            else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                pcs->pic_lpd1_lvl = is_base ? 0 : 1;
+            else {
+                if (pcs->coeff_lvl == HIGH_LVL)
+                    pcs->pic_lpd1_lvl = is_base ? 0 : 3;
+                else
+                    pcs->pic_lpd1_lvl = is_base ? 0 : 1;
+            }
+#else
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->pic_lpd1_lvl = is_ref ? 0 : 1;
             } else if (pcs->coeff_lvl == HIGH_LVL) {
@@ -11815,6 +11827,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             } else { // Regular
                 pcs->pic_lpd1_lvl = is_base ? 0 : 2;
             }
+#endif
 #if TUNE_M11_M12_M13
         } else if (enc_mode <= ENC_M12) {
 #else
@@ -11827,6 +11840,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             } else { // Regular
                 pcs->pic_lpd1_lvl = is_base ? 0 : 3;
             }
+#if !OPT_LD_CLEANUP_II
 #if TUNE_M11_M12_M13
         } else if (enc_mode <= ENC_M13) {
 #else
@@ -11839,6 +11853,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             } else { // regular
                 pcs->pic_lpd1_lvl = is_base ? 0 : 4;
             }
+#endif
         } else {
             if (input_resolution <= INPUT_SIZE_1080p_RANGE &&
                 scs->static_config.encoder_bit_depth == EB_EIGHT_BIT)
