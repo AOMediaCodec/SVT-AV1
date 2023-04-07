@@ -9010,7 +9010,12 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
     // Use coeff rate and slit flag rate only (i.e. no fast rate)
     ctx->shut_fast_rate = TRUE;
 #if OPT_DEPTH_RATE_SHORTCUT
-    set_depth_early_exit_ctrls(ctx, 1);
+    const bool rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
+                                                                                          : false;
+    if (rtc_tune)
+        set_depth_early_exit_ctrls(ctx, pd0_level == VERY_LIGHT_PD0 ? 0 : 1);
+    else
+        set_depth_early_exit_ctrls(ctx, 1);
 #else
         ctx->md_depth_early_exit_th = 0;
 #endif
@@ -10756,32 +10761,49 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     // Set the level for the txt shortcut feature
     // Any tx_shortcut_level having the chroma detector off in REF frames should be reserved for M13+
     pcs->tx_shortcut_level = 0;
-    if (enc_mode <= ENC_M4)
-        pcs->tx_shortcut_level = 0;
+#if TUNE_M8_M10
+    if (rtc_tune) {
+        if (enc_mode <= ENC_M4)
+            pcs->tx_shortcut_level = 0;
+        else if (enc_mode <= ENC_M7)
+            pcs->tx_shortcut_level = is_base ? 0 : 1;
+        else if (enc_mode <= ENC_M10)
+            pcs->tx_shortcut_level = is_islice ? 0 : 1;
+        else
+            pcs->tx_shortcut_level = is_islice ? 0 : 4;
+    } else {
+#endif
+
+        if (enc_mode <= ENC_M4)
+            pcs->tx_shortcut_level = 0;
+
 #if TUNE_M11_M12_M13
-    else if (enc_mode <= ENC_M13)
+        else if (enc_mode <= ENC_M13)
 #else
 #if TUNE_M8_M10
-    else if (enc_mode <= ENC_M10)
+        else if (enc_mode <= ENC_M10)
 #else
 #if TUNE_M7
-    else if (enc_mode <= ENC_M7)
+        else if (enc_mode <= ENC_M7)
 #else
 #if TUNE_M6
-    else if (enc_mode <= ENC_M6)
+        else if (enc_mode <= ENC_M6)
 #else
-    else if (enc_mode <= ENC_M5)
+        else if (enc_mode <= ENC_M5)
 #endif
 #endif
 #endif
 #endif
-        pcs->tx_shortcut_level = is_base ? 0 : 1;
+            pcs->tx_shortcut_level = is_base ? 0 : 1;
 #if !TUNE_M8_M10
-    else if (enc_mode <= ENC_M10)
+        else if (enc_mode <= ENC_M10)
         pcs->tx_shortcut_level = is_islice ? 0 : 1;
 #endif
-    else
-        pcs->tx_shortcut_level = is_islice ? 0 : 4;
+        else
+            pcs->tx_shortcut_level = is_islice ? 0 : 4;
+#if TUNE_M8_M10
+    }
+#endif
     // Set the level the interpolation search
     pcs->interpolation_search_level = 0;
 #if TUNE_M0_M1
@@ -10937,7 +10959,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         else if (enc_mode <= ENC_M4)
             pcs->dist_based_ref_pruning = is_base ? 2 : 5;
 #if TUNE_M8_M10
-        else if (enc_mode <= ENC_M10)
+        else if (!rtc_tune && enc_mode <= ENC_M10)
 #else
 #if TUNE_M7
         else if (enc_mode <= ENC_M7)
