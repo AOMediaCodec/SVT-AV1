@@ -1252,7 +1252,11 @@ typedef void (*EbAv1LambdaAssignFunc)(PictureControlSet *pcs, uint32_t *fast_lam
  * Extern Function Declarations
  **************************************/
 extern EbErrorType svt_aom_mode_decision_context_ctor(
+#if ENABLE_PRESET_MR
+    ModeDecisionContext *ctx, EbColorFormat color_format, uint8_t sb_size, EncMode enc_mode,
+#else
     ModeDecisionContext *ctx, EbColorFormat color_format, uint8_t sb_size, uint8_t enc_mode,
+#endif
     uint16_t max_block_cnt, uint32_t encoder_bit_depth,
     EbFifo *mode_decision_configuration_input_fifo_ptr, EbFifo *mode_decision_output_fifo_ptr,
 #if OPT_LD_M11

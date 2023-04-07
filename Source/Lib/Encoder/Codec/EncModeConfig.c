@@ -9143,7 +9143,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
 #endif
 #if OPT_LD_SC_RDOQ
     const uint8_t sc_class1        = ppcs->sc_class1;
+#if ENABLE_PRESET_MR
+    const EncMode enc_mode         = pcs->enc_mode;
+#else
     const uint8_t enc_mode         = pcs->enc_mode;
+#endif
     const Bool    disable_rdoq_rtc = enc_mode <= ENC_M12 ? 0 : rtc_tune && sc_class1 ? 1 : 0;
 #endif
     // the frame size of reference pics are different if enable reference scaling.

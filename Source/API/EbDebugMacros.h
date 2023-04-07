@@ -208,6 +208,7 @@ extern "C" {
 #define TUNE_NEW_M0_MR    1 // Tune M0 to be M0.5 and MR to be old M0
 
 #define DIS_MRS                  1 // Disable MRS preset
+#define ENABLE_PRESET_MR         1 // Enable MR preset
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
