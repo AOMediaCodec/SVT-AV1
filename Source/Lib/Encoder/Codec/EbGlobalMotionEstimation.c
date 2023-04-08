@@ -253,7 +253,7 @@ void compute_global_motion(PictureParentControlSet *pcs,
                            EbPictureBufferDesc     *input_pic, //src frame for refinement
                            EbPictureBufferDesc     *ref_pic, //ref frame for refinement
                            uint8_t sf, //downsacle factor between det and refinement
-                           uint8_t chess_refn, EbWarpedMotionParams *bestWarpedMotion,
+                           uint8_t chess_refn, EbWarpedMotionParams * best_wm,
                            int allow_high_precision_mv) {
 #else
 void compute_global_motion(PictureParentControlSet *pcs,
@@ -473,7 +473,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
         }
     }
 
-    *bestWarpedMotion = global_motion;
+    *best_wm = global_motion;
 
     for (int m = 0; m < RANSAC_NUM_MOTIONS; m++) { free(params_by_motion[m].inliers); }
 }

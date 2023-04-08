@@ -116,15 +116,15 @@ extern "C" {
 #define OPT_PRED_STRUCT_CLASSIFIER 1 // Change DG detector so that the ME calcutions are multi-threaded
 
 // Warp Optimizations
-#define OPT_WARP_REFINEMENT_POS                    1
-#define OPT_WARP_REFINEMENT_MDS1                   1
-#define OPT_USE_NSAMPLES                               1
-#define OPT_DETECT_ID                                  1
-#define TUNE_WM                                    1
+#define OPT_WARP_REFINEMENT_POS                    1 // Bypass redundant position(s) at warp MV-refinement 
+#define OPT_WARP_REFINEMENT_MDS1                   1 // Move warp MV refinement to md-stage1 
+#define OPT_USE_NSAMPLES                           1 // Shut warp when warp when the percentage of valid warp neighbors is low
+#define OPT_DETECT_ID                              1 // Shut warp when warp params are close to identity 
+#define TUNE_WM                                    1 // Use faster warp level(s)
 
 // OBMC Optimizations
-#define OPT_OBMC_REFINEMENT_MDS1                   1
-#define OPT_OBMC_TRANS_FACE_OFF                    1
+#define OPT_OBMC_REFINEMENT_MDS1                   1 // Move obmc MV-refinement to md-stage1
+#define OPT_OBMC_TRANS_FACE_OFF                    1 // Perform a face-off between simple-translation and obmc at mds0
 
 #define OPT_II                                     1 // Optimize inter-intra search/cand inj. - modifies M0
 #define OPT_SPLIT_RATE_SHORTCUT                    1 // Skip NSQ and lower depths based on split rate cost
@@ -181,20 +181,20 @@ extern "C" {
 #define TUNE_4K                                    1 // Tune preset m9-m11 for 4k content
 #define CLN_MDS0                                   1 // Cleanup MDS0 + bugfix
 
-#define OPT_NSQ_M6                                 1
-#define OPT_GEOM                                   1
-#define OPT_HV_GEOM                                1
-#define OPT_4X4_GEOM                               1
-#define OPT_NSQ_CTRL                               1
-#define OPT_BLOCK_QUEUE_PREP                       1
-#define OPT_TRANSFORM_H_V                              1 // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+#define OPT_NSQ_M6                                 1 // Enable NSQ for M6
+#define OPT_GEOM                                   1 // Fixed the spots that assume 1 geom 
+#define OPT_HV_GEOM                                1 // Add a geom for SQ + H + V
+#define OPT_4X4_GEOM                               1 // Add a geom for SQ (but no 4x4) + H + V 
+#define OPT_NSQ_CTRL                               1 // Add the ability to return the max shape
+#define OPT_BLOCK_QUEUE_PREP                       1 // Bypass the initialization of do_not_process_blk when 4x4 is not used
+#define OPT_TRANSFORM_H_V                          1 // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
 
-#define OPT_DEPTH_LEVEL                       1
-#define OPT_DEPTH_REFINE                      1
-#define OPT_DEPTH_LEVEL_FASTER                1
+#define OPT_DEPTH_LEVEL                            1 // Use me-complexity to modulate the start-depth, and end-depth
+#define OPT_DEPTH_REFINE                           1 // Tune depth-refinement
+#define OPT_DEPTH_LEVEL_FASTER                     1 // Use more agressive settings to modulate start-depth, and end-depth
 
-#define OPT_4X8_8X4_GEOM                           1
-#define OPT_SKIP_USELESS_SQ_PREP                   1
+#define OPT_4X8_8X4_GEOM                           1  // Add a geom for SQ (but no 4x4) + H + V (but no 8x4 and no 4x8) 
+#define OPT_SKIP_USELESS_SQ_PREP                   1  // Bypass sq-txs for 8x8
 
 #define OPT_PME_REF0_ONLY     1
 #define CLN_MRP           1 // MRP infrastructure change

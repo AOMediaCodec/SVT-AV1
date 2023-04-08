@@ -682,7 +682,7 @@ typedef enum MdStage {
     MD_STAGE_2,
     MD_STAGE_3,
     MD_STAGE_TOTAL,
-    INVALID
+    INVALID_MD_STAGE
 } MdStage;
 #else
 typedef enum MdStage { MD_STAGE_0, MD_STAGE_1, MD_STAGE_2, MD_STAGE_3, MD_STAGE_TOTAL } MdStage;

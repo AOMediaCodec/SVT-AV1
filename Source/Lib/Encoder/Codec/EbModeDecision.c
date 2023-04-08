@@ -2602,9 +2602,9 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
 
 // Refine the WM MV (8 bit search).  Return true if search found a valid MV; false otherwise
 #if OPT_WARP_REFINEMENT_MDS1
-uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                             ModeDecisionCandidateBuffer *cand_bf, ModeDecisionCandidate *candidate,
-                             uint8_t list_idx, int shut_approx) {
+uint8_t svt_aom_wm_motion_refinement(PictureControlSet* pcs, ModeDecisionContext* ctx,
+    ModeDecisionCandidateBuffer* cand_bf, ModeDecisionCandidate* cand,
+    uint8_t list_idx, int shut_approx) {
 #else
 static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                     ModeDecisionCandidate *candidate, uint8_t list_idx) {
@@ -2619,7 +2619,7 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
     int      error_per_bit = full_lambda >> RD_EPB_SHIFT;
     error_per_bit += (error_per_bit == 0);
 #if OPT_WARP_REFINEMENT_MDS1
-    cand_bf->cand = candidate;
+    cand_bf->cand = cand;
 #else
     ModeDecisionCandidateBuffer *cand_bf = ctx->cand_bf_ptr_array[0];
     cand_bf->cand                        = candidate;
@@ -2636,12 +2636,12 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
 
     int mv_prec_shift    = ppcs->frm_hdr.allow_high_precision_mv ? 0 : 1;
     int best_cost        = INT_MAX;
-    Mv  search_centre_mv = {.as_int = candidate->mv[list_idx].as_int};
-    Mv  best_mv          = {.as_int = candidate->mv[list_idx].as_int};
-    Mv  prev_mv          = {.as_int = candidate->mv[list_idx].as_int};
+    Mv  search_centre_mv = {.as_int = cand->mv[list_idx].as_int};
+    Mv  best_mv          = {.as_int = cand->mv[list_idx].as_int};
+    Mv  prev_mv          = {.as_int = cand->mv[list_idx].as_int};
     MV  ref_mv;
-    ref_mv.col = candidate->pred_mv[list_idx].x;
-    ref_mv.row = candidate->pred_mv[list_idx].y;
+    ref_mv.col = cand->pred_mv[list_idx].x;
+    ref_mv.row = cand->pred_mv[list_idx].y;
 
     int max_iterations = ctx->wm_ctrls.refinement_iterations;
     if (ctx->inject_new_warp == 2)
@@ -2677,7 +2677,7 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
             MvUnit mv_unit;
             mv_unit.mv[list_idx]           = test_mv;
             mv_unit.pred_direction         = list_idx;
-            candidate->mv[list_idx].as_int = test_mv.as_int;
+            cand->mv[list_idx].as_int = test_mv.as_int;
             uint8_t local_warp_valid       = svt_aom_warped_motion_parameters(
                 pcs,
                 ctx->blk_ptr,
@@ -2685,10 +2685,10 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
                 ctx->blk_geom,
                 ctx->blk_org_x,
                 ctx->blk_org_y,
-                candidate->ref_frame_type,
-                &candidate->wm_params_l0,
+                cand->ref_frame_type,
+                &cand->wm_params_l0,
 #if OPT_USE_NSAMPLES
-                &candidate->num_proj_ref,
+                &cand->num_proj_ref,
                 ctx->wm_ctrls.min_neighbour_perc,
                 ctx->wm_ctrls.corner_perc_bias,
                 ctx->wm_ctrls.lower_band_th,
@@ -2720,24 +2720,24 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
         if (prev_mv.as_int == best_mv.as_int)
             break;
     }
-    candidate->mv[list_idx].as_int = best_mv.as_int;
+    cand->mv[list_idx].as_int = best_mv.as_int;
 
     // Derive pred MV for best WM position
     IntMv best_pred_mv[2] = {{0}, {0}};
     choose_best_av1_mv_pred(ctx,
                             ctx->md_rate_est_ctx,
                             ctx->blk_ptr,
-                            candidate->ref_frame_type,
+                            cand->ref_frame_type,
                             0, // is_compound -> WM only allowed for unipred candidtes
-                            candidate->pred_mode,
-                            candidate->mv[list_idx].x,
-                            candidate->mv[list_idx].y,
+                            cand->pred_mode,
+                            cand->mv[list_idx].x,
+                            cand->mv[list_idx].y,
                             0,
                             0,
-                            &candidate->drl_index,
+                            &cand->drl_index,
                             best_pred_mv);
-    candidate->pred_mv[list_idx].x = best_pred_mv[0].as_mv.col;
-    candidate->pred_mv[list_idx].y = best_pred_mv[0].as_mv.row;
+    cand->pred_mv[list_idx].x = best_pred_mv[0].as_mv.col;
+    cand->pred_mv[list_idx].y = best_pred_mv[0].as_mv.row;
 
     // Check that final chosen MV is valid
     if (!ctx->corrupted_mv_check ||
@@ -2964,8 +2964,8 @@ static void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ct
 
 // Refine the OBMC MV (8 bit search). Return true if search found a valid MV; false otherwise
 #if OPT_OBMC_REFINEMENT_MDS1
-uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                               ModeDecisionCandidate *candidate, uint8_t ref_list_idx,
+uint8_t svt_aom_obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                               ModeDecisionCandidate *cand, uint8_t ref_list_idx,
                                int refine_level) {
 #else
 static uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
@@ -2988,8 +2988,8 @@ static uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisio
     const int mi_col = -xd->mb_to_left_edge / (8 * MI_SIZE);
 
     {
-        uint8_t ref_idx  = get_ref_frame_idx(candidate->ref_frame_type);
-        uint8_t list_idx = get_list_idx(candidate->ref_frame_type);
+        uint8_t ref_idx  = get_ref_frame_idx(cand->ref_frame_type);
+        uint8_t list_idx = get_list_idx(cand->ref_frame_type);
 
         assert(list_idx < MAX_NUM_OF_REF_PIC_LIST);
         EbPictureBufferDesc *reference_picture =
@@ -3015,19 +3015,19 @@ static uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisio
 
     IntMv best_mv;
     assert(ref_list_idx == 0 || ref_list_idx == 1);
-    best_mv.as_mv.col = candidate->mv[ref_list_idx].x;
-    best_mv.as_mv.row = candidate->mv[ref_list_idx].y;
+    best_mv.as_mv.col = cand->mv[ref_list_idx].x;
+    best_mv.as_mv.row = cand->mv[ref_list_idx].y;
     int tmp_rate_mv;
 
     MV ref_mv;
-    ref_mv.col = candidate->pred_mv[ref_list_idx].x;
-    ref_mv.row = candidate->pred_mv[ref_list_idx].y;
+    ref_mv.col = cand->pred_mv[ref_list_idx].x;
+    ref_mv.row = cand->pred_mv[ref_list_idx].y;
 
 #if OPT_OBMC_REFINEMENT_MDS1
     single_motion_search(pcs,
                          ctx,
-                         candidate,
-                         (const MvReferenceFrame[]){candidate->ref_frame_type, -1},
+                         cand,
+                         (const MvReferenceFrame[]){cand->ref_frame_type, -1},
                          best_mv,
                          x,
                          ctx->blk_geom->bsize,
@@ -3046,35 +3046,35 @@ static uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisio
                          0,
                          &tmp_rate_mv);
 #endif
-    candidate->mv[ref_list_idx].x = x->best_mv.as_mv.col;
-    candidate->mv[ref_list_idx].y = x->best_mv.as_mv.row;
+    cand->mv[ref_list_idx].x = x->best_mv.as_mv.col;
+    cand->mv[ref_list_idx].y = x->best_mv.as_mv.row;
     choose_best_av1_mv_pred(ctx,
                             ctx->md_rate_est_ctx,
                             ctx->blk_ptr,
-                            candidate->ref_frame_type,
+                            cand->ref_frame_type,
                             0, // is_compound -> OBMC only allowed for unipred candidtes
-                            candidate->pred_mode,
-                            candidate->mv[ref_list_idx].x,
-                            candidate->mv[ref_list_idx].y,
+                            cand->pred_mode,
+                            cand->mv[ref_list_idx].x,
+                            cand->mv[ref_list_idx].y,
                             0,
                             0,
-                            &candidate->drl_index,
+                            &cand->drl_index,
                             best_pred_mv);
-    candidate->pred_mv[ref_list_idx].x = best_pred_mv[0].as_mv.col;
-    candidate->pred_mv[ref_list_idx].y = best_pred_mv[0].as_mv.row;
+    cand->pred_mv[ref_list_idx].x = best_pred_mv[0].as_mv.col;
+    cand->pred_mv[ref_list_idx].y = best_pred_mv[0].as_mv.row;
     // Check that final chosen MV is valid
     if (!ctx->corrupted_mv_check ||
         is_valid_mv_diff(best_pred_mv,
-                         candidate->mv[ref_list_idx],
-                         candidate->mv[ref_list_idx],
+                         cand->mv[ref_list_idx],
+                         cand->mv[ref_list_idx],
                          0,
                          pcs->ppcs->frm_hdr.allow_high_precision_mv)) {
         int umv0_tile   = derive_rmv_setting(pcs->scs, pcs->ppcs);
         int inside_tile = 1;
         if (umv0_tile) {
             inside_tile = svt_aom_is_inside_tile_boundary(&(xd->tile),
-                                                          candidate->mv[ref_list_idx].x,
-                                                          candidate->mv[ref_list_idx].y,
+                                                          cand->mv[ref_list_idx].x,
+                                                          cand->mv[ref_list_idx].y,
                                                           ctx->blk_org_x >> MI_SIZE_LOG2,
                                                           ctx->blk_org_y >> MI_SIZE_LOG2,
                                                           ctx->blk_geom->bsize);
@@ -3546,7 +3546,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
 #if OPT_WARP_REFINEMENT_MDS1
                                 motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                      (ctx->wm_ctrls.refine_level == 0))
-                                    ? wm_motion_refinement(pcs,
+                                    ? svt_aom_wm_motion_refinement(pcs,
                                                            ctx,
                                                            ctx->cand_bf_ptr_array[0],
                                                            &cand_array[cand_total_cnt],
@@ -3591,11 +3591,11 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                 cand_array[cand_total_cnt].motion_mode        = OBMC_CAUSAL;
 #if OPT_OBMC_REFINEMENT_MDS1
                                 motion_mode_valid = ctx->obmc_ctrls.refine_level == 0
-                                    ? obmc_motion_refinement(pcs,
-                                                             ctx,
-                                                             &cand_array[cand_total_cnt],
-                                                             REF_LIST_0,
-                                                             ctx->obmc_ctrls.refine_level)
+                                    ? svt_aom_obmc_motion_refinement(pcs,
+                                                                     ctx,
+                                                                     &cand_array[cand_total_cnt],
+                                                                     REF_LIST_0,
+                                                                     ctx->obmc_ctrls.refine_level)
                                     : 1;
 #else
                                 motion_mode_valid = obmc_motion_refinement(
@@ -3740,7 +3740,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
 #if OPT_WARP_REFINEMENT_MDS1
                                     motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                          (ctx->wm_ctrls.refine_level == 0))
-                                        ? wm_motion_refinement(pcs,
+                                        ? svt_aom_wm_motion_refinement(pcs,
                                                                ctx,
                                                                ctx->cand_bf_ptr_array[0],
                                                                &cand_array[cand_total_cnt],
@@ -3785,11 +3785,11 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                     cand_array[cand_total_cnt].motion_mode        = OBMC_CAUSAL;
 #if OPT_OBMC_REFINEMENT_MDS1
                                     motion_mode_valid = ctx->obmc_ctrls.refine_level == 0
-                                        ? obmc_motion_refinement(pcs,
-                                                                 ctx,
-                                                                 &cand_array[cand_total_cnt],
-                                                                 REF_LIST_1,
-                                                                 ctx->obmc_ctrls.refine_level)
+                                        ? svt_aom_obmc_motion_refinement(pcs,
+                                                                         ctx,
+                                                                         &cand_array[cand_total_cnt],
+                                                                         REF_LIST_1,
+                                                                         ctx->obmc_ctrls.refine_level)
                                         : 1;
 #else
                                     motion_mode_valid = obmc_motion_refinement(
@@ -4295,7 +4295,7 @@ static void inject_pme_candidates(
 #if OPT_WARP_REFINEMENT_MDS1
                                     motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                          (ctx->wm_ctrls.refine_level == 0))
-                                        ? wm_motion_refinement(pcs,
+                                        ? svt_aom_wm_motion_refinement(pcs,
                                                                ctx,
                                                                ctx->cand_bf_ptr_array[0],
                                                                &cand_array[cand_total_cnt],
@@ -4339,11 +4339,11 @@ static void inject_pme_candidates(
                                     cand_array[cand_total_cnt].motion_mode        = OBMC_CAUSAL;
 #if OPT_OBMC_REFINEMENT_MDS1
                                     motion_mode_valid = ctx->obmc_ctrls.refine_level == 0
-                                        ? obmc_motion_refinement(pcs,
-                                                                 ctx,
-                                                                 &cand_array[cand_total_cnt],
-                                                                 list_idx,
-                                                                 ctx->obmc_ctrls.refine_level)
+                                        ? svt_aom_obmc_motion_refinement(pcs,
+                                                                         ctx,
+                                                                         &cand_array[cand_total_cnt],
+                                                                         list_idx,
+                                                                         ctx->obmc_ctrls.refine_level)
                                         : 1;
 #else
                                     motion_mode_valid = obmc_motion_refinement(

@@ -171,20 +171,15 @@ uint32_t svt_aom_product_full_mode_decision(struct ModeDecisionContext *ctx, Blk
                                             uint32_t                      candidate_total_count,
                                             uint32_t *best_candidate_index_array);
 #if OPT_WARP_REFINEMENT_MDS1
-extern uint8_t wm_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                                    ModeDecisionCandidateBuffer *candidate_buffer,
-                                    ModeDecisionCandidate *candidate, uint8_t list_idx,
-                                    int early_exit);
+extern uint8_t svt_aom_wm_motion_refinement(PictureControlSet* pcs, struct ModeDecisionContext* ctx,
+    ModeDecisionCandidateBuffer* cand_bf,
+    ModeDecisionCandidate* can, uint8_t list_idx,
+    int early_exit);
 #endif
 #if OPT_OBMC_REFINEMENT_MDS1
-extern void single_motion_search(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                                 ModeDecisionCandidate *cand, const MvReferenceFrame *rf,
-                                 IntMv best_pred_mv, IntraBcContext *x, BlockSize bsize, MV *ref_mv,
-                                 int *rate_mv, int refine_level);
-
-extern uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                                      ModeDecisionCandidate *candidate, uint8_t ref_list_idx,
-                                      int refine_level);
+extern uint8_t svt_aom_obmc_motion_refinement(PictureControlSet* pcs, struct ModeDecisionContext* ctx,
+    ModeDecisionCandidate* cand, uint8_t ref_list_idx,
+    int refine_level);
 #endif
 void svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
 

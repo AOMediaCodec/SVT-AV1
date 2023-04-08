@@ -1257,14 +1257,15 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
     }
 }
 #if OPT_OBMC_TRANS_FACE_OFF
-EbErrorType inter_pu_prediction_av1_obmc(uint8_t hbd_md, ModeDecisionContext *md_ctx,
-                                         PictureControlSet           *picture_control_set_ptr,
-                                         ModeDecisionCandidateBuffer *candidate_buffer_ptr);
+EbErrorType inter_pu_prediction_av1_obmc(uint8_t hbd_md,
+    ModeDecisionContext* ctx,
+    PictureControlSet* pcs,
+    ModeDecisionCandidateBuffer* cand_bf);
 int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
-                              const MvReferenceFrame ref_frame[2]);
-MotionMode obmc_motion_mode_allowed(const PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                                    const BlockSize bsize, uint8_t situation, MvReferenceFrame rf0,
-                                    MvReferenceFrame rf1, PredictionMode mode);
+    const MvReferenceFrame ref_frame[2]);
+MotionMode obmc_motion_mode_allowed(const PictureControlSet* pcs, struct ModeDecisionContext* ctx,
+    const BlockSize bsize, uint8_t situation, MvReferenceFrame rf0,
+    MvReferenceFrame rf1, PredictionMode mode);
 #endif
 #if OPT_OBMC_FASTER
 void precompute_obmc_data(PictureControlSet *picture_control_set_ptr, ModeDecisionContext *ctx);
@@ -7505,9 +7506,9 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
 #if OPT_WARP_REFINEMENT_MDS1
     MdStage warp_refine_mds = ctx->wm_ctrls.refine_level == 1 ? MD_STAGE_1
         : ctx->wm_ctrls.refine_level == 2                     ? MD_STAGE_3
-                                                              : INVALID;
+                                                              : INVALID_MD_STAGE;
 
-    if (warp_refine_mds != INVALID && ctx->pd_pass == PD_PASS_1 &&
+    if (warp_refine_mds != INVALID_MD_STAGE && ctx->pd_pass == PD_PASS_1 &&
         ctx->md_stage == warp_refine_mds && cand_bf->cand->motion_mode == WARPED_CAUSAL &&
         cand_bf->cand->pred_mode == NEWMV) {
         uint8_t          motion_mode_valid;
@@ -7519,7 +7520,7 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
         Mv default_ref_mv = cand_bf->cand->pred_mv[list_idx];
 
         motion_mode_valid = ctx->wm_ctrls.refinement_iterations
-            ? wm_motion_refinement(
+            ? svt_aom_wm_motion_refinement(
                   pcs, ctx, cand_bf, cand_bf->cand, list_idx, ctx->wm_ctrls.shut_approx_if_not_mds0)
             : 1;
 
@@ -7558,9 +7559,9 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
                                ctx->obmc_ctrls.refine_level == 2)
         ? MD_STAGE_1
         : (ctx->obmc_ctrls.refine_level == 3 || ctx->obmc_ctrls.refine_level == 4) ? MD_STAGE_3
-                                                                                   : INVALID;
+                                                                                   : INVALID_MD_STAGE;
 
-    if (obmc_refine_mds != INVALID && ctx->pd_pass == PD_PASS_1 &&
+    if (obmc_refine_mds != INVALID_MD_STAGE && ctx->pd_pass == PD_PASS_1 &&
         ctx->md_stage == obmc_refine_mds && cand_bf->cand->motion_mode == OBMC_CAUSAL &&
         cand_bf->cand->pred_mode == NEWMV) {
         MvReferenceFrame rf[2];
@@ -7571,7 +7572,7 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
         Mv default_mv     = cand_bf->cand->mv[list_idx];
         Mv default_ref_mv = cand_bf->cand->pred_mv[list_idx];
 
-        obmc_motion_refinement(pcs, ctx, cand_bf->cand, list_idx, ctx->obmc_ctrls.refine_level);
+        svt_aom_obmc_motion_refinement(pcs, ctx, cand_bf->cand, list_idx, ctx->obmc_ctrls.refine_level);
 
         if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int)
             update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
