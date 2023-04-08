@@ -125,16 +125,20 @@ typedef struct MrpCtrls {
     uint8_t non_base_ref_list1_count;
 
 #if OPT_LIMIT_NREF
-    bool safe_limit_nref; // Limit references to (1,1) if it's safe to do so based on avg luma
+    // Limit references to (1,1) if it's safe to do so based on avg luma
+    bool safe_limit_nref;
 #endif
 #if OPT_ONLY_L_BWD
-    bool only_l_bwd; // Limit candidate types to LAST, BWD and LAST-BWD
+    // Limit candidate types to LAST, BWD and LAST-BWD
+    bool only_l_bwd;
 #endif
 #if OPT_PME_REF0_ONLY
-    bool pme_ref0_only; // Limit PME to ref index 0 only
+    // Limit PME to ref index 0 only
+    bool pme_ref0_only;
 #endif
 #if OPT_MRP
-    bool use_best_references; // Use only best references
+    // Use only best references
+    bool use_best_references;
 #endif
 
 } MrpCtrls;

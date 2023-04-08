@@ -116,10 +116,10 @@ extern "C" {
 #define OPT_PRED_STRUCT_CLASSIFIER 1 // Change DG detector so that the ME calcutions are multi-threaded
 
 // Warp Optimizations
-#define OPT_WARP_REFINEMENT_POS                    1 // Bypass redundant position(s) at warp MV-refinement 
-#define OPT_WARP_REFINEMENT_MDS1                   1 // Move warp MV refinement to md-stage1 
+#define OPT_WARP_REFINEMENT_POS                    1 // Bypass redundant position(s) at warp MV-refinement
+#define OPT_WARP_REFINEMENT_MDS1                   1 // Move warp MV refinement to md-stage1
 #define OPT_USE_NSAMPLES                           1 // Shut warp when warp when the percentage of valid warp neighbors is low
-#define OPT_DETECT_ID                              1 // Shut warp when warp params are close to identity 
+#define OPT_DETECT_ID                              1 // Shut warp when warp params are close to identity
 #define TUNE_WM                                    1 // Use faster warp level(s)
 
 // OBMC Optimizations
@@ -182,9 +182,9 @@ extern "C" {
 #define CLN_MDS0                                   1 // Cleanup MDS0 + bugfix
 
 #define OPT_NSQ_M6                                 1 // Enable NSQ for M6
-#define OPT_GEOM                                   1 // Fixed the spots that assume 1 geom 
+#define OPT_GEOM                                   1 // Fixed the spots that assume 1 geom
 #define OPT_HV_GEOM                                1 // Add a geom for SQ + H + V
-#define OPT_4X4_GEOM                               1 // Add a geom for SQ (but no 4x4) + H + V 
+#define OPT_4X4_GEOM                               1 // Add a geom for SQ (but no 4x4) + H + V
 #define OPT_NSQ_CTRL                               1 // Add the ability to return the max shape
 #define OPT_BLOCK_QUEUE_PREP                       1 // Bypass the initialization of do_not_process_blk when 4x4 is not used
 #define OPT_TRANSFORM_H_V                          1 // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
@@ -193,7 +193,7 @@ extern "C" {
 #define OPT_DEPTH_REFINE                           1 // Tune depth-refinement
 #define OPT_DEPTH_LEVEL_FASTER                     1 // Use more agressive settings to modulate start-depth, and end-depth
 
-#define OPT_4X8_8X4_GEOM                           1  // Add a geom for SQ (but no 4x4) + H + V (but no 8x4 and no 4x8) 
+#define OPT_4X8_8X4_GEOM                           1  // Add a geom for SQ (but no 4x4) + H + V (but no 8x4 and no 4x8)
 #define OPT_SKIP_USELESS_SQ_PREP                   1  // Bypass sq-txs for 8x8
 
 #define OPT_PME_REF0_ONLY     1

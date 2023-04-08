@@ -627,14 +627,16 @@ typedef struct GmControls {
     uint8_t params_refinement_steps;
     uint8_t downsample_level;
 #if OPT_GM_CORNERS
-    uint8_t corners; //use a fraction of corner points  1:1/4   2:2/4   3:3/4   4:all
+    //use a fraction of corner points for computing correspondences for RANSAC in detection. 1:1/4   2:2/4   3:3/4   4:all
+    uint8_t corners;
 #endif
 #if OPT_GM_CHESS_REFN
-    uint8_t chess_rfn; //skip the refinement using a chess pattern to
+    //skip global motion refinement using a chess pattern to skip blocks
+    uint8_t chess_rfn;
 #endif
 #if OPT_GM_WD
-    uint8_t
-        match_sz; //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
+    //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
+    uint8_t match_sz;
 #endif
 } GmControls;
 typedef struct CdefControls {
@@ -686,15 +688,16 @@ typedef struct DlfCtrls {
     uint8_t sb_based_dlf;
     uint8_t min_filter_level;
 #if DLF_REF
-    bool dlf_avg; // Start search from average DLF instead of 0
+    // Start search from average DLF instead of 0
+    bool dlf_avg;
 #endif
 #if DLF_UV_QP
-    bool
-        dlf_avg_uv; // Use average DLF as a starting point for qp based filter strength selection for Chroma planes
+    // Use average DLF as a starting point for qp based filter strength selection for Chroma planes
+    bool dlf_avg_uv;
 #endif
 #if DLF_STEP
-    uint8_t
-        early_exit_convergence; // Number of convergence points before exiting the filter search, 1 = exit on first convergence point, 2 = exit on second, 0 = off
+    // Number of convergence points before exiting the filter search, 1 = exit on first convergence point, 2 = exit on second, 0 = off
+    uint8_t early_exit_convergence;
 #endif
 } DlfCtrls;
 typedef struct IntraBCCtrls {
@@ -832,7 +835,8 @@ typedef struct PictureParentControlSet {
     uint64_t  decode_order;
 
 #if FIX_AVG_Y
-    uint64_t avg_luma; //avg luma intensity of the picture  256: invalid value  0..255 valid value
+    //avg luma intensity of the picture  256: invalid value  0..255 valid value
+    uint64_t avg_luma;
 #endif
 
     // Each picture can release up to 8 references from the DPB (8 is the max number of entries in

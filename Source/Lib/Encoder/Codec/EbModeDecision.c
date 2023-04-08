@@ -451,10 +451,10 @@ static void inter_intra_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // To test: Enable wedge search if source variance and edge strength are above the thresholds.
     //CHKN need to re-do intra pred using the winner, or have a separate intra serch for wedge
     int64_t       best_interintra_rd_wedge = INT64_MAX;
-    const uint8_t wedge_mode               = ctx->blk_geom->shape == PART_N
+    const uint8_t ii_wedge_mode               = ctx->blk_geom->shape == PART_N
                       ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                       : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-    if (wedge_mode) {
+    if (ii_wedge_mode) {
         best_interintra_rd_wedge = pick_interintra_wedge(
             pcs,
             ctx,
@@ -466,9 +466,9 @@ static void inter_intra_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
             &cand->interintra_wedge_index);
     }
 
-    // for wedge_mode 1, always inject wedge as a separate candidate; for wedge mode 2 only inject
+    // for ii_wedge_mode 1, always inject wedge as a separate candidate; for wedge mode 2 only inject
     // if wedge is better than non-wedge
-    if (wedge_mode == 1 || best_interintra_rd_wedge < best_interintra_rd) {
+    if (ii_wedge_mode == 1 || best_interintra_rd_wedge < best_interintra_rd) {
         cand->use_wedge_interintra = 1;
     } else {
         cand->use_wedge_interintra = 0;
@@ -1000,10 +1000,10 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                         uint8_t is_ii_allowed = svt_is_interintra_allowed(
                             ctx->inter_intra_comp_ctrls.enabled, ctx->blk_geom->bsize, NEWMV, rf);
 #if OPT_II
-                        const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                             ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                             : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2)
+                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
                                                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
@@ -1033,7 +1033,7 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                                         inter_intra_search(pcs, ctx, &cand_array[cand_total_cnt]);
                                         cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                                    } else if (wedge_mode == 1 && inter_type == 2) {
+                                    } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                         cand_array[cand_total_cnt].use_wedge_interintra = 1;
                                     } else if (inter_type == 2) {
@@ -1143,11 +1143,11 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                                 NEWMV,
                                 rf);
 #if OPT_II
-                            const uint8_t wedge_mode      = ctx->blk_geom->shape == PART_N
+                            const uint8_t ii_wedge_mode      = ctx->blk_geom->shape == PART_N
                                      ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                                      : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
                             uint8_t       tot_inter_types = is_ii_allowed
-                                      ? (wedge_mode == 1 ? II_COUNT : 2)
+                                      ? (ii_wedge_mode == 1 ? II_COUNT : 2)
                                       : 1;
 #else
                             uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
@@ -1181,7 +1181,7 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                                                 pcs, ctx, &cand_array[cand_total_cnt]);
                                             cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                                        } else if (wedge_mode == 1 && inter_type == 2) {
+                                        } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                             cand_array[cand_total_cnt].use_wedge_interintra = 1;
                                         } else if (inter_type == 2) {
@@ -1833,10 +1833,10 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                 uint8_t is_ii_allowed = svt_is_interintra_allowed(
                     ctx->inter_intra_comp_ctrls.enabled, bsize, NEARESTMV, rf);
 #if OPT_II
-                const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                     ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                     : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2) : 1;
+                uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                 uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -1875,7 +1875,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                                 inter_intra_search(pcs, ctx, &cand_array[cand_idx]);
                                 cand_array[cand_idx].is_interintra_used = 1;
 #if OPT_II
-                            } else if (wedge_mode == 1 && inter_type == 2) {
+                            } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                 cand_array[cand_idx].use_wedge_interintra = 1;
                             } else if (inter_type == 2) {
@@ -1960,10 +1960,10 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                     uint8_t is_ii_allowed = svt_is_interintra_allowed(
                         ctx->inter_intra_comp_ctrls.enabled, bsize, NEARMV, rf);
 #if OPT_II
-                    const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                    const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                         ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                         : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                    uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2) : 1;
+                    uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                     uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -2002,7 +2002,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                                     inter_intra_search(pcs, ctx, &cand_array[cand_idx]);
                                     cand_array[cand_idx].is_interintra_used = 1;
 #if OPT_II
-                                } else if (wedge_mode == 1 && inter_type == 2) {
+                                } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                     cand_array[cand_idx].use_wedge_interintra = 1;
                                 } else if (inter_type == 2) {
@@ -3476,10 +3476,10 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                         NEWMV,
                         (const MvReferenceFrame[]){to_inject_ref_type, -1});
 #if OPT_II
-                    const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                    const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                         ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                         : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                    uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2) : 1;
+                    uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                     uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -3525,7 +3525,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                     inter_intra_search(pcs, ctx, &cand_array[cand_total_cnt]);
                                     cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                                } else if (wedge_mode == 1 && inter_type == 2) {
+                                } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                     cand_array[cand_total_cnt].use_wedge_interintra = 1;
                                 } else if (inter_type == 2) {
@@ -3669,10 +3669,10 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                             NEWMV,
                             (const MvReferenceFrame[]){to_inject_ref_type, -1});
 #if OPT_II
-                        const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                             ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                             : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2)
+                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
                                                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
@@ -3719,7 +3719,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                         inter_intra_search(pcs, ctx, &cand_array[cand_total_cnt]);
                                         cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                                    } else if (wedge_mode == 1 && inter_type == 2) {
+                                    } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                         cand_array[cand_total_cnt].use_wedge_interintra = 1;
                                     } else if (inter_type == 2) {
@@ -4000,10 +4000,10 @@ static void inject_global_candidates(const SequenceControlSet *scs, struct ModeD
                 uint8_t is_ii_allowed = svt_is_interintra_allowed(
                     ctx->inter_intra_comp_ctrls.enabled, bsize, GLOBALMV, rf);
 #if OPT_II
-                const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                     ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                     : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2) : 1;
+                uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                 uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -4033,7 +4033,7 @@ static void inject_global_candidates(const SequenceControlSet *scs, struct ModeD
                                 inter_intra_search(pcs, ctx, &cand_array[cand_total_cnt]);
                                 cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                            } else if (wedge_mode == 1 && inter_type == 2) {
+                            } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                 cand_array[cand_total_cnt].use_wedge_interintra = 1;
 
@@ -4225,10 +4225,10 @@ static void inject_pme_candidates(
                         uint8_t is_ii_allowed = svt_is_interintra_allowed(
                             ctx->inter_intra_comp_ctrls.enabled, bsize, NEWMV, rf);
 #if OPT_II
-                        const uint8_t wedge_mode = ctx->blk_geom->shape == PART_N
+                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                             ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                             : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (wedge_mode == 1 ? II_COUNT : 2)
+                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
                                                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
@@ -4274,7 +4274,7 @@ static void inject_pme_candidates(
                                         inter_intra_search(pcs, ctx, &cand_array[cand_total_cnt]);
                                         cand_array[cand_total_cnt].is_interintra_used = 1;
 #if OPT_II
-                                    } else if (wedge_mode == 1 && inter_type == 2) {
+                                    } else if (ii_wedge_mode == 1 && inter_type == 2) {
 #else
                                         cand_array[cand_total_cnt].use_wedge_interintra = 1;
 

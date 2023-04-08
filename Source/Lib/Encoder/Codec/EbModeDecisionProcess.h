@@ -147,11 +147,12 @@ typedef struct InterCompCtrls {
 typedef struct InterIntraCompCtrls {
     uint8_t enabled;
 #if OPT_II
-    uint8_t use_rd_model; // if 1 use curvefit model to estimate RD cost; if 0 use SSE
-    uint8_t
-        wedge_mode_sq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
-    uint8_t
-        wedge_mode_nsq; // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
+    // if 1 use curvefit model to estimate RD cost; if 0 use SSE
+    uint8_t use_rd_model;
+    // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
+    uint8_t wedge_mode_sq;
+    // 0: no wedge, 1: inj. wedge II as separate candidate to MDS0, 2: only inj. wedge if better than non-wedge at II search
+    uint8_t wedge_mode_nsq;
 #endif
 } InterIntraCompCtrls;
 typedef struct ObmcControls {
@@ -161,16 +162,17 @@ typedef struct ObmcControls {
     // if true, cap the max block size to test to 16x16
     Bool max_blk_size_16x16;
 #if OPT_OBMC_REFINEMENT_MDS1
-    uint8_t refine_level; // Specifies the level the obmc refinement
-        // 0: Full/Sub @ MDS0, 1: Full/Sub @ MDS1, 2: Only Sub MDS1, 3: Full/Sub @ MDS3, 4: Only Sub MDS3
+    // Specifies the level the obmc refinement
+    // 0: Full/Sub @ MDS0, 1: Full/Sub @ MDS1, 2: Only Sub MDS1, 3: Full/Sub @ MDS3, 4: Only Sub MDS3
+    uint8_t refine_level;
 #endif
 #if OPT_OBMC_TRANS_FACE_OFF
-    uint8_t
-        trans_face_off; // if true, a face-off between simple-translation and obmc will take place at mds0
+    // if true, a face-off between simple-translation and obmc will take place at mds0
+    uint8_t trans_face_off;
 #endif
 #if OPT_OBMC_FASTER
-    uint8_t
-        trans_face_off_th; // if trans_face_off ON; perform the face-off for only the tran-MV that beats the best-class0 by at least trans_face_off_th percentage
+    // if trans_face_off ON; perform the face-off for only the tran-MV that beats the best-class0 by at least trans_face_off_th percentage
+    uint8_t trans_face_off_th;
 #endif
 } ObmcControls;
 typedef struct TxtControls {
@@ -580,44 +582,45 @@ typedef struct NsqCtrls {
     uint32_t max_part0_to_part1_dev;
     uint32_t skip_hv4_on_best_part;
 #if OPT_SPLIT_RATE_SHORTCUT
-    uint32_t
-        nsq_split_cost_th; // If the rate cost of splitting into NSQ shapes is greater than the percentage threshold of the cost of the SQ block, skip testing the NSQ shape.
+    // If the rate cost of splitting into NSQ shapes is greater than the percentage threshold of the cost of the SQ block, skip testing the NSQ shape.
     // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the NSQ shape if the split rate cost is > 7% of the SQ cost).
     // 0 is off.  Lower values are more aggressive.
+    uint32_t nsq_split_cost_th;
 #endif
 #if OPT_NSQ_VS_SPLIT
-    uint32_t
-        lower_depth_split_cost_th; // If the rate cost of splitting the SQ into lower depths is smaller than the percentage threshold of the cost of the SQ block, skip testing the NSQ shapes.
+    // If the rate cost of splitting the SQ into lower depths is smaller than the percentage threshold of the cost of the SQ block, skip testing the NSQ shapes.
     // depth_split_cost_th is specified as a perentage * 100 (i.e. a value of 700 corresponds to skipping the NSQ shapes if the split rate cost is < 7% of the SQ cost).
     // 0 is off.  Higher values are more aggressive.
+    uint32_t lower_depth_split_cost_th;
 #endif
 #if OPT_H_VS_V_RATE
-    uint32_t
-        H_vs_V_split_rate_th; // Skip testing H or V if the signaling rate of H/V is significantly higher than the rate of V/H. Specified as a percentage TH. 0 is off, higher is more aggressive.
+    // Skip testing H or V if the signaling rate of H/V is significantly higher than the rate of V/H. Specified as a percentage TH. 0 is off, higher is more aggressive.
+    uint32_t H_vs_V_split_rate_th;
 #endif
 #if OPT_HV4_RATE
-    uint32_t
-        non_HV_split_rate_th; // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
+    // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
     // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
+    uint32_t non_HV_split_rate_th;
 #endif
 #if OPT_NO_GLB_INJ
-    bool inj_psq_glb; //Inject global only if Parent SQ is global
+    //Inject global only if Parent SQ is global
+    bool inj_psq_glb;
 #endif
 #if OPT_TRANSFORM_H_V
-    uint32_t
-        sq_txs_th; // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+    // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+    uint32_t sq_txs_th;
 #endif
 } NsqCtrls;
 #if OPT_DEPTH_RATE_SHORTCUT
 typedef struct DepthEarlyExitCtrls {
-    uint16_t
-        split_cost_th; // If the rate cost of splitting into lower depths is greater than the percentage threshold of the cost of the parent block, skip testing the lower depth.
+    // If the rate cost of splitting into lower depths is greater than the percentage threshold of the cost of the parent block, skip testing the lower depth.
     // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the lower depth if the split rate cost is > 7% of the parent cost).
     // 0 is off.  Lower values are more aggressive. Evaluated for quadrant 0.
-    uint16_t
-        early_exit_th; // Skip testing remaining blocks at the current depth if (curr_cost * 1000 > early_exit_th * parent_cost)
+    uint16_t split_cost_th;
+    // Skip testing remaining blocks at the current depth if (curr_cost * 1000 > early_exit_th * parent_cost)
     // Tested before each quadrant greater than quadrant 0 (use split_cost_th to skip quadrant 0). Specified as a perentage * 10. 0 is off.  Lower values are
     // more aggressive.
+    uint16_t early_exit_th;
 } DepthEarlyExitCtrls;
 #endif
 typedef struct TxsControls {
@@ -647,15 +650,20 @@ typedef struct WmCtrls {
     // neighbours around the best-so-far position; 0 is no refinement
     uint8_t refinement_iterations;
 #if OPT_WARP_REFINEMENT_MDS1
-    uint8_t
-        refine_level; // Specifies the MD Stage where the wm refinement will take place. 0: Before MDS0.  1: At MDS1.  2: At MDS3.
+    // Specifies the MD Stage where the wm refinement will take place. 0: Before MDS0.  1: At MDS1.  2: At MDS3.
+    uint8_t refine_level;
 #endif
 #if OPT_USE_NSAMPLES
-    uint8_t  min_neighbour_perc; // Specifies minimum neighbour percentage for WM
-    uint8_t  corner_perc_bias; // Specifies corner bias for WM
-    uint16_t lower_band_th; // Skip if alpha/ beta / gamma / delta is lower than threshold value
-    uint16_t upper_band_th; // Skip if alpha/ beta / gamma / delta is higher than threshold value
-    Bool     shut_approx_if_not_mds0; // Shut the approximation(s) if refinement @ mds1 or mds3
+    // Specifies minimum neighbour percentage for WM
+    uint8_t  min_neighbour_perc;
+    // Specifies corner bias for WM
+    uint8_t  corner_perc_bias;
+    // Skip if alpha/ beta / gamma / delta is lower than threshold value
+    uint16_t lower_band_th;
+    // Skip if alpha/ beta / gamma / delta is higher than threshold value
+    uint16_t upper_band_th;
+    // Shut the approximation(s) if refinement @ mds1 or mds3
+    Bool     shut_approx_if_not_mds0;
 #endif
 } WmCtrls;
 typedef struct UvCtrls {
@@ -726,10 +734,10 @@ typedef struct Lpd0Ctrls {
     // me_8x8_cost_variance_th beyond which the PD0 is used (instead of light-PD0)
     uint32_t me_8x8_cost_variance_th[LPD0_LEVELS];
 #if OPT_LPD0_DET
-    uint32_t
-        edge_dist_th[LPD0_LEVELS]; // ME_64x64_dist threshold used for edge SBs when PD0 is skipped
-    uint16_t neigh_me_dist_shift
-        [LPD0_LEVELS]; // Shift applied to ME dist and var of top and left SBs when PD0 is skipped
+    // ME_64x64_dist threshold used for edge SBs when PD0 is skipped
+    uint32_t edge_dist_th[LPD0_LEVELS];
+    // Shift applied to ME dist and var of top and left SBs when PD0 is skipped
+    uint16_t neigh_me_dist_shift[LPD0_LEVELS];
 #endif
 } Lpd0Ctrls;
 
@@ -748,8 +756,10 @@ typedef struct Lpd1Ctrls {
     // Distortion value used in cost TH for detector
     uint32_t cost_th_dist[LPD1_LEVELS];
 #if OPT_LPD1_THS
-    uint32_t cost_th_rate[LPD1_LEVELS]; // Rate value used in cost TH for detector
-    uint32_t nz_coeff_th[LPD1_LEVELS]; // Num non-zero coeffs used in detector
+    // Rate value used in cost TH for detector
+    uint32_t cost_th_rate[LPD1_LEVELS];
+    // Num non-zero coeffs used in detector
+    uint32_t nz_coeff_th[LPD1_LEVELS];
 #else
     // Num non-zero coeffs used in detector
     uint32_t coeff_th[LPD1_LEVELS];
@@ -1239,8 +1249,8 @@ typedef struct ModeDecisionContext {
     uint32_t b32_satd[4];
     uint8_t  high_freq_present;
 #if OPT_LD_TX_SHORT_CUT_OFF
-    uint8_t
-        rtc_use_N4_dct_dct_shortcut; // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
+    // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
+    uint8_t rtc_use_N4_dct_dct_shortcut;
 #endif
 } ModeDecisionContext;
 

@@ -4916,7 +4916,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
 #if OPT_MRP
         mrp_level = 11;
 #else
-        mrp_level = 12;
+        mrp_level = 9;
 #endif
     }
 #else
