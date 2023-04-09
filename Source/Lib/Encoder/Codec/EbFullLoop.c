@@ -2480,7 +2480,7 @@ uint64_t svt_aom_d1_non_square_block_decision(ModeDecisionContext *ctx, uint32_t
         from_shape_to_part[ctx->blk_geom->shape],
         full_lambda,
 #if CLN_PART_CTX
-        ctx->sb_ptr->pcs->ppcs->partition_contexts == PARTITION_CONTEXTS,
+        ctx->sb_ptr->pcs->ppcs->use_accurate_part_ctx,
 #endif
         ctx->md_rate_est_ctx);
 
@@ -2532,7 +2532,7 @@ static void compute_depth_costs(ModeDecisionContext *ctx, PictureParentControlSe
                                                    PARTITION_SPLIT,
                                                    full_lambda,
 #if CLN_PART_CTX
-                                                   pcs->partition_contexts == PARTITION_CONTEXTS,
+                                                   pcs->use_accurate_part_ctx,
 #endif
                                                    ctx->md_rate_est_ctx);
 
@@ -2634,7 +2634,7 @@ void svt_aom_compute_depth_costs_md_skip_light_pd0(ModeDecisionContext *ctx,
                                                     PARTITION_SPLIT,
                                                     full_lambda,
 #if CLN_PART_CTX
-                                                    1, // Use accurate split cost for early exit
+                                                    TRUE, // Use accurate split cost for early exit
 #endif
                                                     ctx->md_rate_est_ctx);
 
@@ -2701,7 +2701,7 @@ void svt_aom_compute_depth_costs_md_skip(ModeDecisionContext *ctx, PictureParent
                                                    PARTITION_SPLIT,
                                                    full_lambda,
 #if CLN_PART_CTX
-                                                   1, // Use accurate split cost for early exit
+                                                   TRUE, // Use accurate split cost for early exit
 #endif
                                                    ctx->md_rate_est_ctx);
 

@@ -1185,7 +1185,11 @@ typedef struct PictureParentControlSet {
 #if OPT_LD_MRP3
     bool update_ref_count; // Update ref count
 #endif
-    uint8_t      partition_contexts;
+#if CLN_PART_CTX
+    bool use_accurate_part_ctx;
+#else
+    uint8_t partition_contexts;
+#endif
     uint8_t      bypass_cost_table_gen;
     uint16_t     max_can_count;
     uint8_t      enable_me_8x8;

@@ -2968,7 +2968,11 @@ void svt_aom_first_pass_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
 
     // HBD Mode
     pcs->hbd_md                      = EB_8_BIT_MD; //first pass hard coded to 8bit
+#if CLN_PART_CTX
+    pcs->ppcs->use_accurate_part_ctx = TRUE;
+#else
     pcs->ppcs->partition_contexts    = PARTITION_CONTEXTS;
+#endif
     pcs->ppcs->bypass_cost_table_gen = 0;
     pcs->approx_inter_rate           = 0;
 }
@@ -10296,12 +10300,21 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 #else
         if (pcs->enc_mode <= ENC_M5)
 #endif
+#if CLN_PART_CTX
+            pcs->ppcs->use_accurate_part_ctx = TRUE;
+        else
+            pcs->ppcs->use_accurate_part_ctx = FALSE;
+    } else {
+        pcs->ppcs->use_accurate_part_ctx = FALSE;
+    }
+#else
             pcs->ppcs->partition_contexts = PARTITION_CONTEXTS;
         else
             pcs->ppcs->partition_contexts = 4;
     } else {
         pcs->ppcs->partition_contexts = 4;
     }
+#endif
     FrameHeader *frm_hdr             = &ppcs->frm_hdr;
     frm_hdr->allow_high_precision_mv = frm_hdr->quantization_params.base_q_idx <
                 HIGH_PRECISION_MV_QTHRESH &&

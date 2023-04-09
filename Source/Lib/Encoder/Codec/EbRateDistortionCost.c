@@ -2100,7 +2100,7 @@ uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDecisionC
                                      BlkStruct *blk_ptr, PartitionType p, uint64_t lambda,
 #endif
 #if CLN_PART_CTX
-                                     uint8_t use_accurate_part_ctx,
+                                     bool use_accurate_part_ctx,
 #endif
                                      MdRateEstimationContext *md_rate_est_ctx) {
 #if OPT_DEPTH_EARLY_EXIT_RATE

@@ -10841,7 +10841,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             from_shape_to_part[blk_geom->shape],
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -10865,7 +10865,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             PARTITION_HORZ,
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -10880,7 +10880,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             PARTITION_VERT,
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -10906,7 +10906,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             from_shape_to_part[blk_geom->shape],
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -10921,7 +10921,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             ctx->md_blk_arr_nsq[blk_geom->sqi_mds].part,
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -10944,7 +10944,7 @@ bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionCon
             PARTITION_SPLIT,
             full_lambda,
 #if CLN_PART_CTX
-            1, // Use accurate split cost for early exit
+            TRUE, // Use accurate split cost for early exit
 #endif
             ctx->md_rate_est_ctx);
 
@@ -11863,7 +11863,7 @@ static void update_d1_data(PictureControlSet *pcs, ModeDecisionContext *ctx, uin
             from_shape_to_part[blk_geom->shape],
             full_lambda,
 #if CLN_PART_CTX
-            pcs->ppcs->partition_contexts == PARTITION_CONTEXTS,
+            pcs->ppcs->use_accurate_part_ctx,
 #endif
             ctx->md_rate_est_ctx);
 

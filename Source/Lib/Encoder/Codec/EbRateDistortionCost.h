@@ -72,7 +72,7 @@ extern uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDe
 #endif
                                             PartitionType p, uint64_t lambda,
 #if CLN_PART_CTX
-                                            uint8_t use_accurate_part_ctx,
+                                            bool use_accurate_part_ctx,
 #endif
                                             MdRateEstimationContext *md_rate_est_ctx);
 extern uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,

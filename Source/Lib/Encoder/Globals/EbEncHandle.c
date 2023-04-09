@@ -4668,7 +4668,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         disallow_4x4 = MIN(disallow_4x4, svt_aom_get_disallow_4x4(scs->static_config.enc_mode, slice_type));
 #if OPT_HV_GEOM
     if (scs->super_block_size == 128) {
-#if OPT_4x8_8x4_GEOM
+#if OPT_4X8_8X4_GEOM
         scs->svt_aom_geom_idx = GEOM_5;
 #else
         scs->svt_aom_geom_idx = GEOM_4;
