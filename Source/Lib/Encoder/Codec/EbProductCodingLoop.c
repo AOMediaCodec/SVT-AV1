@@ -10372,12 +10372,13 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     loc.blk_origin_index        = blk_geom->org_x + blk_geom->org_y * ctx->sb_size;
     loc.blk_chroma_origin_index = ROUND_UV(blk_geom->org_x) / 2 +
         ROUND_UV(blk_geom->org_y) / 2 * (ctx->sb_size >> 1);
-#endif
+#else
     uint32_t input_cb_origin_in_index = ((ctx->round_origin_y >> 1) + (input_pic->org_y >> 1)) *
             input_pic->stride_cb +
         ((ctx->round_origin_x >> 1) + (input_pic->org_x >> 1));
     uint32_t blk_chroma_origin_index = ROUND_UV(blk_geom->org_x) / 2 +
         ROUND_UV(blk_geom->org_y) / 2 * (ctx->sb_size >> 1);
+#endif
     BlkStruct *blk_ptr     = ctx->blk_ptr;
     cand_bf_ptr_array      = &(cand_bf_ptr_array_base[0]);
     ctx->blk_lambda_tuning = pcs->ppcs->blk_lambda_tuning;
@@ -10452,9 +10453,15 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                 if (ctx->blk_geom->has_uv) {
                     search_best_independent_uv_mode(pcs,
                                                     input_pic,
+#if CLN_MDS0
+                                                    loc.input_cb_origin_in_index,
+                                                    loc.input_cb_origin_in_index,
+                                                    loc.blk_chroma_origin_index,
+#else
                                                     input_cb_origin_in_index,
                                                     input_cb_origin_in_index,
                                                     blk_chroma_origin_index,
+#endif
                                                     ctx);
                 }
             }
@@ -10538,9 +10545,11 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
 #if OPT_OBMC_FASTER
     ctx->mds0_best_class0_cost = (uint64_t)~0;
 #endif
+#if !CLN_MDS0
     uint32_t input_origin_index = (ctx->blk_org_y + input_pic->org_y) * input_pic->stride_y +
         (ctx->blk_org_x + input_pic->org_x);
     uint32_t blk_origin_index = blk_geom->org_x + blk_geom->org_y * ctx->sb_size;
+#endif
     for (cand_class_it = CAND_CLASS_0; cand_class_it < CAND_CLASS_TOTAL; cand_class_it++) {
         //number of next level candidates could not exceed number of curr level candidates
         ctx->md_stage_1_count[cand_class_it] = MIN(ctx->md_stage_0_count[cand_class_it],
@@ -10638,10 +10647,17 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                            blk_ptr,
                            ctx,
                            input_pic,
+#if CLN_MDS0
+                           loc.input_origin_index,
+                           loc.input_cb_origin_in_index,
+                           loc.blk_origin_index,
+                           loc.blk_chroma_origin_index);
+#else
                            input_origin_index,
                            input_cb_origin_in_index,
                            blk_origin_index,
                            blk_chroma_origin_index);
+#endif
 
                 // Sort the candidates of the target class based on the 1st full loop cost
 
@@ -10680,11 +10696,17 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                        blk_ptr,
                        ctx,
                        input_pic,
+#if CLN_MDS0
+                       loc.input_origin_index,
+                       loc.input_cb_origin_in_index,
+                       loc.blk_origin_index,
+                       loc.blk_chroma_origin_index);
+#else
                        input_origin_index,
                        input_cb_origin_in_index,
                        blk_origin_index,
                        blk_chroma_origin_index);
-
+#endif
             // Sort the candidates of the target class based on the 1st full loop cost
 
             //sort the new set of candidates
@@ -10716,9 +10738,15 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                 if (ctx->md_stage_3_total_intra_count)
                     search_best_independent_uv_mode(pcs,
                                                     input_pic,
+#if CLN_MDS0
+                                                    loc.input_cb_origin_in_index,
+                                                    loc.input_cb_origin_in_index,
+                                                    loc.blk_chroma_origin_index,
+#else
                                                     input_cb_origin_in_index,
                                                     input_cb_origin_in_index,
                                                     blk_chroma_origin_index,
+#endif
                                                     ctx);
             }
         }
@@ -10742,6 +10770,16 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         ctx->scale_palette      = 1;
         // Set the new input picture and offsets
         input_pic                = pcs->input_frame16bit;
+#if CLN_MDS0
+        loc.input_cb_origin_in_index = ((ctx->round_origin_y >> 1) + (input_pic->org_y >> 1)) *
+                input_pic->stride_cb +
+            ((ctx->round_origin_x >> 1) + (input_pic->org_x >> 1));
+        loc.blk_chroma_origin_index = ROUND_UV(blk_geom->org_x) / 2 +
+            ROUND_UV(blk_geom->org_y) / 2 * (ctx->sb_size >> 1);
+        loc.input_origin_index = (ctx->blk_org_y + input_pic->org_y) * input_pic->stride_y +
+            (ctx->blk_org_x + input_pic->org_x);
+        loc.blk_origin_index = blk_geom->org_x + blk_geom->org_y * ctx->sb_size;
+#else
         input_cb_origin_in_index = ((ctx->round_origin_y >> 1) + (input_pic->org_y >> 1)) *
                 input_pic->stride_cb +
             ((ctx->round_origin_x >> 1) + (input_pic->org_x >> 1));
@@ -10750,6 +10788,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         input_origin_index = (ctx->blk_org_y + input_pic->org_y) * input_pic->stride_y +
             (ctx->blk_org_x + input_pic->org_x);
         blk_origin_index = blk_geom->org_x + blk_geom->org_y * ctx->sb_size;
+#endif
     }
     // 3rd Full-Loop
     ctx->md_stage = MD_STAGE_3;
@@ -10757,10 +10796,17 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                blk_ptr,
                ctx,
                input_pic,
+#if CLN_MDS0
+               loc.input_origin_index,
+               loc.input_cb_origin_in_index,
+               loc.blk_origin_index,
+               loc.blk_chroma_origin_index,
+#else
                input_origin_index,
                input_cb_origin_in_index,
                blk_origin_index,
                blk_chroma_origin_index,
+#endif
                ctx->md_stage_3_total_count);
 
     // Full Mode Decision (choose the best mode)
@@ -10786,11 +10832,19 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
 #endif
         calc_scr_to_recon_dist_per_quadrant(ctx,
                                             input_pic,
+#if CLN_MDS0
+                                            loc.input_origin_index,
+                                            loc.input_cb_origin_in_index,
+                                            cand_bf,
+                                            loc.blk_origin_index,
+                                            loc.blk_chroma_origin_index);
+#else
                                             input_origin_index,
                                             input_cb_origin_in_index,
                                             cand_bf,
                                             blk_origin_index,
                                             blk_chroma_origin_index);
+#endif
     if (ctx->encoder_bit_depth > EB_EIGHT_BIT && ctx->bypass_encdec && !org_hbd &&
         ctx->pd_pass == PD_PASS_1 && ctx->hbd_md) {
         if (!ctx->skip_intra)
