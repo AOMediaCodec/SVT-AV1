@@ -28,10 +28,7 @@
 #include "EbResize.h"
 #include "EbInvTransforms.h"
 #include "EncModeConfig.h"
-
-#if OPT_GM_MIX_DS
-void upscale_wm_params(EbWarpedMotionParams *wMotion, uint8_t scfactor);
-#endif
+#include "EbGlobalMotionEstimation.h"
 
 #define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
 static MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
@@ -84,7 +81,7 @@ void           set_global_motion_field(PictureControlSet *pcs) {
         uint8_t sf = ppcs->gm_downsample_level == GM_DOWN ? 2
             : ppcs->gm_downsample_level == GM_DOWN16      ? 4
                                                           : 1;
-        upscale_wm_params(&ppcs->global_motion[frame_index], sf);
+        svt_aom_upscale_wm_params(&ppcs->global_motion[frame_index], sf);
 
 #else
         // Upscale the translation parameters by 2, because the search is done on a down-sampled

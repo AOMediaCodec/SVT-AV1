@@ -5864,7 +5864,11 @@ EbErrorType av1_inter_prediction_obmc(PictureControlSet* pcs, BlkStruct* blk_ptr
     return return_error;
 }
 
+#if OPT_OBMC_TRANS_FACE_OFF
+EbErrorType svt_aom_inter_pu_prediction_av1_obmc(uint8_t hbd_md,
+#else
 EbErrorType inter_pu_prediction_av1_obmc(uint8_t hbd_md,
+#endif
     ModeDecisionContext* ctx,
     PictureControlSet* pcs,
     ModeDecisionCandidateBuffer* cand_bf) {

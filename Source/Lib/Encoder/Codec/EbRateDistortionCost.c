@@ -1037,8 +1037,10 @@ static INLINE uint32_t get_compound_mode_rate(struct ModeDecisionContext *ctx,
     return comp_rate;
 }
 int svt_aom_is_interintra_wedge_used(BlockSize sb_type);
+#if !OPT_OBMC_TRANS_FACE_OFF
 int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]);
+#endif
 static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                           ModeDecisionCandidateBuffer *cand_bf,
                                           uint64_t luma_distortion, uint64_t chroma_distortion,

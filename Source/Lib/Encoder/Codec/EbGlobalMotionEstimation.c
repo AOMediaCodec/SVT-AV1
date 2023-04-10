@@ -232,7 +232,7 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
 }
 #if OPT_GM_MIX_DS
 
-void upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_factor) {
+void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_factor) {
     // Upscale the translation parameters by 2 or 4,
     // because the search is done on a down-sampled
     // version of the source picture
@@ -399,7 +399,7 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
 
 #if OPT_GM_MIX_DS
                 //upscale the param before doing refinement
-                upscale_wm_params(&tmp_wm_params, sf);
+                svt_aom_upscale_wm_params(&tmp_wm_params, sf);
 #endif
                 if (tmp_wm_params.wmtype != IDENTITY) {
                     const int64_t warp_error = svt_av1_refine_integerized_param(

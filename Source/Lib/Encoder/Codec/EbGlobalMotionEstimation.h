@@ -34,4 +34,9 @@ void compute_global_motion(PictureParentControlSet *pcs, EbPictureBufferDesc *in
                            int allow_high_precision_mv);
 #endif
 
+#if OPT_GM_MIX_DS
+void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_factor);
+#endif
+
+
 #endif // EbGlobalMotionEstimation_h

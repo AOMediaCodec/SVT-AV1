@@ -181,6 +181,16 @@ extern uint8_t svt_aom_obmc_motion_refinement(PictureControlSet* pcs, struct Mod
     ModeDecisionCandidate* cand, uint8_t ref_list_idx,
     int refine_level);
 #endif
+#if OPT_OBMC_TRANS_FACE_OFF
+int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
+                              const MvReferenceFrame ref_frame[2]);
+
+MotionMode svt_aom_obmc_motion_mode_allowed(const PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                    const BlockSize bsize, uint8_t situation, MvReferenceFrame rf0,
+                                    MvReferenceFrame rf1, PredictionMode mode);
+
+#endif
+
 void svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
 
 typedef EbErrorType (*EB_INTRA_4x4_FAST_LUMA_COST_FUNC)(struct ModeDecisionContext  *ctx,

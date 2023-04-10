@@ -105,7 +105,7 @@ Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx
         ctx->inject_new_warp;
 }
 #if OPT_OBMC_TRANS_FACE_OFF
-MotionMode obmc_motion_mode_allowed(
+MotionMode svt_aom_obmc_motion_mode_allowed(
     const PictureControlSet *pcs, struct ModeDecisionContext *ctx, const BlockSize bsize,
     uint8_t
         situation, // 0: candidate(s) preparation, 1: data preparation, 2: simple translation face-off
@@ -1842,7 +1842,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
 #endif
                 uint8_t is_obmc_allowed =
 #if OPT_OBMC_TRANS_FACE_OFF
-                    obmc_motion_mode_allowed(pcs, ctx, bsize, 0, rf[0], rf[1], NEARESTMV) ==
+                    svt_aom_obmc_motion_mode_allowed(pcs, ctx, bsize, 0, rf[0], rf[1], NEARESTMV) ==
                     OBMC_CAUSAL;
 #else
                     obmc_motion_mode_allowed(pcs, ctx, bsize, rf[0], rf[1], NEARESTMV) ==
@@ -1969,7 +1969,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
 #endif
                     uint8_t is_obmc_allowed =
 #if OPT_OBMC_TRANS_FACE_OFF
-                        obmc_motion_mode_allowed(pcs, ctx, bsize, 0, rf[0], rf[1], NEARMV) ==
+                        svt_aom_obmc_motion_mode_allowed(pcs, ctx, bsize, 0, rf[0], rf[1], NEARMV) ==
                         OBMC_CAUSAL;
 #else
                         obmc_motion_mode_allowed(pcs, ctx, bsize, rf[0], rf[1], NEARMV) ==
@@ -3485,7 +3485,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
 #endif
 #if OPT_OBMC_TRANS_FACE_OFF
                     uint8_t is_obmc_allowed =
-                        obmc_motion_mode_allowed(
+                        svt_aom_obmc_motion_mode_allowed(
                             pcs, ctx, bsize, 0, to_inject_ref_type, -1, NEWMV) == OBMC_CAUSAL;
 #else
                     uint8_t is_obmc_allowed = obmc_motion_mode_allowed(
@@ -3679,7 +3679,7 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
 #endif
 #if OPT_OBMC_TRANS_FACE_OFF
                         uint8_t is_obmc_allowed =
-                            obmc_motion_mode_allowed(
+                            svt_aom_obmc_motion_mode_allowed(
                                 pcs, ctx, bsize, 0, to_inject_ref_type, -1, NEWMV) == OBMC_CAUSAL;
 #else
                         uint8_t is_obmc_allowed =
@@ -4234,7 +4234,7 @@ static void inject_pme_candidates(
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
 #if OPT_OBMC_TRANS_FACE_OFF
-                        uint8_t is_obmc_allowed = obmc_motion_mode_allowed(
+                        uint8_t is_obmc_allowed = svt_aom_obmc_motion_mode_allowed(
                                                       pcs, ctx, bsize, 0, rf[0], rf[1], NEWMV) ==
                             OBMC_CAUSAL;
 #else
@@ -4533,7 +4533,7 @@ void svt_aom_inject_inter_candidates(PictureControlSet *pcs, ModeDecisionContext
 
     svt_av1_count_overlappable_neighbors(pcs, ctx->blk_ptr, ctx->blk_geom->bsize, mi_row, mi_col);
 #if OPT_OBMC_TRANS_FACE_OFF
-    const uint8_t is_obmc_allowed = obmc_motion_mode_allowed(
+    const uint8_t is_obmc_allowed = svt_aom_obmc_motion_mode_allowed(
                                         pcs, ctx, ctx->blk_geom->bsize, 1, LAST_FRAME, -1, NEWMV) ==
         OBMC_CAUSAL;
 #else

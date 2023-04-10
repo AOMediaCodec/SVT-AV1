@@ -1257,18 +1257,6 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
     }
 }
 #if OPT_OBMC_TRANS_FACE_OFF
-EbErrorType inter_pu_prediction_av1_obmc(uint8_t hbd_md,
-    ModeDecisionContext* ctx,
-    PictureControlSet* pcs,
-    ModeDecisionCandidateBuffer* cand_bf);
-
-int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
-    const MvReferenceFrame ref_frame[2]);
-
-MotionMode obmc_motion_mode_allowed(const PictureControlSet* pcs, struct ModeDecisionContext* ctx,
-    const BlockSize bsize, uint8_t situation, MvReferenceFrame rf0,
-    MvReferenceFrame rf1, PredictionMode mode);
-
 static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
     ModeDecisionContext* ctx, EbPictureBufferDesc* input_pic, BlockLocation* loc) {
 
@@ -1296,7 +1284,7 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
         uint8_t is_ii_allowed = svt_is_interintra_allowed(
             ctx->inter_intra_comp_ctrls.enabled, ctx->blk_geom->bsize, cand->pred_mode, rf);
         uint8_t is_obmc_allowed =
-            obmc_motion_mode_allowed(
+            svt_aom_obmc_motion_mode_allowed(
                 pcs, ctx, ctx->blk_geom->bsize, LAST_FRAME, 2, -1, cand->pred_mode) ==
             OBMC_CAUSAL;
 
@@ -1314,7 +1302,7 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
 
             // Prediction
             ctx->uv_intra_comp_only = FALSE;
-            inter_pu_prediction_av1_obmc(ctx->hbd_md, ctx, pcs, cand_bf);
+            svt_aom_inter_pu_prediction_av1_obmc(ctx->hbd_md, ctx, pcs, cand_bf);
 
             // Distortion
             if (ctx->mds0_ctrls.mds0_dist_type == MDS0_SSD) {
