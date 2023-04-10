@@ -82,13 +82,6 @@
      struct SequenceControlSet* scs);
 #endif
 
- #if OPT_NSQ_CTRL
-#if OPT_4X8_8X4_GEOM
-void set_nsq_ctrls(ModeDecisionContext* ctx, uint8_t nsq_level, uint8_t* allow_HVA_HVB, uint8_t* allow_HV4, uint8_t* min_nsq_bsize);
-#else
-void set_nsq_ctrls(ModeDecisionContext* ctx, uint8_t nsq_level, uint8_t* allow_HVA_HVB, uint8_t* allow_HV4);
-#endif
-#endif
  /**************************************
   * Defines
   **************************************/
@@ -4651,7 +4644,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
                 nsq_level = svt_aom_get_nsq_level(scs->static_config.enc_mode, is_islice, is_base, coeff_lvl);
                 disallow_nsq = MIN(disallow_nsq, (nsq_level == 0 ? 1 : 0));
 #if OPT_4X8_8X4_GEOM
-                set_nsq_ctrls(NULL, nsq_level, &allow_HVA_HVB, &allow_HV4, &min_nsq_bsize);
+                svt_aom_set_nsq_ctrls(NULL, nsq_level, &allow_HVA_HVB, &allow_HV4, &min_nsq_bsize);
 #else
                 set_nsq_ctrls(NULL, nsq_level, &allow_HVA_HVB, &allow_HV4);
 #endif

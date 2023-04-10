@@ -83,5 +83,8 @@ bool svt_aom_get_disallow_4x4(EncMode enc_mode, SliceType slice_type);
 uint8_t svt_aom_get_nsq_level(EncMode enc_mode, uint8_t is_islice, uint8_t is_base,
                               InputCoeffLvl coeff_lvl);
 
+#if OPT_NSQ_CTRL
+void svt_aom_set_nsq_ctrls(ModeDecisionContext* ctx, uint8_t nsq_level, uint8_t* allow_HVA_HVB, uint8_t* allow_HV4, uint8_t* min_nsq_bsize);
+#endif
 uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width,
                                                uint32_t picture_height);

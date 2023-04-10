@@ -6289,7 +6289,7 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 */
 #if OPT_NSQ_CTRL
 #if OPT_4X8_8X4_GEOM
-void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
+void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
                    uint8_t *allow_HV4, uint8_t *min_nsq_bsize) {
 #else
 void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
@@ -8972,7 +8972,7 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
         // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
 #if OPT_NSQ_CTRL
 #if OPT_4X8_8X4_GEOM
-    set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL, NULL);
+    svt_aom_set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL, NULL);
 #else
     set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL);
 #endif
@@ -9514,7 +9514,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     // 2nd call as set_nsq_ctrls() has a PD_PASS check
 #if OPT_NSQ_CTRL
 #if OPT_4X8_8X4_GEOM
-    set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL, NULL);
+    svt_aom_set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL, NULL);
 #else
     set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL);
 #endif
@@ -9851,7 +9851,7 @@ bool svt_aom_get_disallow_4x4(EncMode enc_mode, SliceType slice_type) {
     else
         return true;
 }
-// Get the nsq_level used for each preset (to be passed to setting function: set_nsq_ctrls())
+// Get the nsq_level used for each preset (to be passed to setting function: svt_aom_set_nsq_ctrls())
 uint8_t svt_aom_get_nsq_level(EncMode enc_mode, uint8_t is_islice, uint8_t is_base,
                               InputCoeffLvl coeff_lvl) {
     uint8_t nsq_level;
