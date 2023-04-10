@@ -299,7 +299,6 @@ void mode_decision_configuration_init_qp_update(PictureControlSet *pcs) {
                                  pcs->ppcs->enable_restoration,
                                  pcs->ppcs->frm_hdr.allow_intrabc,
 #if CLN_PART_CTX
-                                 PARTITION_CONTEXTS,
 #else
                                  pcs->ppcs->partition_contexts,
 #endif
@@ -709,7 +708,6 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                                      pcs->ppcs->enable_restoration,
                                      pcs->ppcs->frm_hdr.allow_intrabc,
 #if CLN_PART_CTX
-                                     PARTITION_CONTEXTS,
 #else
                                      pcs->ppcs->partition_contexts,
 #endif

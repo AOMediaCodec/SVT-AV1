@@ -3483,7 +3483,6 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                                  pcs->ppcs->enable_restoration,
                                                  pcs->ppcs->frm_hdr.allow_intrabc,
 #if CLN_PART_CTX
-                                                 PARTITION_CONTEXTS,
 #else
                                                  pcs->ppcs->partition_contexts,
 #endif
@@ -3597,7 +3596,6 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                     pcs->ppcs->enable_restoration,
                                     pcs->ppcs->frm_hdr.allow_intrabc,
 #if CLN_PART_CTX
-                                    PARTITION_CONTEXTS,
 #else
                                     pcs->ppcs->partition_contexts,
 #endif
