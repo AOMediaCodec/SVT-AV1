@@ -5593,10 +5593,12 @@ static void send_picture_out(
     if (scs->mrp_ctrls.safe_limit_nref && pcs->slice_type == B_SLICE && !pcs->is_ref) {
         EbPaReferenceObject *ref_obj_0 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[0][0]->object_ptr;
         EbPaReferenceObject *ref_obj_1 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[1][0]->object_ptr;
-        if (ABS((int)ref_obj_0->avg_luma - (int)pcs->avg_luma) < 100 &&
-            ABS((int)ref_obj_1->avg_luma - (int)pcs->avg_luma) < 100)
-        {
-            pcs->ref_list0_count_try = pcs->ref_list1_count_try = 1;
+        if (ref_obj_0->avg_luma != INVALID_LUMA && ref_obj_1->avg_luma != INVALID_LUMA) {
+            if (ABS((int)ref_obj_0->avg_luma - (int)pcs->avg_luma) < 100 &&
+                ABS((int)ref_obj_1->avg_luma - (int)pcs->avg_luma) < 100)
+            {
+                pcs->ref_list0_count_try = pcs->ref_list1_count_try = 1;
+            }
         }
     }
 #endif

@@ -81,6 +81,11 @@ void svt_aom_assert_err(uint32_t condition, char *err_msg);
 #define NUM_MV_HIST 2
 #define MAX_MV_HIST_SIZE 2 * REF_LIST_MAX_DEPTH *NUM_MV_COMPONENTS *NUM_MV_HIST
 
+#if FIX_AVG_Y
+#define INVALID_LUMA 256
+#endif
+
+
 typedef struct SharpnessCtrls {
     uint8_t scene_transition;
     uint8_t tf;

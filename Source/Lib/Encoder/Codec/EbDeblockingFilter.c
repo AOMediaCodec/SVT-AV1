@@ -1301,8 +1301,6 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         if (use_qp_for_chroma) {
             int32_t filter_level_y, filter_level_uv;
             qp_based_dlf_param(pcs, &filter_level_y, &filter_level_uv);
-            //printf("Pic:%lld  QPbased y:%i   v:%i\n\n", pcs_ptr->picture_number, filter_level_y, filter_level_uv);
-            //lf->filter_level_u = lf->filter_level_v = filter_level_uv;
 
             //use avg-ref for chroma
             lf->filter_level_u = last_frame_filter_level[2];

@@ -1702,7 +1702,7 @@ void svt_aom_gathering_picture_statistics(SequenceControlSet *scs, PictureParent
                                           EbPictureBufferDesc *input_padded_pic,
                                           EbPictureBufferDesc *sixteenth_decimated_picture_ptr) {
 #if FIX_AVG_Y
-    pcs->avg_luma = 256;
+    pcs->avg_luma = INVALID_LUMA;
 #else
     uint64_t sum_avg_intensity_ttl_regions_luma = 0;
 #endif

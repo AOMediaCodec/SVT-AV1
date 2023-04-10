@@ -145,8 +145,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     chess_refn = 0;
 #endif
                 } else if (pcs->gm_downsample_level == GM_DOWN) {
-                    inp_detection = quarter_picture_ptr; //sixteenth_picture_ptr;//
-                    ref_detection = quarter_ref_pic_ptr; //sixteenth_ref_pic_ptr; //
+                    inp_detection = quarter_picture_ptr;
+                    ref_detection = quarter_ref_pic_ptr;
 
                     inp_refinement = quarter_picture_ptr;
                     ref_refinement = quarter_ref_pic_ptr;
@@ -156,8 +156,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     chess_refn = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
 #endif
                 } else {
-                    inp_detection = input_pic; //quarter_picture_ptr;//
-                    ref_detection = ref_picture_ptr; //quarter_ref_pic_ptr; //
+                    inp_detection = input_pic;
+                    ref_detection = ref_picture_ptr;
 
                     inp_refinement = input_pic;
                     ref_refinement = ref_picture_ptr;
