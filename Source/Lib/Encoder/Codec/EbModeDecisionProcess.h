@@ -87,8 +87,8 @@ typedef struct MdBlkStruct {
     uint8_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint8_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
 #if OPT_TRANSFORM_H_V
-    uint32_t cnt_non_zero_h[2];
-    uint32_t cnt_non_zero_v[2];
+    uint16_t cnt_non_zero_h[2];
+    uint16_t cnt_non_zero_v[2];
 #endif
 } MdBlkStruct;
 

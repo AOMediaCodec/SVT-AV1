@@ -10214,11 +10214,11 @@ void tx_shortcut_detector(PictureControlSet *pcs, ModeDecisionContext *ctx,
 static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                        ModeDecisionCandidateBuffer *cand_bf) {
     // That's a non-conformant tx-partitioning
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[0] = (uint32_t)~0;
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[1] = (uint32_t)~0;
+    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[0] = (uint16_t)~0;
+    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[1] = (uint16_t)~0;
 
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_v[0] = (uint32_t)~0;
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_v[1] = (uint32_t)~0;
+    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_v[0] = (uint16_t)~0;
+    ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_v[1] = (uint16_t)~0;
 #if OPT_SKIP_USELESS_SQ_PREP
     if (cand_bf->block_has_coeff) {
 #else
@@ -10289,7 +10289,7 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
 
                 ctx->txb_1d_offset += txbwidth * txbheight;
                 ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[h_part] =
-                    y_count_non_zero_coeffs_txt;
+                    (uint16_t) y_count_non_zero_coeffs_txt;
             }
         }
 
@@ -10351,7 +10351,7 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
 
                 ctx->txb_1d_offset += txbwidth * txbheight;
                 ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_v[v_part] =
-                    y_count_non_zero_coeffs_txt;
+                    (uint16_t) y_count_non_zero_coeffs_txt;
             }
         }
     }
@@ -11334,20 +11334,20 @@ Bool update_skip_nsq_based_on_sq_txs(ModeDecisionContext *ctx) {
 
     MdBlkStruct *sq_md_local_blk_unit = &ctx->md_local_blk_unit[blk_geom->sqi_mds];
 
-    if ((sq_md_local_blk_unit->cnt_non_zero_h[0] != (uint32_t)~0) &&
-        (sq_md_local_blk_unit->cnt_non_zero_h[1] != (uint32_t)~0) &&
-        (sq_md_local_blk_unit->cnt_non_zero_v[0] != (uint32_t)~0) &&
-        (sq_md_local_blk_unit->cnt_non_zero_v[1] != (uint32_t)~0)) {
+    if ((sq_md_local_blk_unit->cnt_non_zero_h[0] != (uint16_t)~0) &&
+        (sq_md_local_blk_unit->cnt_non_zero_h[1] != (uint16_t)~0) &&
+        (sq_md_local_blk_unit->cnt_non_zero_v[0] != (uint16_t)~0) &&
+        (sq_md_local_blk_unit->cnt_non_zero_v[1] != (uint16_t)~0)) {
         uint32_t coeff_th0 = ctx->nsq_ctrls.sq_txs_th;
         uint32_t coeff_th1 = ctx->nsq_ctrls.sq_txs_th / 10;
 
-        uint32_t cnt_h_min = MIN(sq_md_local_blk_unit->cnt_non_zero_h[0],
+        uint16_t cnt_h_min = MIN(sq_md_local_blk_unit->cnt_non_zero_h[0],
                                  sq_md_local_blk_unit->cnt_non_zero_h[1]);
-        uint32_t cnt_v_min = MIN(sq_md_local_blk_unit->cnt_non_zero_v[0],
+        uint16_t cnt_v_min = MIN(sq_md_local_blk_unit->cnt_non_zero_v[0],
                                  sq_md_local_blk_unit->cnt_non_zero_v[1]);
 
-        uint32_t cnt_h_best = cnt_h_min << 1;
-        uint32_t cnt_v_best = cnt_v_min << 1;
+        uint16_t cnt_h_best = cnt_h_min << 1;
+        uint16_t cnt_v_best = cnt_v_min << 1;
 
         if ((cnt_h_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th0) / 100)) &&
             (cnt_v_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th0) / 100)))
