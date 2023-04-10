@@ -2638,6 +2638,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #if OPT_GM_WD
         gm_ctrls->match_sz = 13;
 #endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = FALSE;
+#endif
         break;
     case 2:
         gm_ctrls->enabled                      = 1;
@@ -2657,6 +2660,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #endif
 #if OPT_GM_WD
         gm_ctrls->match_sz = 13;
+#endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = FALSE;
 #endif
         break;
     case 3:
@@ -2678,6 +2684,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
 #endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = FALSE;
+#endif
         break;
     case 4:
         gm_ctrls->enabled                      = 1;
@@ -2697,6 +2706,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #endif
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
+#endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = TRUE;
 #endif
         break;
     case 5:
@@ -2718,6 +2730,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
 #endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = TRUE;
+#endif
         break;
     case 6:
         gm_ctrls->enabled                      = 1;
@@ -2737,6 +2752,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #endif
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
+#endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = TRUE;
 #endif
         break;
     case 7:
@@ -2758,6 +2776,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
 #endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = TRUE;
+#endif
         break;
     case 8:
         gm_ctrls->enabled                      = 1;
@@ -2777,6 +2798,9 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
 #endif
 #if OPT_GM_WD
         gm_ctrls->match_sz = 7;
+#endif
+#if OPT_NO_GLB_INJ
+        gm_ctrls->inj_psq_glb = TRUE;
 #endif
         break;
     default: assert(0); break;
@@ -3125,7 +3149,7 @@ void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     // set compound_types_to_try
     set_inter_comp_controls(ctx, ctx->inter_compound_mode);
 #if OPT_NO_GLB_INJ
-    if (ctx->nsq_ctrls.enabled && ctx->nsq_ctrls.inj_psq_glb && ctx->blk_geom->shape != PART_N)
+    if (ctx->nsq_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb && ctx->blk_geom->shape != PART_N)
         if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds])
             if (ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBAL_GLOBALMV &&
                 ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBALMV)
@@ -6338,9 +6362,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6368,9 +6389,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6400,9 +6418,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6430,9 +6445,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6462,9 +6474,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6492,9 +6501,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6524,9 +6530,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6554,9 +6557,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6586,9 +6586,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6616,9 +6613,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6650,9 +6644,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6686,9 +6677,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6720,9 +6708,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6759,9 +6744,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6799,9 +6781,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6837,9 +6816,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6871,9 +6847,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6902,9 +6875,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6935,9 +6905,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -6966,9 +6933,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -6999,9 +6963,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
 #endif
@@ -7030,9 +6991,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 0;
@@ -7065,9 +7023,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th      = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb               = 1;
-#endif
         break;
 
 #if TUNE_M3
@@ -7096,9 +7051,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th      = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb               = 1;
 #endif
         break;
 
@@ -7129,9 +7081,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th      = 0;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb               = 1;
-#endif
 #endif
         break;
 #if OPT_NSQ_M6
@@ -7153,9 +7102,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
@@ -7181,9 +7127,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
 #endif
@@ -7207,9 +7150,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
@@ -7235,9 +7175,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
 #endif
@@ -7262,9 +7199,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
 #endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
-#endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
 #endif
@@ -7288,9 +7222,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 60;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 1;
 #endif
 #if OPT_TRANSFORM_H_V
         nsq_ctrls->sq_txs_th = 250;
@@ -7318,9 +7249,6 @@ static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
 #endif
 #if OPT_HV4_RATE
         nsq_ctrls->non_HV_split_rate_th = 0;
-#endif
-#if OPT_NO_GLB_INJ
-        nsq_ctrls->inj_psq_glb = 0;
 #endif
 #if OPT_SKIP_USELESS_SQ_PREP
         nsq_ctrls->sq_txs_th = 0;

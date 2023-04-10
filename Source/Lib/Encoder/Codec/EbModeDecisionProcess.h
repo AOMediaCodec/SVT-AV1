@@ -602,10 +602,6 @@ typedef struct NsqCtrls {
     // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
     uint32_t non_HV_split_rate_th;
 #endif
-#if OPT_NO_GLB_INJ
-    //Inject global only if Parent SQ is global
-    bool inj_psq_glb;
-#endif
 #if OPT_TRANSFORM_H_V
     // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
     uint32_t sq_txs_th;

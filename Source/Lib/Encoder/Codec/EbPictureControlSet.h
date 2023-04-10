@@ -638,6 +638,10 @@ typedef struct GmControls {
     //change the window size for correlation calculations. must be odd. N: NxN window size goes from 1 to 15
     uint8_t match_sz;
 #endif
+#if OPT_NO_GLB_INJ
+    //Inject global only if Parent SQ is global
+    bool inj_psq_glb;
+#endif
 } GmControls;
 typedef struct CdefControls {
     uint8_t enabled;
