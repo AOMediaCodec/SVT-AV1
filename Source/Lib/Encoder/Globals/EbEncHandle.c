@@ -3716,16 +3716,16 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count    = 3;
         mrp_ctrl->non_base_ref_list1_count    = 2;
 #if OPT_LIMIT_NREF
-        mrp_ctrl->safe_limit_nref             = 0;
+        mrp_ctrl->safe_limit_nref             = 1;
 #endif
 #if OPT_ONLY_L_BWD
-        mrp_ctrl->only_l_bwd                  = 0;
+        mrp_ctrl->only_l_bwd                  = 1;
 #endif
 #if OPT_PME_REF0_ONLY
-        mrp_ctrl->pme_ref0_only               = 0;
+        mrp_ctrl->pme_ref0_only               = 1;
 #endif
 #if OPT_MRP
-        mrp_ctrl->use_best_references         = 0;
+        mrp_ctrl->use_best_references         = 1;
 #endif
         break;
 #if OPT_LD_MRP2
@@ -3772,16 +3772,16 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count = 2;
         mrp_ctrl->non_base_ref_list1_count = 2;
 #if OPT_LIMIT_NREF
-        mrp_ctrl->safe_limit_nref             = 0;
+        mrp_ctrl->safe_limit_nref             = 1;
 #endif
 #if OPT_ONLY_L_BWD
-        mrp_ctrl->only_l_bwd                  = 0;
+        mrp_ctrl->only_l_bwd                  = 1;
 #endif
 #if OPT_PME_REF0_ONLY
-        mrp_ctrl->pme_ref0_only               = 0;
+        mrp_ctrl->pme_ref0_only               = 1;
 #endif
 #if OPT_MRP
-        mrp_ctrl->use_best_references         = 0;
+        mrp_ctrl->use_best_references         = 1;
 #endif
         break;
 #if OPT_LD_MRP5
@@ -3819,16 +3819,16 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->non_base_ref_list0_count = 1;
         mrp_ctrl->non_base_ref_list1_count = 1;
 #if OPT_LIMIT_NREF
-        mrp_ctrl->safe_limit_nref             = 0;
+        mrp_ctrl->safe_limit_nref             = 1;
 #endif
 #if OPT_ONLY_L_BWD
-        mrp_ctrl->only_l_bwd                  = 0;
+        mrp_ctrl->only_l_bwd                  = 1;
 #endif
 #if OPT_PME_REF0_ONLY
-        mrp_ctrl->pme_ref0_only               = 0;
+        mrp_ctrl->pme_ref0_only               = 1;
 #endif
 #if OPT_MRP
-        mrp_ctrl->use_best_references         = 0;
+        mrp_ctrl->use_best_references         = 1;
 #endif
         break;
 #else

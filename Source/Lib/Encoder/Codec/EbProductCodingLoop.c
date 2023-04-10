@@ -1269,7 +1269,7 @@ MotionMode obmc_motion_mode_allowed(const PictureControlSet* pcs, struct ModeDec
     const BlockSize bsize, uint8_t situation, MvReferenceFrame rf0,
     MvReferenceFrame rf1, PredictionMode mode);
 
-void static obmc_trans_face_off(ModeDecisionCandidateBuffer* cand_bf, PictureControlSet* pcs,
+static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
     ModeDecisionContext* ctx, EbPictureBufferDesc* input_pic, BlockLocation* loc) {
 
     const uint32_t input_origin_index = loc->input_origin_index;
@@ -10211,7 +10211,7 @@ void tx_shortcut_detector(PictureControlSet *pcs, ModeDecisionContext *ctx,
 }
 
 #if OPT_TRANSFORM_H_V
-void static non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, BlkStruct *blk_ptr,
+static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                        ModeDecisionCandidateBuffer *cand_bf) {
     // That's a non-conformant tx-partitioning
     ctx->md_local_blk_unit[blk_ptr->mds_idx].cnt_non_zero_h[0] = (uint32_t)~0;
