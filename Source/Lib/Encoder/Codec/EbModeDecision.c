@@ -451,9 +451,9 @@ static void inter_intra_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // To test: Enable wedge search if source variance and edge strength are above the thresholds.
     //CHKN need to re-do intra pred using the winner, or have a separate intra serch for wedge
     int64_t       best_interintra_rd_wedge = INT64_MAX;
-    const uint8_t ii_wedge_mode               = ctx->blk_geom->shape == PART_N
-                      ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
-                      : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
+    const uint8_t ii_wedge_mode            = ctx->blk_geom->shape == PART_N
+                   ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
+                   : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
     if (ii_wedge_mode) {
         best_interintra_rd_wedge = pick_interintra_wedge(
             pcs,
@@ -1000,11 +1000,12 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                         uint8_t is_ii_allowed = svt_is_interintra_allowed(
                             ctx->inter_intra_comp_ctrls.enabled, ctx->blk_geom->bsize, NEWMV, rf);
 #if OPT_II
-                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
-                            ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
-                            : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
-                                                                 : 1;
+                        const uint8_t ii_wedge_mode   = ctx->blk_geom->shape == PART_N
+                              ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
+                              : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
+                        uint8_t       tot_inter_types = is_ii_allowed
+                                  ? (ii_wedge_mode == 1 ? II_COUNT : 2)
+                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -1143,9 +1144,9 @@ void unipred_3x3_candidates_injection(const SequenceControlSet *scs, PictureCont
                                 NEWMV,
                                 rf);
 #if OPT_II
-                            const uint8_t ii_wedge_mode      = ctx->blk_geom->shape == PART_N
-                                     ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
-                                     : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
+                            const uint8_t ii_wedge_mode   = ctx->blk_geom->shape == PART_N
+                                  ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
+                                  : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
                             uint8_t       tot_inter_types = is_ii_allowed
                                       ? (ii_wedge_mode == 1 ? II_COUNT : 2)
                                       : 1;
@@ -1836,7 +1837,7 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                 const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                     ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                     : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
+                uint8_t tot_inter_types = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                 uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -1963,14 +1964,15 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                     const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                         ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                         : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                    uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
+                    uint8_t tot_inter_types = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
+                                                            : 1;
 #else
                     uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
                     uint8_t is_obmc_allowed =
 #if OPT_OBMC_TRANS_FACE_OFF
-                        svt_aom_obmc_motion_mode_allowed(pcs, ctx, bsize, 0, rf[0], rf[1], NEARMV) ==
-                        OBMC_CAUSAL;
+                        svt_aom_obmc_motion_mode_allowed(
+                            pcs, ctx, bsize, 0, rf[0], rf[1], NEARMV) == OBMC_CAUSAL;
 #else
                         obmc_motion_mode_allowed(pcs, ctx, bsize, rf[0], rf[1], NEARMV) ==
                         OBMC_CAUSAL;
@@ -2602,9 +2604,10 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
 
 // Refine the WM MV (8 bit search).  Return true if search found a valid MV; false otherwise
 #if OPT_WARP_REFINEMENT_MDS1
-uint8_t svt_aom_wm_motion_refinement(PictureControlSet* pcs, ModeDecisionContext* ctx,
-    ModeDecisionCandidateBuffer* cand_bf, ModeDecisionCandidate* cand,
-    uint8_t list_idx, int shut_approx) {
+uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                     ModeDecisionCandidateBuffer *cand_bf,
+                                     ModeDecisionCandidate *cand, uint8_t list_idx,
+                                     int shut_approx) {
 #else
 static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                     ModeDecisionCandidate *candidate, uint8_t list_idx) {
@@ -2675,10 +2678,10 @@ static uint8_t wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext 
                 continue;
 #endif
             MvUnit mv_unit;
-            mv_unit.mv[list_idx]           = test_mv;
-            mv_unit.pred_direction         = list_idx;
+            mv_unit.mv[list_idx]      = test_mv;
+            mv_unit.pred_direction    = list_idx;
             cand->mv[list_idx].as_int = test_mv.as_int;
-            uint8_t local_warp_valid       = svt_aom_warped_motion_parameters(
+            uint8_t local_warp_valid  = svt_aom_warped_motion_parameters(
                 pcs,
                 ctx->blk_ptr,
                 &mv_unit,
@@ -2965,8 +2968,8 @@ static void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ct
 // Refine the OBMC MV (8 bit search). Return true if search found a valid MV; false otherwise
 #if OPT_OBMC_REFINEMENT_MDS1
 uint8_t svt_aom_obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                               ModeDecisionCandidate *cand, uint8_t ref_list_idx,
-                               int refine_level) {
+                                       ModeDecisionCandidate *cand, uint8_t ref_list_idx,
+                                       int refine_level) {
 #else
 static uint8_t obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                       ModeDecisionCandidate *candidate, uint8_t ref_list_idx) {
@@ -3479,7 +3482,8 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                     const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                         ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                         : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                    uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
+                    uint8_t tot_inter_types = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
+                                                            : 1;
 #else
                     uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -3547,11 +3551,11 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                 motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                      (ctx->wm_ctrls.refine_level == 0))
                                     ? svt_aom_wm_motion_refinement(pcs,
-                                                           ctx,
-                                                           ctx->cand_bf_ptr_array[0],
-                                                           &cand_array[cand_total_cnt],
-                                                           REF_LIST_0,
-                                                           0)
+                                                                   ctx,
+                                                                   ctx->cand_bf_ptr_array[0],
+                                                                   &cand_array[cand_total_cnt],
+                                                                   REF_LIST_0,
+                                                                   0)
 #else
                                 motion_mode_valid = ctx->wm_ctrls.refinement_iterations
                                     ? wm_motion_refinement(
@@ -3669,11 +3673,12 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                             NEWMV,
                             (const MvReferenceFrame[]){to_inject_ref_type, -1});
 #if OPT_II
-                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
-                            ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
-                            : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
-                                                                 : 1;
+                        const uint8_t ii_wedge_mode   = ctx->blk_geom->shape == PART_N
+                              ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
+                              : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
+                        uint8_t       tot_inter_types = is_ii_allowed
+                                  ? (ii_wedge_mode == 1 ? II_COUNT : 2)
+                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -3741,11 +3746,11 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                     motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                          (ctx->wm_ctrls.refine_level == 0))
                                         ? svt_aom_wm_motion_refinement(pcs,
-                                                               ctx,
-                                                               ctx->cand_bf_ptr_array[0],
-                                                               &cand_array[cand_total_cnt],
-                                                               REF_LIST_1,
-                                                               0)
+                                                                       ctx,
+                                                                       ctx->cand_bf_ptr_array[0],
+                                                                       &cand_array[cand_total_cnt],
+                                                                       REF_LIST_1,
+                                                                       0)
 #else
                                     motion_mode_valid = ctx->wm_ctrls.refinement_iterations
                                         ? wm_motion_refinement(
@@ -3785,11 +3790,12 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                                     cand_array[cand_total_cnt].motion_mode        = OBMC_CAUSAL;
 #if OPT_OBMC_REFINEMENT_MDS1
                                     motion_mode_valid = ctx->obmc_ctrls.refine_level == 0
-                                        ? svt_aom_obmc_motion_refinement(pcs,
-                                                                         ctx,
-                                                                         &cand_array[cand_total_cnt],
-                                                                         REF_LIST_1,
-                                                                         ctx->obmc_ctrls.refine_level)
+                                        ? svt_aom_obmc_motion_refinement(
+                                              pcs,
+                                              ctx,
+                                              &cand_array[cand_total_cnt],
+                                              REF_LIST_1,
+                                              ctx->obmc_ctrls.refine_level)
                                         : 1;
 #else
                                     motion_mode_valid = obmc_motion_refinement(
@@ -4003,7 +4009,7 @@ static void inject_global_candidates(const SequenceControlSet *scs, struct ModeD
                 const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
                     ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
                     : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
+                uint8_t tot_inter_types = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2) : 1;
 #else
                 uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -4225,11 +4231,12 @@ static void inject_pme_candidates(
                         uint8_t is_ii_allowed = svt_is_interintra_allowed(
                             ctx->inter_intra_comp_ctrls.enabled, bsize, NEWMV, rf);
 #if OPT_II
-                        const uint8_t ii_wedge_mode = ctx->blk_geom->shape == PART_N
-                            ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
-                            : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
-                        uint8_t tot_inter_types  = is_ii_allowed ? (ii_wedge_mode == 1 ? II_COUNT : 2)
-                                                                 : 1;
+                        const uint8_t ii_wedge_mode   = ctx->blk_geom->shape == PART_N
+                              ? ctx->inter_intra_comp_ctrls.wedge_mode_sq
+                              : ctx->inter_intra_comp_ctrls.wedge_mode_nsq;
+                        uint8_t       tot_inter_types = is_ii_allowed
+                                  ? (ii_wedge_mode == 1 ? II_COUNT : 2)
+                                  : 1;
 #else
                         uint8_t tot_inter_types = is_ii_allowed ? II_COUNT : 1;
 #endif
@@ -4296,11 +4303,11 @@ static void inject_pme_candidates(
                                     motion_mode_valid = (ctx->wm_ctrls.refinement_iterations &&
                                                          (ctx->wm_ctrls.refine_level == 0))
                                         ? svt_aom_wm_motion_refinement(pcs,
-                                                               ctx,
-                                                               ctx->cand_bf_ptr_array[0],
-                                                               &cand_array[cand_total_cnt],
-                                                               list_idx,
-                                                               0)
+                                                                       ctx,
+                                                                       ctx->cand_bf_ptr_array[0],
+                                                                       &cand_array[cand_total_cnt],
+                                                                       list_idx,
+                                                                       0)
 #else
                                     motion_mode_valid = ctx->wm_ctrls.refinement_iterations
                                         ? wm_motion_refinement(
@@ -4339,11 +4346,12 @@ static void inject_pme_candidates(
                                     cand_array[cand_total_cnt].motion_mode        = OBMC_CAUSAL;
 #if OPT_OBMC_REFINEMENT_MDS1
                                     motion_mode_valid = ctx->obmc_ctrls.refine_level == 0
-                                        ? svt_aom_obmc_motion_refinement(pcs,
-                                                                         ctx,
-                                                                         &cand_array[cand_total_cnt],
-                                                                         list_idx,
-                                                                         ctx->obmc_ctrls.refine_level)
+                                        ? svt_aom_obmc_motion_refinement(
+                                              pcs,
+                                              ctx,
+                                              &cand_array[cand_total_cnt],
+                                              list_idx,
+                                              ctx->obmc_ctrls.refine_level)
                                         : 1;
 #else
                                     motion_mode_valid = obmc_motion_refinement(

@@ -2469,20 +2469,19 @@ uint64_t svt_aom_d1_non_square_block_decision(ModeDecisionContext *ctx, uint32_t
     for (blk_it = 0; blk_it < ctx->blk_geom->totns; blk_it++) {
         tot_cost += ctx->md_local_blk_unit[first_blk_idx + blk_it].cost;
     }
-    uint64_t split_cost = svt_aom_partition_rate_cost(
-        ctx->sb_ptr->pcs->ppcs,
-        ctx,
+    uint64_t split_cost = svt_aom_partition_rate_cost(ctx->sb_ptr->pcs->ppcs,
+                                                      ctx,
 #if OPT_DEPTH_EARLY_EXIT_RATE
-        ctx->blk_geom->sqi_mds,
+                                                      ctx->blk_geom->sqi_mds,
 #else
-        &ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds],
+                                                      &ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds],
 #endif
-        from_shape_to_part[ctx->blk_geom->shape],
-        full_lambda,
+                                                      from_shape_to_part[ctx->blk_geom->shape],
+                                                      full_lambda,
 #if CLN_PART_CTX
-        ctx->sb_ptr->pcs->ppcs->use_accurate_part_ctx,
+                                                      ctx->sb_ptr->pcs->ppcs->use_accurate_part_ctx,
 #endif
-        ctx->md_rate_est_ctx);
+                                                      ctx->md_rate_est_ctx);
 
     tot_cost += split_cost;
     if ((d1_block_itr == 0) || (tot_cost < ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].cost)) {

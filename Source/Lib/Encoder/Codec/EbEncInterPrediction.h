@@ -111,8 +111,8 @@ EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t 
 
 #if OPT_OBMC_TRANS_FACE_OFF
 EbErrorType svt_aom_inter_pu_prediction_av1_obmc(uint8_t hbd_md, struct ModeDecisionContext *ctx,
-                                         PictureControlSet *          pcs,
-                                         ModeDecisionCandidateBuffer *cand_bf);
+                                                 PictureControlSet           *pcs,
+                                                 ModeDecisionCandidateBuffer *cand_bf);
 #endif
 
 #ifdef __cplusplus

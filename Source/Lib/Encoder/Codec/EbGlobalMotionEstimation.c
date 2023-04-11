@@ -238,12 +238,12 @@ void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_fa
     // version of the source picture
     if (scale_factor > 1) {
         wm_params->wmmat[0] = (int32_t)clamp(wm_params->wmmat[0] * scale_factor,
-                                           GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
-                                           GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
+                                             GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
+                                             GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
 
         wm_params->wmmat[1] = (int32_t)clamp(wm_params->wmmat[1] * scale_factor,
-                                           GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
-                                           GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
+                                             GM_TRANS_MIN * GM_TRANS_DECODE_FACTOR,
+                                             GM_TRANS_MAX * GM_TRANS_DECODE_FACTOR);
     }
 }
 #if OPT_GM_CHESS_REFN
@@ -253,7 +253,7 @@ void compute_global_motion(PictureParentControlSet *pcs,
                            EbPictureBufferDesc     *input_pic, //src frame for refinement
                            EbPictureBufferDesc     *ref_pic, //ref frame for refinement
                            uint8_t sf, //downsacle factor between det and refinement
-                           uint8_t chess_refn, EbWarpedMotionParams * best_wm,
+                           uint8_t chess_refn, EbWarpedMotionParams *best_wm,
                            int allow_high_precision_mv) {
 #else
 void compute_global_motion(PictureParentControlSet *pcs,

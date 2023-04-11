@@ -85,7 +85,6 @@ void svt_aom_assert_err(uint32_t condition, char *err_msg);
 #define INVALID_LUMA 256
 #endif
 
-
 typedef struct SharpnessCtrls {
     uint8_t scene_transition;
     uint8_t tf;

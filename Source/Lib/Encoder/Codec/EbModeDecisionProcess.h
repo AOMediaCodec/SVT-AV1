@@ -651,15 +651,15 @@ typedef struct WmCtrls {
 #endif
 #if OPT_USE_NSAMPLES
     // Specifies minimum neighbour percentage for WM
-    uint8_t  min_neighbour_perc;
+    uint8_t min_neighbour_perc;
     // Specifies corner bias for WM
-    uint8_t  corner_perc_bias;
+    uint8_t corner_perc_bias;
     // Skip if alpha/ beta / gamma / delta is lower than threshold value
     uint16_t lower_band_th;
     // Skip if alpha/ beta / gamma / delta is higher than threshold value
     uint16_t upper_band_th;
     // Shut the approximation(s) if refinement @ mds1 or mds3
-    Bool     shut_approx_if_not_mds0;
+    Bool shut_approx_if_not_mds0;
 #endif
 } WmCtrls;
 typedef struct UvCtrls {

@@ -1954,9 +1954,9 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
             dlf_level = is_ref ? 4 : 0;
         else
             dlf_level = (is_16bit && is_ref) ? 4 : 0;
-        } else {
+    } else {
         dlf_level = is_ref ? 4 : 0;
-        }
+    }
 #endif
     return dlf_level;
 }
@@ -2009,7 +2009,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
 #if OPT_DLF
     case 3:
 #else
-        case 2:
+    case 2:
 #endif
         ctrls->enabled          = 1;
         ctrls->sb_based_dlf     = 1;
@@ -2028,7 +2028,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
 #if OPT_DLF
     case 4:
 #else
-        case 3:
+    case 3:
 #endif
         ctrls->enabled          = 1;
         ctrls->sb_based_dlf     = 1;
@@ -2046,7 +2046,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
 #if OPT_DLF
     case 5:
 #else
-        case 4:
+    case 4:
 #endif
         ctrls->enabled          = 1;
         ctrls->sb_based_dlf     = 1;
@@ -2991,11 +2991,11 @@ void svt_aom_first_pass_sig_deriv_mode_decision_config(PictureControlSet *pcs) {
         pcs->ppcs->pic_obmc_level;
 
     // HBD Mode
-    pcs->hbd_md                      = EB_8_BIT_MD; //first pass hard coded to 8bit
+    pcs->hbd_md = EB_8_BIT_MD; //first pass hard coded to 8bit
 #if CLN_PART_CTX
     pcs->ppcs->use_accurate_part_ctx = TRUE;
 #else
-    pcs->ppcs->partition_contexts    = PARTITION_CONTEXTS;
+    pcs->ppcs->partition_contexts           = PARTITION_CONTEXTS;
 #endif
     pcs->ppcs->bypass_cost_table_gen = 0;
     pcs->approx_inter_rate           = 0;
@@ -3151,7 +3151,8 @@ void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     // set compound_types_to_try
     set_inter_comp_controls(ctx, ctx->inter_compound_mode);
 #if OPT_NO_GLB_INJ
-    if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb && ctx->blk_geom->shape != PART_N)
+    if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb &&
+        ctx->blk_geom->shape != PART_N)
         if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds])
             if (ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBAL_GLOBALMV &&
                 ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBALMV)
@@ -3610,7 +3611,7 @@ static void set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
     }
 }
 #else
-static void set_obmc_controls(ModeDecisionContext * ctx, uint8_t obmc_mode) {
+static void set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
     ObmcControls *obmc_ctrls = &ctx->obmc_ctrls;
     switch (obmc_mode) {
     case 0: obmc_ctrls->enabled = 0; break;
@@ -6316,7 +6317,7 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 #if OPT_NSQ_CTRL
 #if OPT_4X8_8X4_GEOM
 void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
-                   uint8_t *allow_HV4, uint8_t *min_nsq_bsize) {
+                           uint8_t *allow_HV4, uint8_t *min_nsq_bsize) {
 #else
 void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
                    uint8_t *allow_HV4) {
@@ -6324,7 +6325,7 @@ void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_H
     NsqCtrls  nsq_ctrls_struct;
     NsqCtrls *nsq_ctrls = &nsq_ctrls_struct;
 #else
-static void set_nsq_ctrls(ModeDecisionContext * ctx, uint8_t nsq_level) {
+static void set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level) {
     NsqCtrls *nsq_ctrls = &ctx->nsq_ctrls;
 #endif
     switch (nsq_level) {
@@ -7376,7 +7377,7 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
     }
 }
 #else
-void svt_aom_set_depth_ctrls(ModeDecisionContext * ctx, uint8_t depth_level) {
+void svt_aom_set_depth_ctrls(ModeDecisionContext *ctx, uint8_t depth_level) {
     DepthCtrls *depth_ctrls = &ctx->depth_ctrls;
 
     switch (depth_level) {
@@ -9076,13 +9077,13 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         : false;
 #endif
 #if OPT_LD_SC_RDOQ
-    const uint8_t sc_class1        = ppcs->sc_class1;
+    const uint8_t sc_class1 = ppcs->sc_class1;
 #if ENABLE_PRESET_MR
-    const EncMode enc_mode         = pcs->enc_mode;
+    const EncMode enc_mode = pcs->enc_mode;
 #else
-    const uint8_t enc_mode         = pcs->enc_mode;
+    const uint8_t enc_mode = pcs->enc_mode;
 #endif
-    const Bool    disable_rdoq_rtc = enc_mode <= ENC_M12 ? 0 : rtc_tune && sc_class1 ? 1 : 0;
+    const Bool disable_rdoq_rtc = enc_mode <= ENC_M12 ? 0 : rtc_tune && sc_class1 ? 1 : 0;
 #endif
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
@@ -10728,15 +10729,15 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         else if (enc_mode <= ENC_M13)
 #else
 #if TUNE_M8_M10
-        else if (enc_mode <= ENC_M10)
+    else if (enc_mode <= ENC_M10)
 #else
 #if TUNE_M7
-        else if (enc_mode <= ENC_M7)
+    else if (enc_mode <= ENC_M7)
 #else
 #if TUNE_M6
-        else if (enc_mode <= ENC_M6)
+    else if (enc_mode <= ENC_M6)
 #else
-        else if (enc_mode <= ENC_M5)
+    else if (enc_mode <= ENC_M5)
 #endif
 #endif
 #endif
@@ -10744,7 +10745,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->tx_shortcut_level = is_base ? 0 : 1;
 #if !TUNE_M8_M10
         else if (enc_mode <= ENC_M10)
-        pcs->tx_shortcut_level = is_islice ? 0 : 1;
+            pcs->tx_shortcut_level = is_islice ? 0 : 1;
 #endif
         else
             pcs->tx_shortcut_level = is_islice ? 0 : 4;

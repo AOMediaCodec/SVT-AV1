@@ -98,7 +98,7 @@ double svt_av1_compute_cross_correlation_avx2(unsigned char *im1, int stride1, i
     int cov  = cross_acc * match_sz_sq - sum1_acc * sum2_acc;
 #else
     int var2 = sumsq2_acc * MATCH_SZ_SQ - sum2_acc * sum2_acc;
-    int cov  = cross_acc * MATCH_SZ_SQ - sum1_acc * sum2_acc;
+    int cov = cross_acc * MATCH_SZ_SQ - sum1_acc * sum2_acc;
 #endif
     aom_clear_system_state();
     if (cov < 0) {

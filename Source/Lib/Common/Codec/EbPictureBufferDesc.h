@@ -222,7 +222,7 @@ typedef struct EbPictureBufferDescInitData {
 #if ENABLE_PRESET_MR
     EncMode enc_mode;
 #else
-    int8_t  enc_mode;
+    int8_t enc_mode;
 #endif
     int32_t sb_total_count;
 } EbPictureBufferDescInitData;
