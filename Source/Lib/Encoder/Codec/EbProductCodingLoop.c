@@ -1266,8 +1266,6 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
     const uint32_t cu_origin_index = loc->blk_origin_index;
     const uint32_t cu_chroma_origin_index = loc->blk_chroma_origin_index;
 
-    uint32_t luma_fast_dist;
-    uint32_t chroma_fast_distortion = 0;
     uint32_t full_lambda = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD]
         : ctx->full_lambda_md[EB_8_BIT_MD];
     uint32_t fast_lambda = ctx->hbd_md ? ctx->fast_lambda_md[EB_10_BIT_MD]
@@ -1291,6 +1289,10 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
         if (is_inter_mode(cand_bf->cand->pred_mode) && is_obmc_allowed &&
             cand->motion_mode == SIMPLE_TRANSLATION &&
             (is_ii_allowed == 0 || cand->interintra_mode == 0)) {
+
+            uint32_t luma_fast_dist;
+            uint32_t chroma_fast_distortion = 0;
+
             // Take a copy of the simple-translation results
             uint64_t simple_translation_cost = *(cand_bf->fast_cost);
             uint64_t simple_translation_fast_luma_rate = cand_bf->fast_luma_rate;
