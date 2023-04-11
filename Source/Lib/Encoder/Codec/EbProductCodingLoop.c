@@ -9172,7 +9172,7 @@ static void md_encode_block_light_pd0(PictureControlSet *pcs, ModeDecisionContex
 
     if (ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0) {
 #if OPT_USE_PART_RATE_VLPD0
-        uint32_t rate = ctx->md_rate_est_ctx->partition_fac_bits[0][PARTITION_NONE];
+        uint32_t rate = !pcs->rtc_tune ? ctx->md_rate_est_ctx->partition_fac_bits[0][PARTITION_NONE] : 0;
 #else
         uint32_t rate = 0;
 #endif

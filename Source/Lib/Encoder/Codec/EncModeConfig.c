@@ -825,7 +825,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     }
 #endif
 #if TUNE_M11_M12_M13
-    else if (enc_mode <= ENC_M13)
+    else if (enc_mode <= ENC_M12 || (!rtc_tune && enc_mode <= ENC_M13))
 #else
     else if (enc_mode <= ENC_M10)
 #endif
@@ -10948,7 +10948,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     // Set the level for inter-intra level
     if (!is_islice && scs->seq_header.enable_interintra_compound) {
 #if TUNE_M0_M1
+#if TUNE_NEW_M0_MR
+        if (enc_mode <= ENC_MR)
+#else
         if (enc_mode <= ENC_M0)
+#endif
 #else
         if (enc_mode <= ENC_MR)
 #endif
