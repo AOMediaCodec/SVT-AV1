@@ -1236,6 +1236,9 @@ typedef struct ModeDecisionContext {
     // Signal to skip INTER TX in LPD1; should only be used by M13 as this causes blocking
     // artifacts. 0: OFF, 1: Skip INTER TX if neighs have 0 coeffs, 2: skip all INTER TX
     uint8_t lpd1_skip_inter_tx_level;
+#if OPT_LD_SKIPTX
+    uint8_t lpd1_bypass_tx_shift_th;
+#endif
     // chroma components to compensate at MDS3 of LPD1
     COMPONENT_TYPE lpd1_chroma_comp;
     uint8_t        corrupted_mv_check;
