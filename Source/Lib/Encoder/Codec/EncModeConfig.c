@@ -3145,11 +3145,13 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
 
 void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     ctx->spatial_sse_full_loop_level = ctx->spatial_sse_ctrls.spatial_sse_full_loop_level;
+#if !OPT_NO_GLB_INJ
     UNUSED(pcs);
+#endif
     // set compound_types_to_try
     set_inter_comp_controls(ctx, ctx->inter_compound_mode);
 #if OPT_NO_GLB_INJ
-    if (ctx->nsq_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb && ctx->blk_geom->shape != PART_N)
+    if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb && ctx->blk_geom->shape != PART_N)
         if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds])
             if (ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBAL_GLOBALMV &&
                 ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].pred_mode != GLOBALMV)

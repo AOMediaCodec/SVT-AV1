@@ -93,7 +93,7 @@ int32_t svt_av1_mv_bit_cost(const MV *mv, const MV *ref, const int32_t *mvjcost,
 #endif
 
 #if OPT_MRP
-void determine_best_references(PictureControlSet *pcs, ModeDecisionContext *ctx,
+static void determine_best_references(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                MvReferenceFrame *ref_arr, uint8_t *tot_ref) {
     const MeSbResults *sb_results   = pcs->ppcs->pa_me_data->me_results[ctx->me_sb_addr];
     const uint8_t      total_me_cnt = sb_results->total_me_candidate_index[ctx->me_block_offset];
