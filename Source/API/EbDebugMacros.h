@@ -196,7 +196,7 @@ extern "C" {
 #define OPT_4X8_8X4_GEOM                           1  // Add a geom for SQ (but no 4x4) + H + V (but no 8x4 and no 4x8)
 #define OPT_SKIP_USELESS_SQ_PREP                   1  // Bypass sq-txs for 8x8
 
-#define OPT_PME_REF0_ONLY     1
+#define OPT_PME_REF0_ONLY     1 //Allow limiting PME to ref index 0 only
 #define CLN_MRP           1 // MRP infrastructure change
 #define OPT_MRP           1 // determine the best references to forward
 #define OPT_ONLY_L_BWD        1 //Last, BWD, Last-BWD candidates only
