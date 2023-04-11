@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "EbDebugMacros.h"
+#include "EbDefinitions.h"
 
 #if OPT_GM_WD
 #else
@@ -37,5 +38,7 @@ int svt_av1_determine_correspondence(unsigned char *frm, int *frm_corners, int n
 #else
                                      int *correspondence_pts);
 #endif
+
+DECLARE_ALIGNED(16, extern const uint8_t, svt_aom_compute_cross_byte_mask[8][16]);
 
 #endif // AOM_AV1_ENCODER_CORNER_MATCH_H_

@@ -14,7 +14,7 @@
 #include "EbDefinitions.h"
 
 #if OPT_GM_WD
-DECLARE_ALIGNED(16, static const uint8_t, byte_mask[8][16]) = {
+DECLARE_ALIGNED(16, const uint8_t, svt_aom_compute_cross_byte_mask[8][16]) = {
     {255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //1x1
     {255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //3x3
     {255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //5x5
@@ -56,7 +56,7 @@ double svt_av1_compute_cross_correlation_sse4_1(unsigned char *im1, int stride1,
     const uint8_t match_sz_sq  = (match_sz * match_sz);
 
     int           mask_idx = match_sz / 2;
-    const __m128i mask     = _mm_loadu_si128((__m128i *)byte_mask[mask_idx]);
+    const __m128i mask     = _mm_loadu_si128((__m128i *)svt_aom_compute_cross_byte_mask[mask_idx]);
 #else
     const __m128i mask = _mm_loadu_si128((__m128i *)byte_mask);
 #endif
