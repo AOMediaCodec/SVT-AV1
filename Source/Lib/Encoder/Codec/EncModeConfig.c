@@ -9385,9 +9385,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
 #endif
 #if OPT_LD_SKIPTX
     // 0: Feature off
-    // 1: Very agressive(Fastest)
-    // 2: Agressive (Fast)
-    // 3: Conservative (Meduim)
+    // Lower the threshold, the more aggressive the feature is
     ctx->lpd1_bypass_tx_shift_th = 0;
     if (pcs->rtc_tune && !pcs->ppcs->sc_class1) {
         ctx->lpd1_bypass_tx_shift_th = enc_mode <= ENC_M8 ? 0 : enc_mode <= ENC_M10 ? 8 : 6;
