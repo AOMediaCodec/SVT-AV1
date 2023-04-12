@@ -7212,7 +7212,8 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
                 &cr_coeff_bits,
                 ctx->blk_geom->bsize);
 
-            uint32_t th = (ctx->qp_index * ctx->blk_geom->bheight * ctx->blk_geom->bwidth) / ctx->lpd1_bypass_tx_shift_th;
+            uint32_t th = (ctx->qp_index * ctx->blk_geom->bheight * ctx->blk_geom->bwidth) /
+                ctx->lpd1_bypass_tx_shift_th;
             if (*(cand_bf->full_cost) < th)
                 perform_tx = 0;
         }
