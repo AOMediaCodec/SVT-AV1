@@ -934,6 +934,10 @@ typedef struct EbSvtAv1EncConfiguration {
      * resize_denoms:    array of scaling denominators of non-key-frame
      */
     SvtAv1FrameScaleEvts frame_scale_evts;
+
+    //Add 16 Byte Padding to Struct
+    uint8_t padding[16];
+
 } EbSvtAv1EncConfiguration;
 
 /**
