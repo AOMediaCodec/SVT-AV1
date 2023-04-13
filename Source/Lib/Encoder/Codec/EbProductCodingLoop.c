@@ -7170,7 +7170,7 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
 
     if (!perform_tx)
         return 0;
-    if (ctx->lpd1_bypass_tx_shift_th) {
+    if (ctx->lpd1_bypass_tx_th_div) {
         if (is_inter_mode(cand->pred_mode)) {
             uint64_t y_full_distortion[DIST_CALC_TOTAL];
             uint64_t cb_full_distortion[DIST_CALC_TOTAL];
@@ -7213,7 +7213,7 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
                 ctx->blk_geom->bsize);
 
             uint32_t th = (ctx->qp_index * ctx->blk_geom->bheight * ctx->blk_geom->bwidth) /
-                ctx->lpd1_bypass_tx_shift_th;
+                ctx->lpd1_bypass_tx_th_div;
             if (*(cand_bf->full_cost) < th)
                 perform_tx = 0;
         }

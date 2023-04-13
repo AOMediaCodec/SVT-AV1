@@ -1237,7 +1237,9 @@ typedef struct ModeDecisionContext {
     // artifacts. 0: OFF, 1: Skip INTER TX if neighs have 0 coeffs, 2: skip all INTER TX
     uint8_t lpd1_skip_inter_tx_level;
 #if OPT_LD_SKIPTX
-    uint8_t lpd1_bypass_tx_shift_th;
+    // Specifies the threshold divisor to bypass transform in LPD1. 0: OFF (no bypassing)
+    // The lower the number, the more aggressive the feature is
+    uint8_t lpd1_bypass_tx_th_div;
 #endif
     // chroma components to compensate at MDS3 of LPD1
     COMPONENT_TYPE lpd1_chroma_comp;
