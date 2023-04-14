@@ -935,8 +935,8 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     SvtAv1FrameScaleEvts frame_scale_evts;
 
-    /*Add 16 Byte Padding to Struct to avoid changing the size of the public configuration struct*/
-    uint8_t padding[16];
+    /*Add 64 Byte Padding to Struct to avoid changing the size of the public configuration struct*/
+    uint8_t padding[64];
 
 } EbSvtAv1EncConfiguration;
 
