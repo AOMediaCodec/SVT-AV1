@@ -19,9 +19,6 @@ extern "C" {
 #include <stdint.h>
 #include "EbSvtAv1Formats.h"
 #include "EbDebugMacros.h"
-#if FTR_ROI
-#include <stdio.h>
-#endif
 
 struct SvtMetadataArray;
 
