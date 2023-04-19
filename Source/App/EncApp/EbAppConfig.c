@@ -945,6 +945,12 @@ ConfigEntry config_entry_rc[] = {
      MAX_QM_LEVEL_TOKEN,
      "Max quant matrix flatness, default is 15 [0-15]",
      set_cfg_generic_token},
+#if FTR_ROI
+    {SINGLE_INPUT,
+     ROI_MAP_FILE_TOKEN,
+     "Enable Region Of Interest and specify a picture based QP Offset map file, default is off",
+     set_cfg_roi_map_file},
+#endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
@@ -1383,8 +1389,10 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, MIN_QM_LEVEL_TOKEN, "MinQmLevel", set_cfg_generic_token},
     {SINGLE_INPUT, MAX_QM_LEVEL_TOKEN, "MaxQmLevel", set_cfg_generic_token},
 
+#if FTR_ROI
     // ROI
     {SINGLE_INPUT, ROI_MAP_FILE_TOKEN, "RoiMapFile", set_cfg_roi_map_file},
+#endif
 
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};

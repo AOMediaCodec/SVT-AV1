@@ -118,6 +118,7 @@ For more information on valid values for specific keys, refer to the [EbEncSetti
 | **MinQmLevel**                   | --qm-min                         | [0-15]     | 8           | Min quant matrix flatness                                                                                                                            |
 | **MaxQmLevel**                   | --qm-max                         | [0-15]     | 15          | Max quant matrix flatness                                                                                                                            |
 | **LambdaScaleFactors**           | --lambda-scale-factors           | [0- ]      | '128,.,128' | list of scale factors for lambda values used for different SvtAv1FrameUpdateType, separated by `,` divide by 128 is the actual scale factor in float |
+| **RoiMapFile**                   | --roi-map-file                   | any string | Null        | Path to a file containing picture based QP offset map                                                                                                |
 
 ### **UseFixedQIndexOffsets** and more information
 
@@ -193,6 +194,18 @@ SvtAv1EncApp -i in.y4m -b out.ivf --keyint -1 --enable-qm 1 --qm-min 0 --qm-max 
 | 3     | Allow recode for all frame types based on bitrate constraints                   |
 | 4     | Preset based decision                                                           |
 
+### **RoiMapFile** and QP Offset Map file format
+In some applications such as AR / VR, identifying the ROI (Region Of Interest) helps the encoder focus the bit
+usage where it's needed. This is realized by allowing applications to pass a picture based ROI map to the encoder.
+
+The QP Offset Map file contains one or more picture based QP offset maps. Every line consists of a frame number and
+the QP offsets for each 64x64 block set in a row-by-row order.
+
+An example command line is:
+
+```bash
+SvtAv1EncApp -i in.y4m -b out.ivf --roi-map-file roi_map.txt
+```
 
 ### Multi-pass Options
 
