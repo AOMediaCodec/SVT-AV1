@@ -2229,7 +2229,7 @@ void *svt_aom_source_based_operations_kernel(void *input_ptr) {
         PictureParentControlSet *pcs = (PictureParentControlSet *)
                                            in_results_ptr->pcs_wrapper->object_ptr;
         SequenceControlSet *scs = pcs->scs;
-
+#if !FIX_ISSUE_2064
         if (in_results_ptr->superres_recode) {
             sbo_send_picture_out(context_ptr, pcs, TRUE);
 
@@ -2237,6 +2237,7 @@ void *svt_aom_source_based_operations_kernel(void *input_ptr) {
             svt_release_object(in_results_wrapper_ptr);
             continue;
         }
+#endif
 
         // Get TPL ME
         if (pcs->tpl_ctrls.enable) {

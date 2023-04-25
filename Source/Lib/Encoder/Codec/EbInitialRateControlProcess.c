@@ -157,7 +157,6 @@ static void irc_send_picture_out(InitialRateControlContext *ctx, PictureParentCo
                                                      out_results_wrapper->object_ptr;
         // SVT_LOG("iRC Out:%lld\n",pcs->picture_number);
         out_results->pcs_wrapper     = pcs->p_pcs_wrapper_ptr;
-        out_results->superres_recode = superres_recode;
         svt_post_full_object(out_results_wrapper);
     } else {
         // Get Empty Results Object
