@@ -9103,6 +9103,9 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->pic_lpd1_lvl = is_base ? 0 : 3;
             }
         } else {
+#if OPT_LPD1_M13
+            pcs->pic_lpd1_lvl = is_base ? 0 : 4;
+#else
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->pic_lpd1_lvl = is_base ? 0 : 3;
             } else if (pcs->coeff_lvl == HIGH_LVL) {
@@ -9110,6 +9113,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             } else { // regular
                 pcs->pic_lpd1_lvl = is_base ? 0 : 4;
             }
+#endif
         }
     } else {
         if (enc_mode <= ENC_M7)
