@@ -3681,7 +3681,11 @@ static void md_sq_motion_search_controls(ModeDecisionContext *ctx, uint8_t md_sq
 /*
  * Control Subpel search of ME MV(s)
  */
+#if OPT_SUBPEL_ME_LD
+static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me_level, bool rtc_tune) {
+#else
 static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me_level) {
+#endif
     MdSubPelSearchCtrls *md_subpel_me_ctrls = &ctx->md_subpel_me_ctrls;
 
     switch (md_subpel_me_level) {
@@ -3838,7 +3842,11 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
         md_subpel_me_ctrls->pred_variance_th      = 100;
         md_subpel_me_ctrls->abs_th_mult           = 2;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->round_dev_th = rtc_tune ? MAX_SIGNED_VALUE : -25;
+#else
         md_subpel_me_ctrls->round_dev_th          = -25;
+#endif
         md_subpel_me_ctrls->skip_diag_refinement  = 4;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
         break;
@@ -3850,9 +3858,17 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
         md_subpel_me_ctrls->pred_variance_th      = 100;
         md_subpel_me_ctrls->abs_th_mult           = 2;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->round_dev_th = rtc_tune ? MAX_SIGNED_VALUE : -25;
+#else
         md_subpel_me_ctrls->round_dev_th          = -25;
+#endif
         md_subpel_me_ctrls->skip_diag_refinement  = 4;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->skip_zz_mv = rtc_tune ? 0 : 1;
+#else
         md_subpel_me_ctrls->skip_zz_mv            = 1;
+#endif
         break;
     case 15:
         md_subpel_me_ctrls->enabled               = 1;
@@ -7622,7 +7638,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
             me_8x8_cost_variance < (200 * picture_qp) && me_64x64_distortion < (200 * picture_qp))
             ctx->md_subpel_me_level = 0;
     }
+#if OPT_SUBPEL_ME_LD
+    md_subpel_me_controls(ctx, ctx->md_subpel_me_level, rtc_tune);
+#else
     md_subpel_me_controls(ctx, ctx->md_subpel_me_level);
+#endif
 
     uint8_t mds0_level = 0;
     if (lpd1_level <= LPD1_LVL_4)
@@ -7937,7 +7957,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
         ctx->md_subpel_me_level = is_ref ? 4 : 7;
     ctx->md_subpel_me_level += hierarchical_levels <= 2 ? 2 : 0;
     ctx->md_subpel_me_level = MIN(15, ctx->md_subpel_me_level);
+#if OPT_SUBPEL_ME_LD
+    md_subpel_me_controls(ctx, ctx->md_subpel_me_level, rtc_tune);
+#else
     md_subpel_me_controls(ctx, ctx->md_subpel_me_level);
+#endif
     if (pd_pass == PD_PASS_0)
         ctx->md_subpel_pme_level = enc_mode <= ENC_MR ? 3 : 0;
     else if (enc_mode <= ENC_MR)
