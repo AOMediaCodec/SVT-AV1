@@ -2191,12 +2191,14 @@ void *svt_aom_tpl_disp_kernel(void *input_ptr) {
 
 static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
                                  PictureParentControlSet *pcs, Bool superres_recode) {
-    EbObjectWrapper    *out_results_wrapper;
+    EbObjectWrapper *out_results_wrapper;
+#if !FIX_ISSUE_2064_ALT
     SequenceControlSet *scs = pcs->scs;
     // NB: overlay frames should be non-ref
     // Before sending pics out to pic mgr, ensure that pic mgr can handle them
     if (pcs->is_ref && !superres_recode)
         svt_block_on_semaphore(scs->ref_buffer_available_semaphore);
+#endif
 
     // Get Empty Results Object
     svt_get_empty_object(context_ptr->picture_demux_results_output_fifo_ptr, &out_results_wrapper);
