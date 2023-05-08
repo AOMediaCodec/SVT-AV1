@@ -7197,6 +7197,57 @@ static void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *c
                "artifacts.");
 }
 
+#if OPT_LD_MDS0
+static void set_mds0_rtc_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
+    Mds0Ctrls *ctrls = &ctx->mds0_ctrls;
+
+    switch (mds0_level) {
+    case 0:
+        ctrls->mds0_dist_type               = MDS0_SAD;
+        ctrls->enable_cost_based_early_exit = 1;
+        ctrls->mds0_distortion_th           = 0;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+        break;
+    case 1:
+        ctrls->mds0_dist_type               = MDS0_SSD;
+        ctrls->enable_cost_based_early_exit = 0;
+        ctrls->mds0_distortion_th           = 0;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+        break;
+    case 2:
+        ctrls->mds0_dist_type               = MDS0_VAR;
+        ctrls->enable_cost_based_early_exit = 0;
+        ctrls->mds0_distortion_th           = 0;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 3;
+        break;
+    case 3:
+        ctrls->mds0_dist_type               = MDS0_VAR;
+        ctrls->enable_cost_based_early_exit = 1;
+        ctrls->mds0_distortion_th           = 50;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 3;
+        break;
+    case 4:
+        ctrls->mds0_dist_type               = MDS0_VAR;
+        ctrls->enable_cost_based_early_exit = 1;
+        ctrls->mds0_distortion_th           = 0;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 3;
+        break;
+    case 5:
+        ctrls->mds0_dist_type               = MDS0_VAR;
+        ctrls->enable_cost_based_early_exit = 1;
+        ctrls->mds0_distortion_th           = 0;
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+        break;
+    default: assert(0); break;
+    }
+}
+#endif
 static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
     Mds0Ctrls *ctrls = &ctx->mds0_ctrls;
 
@@ -7205,26 +7256,46 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->mds0_dist_type               = MDS0_SAD;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
+#if OPT_LD_MDS0
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+#endif
         break;
     case 1:
         ctrls->mds0_dist_type               = MDS0_SSD;
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
+#if OPT_LD_MDS0
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+#endif
         break;
     case 2:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
+#if OPT_LD_MDS0
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+#endif
         break;
     case 3:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 50;
+#if OPT_LD_MDS0
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+#endif
         break;
     case 4:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
+#if OPT_LD_MDS0
+        ctrls->mds0_dist_weight             = 1;
+        ctrls->mds0_dist_div                = 1;
+#endif
         break;
     default: assert(0); break;
     }
@@ -7458,10 +7529,20 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
     } else {
         ctx->inter_depth_bias = 0;
     }
+
+#if OPT_LD_MDS0
+    if (rtc_tune)
+        set_mds0_rtc_controls(ctx, 5);
+#endif
     if (pd0_level == VERY_LIGHT_PD0)
         return;
 
     uint8_t mds0_level = 4;
+#if OPT_LD_MDS0
+    if (rtc_tune)
+        set_mds0_rtc_controls(ctx, mds0_level);
+    else
+#endif
     set_mds0_controls(ctx, mds0_level);
 
     svt_aom_set_chroma_controls(ctx, 0 /*chroma off*/);
@@ -7654,6 +7735,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
               me_64x64_distortion < (250 * picture_qp))))
             mds0_level = 0;
     }
+#if OPT_LD_MDS0
+    if (rtc_tune)
+        set_mds0_rtc_controls(ctx, mds0_level);
+    else
+#endif
     set_mds0_controls(ctx, mds0_level);
 
     uint8_t lpd1_tx_level = 0;
@@ -7981,7 +8067,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
             rate_est_level = 1;
         else if (rtc_tune && enc_mode <= ENC_M11)
             rate_est_level = is_islice ? 1 : is_ref ? 3 : 4;
+#if OPT_LD_MDS0
+        else if ((enc_mode <= ENC_M12) || (rtc_tune && enc_mode <= ENC_M13))
+#else
         else if (enc_mode <= ENC_M12)
+#endif
             rate_est_level = is_islice ? 3 : 4;
         else
             rate_est_level = is_islice ? 3 : 0;
@@ -8016,7 +8106,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     if (pcs->scs->low_latency_kf && is_islice)
         intra_level = 4;
     set_intra_ctrls(pcs, ctx, intra_level);
-
+#if OPT_LD_MDS0
+    if (rtc_tune)
+        set_mds0_rtc_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
+    else
+#endif
     set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
 
     set_subres_controls(ctx, 0);
@@ -8747,7 +8841,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (scs->spatial_sse_full_loop_level == DEFAULT)
         if (pcs->ppcs->sc_class1)
             pcs->spatial_sse_full_loop_level = 1;
+#if OPT_LD_MDS0
+        else if ((enc_mode <= ENC_M11) || (rtc_tune && enc_mode <= ENC_M13))
+#else
         else if (enc_mode <= ENC_M11)
+#endif
             pcs->spatial_sse_full_loop_level = 1;
         else
             pcs->spatial_sse_full_loop_level = 0;

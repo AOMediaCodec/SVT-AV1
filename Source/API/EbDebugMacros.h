@@ -40,6 +40,7 @@ extern "C" {
 
 #define OPT_SUBPEL_ME_LD        1 // optimize subpel_me for low delay mode
 #define OPT_LPD1_M13            1 // optimize pic_lpd1_lvl for M13
+#define OPT_LD_MDS0             1 // Optimize MDS for better mode selection
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
