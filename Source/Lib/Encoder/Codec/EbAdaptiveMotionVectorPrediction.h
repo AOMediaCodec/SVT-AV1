@@ -33,10 +33,10 @@ void svt_aom_generate_av1_mvp_table(struct ModeDecisionContext *ctx, BlkStruct *
                                     uint16_t blk_org_y, MvReferenceFrame *ref_frames,
                                     uint32_t tot_refs, PictureControlSet *pcs);
 
-void     svt_aom_get_av1_mv_pred_drl(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
-                                     MvReferenceFrame ref_frame, uint8_t is_compound,
-                                     PredictionMode mode, uint8_t drl_index, IntMv nearestmv[2],
-                                     IntMv nearmv[2], IntMv ref_mv[2]);
+void svt_aom_get_av1_mv_pred_drl(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
+                                 MvReferenceFrame ref_frame, uint8_t is_compound,
+                                 PredictionMode mode, uint8_t drl_index, IntMv nearestmv[2],
+                                 IntMv nearmv[2], IntMv ref_mv[2]);
 #if FTR_ROI
 void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
                            const BlockGeom *blk_geom, PictureControlSet *pcs,

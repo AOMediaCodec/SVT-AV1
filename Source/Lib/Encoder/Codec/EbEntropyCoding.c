@@ -5110,8 +5110,8 @@ static INLINE int svt_aom_get_segment_id(Av1Common *cm, const uint8_t *segment_i
 int svt_av1_get_spatial_seg_prediction(PictureControlSet *pcs, MacroBlockD *xd, uint32_t blk_org_x,
                                        uint32_t blk_org_y, int *cdf_index) {
 #else
-static int get_spatial_seg_prediction(PictureControlSet *pcs, uint32_t blk_org_x,
-                                      uint32_t blk_org_y, int *cdf_index) {
+static int         get_spatial_seg_prediction(PictureControlSet *pcs, uint32_t blk_org_x,
+                                              uint32_t blk_org_y, int *cdf_index) {
 #endif
     int prev_ul = -1; // top left segment_id
     int prev_l  = -1; // left segment_id
@@ -5211,7 +5211,7 @@ void write_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context, AomW
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     if (!segmentation_params->segmentation_enabled)
         return;
-    int cdf_num;
+    int       cdf_num;
     const int spatial_pred = svt_av1_get_spatial_seg_prediction(
         pcs, blk_ptr->av1xd, blk_org_x, blk_org_y, &cdf_num);
     if (skip_coeff) {
