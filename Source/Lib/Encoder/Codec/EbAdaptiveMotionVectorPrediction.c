@@ -1315,7 +1315,7 @@ void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr,
 void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx,
                                    PictureControlSet *pcs) {
 #else
-void            svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx) {
+void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx) {
 #endif
     // Update only the data in the top left block of the partition, because all other mi_blocks
     // point to the top left mi block of the partition
@@ -1385,8 +1385,8 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
                            const BlockGeom *blk_geom, PictureControlSet *pcs,
                            ModeDecisionContext *ctx) {
 #else
-void            svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
-                                      const BlockGeom *blk_geom, PictureControlSet *pcs) {
+void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
+                           const BlockGeom *blk_geom, PictureControlSet *pcs) {
 #endif
     uint32_t mi_stride = pcs->mi_stride;
     int32_t  mi_row    = blk_org_y >> MI_SIZE_LOG2;
