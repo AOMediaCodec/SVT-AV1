@@ -248,6 +248,8 @@ static EbErrorType parse_rio_map_file(EbConfig *app_cfg) {
     roi_map->cur_evt      = NULL;
     const int32_t b64_num = ((app_cfg->config.source_width + 63) / 64) *
         ((app_cfg->config.source_height + 63) / 64);
+    // Multiplied by 5 because each qp_offset value requires at most 4 chars plus a space.
+    // Multiplied by 2 to make some extra space.
     const int32_t buf_size = b64_num * 5 * 2;
     EB_APP_MALLOC(char *, roi_map->buf, buf_size, EB_N_PTR, EB_ErrorInsufficientResources);
     EB_APP_MALLOC(int16_t *,

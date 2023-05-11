@@ -201,6 +201,9 @@ usage where it's needed. This is realized by allowing applications to pass a pic
 The QP Offset Map file contains one or more picture based QP offset maps. Every line consists of a frame number and
 the QP offsets for each 64x64 block set in a row-by-row order.
 
+The encoder uses alternate quantizer segment feature to set block level qindex and uses alternate loop filter segment feature to set loop filter strength level.
+When both AQ mode 1 (variance base adaptive QP) and ROI are enabled, segment QP is decided by ROI map instead of by variance.
+
 An example command line is:
 
 ```bash
