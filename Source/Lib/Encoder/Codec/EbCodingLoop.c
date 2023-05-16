@@ -3040,12 +3040,19 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
 
         // Apply the loop filter
         //Jing: Don't work for tile_parallel since the SB of bottom tile comes early than the bottom SB of top tile
-        if (pcs->ppcs->frm_hdr.loop_filter_params.filter_level[0] ||
-            pcs->ppcs->frm_hdr.loop_filter_params.filter_level[1]) {
-            uint32_t sb_width = MIN(scs->sb_size, pcs->ppcs->aligned_width - sb_org_x);
-            uint8_t  last_col = ((sb_org_x + sb_width) == pcs->ppcs->aligned_width) ? 1 : 0;
-            svt_aom_loop_filter_sb(recon_buffer, pcs, sb_org_y >> 2, sb_org_x >> 2, 0, 3, last_col);
+#if OPT_LD_DLF
+        if (pcs->ppcs->is_ref || scs->static_config.recon_enabled) {
+#endif
+            if (pcs->ppcs->frm_hdr.loop_filter_params.filter_level[0] ||
+                pcs->ppcs->frm_hdr.loop_filter_params.filter_level[1]) {
+                uint32_t sb_width = MIN(scs->sb_size, pcs->ppcs->aligned_width - sb_org_x);
+                uint8_t  last_col = ((sb_org_x + sb_width) == pcs->ppcs->aligned_width) ? 1 : 0;
+                svt_aom_loop_filter_sb(
+                    recon_buffer, pcs, sb_org_y >> 2, sb_org_x >> 2, 0, 3, last_col);
+            }
+#if OPT_LD_DLF
         }
+#endif
     }
     return EB_ErrorNone;
 }

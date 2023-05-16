@@ -7517,7 +7517,13 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
         // Modulate the inter-depth bias based on the QP and the temporal complexity of the SB
         // towards more split for low QPs or/and complex SBs,
         // and less split for high QPs or/and easy SBs (to compensate for the absence of the coeff rate)
+#if OPT_LD_PD0
+        const uint32_t init_bias_tab[INPUT_SIZE_COUNT] = {800, 850, 850, 850, 900, 950, 1000};
+        const uint32_t init_bias_value = (rtc_tune ? init_bias_tab[pcs->ppcs->input_resolution] : 950);
+        ctx->inter_depth_bias = init_bias_value + pcs->ppcs->frm_hdr.quantization_params.base_q_idx;
+#else
         ctx->inter_depth_bias = 950 + pcs->ppcs->frm_hdr.quantization_params.base_q_idx;
+#endif
         if (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] > 1000)
             ctx->inter_depth_bias = ctx->inter_depth_bias - 150;
         else if (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] > 500)
