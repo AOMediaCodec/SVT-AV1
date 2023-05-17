@@ -226,13 +226,43 @@ class SsimLbdTest : public SsimTest<uint8_t> {
     }
 };
 
+class SsimHbdTest : public SsimTest<uint16_t> {
+  public:
+    void run_8x8_test(double *score_ref, double *score_simd) override {
+        // setup using c code
+        reset_test_env();
+        *score_ref = svt_ssim_8x8_hbd(src_8x8_, 8, rec_8x8_, 8);
+
+        // setup using simd accelerating
+        setup_test_env();
+        *score_simd = svt_ssim_8x8_hbd(src_8x8_, 8, rec_8x8_, 8);
+    }
+
+    void run_4x4_test(double *score_ref, double *score_simd) override {
+        // setup using c code
+        reset_test_env();
+        *score_ref = svt_ssim_4x4_hbd(src_4x4_, 4, rec_4x4_, 4);
+
+        // setup using simd accelerating
+        setup_test_env();
+        *score_simd = svt_ssim_4x4_hbd(src_4x4_, 4, rec_4x4_, 4);
+    }
+};
+
 TEST_P(SsimLbdTest, MatchTestWithExtremeValue) {
     run_extreme_test();
 }
 TEST_P(SsimLbdTest, MatchTestWithRandomValue) {
     run_random_test(test_times);
 }
+TEST_P(SsimHbdTest, MatchTestWithExtremeValue) {
+    run_extreme_test();
+}
+TEST_P(SsimHbdTest, MatchTestWithRandomValue) {
+    run_random_test(test_times);
+}
 
 INSTANTIATE_TEST_CASE_P(SSIM, SsimLbdTest, ::testing::Values(8));
+INSTANTIATE_TEST_CASE_P(SSIM, SsimHbdTest, ::testing::Values(10));
 
 }  // namespace

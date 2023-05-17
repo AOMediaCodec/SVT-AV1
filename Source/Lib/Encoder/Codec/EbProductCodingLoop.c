@@ -46,7 +46,7 @@ void svt_aom_apply_segmentation_based_quantization(const BlockGeom *blk_geom, Pi
 #if TUNE_SSIM_FULL_SPACIAL_DIST
 uint64_t svt_spatial_full_distortion_ssim_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
                                                  uint8_t *recon, int32_t recon_offset, uint32_t recon_stride,
-                                                 uint32_t area_width, uint32_t area_height);
+                                                 uint32_t area_width, uint32_t area_height, bool hbd);
 #endif
 #if TUNE_SSIM_LIBAOM_APPROACH
 void aom_av1_set_ssim_rdmult(struct ModeDecisionContext *ctx, PictureControlSet *pcs, const int mi_row,
@@ -4633,7 +4633,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     uint64_t      txb_full_distortion_txt[DIST_TOTAL][TX_TYPES][DIST_CALC_TOTAL] = {{{0}}};
     int32_t       candidate_num                                                  = 0;
     TxType        tx_type_candidate[MAX_TX_TYPE_GROUP * TX_TYPES]                = {0};
-    const uint8_t ssim_level            = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1 || ctx->hbd_md)
+    const uint8_t ssim_level            = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1)
                    ? 0 // only allow in MD stage 3, PD pass 1
                    : ctx->tune_ssim_level;
     const double  cost_threshold_factor = pcs->scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.06 : 1.05;
@@ -4962,7 +4962,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
                 (int32_t)txb_origin_index,
                 cand_bf->recon->stride_y,
                 cropped_tx_width,
-                cropped_tx_height);
+                cropped_tx_height,
+                ctx->hbd_md);
 
             txb_full_distortion_txt[DIST_SSIM][tx_type][DIST_CALC_RESIDUAL] <<= 4;
 
@@ -5004,7 +5005,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
                                                                           (int32_t)txb_origin_index,
                                                                           cand_bf->pred->stride_y,
                                                                           cropped_tx_width,
-                                                                          cropped_tx_height);
+                                                                          cropped_tx_height,
+                                                                          ctx->hbd_md);
         uint64_t             ssim_residual_dist = svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_y,
                                                                               input_txb_origin_index,
                                                                               input_pic->stride_y,
@@ -5012,7 +5014,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
                                                                               (int32_t)txb_origin_index,
                                                                               cand_bf->recon->stride_y,
                                                                               cropped_tx_width,
-                                                                              cropped_tx_height);
+                                                                              cropped_tx_height,
+                                                                              ctx->hbd_md);
         ssim_pred_dist <<= (4 + ctx->mds_subres_step);
         ssim_residual_dist <<= (4 + ctx->mds_subres_step);
 
@@ -5026,7 +5029,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
                                                                           (int32_t)txb_origin_index,
                                                                           cand_bf->pred->stride_y,
                                                                           cropped_tx_width,
-                                                                          cropped_tx_height);
+                                                                          cropped_tx_height,
+                                                                          ctx->hbd_md);
         ssim_pred_dist <<= (4 + ctx->mds_subres_step);
 
         y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] +=
@@ -5713,7 +5717,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // Perform T-1 if mds_spatial_sse (assumes TX depth is 0 b/c TXS is assumed off)
     if (ctx->mds_spatial_sse) {
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-        const uint8_t ssim_level = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1 || ctx->hbd_md)
+        const uint8_t ssim_level = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1)
             ? 0 // only allow in MD stage 3, PD pass 1
             : ctx->tune_ssim_level;
 #endif
@@ -5761,7 +5765,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 (int32_t)txb_origin_index,
                 cand_bf->pred->stride_y,
                 cropped_tx_width,
-                cropped_tx_height);
+                cropped_tx_height,
+                ctx->hbd_md);
             y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] = svt_spatial_full_distortion_ssim_kernel(
                 input_pic->buffer_y,
                 input_txb_origin_index,
@@ -5770,7 +5775,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 (int32_t)txb_origin_index,
                 cand_bf->recon->stride_y,
                 cropped_tx_width,
-                cropped_tx_height);
+                cropped_tx_height,
+                ctx->hbd_md);
             y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] <<= 4;
             y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] <<= 4;
         }

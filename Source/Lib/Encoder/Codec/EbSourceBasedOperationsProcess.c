@@ -2069,15 +2069,10 @@ const uint8_t AV1_VAR_OFFS[MAX_SB_SIZE] = {
     128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
     128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128};
 static unsigned int aom_av1_get_perpixel_variance(const uint8_t *buf, uint32_t stride,
-                                                  const int block_size, int use_hbd) {
+                                                  const int block_size) {
     unsigned int            var, sse;
     const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[block_size];
-    if (use_hbd) {
-        assert(0 && "not support hbd");
-        var = fn_ptr->vf_hbd_10(buf, stride, AV1_VAR_OFFS, 0, &sse);
-    } else {
-        var = fn_ptr->vf(buf, stride, AV1_VAR_OFFS, 0, &sse);
-    }
+    var                            = fn_ptr->vf(buf, stride, AV1_VAR_OFFS, 0, &sse);
     return ROUND_POWER_OF_TWO(var, num_pels_log2_lookup[block_size]);
 }
 static void aom_av1_set_mb_ssim_rdmult_scaling(PictureParentControlSet *pcs) {
@@ -2123,7 +2118,7 @@ static void aom_av1_set_mb_ssim_rdmult_scaling(PictureParentControlSet *pcs) {
 
                     const uint8_t *buf = y_buffer + row_offset_y * y_stride + col_offset_y;
 
-                    var += aom_av1_get_perpixel_variance(buf, y_stride, BLOCK_8X8, 0);
+                    var += aom_av1_get_perpixel_variance(buf, y_stride, BLOCK_8X8);
                     num_of_var += 1.0;
                 }
             }

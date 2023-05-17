@@ -5274,6 +5274,54 @@ double svt_ssim_8x8_c(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t 
     double score = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, count, 8);
     return score;
 }
+double svt_ssim_4x4_hbd_c(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp) {
+    const int32_t count = 4 * 4;
+
+    uint32_t sum_s = 0, sum_r = 0, sum_sq_s = 0, sum_sq_r = 0, sum_sxr = 0;
+    uint32_t i, j;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            sum_s += s[j];
+            sum_r += r[j];
+            sum_sq_s += s[j] * s[j];
+            sum_sq_r += r[j] * r[j];
+            sum_sxr += s[j] * r[j];
+        }
+
+        s += sp;
+        r += rp;
+    }
+
+    //
+    // similarity
+    //
+    double score = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, count, 10);
+    return score;
+}
+double svt_ssim_8x8_hbd_c(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp) {
+    const int32_t count = 8 * 8;
+
+    uint32_t sum_s = 0, sum_r = 0, sum_sq_s = 0, sum_sq_r = 0, sum_sxr = 0;
+    uint32_t i, j;
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 8; j++) {
+            sum_s += s[j];
+            sum_r += r[j];
+            sum_sq_s += s[j] * s[j];
+            sum_sq_r += r[j] * r[j];
+            sum_sxr += s[j] * r[j];
+        }
+
+        s += sp;
+        r += rp;
+    }
+
+    //
+    // similarity
+    //
+    double score = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, count, 10);
+    return score;
+}
 static double ssim_8x8_blocks(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp,
                                      uint32_t width, uint32_t height) {
     uint32_t i, j;
@@ -5323,19 +5371,71 @@ static double ssim(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp,
         return ssim_4x4_blocks(s, sp, r, rp, width, height);
     }
 }
+static double ssim_8x8_blocks_hbd(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp,
+                                     uint32_t width, uint32_t height) {
+    uint32_t i, j;
+    int      samples    = 0;
+    double   ssim_total = 0;
+
+    // sample point start with each 4x4 location
+    for (i = 0; i <= height - 8; i += 8, s += sp * 8, r += rp * 8) {
+        for (j = 0; j <= width - 8; j += 8) {
+            double v = svt_ssim_8x8_hbd(s + j, sp, r + j, rp);
+            v        = CLIP3(0, 1, v);
+            ssim_total += v;
+            samples++;
+        }
+    }
+    assert(samples > 0);
+    ssim_total /= samples;
+    assert(ssim_total <= 1.0 && ssim_total >= 0);
+    return ssim_total;
+}
+static double ssim_4x4_blocks_hbd(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp,
+                                     uint32_t width, uint32_t height) {
+    uint32_t i, j;
+    int      samples    = 0;
+    double   ssim_total = 0;
+
+    // sample point start with each 2x2 location
+    for (i = 0; i <= height - 4; i += 4, s += sp * 4, r += rp * 4) {
+        for (j = 0; j <= width - 4; j += 4) {
+            double v = svt_ssim_4x4_hbd(s + j, sp, r + j, rp);
+            v        = CLIP3(0, 1, v);
+            ssim_total += v;
+            samples++;
+        }
+    }
+    assert(samples > 0);
+    ssim_total /= samples;
+    assert(ssim_total <= 1.0 && ssim_total >= 0);
+    return ssim_total;
+}
+static double ssim_hbd(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp,
+                          uint32_t width, uint32_t height) {
+    assert((width % 4) == 0 && (height % 4) == 0);
+    if ((width % 8) == 0 && (height % 8) == 0) {
+        return ssim_8x8_blocks_hbd(s, sp, r, rp, width, height);
+    } else {
+        return ssim_4x4_blocks_hbd(s, sp, r, rp, width, height);
+    }
+}
 
 uint64_t svt_spatial_full_distortion_ssim_kernel(uint8_t* input, uint32_t input_offset,
                                                    uint32_t input_stride, uint8_t* recon,
                                                    int32_t recon_offset, uint32_t recon_stride,
-                                                   uint32_t area_width, uint32_t area_height) {
+                                                   uint32_t area_width, uint32_t area_height, bool hbd) {
     uint64_t spatial_distortion = 0;
-    input += input_offset;
-    recon += recon_offset;
-
-    double ssim_score = ssim(input, input_stride, recon, recon_stride, area_width, area_height);
-
     const uint32_t count = area_width * area_height;
-    spatial_distortion   = (uint64_t)((1 - ssim_score) * count * 100 * 7);
+    double ssim_score;
+    if (!hbd) {
+        ssim_score = ssim(input + input_offset, input_stride, recon + recon_offset, recon_stride, area_width, area_height);
+        spatial_distortion   = (uint64_t)((1 - ssim_score) * count * 100 * 7);
+    } else {
+        ssim_score = ssim_hbd((uint16_t *)input + input_offset, input_stride, (uint16_t *)recon + recon_offset, recon_stride, area_width, area_height);
+        spatial_distortion   = (uint64_t)((1 - ssim_score) * count * 100 * 7 * 8);
+    }
+
     return spatial_distortion;
 }
 #endif

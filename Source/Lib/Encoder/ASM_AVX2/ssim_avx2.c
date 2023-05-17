@@ -109,3 +109,71 @@ double svt_ssim_4x4_avx2(const uint8_t *s, uint32_t sp, const uint8_t *r, uint32
     double   score    = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, 16, 8);
     return score;
 }
+double svt_ssim_8x8_hbd_avx2(const uint16_t *s, uint32_t sp, const uint16_t *r, uint32_t rp) {
+    __m256i vec_sum_s    = _mm256_setzero_si256();
+    __m256i vec_sum_r    = _mm256_setzero_si256();
+    __m256i vec_sum_sq_s = _mm256_setzero_si256();
+    __m256i vec_sum_sq_r = _mm256_setzero_si256();
+    __m256i vec_sum_sxr  = _mm256_setzero_si256();
+    for (int i = 0; i < 8; ++i) {
+        __m256i vec_src = _mm256_cvtepu16_epi32(_mm_loadu_si128((const __m128i *)s));
+        __m256i vec_rec = _mm256_cvtepu16_epi32(_mm_loadu_si128((const __m128i *)r));
+
+        vec_sum_s = _mm256_add_epi32(vec_sum_s, vec_src);
+        vec_sum_r = _mm256_add_epi32(vec_sum_r, vec_rec);
+
+        __m256i vec_sq = _mm256_mullo_epi32(vec_src, vec_src);
+        vec_sum_sq_s   = _mm256_add_epi32(vec_sum_sq_s, vec_sq);
+
+        vec_sq       = _mm256_mullo_epi32(vec_rec, vec_rec);
+        vec_sum_sq_r = _mm256_add_epi32(vec_sum_sq_r, vec_sq);
+
+        __m256i vec_sxr = _mm256_mullo_epi32(vec_src, vec_rec);
+        vec_sum_sxr     = _mm256_add_epi32(vec_sum_sxr, vec_sxr);
+
+        s += sp;
+        r += rp;
+    }
+
+    uint32_t sum_s    = sum8(vec_sum_s);
+    uint32_t sum_r    = sum8(vec_sum_r);
+    uint32_t sum_sq_s = sum8(vec_sum_sq_s);
+    uint32_t sum_sq_r = sum8(vec_sum_sq_r);
+    uint32_t sum_sxr  = sum8(vec_sum_sxr);
+    double   score    = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, 64, 10);
+    return score;
+}
+double svt_ssim_4x4_hbd_avx2(const uint16_t *s, uint32_t sp, const uint16_t *r, uint32_t rp) {
+    __m256i vec_sum_s    = _mm256_setzero_si256();
+    __m256i vec_sum_r    = _mm256_setzero_si256();
+    __m256i vec_sum_sq_s = _mm256_setzero_si256();
+    __m256i vec_sum_sq_r = _mm256_setzero_si256();
+    __m256i vec_sum_sxr  = _mm256_setzero_si256();
+    for (int i = 0; i < 4; ++i) {
+        __m256i vec_src = _mm256_cvtepu16_epi32(_mm_loadu_si64(s));
+        __m256i vec_rec = _mm256_cvtepu16_epi32(_mm_loadu_si64(r));
+
+        vec_sum_s = _mm256_add_epi32(vec_sum_s, vec_src);
+        vec_sum_r = _mm256_add_epi32(vec_sum_r, vec_rec);
+
+        __m256i vec_sq = _mm256_mullo_epi32(vec_src, vec_src);
+        vec_sum_sq_s   = _mm256_add_epi32(vec_sum_sq_s, vec_sq);
+
+        vec_sq       = _mm256_mullo_epi32(vec_rec, vec_rec);
+        vec_sum_sq_r = _mm256_add_epi32(vec_sum_sq_r, vec_sq);
+
+        __m256i vec_sxr = _mm256_mullo_epi32(vec_src, vec_rec);
+        vec_sum_sxr     = _mm256_add_epi32(vec_sum_sxr, vec_sxr);
+
+        s += sp;
+        r += rp;
+    }
+
+    uint32_t sum_s    = sum8(vec_sum_s);
+    uint32_t sum_r    = sum8(vec_sum_r);
+    uint32_t sum_sq_s = sum8(vec_sum_sq_s);
+    uint32_t sum_sq_r = sum8(vec_sum_sq_r);
+    uint32_t sum_sxr  = sum8(vec_sum_sxr);
+    double   score    = similarity(sum_s, sum_r, sum_sq_s, sum_sq_r, sum_sxr, 16, 10);
+    return score;
+}

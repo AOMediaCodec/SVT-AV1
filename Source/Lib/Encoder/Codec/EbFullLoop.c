@@ -21,7 +21,7 @@ void svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t inp
 #if TUNE_SSIM_FULL_SPACIAL_DIST
 uint64_t svt_spatial_full_distortion_ssim_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
                                                  uint8_t *recon, int32_t recon_offset, uint32_t recon_stride,
-                                                 uint32_t area_width, uint32_t area_height);
+                                                 uint32_t area_width, uint32_t area_height, bool hbd);
 #endif
 
 void svt_aom_quantize_b_c_ii(const TranLow *coeff_ptr, intptr_t n_coeffs, const int16_t *zbin_ptr,
@@ -1954,8 +1954,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
     uint32_t             *cr_count_non_zero_coeffs   = cnt_nz_coeff[2];
 #if TUNE_SSIM_FULL_SPACIAL_DIST
     EB_ALIGN(16) uint64_t txb_full_distortion[DIST_TOTAL][3][DIST_CALC_TOTAL];
-    const uint8_t         ssim_level = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1 ||
-                                ctx->hbd_md)
+    const uint8_t         ssim_level = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1)
                 ? 0 // only allow in MD stage 3, PD pass 1
                 : ctx->tune_ssim_level;
 #else
@@ -2111,25 +2110,27 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
                 if (ssim_level > 0) {
-                    txb_full_distortion[DIST_SSIM][1][DIST_CALC_PREDICTION] =
-                        svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_cb,
-                                                                input_chroma_txb_origin_index,
-                                                                input_pic->stride_cb,
-                                                                cand_bf->pred->buffer_cb,
-                                                                txb_uv_origin_index,
-                                                                cand_bf->pred->stride_cb,
-                                                                cropped_tx_width_uv,
-                                                                cropped_tx_height_uv);
+                    txb_full_distortion[DIST_SSIM][1][DIST_CALC_PREDICTION] = svt_spatial_full_distortion_ssim_kernel(
+                        input_pic->buffer_cb,
+                        input_chroma_txb_origin_index,
+                        input_pic->stride_cb,
+                        cand_bf->pred->buffer_cb,
+                        txb_uv_origin_index,
+                        cand_bf->pred->stride_cb,
+                        cropped_tx_width_uv,
+                        cropped_tx_height_uv,
+                        ctx->hbd_md);
 
-                    txb_full_distortion[DIST_SSIM][1][DIST_CALC_RESIDUAL] =
-                        svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_cb,
-                                                                input_chroma_txb_origin_index,
-                                                                input_pic->stride_cb,
-                                                                cand_bf->recon->buffer_cb,
-                                                                txb_uv_origin_index,
-                                                                cand_bf->recon->stride_cb,
-                                                                cropped_tx_width_uv,
-                                                                cropped_tx_height_uv);
+                    txb_full_distortion[DIST_SSIM][1][DIST_CALC_RESIDUAL] = svt_spatial_full_distortion_ssim_kernel(
+                        input_pic->buffer_cb,
+                        input_chroma_txb_origin_index,
+                        input_pic->stride_cb,
+                        cand_bf->recon->buffer_cb,
+                        txb_uv_origin_index,
+                        cand_bf->recon->stride_cb,
+                        cropped_tx_width_uv,
+                        cropped_tx_height_uv,
+                        ctx->hbd_md);
 
                     txb_full_distortion[DIST_SSIM][1][DIST_CALC_PREDICTION] <<= 4;
                     txb_full_distortion[DIST_SSIM][1][DIST_CALC_RESIDUAL] <<= 4;
@@ -2157,15 +2158,14 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 txb_full_distortion[DIST_SSD][1][DIST_CALC_PREDICTION] <<= 4;
                 txb_full_distortion[DIST_SSD][1][DIST_CALC_RESIDUAL] <<= 4;
 #else
-                txb_full_distortion[1][DIST_CALC_PREDICTION] = spatial_full_dist_type_fun(
-                    input_pic->buffer_cb,
-                    input_chroma_txb_origin_index,
-                    input_pic->stride_cb,
-                    cand_bf->pred->buffer_cb,
-                    txb_uv_origin_index,
-                    cand_bf->pred->stride_cb,
-                    cropped_tx_width_uv,
-                    cropped_tx_height_uv);
+                txb_full_distortion[1][DIST_CALC_PREDICTION] = spatial_full_dist_type_fun(input_pic->buffer_cb,
+                                                                                          input_chroma_txb_origin_index,
+                                                                                          input_pic->stride_cb,
+                                                                                          cand_bf->pred->buffer_cb,
+                                                                                          txb_uv_origin_index,
+                                                                                          cand_bf->pred->stride_cb,
+                                                                                          cropped_tx_width_uv,
+                                                                                          cropped_tx_height_uv);
 
                 txb_full_distortion[1][DIST_CALC_RESIDUAL] = spatial_full_dist_type_fun(input_pic->buffer_cb,
                                                                                         input_chroma_txb_origin_index,
@@ -2220,13 +2220,11 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
             }
             cand_bf->u_has_coeff |= ((cb_count_non_zero_coeffs[txb_itr] != 0) << txb_itr);
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-            cb_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] +=
-                txb_full_distortion[DIST_SSIM][1][DIST_CALC_RESIDUAL];
+            cb_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] += txb_full_distortion[DIST_SSIM][1][DIST_CALC_RESIDUAL];
             cb_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] +=
                 txb_full_distortion[DIST_SSIM][1][DIST_CALC_PREDICTION];
 
-            cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] +=
-                txb_full_distortion[DIST_SSD][1][DIST_CALC_RESIDUAL];
+            cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] += txb_full_distortion[DIST_SSD][1][DIST_CALC_RESIDUAL];
             cb_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] +=
                 txb_full_distortion[DIST_SSD][1][DIST_CALC_PREDICTION];
 #else
@@ -2334,25 +2332,27 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
                 if (ssim_level > 0) {
-                    txb_full_distortion[DIST_SSIM][2][DIST_CALC_PREDICTION] =
-                        svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_cr,
-                                                                input_chroma_txb_origin_index,
-                                                                input_pic->stride_cr,
-                                                                cand_bf->pred->buffer_cr,
-                                                                txb_uv_origin_index,
-                                                                cand_bf->pred->stride_cr,
-                                                                cropped_tx_width_uv,
-                                                                cropped_tx_height_uv);
+                    txb_full_distortion[DIST_SSIM][2][DIST_CALC_PREDICTION] = svt_spatial_full_distortion_ssim_kernel(
+                        input_pic->buffer_cr,
+                        input_chroma_txb_origin_index,
+                        input_pic->stride_cr,
+                        cand_bf->pred->buffer_cr,
+                        txb_uv_origin_index,
+                        cand_bf->pred->stride_cr,
+                        cropped_tx_width_uv,
+                        cropped_tx_height_uv,
+                        ctx->hbd_md);
 
-                    txb_full_distortion[DIST_SSIM][2][DIST_CALC_RESIDUAL] =
-                        svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_cr,
-                                                                input_chroma_txb_origin_index,
-                                                                input_pic->stride_cr,
-                                                                cand_bf->recon->buffer_cr,
-                                                                txb_uv_origin_index,
-                                                                cand_bf->recon->stride_cr,
-                                                                cropped_tx_width_uv,
-                                                                cropped_tx_height_uv);
+                    txb_full_distortion[DIST_SSIM][2][DIST_CALC_RESIDUAL] = svt_spatial_full_distortion_ssim_kernel(
+                        input_pic->buffer_cr,
+                        input_chroma_txb_origin_index,
+                        input_pic->stride_cr,
+                        cand_bf->recon->buffer_cr,
+                        txb_uv_origin_index,
+                        cand_bf->recon->stride_cr,
+                        cropped_tx_width_uv,
+                        cropped_tx_height_uv,
+                        ctx->hbd_md);
 
                     txb_full_distortion[DIST_SSIM][2][DIST_CALC_PREDICTION] <<= 4;
                     txb_full_distortion[DIST_SSIM][2][DIST_CALC_RESIDUAL] <<= 4;
@@ -2380,15 +2380,14 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 txb_full_distortion[DIST_SSD][2][DIST_CALC_PREDICTION] <<= 4;
                 txb_full_distortion[DIST_SSD][2][DIST_CALC_RESIDUAL] <<= 4;
 #else
-                txb_full_distortion[2][DIST_CALC_PREDICTION] = spatial_full_dist_type_fun(
-                    input_pic->buffer_cr,
-                    input_chroma_txb_origin_index,
-                    input_pic->stride_cr,
-                    cand_bf->pred->buffer_cr,
-                    txb_uv_origin_index,
-                    cand_bf->pred->stride_cr,
-                    cropped_tx_width_uv,
-                    cropped_tx_height_uv);
+                txb_full_distortion[2][DIST_CALC_PREDICTION] = spatial_full_dist_type_fun(input_pic->buffer_cr,
+                                                                                          input_chroma_txb_origin_index,
+                                                                                          input_pic->stride_cr,
+                                                                                          cand_bf->pred->buffer_cr,
+                                                                                          txb_uv_origin_index,
+                                                                                          cand_bf->pred->stride_cr,
+                                                                                          cropped_tx_width_uv,
+                                                                                          cropped_tx_height_uv);
 
                 txb_full_distortion[2][DIST_CALC_RESIDUAL] = spatial_full_dist_type_fun(input_pic->buffer_cr,
                                                                                         input_chroma_txb_origin_index,
@@ -2427,8 +2426,8 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
 #endif
                     cr_count_non_zero_coeffs[txb_itr]);
 
-                TxSize        tx_size                      = ctx->blk_geom->txsize_uv[tx_depth];
-                const int32_t chroma_shift                 = (MAX_TX_SCALE - av1_get_tx_scale_tab[tx_size]) * 2;
+                TxSize        tx_size      = ctx->blk_geom->txsize_uv[tx_depth];
+                const int32_t chroma_shift = (MAX_TX_SCALE - av1_get_tx_scale_tab[tx_size]) * 2;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
                 txb_full_distortion[DIST_SSD][2][DIST_CALC_RESIDUAL] = RIGHT_SIGNED_SHIFT(
                     txb_full_distortion[DIST_SSD][2][DIST_CALC_RESIDUAL], chroma_shift);
@@ -2443,13 +2442,11 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
             }
             cand_bf->v_has_coeff |= ((cr_count_non_zero_coeffs[txb_itr] != 0) << txb_itr);
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-            cr_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] +=
-                txb_full_distortion[DIST_SSIM][2][DIST_CALC_RESIDUAL];
+            cr_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] += txb_full_distortion[DIST_SSIM][2][DIST_CALC_RESIDUAL];
             cr_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] +=
                 txb_full_distortion[DIST_SSIM][2][DIST_CALC_PREDICTION];
 
-            cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] +=
-                txb_full_distortion[DIST_SSD][2][DIST_CALC_RESIDUAL];
+            cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] += txb_full_distortion[DIST_SSD][2][DIST_CALC_RESIDUAL];
             cr_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] +=
                 txb_full_distortion[DIST_SSD][2][DIST_CALC_PREDICTION];
 #else
