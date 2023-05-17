@@ -524,8 +524,13 @@ static EbErrorType load_default_buffer_configuration_settings(
 
     if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF)
     {
+#if OPT_LD_TF
+        scs->tf_segment_column_count = me_seg_w;//1;//
+        scs->tf_segment_row_count = me_seg_h;//1;//
+#else
         scs->tf_segment_column_count = 15;
         scs->tf_segment_row_count = 15;
+#endif
 
     }
     else
@@ -2698,7 +2703,11 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].half_pel_mode = 0;
         scs->tf_params_per_type[1].quarter_pel_mode = 0;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
+#if OPT_LD_TF
+        scs->tf_params_per_type[1].do_chroma = 2;
+#else
         scs->tf_params_per_type[1].do_chroma = 1;
+#endif
         scs->tf_params_per_type[1].pred_error_32x32_th =  (uint64_t)~0;
         scs->tf_params_per_type[1].sub_sampling_shift = 0;
         scs->tf_params_per_type[1].use_fast_filter = 0;
@@ -3171,7 +3180,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         //for Low Delay, filter only the base B , as Intra is not delayed.
         //if speed not a concern we can add layer1 B
 
-        // I_SLICE TF Params
+        // I_SLICE TF Params //anaghdin
         scs->tf_params_per_type[0].enabled = 0;
 
         // BASE TF Params
@@ -3240,7 +3249,11 @@ static void derive_tf_params(SequenceControlSet *scs) {
             tf_level = 0;
         else
             tf_level = scs->static_config.screen_content_mode == 1 ? 0 :
-            (enc_mode <= ENC_M9 ) ? 1 : enc_mode <= ENC_M12 && (scs->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+#if OPT_LD_TF
+            (enc_mode <= ENC_M9 ) ? 1 : enc_mode <= ENC_M13 && (scs->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+#else
+            (enc_mode <= ENC_M9) ? 1 : enc_mode <= ENC_M12 && (scs->input_resolution >= INPUT_SIZE_720p_RANGE) ? 2 : 0;
+#endif
 
         tf_ld_controls(scs, tf_level);
         return;

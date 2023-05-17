@@ -4554,7 +4554,9 @@ static EbErrorType produce_temporally_filtered_pic(
         FP_ASSERT(TF_FILTER_STRENGTH == 5);
         FP_ASSERT(TF_STRENGTH_THRESHOLD == 4);
         FP_ASSERT(TF_Q_DECAY_THRESHOLD == 20);
-
+#if OPT_LD_TF
+        uint32_t q_decay_fp8 = 256;
+#else
         int offset_idx;
         if (!centre_pcs->is_ref)
             offset_idx = -1;
@@ -4597,6 +4599,7 @@ static EbErrorType produce_temporally_filtered_pic(
             FP_ASSERT(q < (1 << 15));
             q_decay_fp8 = (q * q) >> 5;
         }
+#endif
 
         const int32_t const_0dot7_fp16 = 45875; //0.7
         /*Calculation of log and dceay_factor possible to move to estimate_noise() and calculate one time for GOP*/
@@ -4811,13 +4814,23 @@ static EbErrorType produce_temporally_filtered_pic(
                         centre_pcs->tf_ctrls.subpel_early_exit;
                     // Perform ME - context_ptr will store the outputs (MVs, buffers, etc)
                     // Block-based MC using open-loop HME + refinement
+#if !OPT_LD_TF
                     svt_aom_motion_estimation_b64(centre_pcs,
                         (uint32_t)blk_row * blk_cols + blk_col,
                         (uint32_t)blk_col * BW, // x block
                         (uint32_t)blk_row * BH, // y block
                         ctx,
                         input_picture_ptr_central); // source picture
-
+#endif
+#if OPT_LD_TF
+                    ctx->p_best_mv64x64[0] = 0;
+                    ctx->search_results[0][0].hme_sc_x = 0;
+                    ctx->search_results[0][0].hme_sc_y = 0;
+                    ctx->p_best_mv32x32[0] = 0;
+                    ctx->p_best_mv32x32[1] = 0;
+                    ctx->p_best_mv32x32[2] = 0;
+                    ctx->p_best_mv32x32[3] = 0;
+#endif
                     if (ctx->tf_use_pred_64x64_only_th &&
                         (ctx->tf_use_pred_64x64_only_th == (uint8_t)~0 ||
                          tf_use_64x64_pred(ctx))) {
@@ -4849,7 +4862,84 @@ static EbErrorType produce_temporally_filtered_pic(
                                                   ss_x,
                                                   encoder_bit_depth);
 
-                    } else {
+                    }
+                    else {
+#if OPT_LD_TF
+                        tf_64x64_inter_prediction(centre_pcs,
+                            ctx,
+                            pcs_list[frame_index],
+                            list_input_picture_ptr[frame_index],
+                            pred,
+                            pred_16bit,
+                            (uint32_t)blk_col * BW,
+                            (uint32_t)blk_row * BH,
+                            ss_x,
+                            encoder_bit_depth);
+
+                        ctx->tf_32x32_mv_x[0] = ctx->tf_64x64_mv_x;
+                        ctx->tf_32x32_mv_y[0] = ctx->tf_64x64_mv_y;
+
+                        ctx->tf_32x32_mv_x[1] = ctx->tf_64x64_mv_x;
+                        ctx->tf_32x32_mv_y[1] = ctx->tf_64x64_mv_y;
+
+                        ctx->tf_32x32_mv_x[2] = ctx->tf_64x64_mv_x;
+                        ctx->tf_32x32_mv_y[2] = ctx->tf_64x64_mv_y;
+
+                        ctx->tf_32x32_mv_x[3] = ctx->tf_64x64_mv_x;
+                        ctx->tf_32x32_mv_y[3] = ctx->tf_64x64_mv_y;
+
+                        ctx->tf_32x32_block_split_flag[0] = 0;
+                        ctx->tf_32x32_block_split_flag[1] = 0;
+                        ctx->tf_32x32_block_split_flag[2] = 0;
+                        ctx->tf_32x32_block_split_flag[3] = 0;
+
+                        // Update the 32x32 block-error
+                        for (int block_row = 0; block_row < 2; block_row++) {
+                            for (int block_col = 0; block_col < 2; block_col++) {
+
+                                uint32_t bsize = 32;
+                                uint64_t distortion;
+                                ctx->idx_32x32 = block_col + (block_row << 1);
+
+                                if (!is_highbd) {
+                                    uint8_t* pred_y_ptr = pred[C_Y] + bsize * block_row * stride_pred[C_Y] + bsize * block_col;
+                                    uint8_t* src_y_ptr = src_center_ptr[C_Y] + bsize * block_row * stride[C_Y] + bsize * block_col;
+
+                                    const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
+                                        : &svt_aom_mefn_ptr[BLOCK_32X32];
+                                    unsigned int            sse;
+                                    distortion = fn_ptr->vf(pred_y_ptr,
+                                        stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                        src_y_ptr,
+                                        stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                        &sse)
+                                        << centre_pcs->tf_ctrls.sub_sampling_shift;
+                                }
+                                else {
+                                    uint16_t* pred_y_ptr = pred_16bit[C_Y] +
+                                        bsize * block_row * stride_pred[C_Y] +
+                                        bsize * block_col;
+                                    uint16_t* src_y_ptr = altref_buffer_highbd_ptr[C_Y] +
+                                        bsize * block_row * stride[C_Y] +
+                                        bsize * block_col;
+                                    const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
+                                        : &svt_aom_mefn_ptr[BLOCK_32X32];
+
+                                    unsigned int sse;
+
+                                    distortion = fn_ptr->vf_hbd_10(CONVERT_TO_BYTEPTR(pred_y_ptr),
+                                        stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                        CONVERT_TO_BYTEPTR(src_y_ptr),
+                                        stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                        &sse)
+                                        << centre_pcs->tf_ctrls.sub_sampling_shift;
+                                }
+                                ctx->tf_32x32_block_error[ctx->idx_32x32] = distortion;
+                            }
+                        }
+                    }
+
+#else
                         // 64x64 Sub-Pel search
                         tf_64x64_sub_pel_search(
                             centre_pcs,
@@ -4866,7 +4956,6 @@ static EbErrorType produce_temporally_filtered_pic(
                             (uint32_t)blk_row* BH,
                             ss_x,
                             (ctx->tf_ctrls.use_8bit_subpel) ? EB_EIGHT_BIT : encoder_bit_depth);
-
 
                         // 32x32 Sub-Pel search
                         for (int block_row = 0; block_row < 2; block_row++) {
@@ -4899,7 +4988,6 @@ static EbErrorType produce_temporally_filtered_pic(
                             ctx->tf_32x32_block_error[1] +
                             ctx->tf_32x32_block_error[2] +
                             ctx->tf_32x32_block_error[3];
-
                         if ((ctx->tf_64x64_block_error * 14 < sum_32x32_block_error * 16) &&
                             ctx->tf_64x64_block_error < (1 << 18)) {
 
@@ -4975,7 +5063,6 @@ static EbErrorType produce_temporally_filtered_pic(
                                     ctx->tf_32x32_block_error[ctx->idx_32x32] = distortion;
                                 }
                             }
-
                         }
                         else {
                             // 16x16 Sub-Pel search, and 32x32 partitioning
@@ -5022,11 +5109,16 @@ static EbErrorType produce_temporally_filtered_pic(
                             }
                         }
                     }
+#endif
+
 
                     for (int block_row = 0; block_row < 2; block_row++) {
                         for (int block_col = 0; block_col < 2; block_col++) {
                             ctx->tf_block_col = block_col;
                             ctx->tf_block_row = block_row;
+#if 0//OPT_LD_TF
+                            if (ctx->tf_32x32_block_error[block_row * 2 + block_col] < 40000)
+#endif
                             apply_filtering_block_plane_wise(ctx,
                                                              block_row,
                                                              block_col,
@@ -5361,8 +5453,15 @@ EbErrorType svt_av1_init_temporal_filtering(
     MotionEstimationContext_t *me_context_ptr, int32_t segment_index) {
     uint8_t              index_center;
     EbPictureBufferDesc *central_picture_ptr;
-
+#if OPT_LD_TF
+    me_context_ptr->me_ctx->tf_chroma = centre_pcs->tf_ctrls.do_chroma == 1 ? 1 :
+        centre_pcs->tf_ctrls.do_chroma == 2 && (centre_pcs->noise_levels_log1p_fp16[0] < centre_pcs->noise_levels_log1p_fp16[1] ||
+            centre_pcs->noise_levels_log1p_fp16[0] < centre_pcs->noise_levels_log1p_fp16[2] ||
+            centre_pcs->noise_levels[0] < centre_pcs->noise_levels[1] ||
+            centre_pcs->noise_levels[0] < centre_pcs->noise_levels[2]) ? 1 : 0;
+#else
     me_context_ptr->me_ctx->tf_chroma = centre_pcs->tf_ctrls.do_chroma;
+#endif
 
     me_context_ptr->me_ctx->tf_ctrls = centre_pcs->tf_ctrls;
 

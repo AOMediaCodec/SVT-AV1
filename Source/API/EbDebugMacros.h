@@ -45,6 +45,8 @@ extern "C" {
 #define OPT_LD_PD0              1 // Opimize PD0 interdepth decision
 #define OPT_LD_EN_BASE_FRAME    1 // change ld_enchanced_base_frame frequency
 
+#define OPT_LD_TF               1
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

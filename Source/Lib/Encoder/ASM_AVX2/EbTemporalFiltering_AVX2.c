@@ -1528,7 +1528,11 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
                   ((int64_t)1 << 31));
         uint32_t scaled_diff16 = AOMMIN(
             /*((16*avg_err)<<8)*/ (avg_err_fp10) / AOMMAX((tf_decay_factor >> 10), 1), 7 * 16);
+#if OPT_LD_TF
+        uint32_t adjusted_weight = (expf_tab_fp16[scaled_diff16] * TF_WEIGHT_SCALE) >> 17;
+#else
         uint32_t adjusted_weight = (expf_tab_fp16[scaled_diff16] * TF_WEIGHT_SCALE) >> 16;
+#endif
 
         adjusted_weight_int16[subblock_idx] = _mm_set1_epi16((int16_t)(adjusted_weight));
         adjusted_weight_int32[subblock_idx] = _mm256_set1_epi32((int32_t)(adjusted_weight));
