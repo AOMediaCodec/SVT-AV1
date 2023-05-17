@@ -2053,7 +2053,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     pcs->adjust_under_shoot_gf = 0;
     if (scs->passes == 1 && scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR)
         pcs->adjust_under_shoot_gf = enc_mode <= ENC_M11 ? 1 : 2;
+#if OPT_LD_EN_BASE_FRAME
+    const uint8_t ld_enhanced_base_frame_interval = 12;
+#else
     const uint8_t ld_enhanced_base_frame_interval = 16;
+#endif
     pcs->ld_enhanced_base_frame                   = (rtc_tune && is_base && !is_islice &&
                                    ((pcs->picture_number - scs->enc_ctx->last_idr_picture) %
                                         ld_enhanced_base_frame_interval ==
