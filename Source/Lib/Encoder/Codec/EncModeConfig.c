@@ -1642,6 +1642,7 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
     }
     return dlf_level;
 }
+
 static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level,
                                      uint8_t bit_depth) {
     DlfCtrls *ctrls = &pcs->dlf_ctrls;
@@ -1653,6 +1654,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 0;
+#endif
         break;
     case 1:
         ctrls->enabled                = 1;
@@ -1661,6 +1665,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 0;
+#endif
         break;
     case 2:
         ctrls->enabled                = 1;
@@ -1669,6 +1676,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 1;
         ctrls->dlf_avg_uv             = 1;
         ctrls->early_exit_convergence = 1;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 0;
+#endif
         break;
     case 3:
         ctrls->enabled          = 1;
@@ -1678,6 +1688,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 0;
+#endif
         break;
     case 4:
         ctrls->enabled                = 1;
@@ -1686,6 +1699,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 1;
+#endif
         break;
     case 5:
         ctrls->enabled                = 1;
@@ -1694,6 +1710,9 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if OPT_LD_DLF
+        ctrls->dlf_lvl                = 2;
+#endif
         break;
     default: assert(0); break;
     }

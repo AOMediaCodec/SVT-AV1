@@ -21,7 +21,15 @@
 #include "EbReferenceObject.h"
 #include "EbCommonUtils.h"
 //#include "EbLog.h"
-
+#if OPT_LD_DLF
+#define DLF_MAX_LVL 3
+const uint32_t inter_frame_multiplier[INPUT_SIZE_COUNT] = {
+    6017, 6017, 6017, 12034, 12034, 12034, 12034};
+const uint32_t disable_dlf_th[DLF_MAX_LVL][INPUT_SIZE_COUNT] = {
+    {100, 200, 500, 800, 1000, 1300, 1600},
+    {900, 1000, 2000, 3000, 4000, 6000, 7000},
+    {6000, 7000, 8000, 9000, 10000, 20000, 30000}};
+#endif
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 /*************************************************************************************************
  * svt_av1_loop_filter_init
@@ -1220,7 +1228,11 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
                                       PictureControlSet *pcs, LpfPickMethod method) {
     SequenceControlSet *scs     = pcs->scs;
     FrameHeader        *frm_hdr = &pcs->ppcs->frm_hdr;
-
+#if OPT_LD_DLF
+    const bool rtc_tune  = pcs->rtc_tune ? true : false;
+    const in_res = pcs->ppcs->input_resolution;
+    const ifmult = rtc_tune ? inter_frame_multiplier[in_res] :6017;
+#endif
     (void)srcBuffer;
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;
     lf->sharpness_level         = 0;
@@ -1274,7 +1286,11 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         case EB_EIGHT_BIT:
             filt_guess = (frm_hdr->frame_type == KEY_FRAME)
                 ? ROUND_POWER_OF_TWO(q * 17563 - 421574, 18)
+#if OPT_LD_DLF
+                : ROUND_POWER_OF_TWO(q * ifmult + 650707, 18);
+#else
                 : ROUND_POWER_OF_TWO(q * 6017 + 650707, 18);
+#endif
             break;
         case EB_TEN_BIT: filt_guess = ROUND_POWER_OF_TWO(q * 20723 + 4060632, 20); break;
         case EB_TWELVE_BIT: filt_guess = ROUND_POWER_OF_TWO(q * 20723 + 16242526, 22); break;
@@ -1287,11 +1303,35 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         if (scs->static_config.encoder_bit_depth != EB_EIGHT_BIT &&
             frm_hdr->frame_type == KEY_FRAME)
             filt_guess -= 4;
-
+#if OPT_LD_DLF
+        int32_t filt_guess_chroma = filt_guess/2;
+        if(pcs->rtc_tune){
+            if (pcs->slice_type != I_SLICE) {
+                uint32_t total_me_sad        = 0;
+                for (uint16_t b64_index = 0; b64_index < pcs->b64_total_count; ++b64_index) {
+                    total_me_sad += pcs->ppcs->rc_me_distortion[b64_index];
+                }
+                uint32_t average_me_sad = total_me_sad / pcs->b64_total_count;
+                const uint32_t bypass_tf_th =
+                    disable_dlf_th[pcs->ppcs->dlf_ctrls.dlf_lvl][in_res] *
+                    (pcs->temporal_layer_index + 1);
+                if (average_me_sad < bypass_tf_th)
+                    filt_guess = 0;
+                if (average_me_sad < (bypass_tf_th * 2))
+                    filt_guess_chroma = 0;
+            }
+        } else {
+            filt_guess = filt_guess > 2 ? filt_guess - 2
+                : filt_guess > 1        ? filt_guess - 1
+                                        : filt_guess;
+            filt_guess = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
+            filt_guess_chroma = filt_guess > 1 ? filt_guess / 2 : filt_guess;
+        }
+#else
         filt_guess = filt_guess > 2 ? filt_guess - 2 : filt_guess > 1 ? filt_guess - 1 : filt_guess;
         filt_guess = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
         int32_t filt_guess_chroma = filt_guess > 1 ? filt_guess / 2 : filt_guess;
-
+#endif
         // Force filter_level to 0 if loop-filter is shut for 1 (or many) of the sub-layer reference frame(s)
         lf->filter_level[0] = min_ref_filter_level[0] || !pcs->ppcs->temporal_layer_index
             ? clamp(filt_guess, min_filter_level, max_filter_level)
