@@ -199,7 +199,10 @@ In some applications such as AR / VR, identifying the ROI (Region Of Interest) h
 usage where it's needed. This is realized by allowing applications to pass a picture based ROI map to the encoder.
 
 The QP Offset Map file contains one or more picture based QP offset maps. Every line consists of a frame number and
-the QP offsets for each 64x64 block set in a row-by-row order.
+the QP offsets for each 64x64 block set in a row-by-row order. Below is an example ROI map file for a 352x288 content:
+```bash
+0 12 -32 -32 -32 -32 -32 12 -32 -32 -32 -32 -32 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16
+```
 
 The encoder uses alternate quantizer segment feature to set block level qindex and uses alternate loop filter segment feature to set loop filter strength level.
 When both AQ mode 1 (variance base adaptive QP) and ROI are enabled, segment QP is decided by ROI map instead of by variance.
