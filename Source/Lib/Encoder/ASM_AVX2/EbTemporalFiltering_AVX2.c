@@ -1429,10 +1429,12 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
     unsigned int i, j, k, subblock_idx;
 
     int32_t  idx_32x32               = me_ctx->tf_block_col + me_ctx->tf_block_row * 2;
+#if !OPT_LD_TF
     uint32_t distance_threshold_fp16 = AOMMAX((me_ctx->min_frame_size << 16) / 10, 1 << 16);
 
     //Calculation for every quarter
     uint32_t  d_factor_fp8[4];
+#endif
     uint32_t  block_error_fp8[4];
     uint32_t  chroma_window_error_quad_fp8[4];
     uint32_t *window_error_quad_fp8 = is_chroma ? chroma_window_error_quad_fp8
@@ -1440,16 +1442,19 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
 
     if (me_ctx->tf_32x32_block_split_flag[idx_32x32]) {
         for (i = 0; i < 4; ++i) {
+#if !OPT_LD_TF
             int32_t col = me_ctx->tf_16x16_mv_x[idx_32x32 * 4 + i];
             int32_t row = me_ctx->tf_16x16_mv_y[idx_32x32 * 4 + i];
             //const float  distance = sqrtf((float)col*col + row*row);
             uint32_t distance_fp4 = sqrt_fast(((uint32_t)(col * col + row * row)) << 8);
             d_factor_fp8[i] = AOMMAX((distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
             FP_ASSERT(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] < ((uint64_t)1 << 31));
+#endif
             //block_error[i] = (double)me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] / 256;
             block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i]);
         }
     } else {
+#if !OPT_LD_TF
         int32_t col = me_ctx->tf_32x32_mv_x[idx_32x32];
         int32_t row = me_ctx->tf_32x32_mv_y[idx_32x32];
 
@@ -1458,11 +1463,12 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
         d_factor_fp8[0] = d_factor_fp8[1] = d_factor_fp8[2] = d_factor_fp8[3] = AOMMAX(
             (distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
         FP_ASSERT(me_ctx->tf_32x32_block_error[idx_32x32] < ((uint64_t)1 << 30));
+#endif
         //block_error[0] = block_error[1] = block_error[2] = block_error[3] = (double)me_ctx->tf_32x32_block_error[idx_32x32] / 1024;
         block_error_fp8[0] = block_error_fp8[1] = block_error_fp8[2] = block_error_fp8[3] =
             (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 2);
     }
-
+#if !OPT_LD_TF
     if (block_width == 32) {
         ////(((sum<<4) /bw_half)<<4)/bh_half;
         ////(((sum<<4) /16)<<4)/16;
@@ -1513,11 +1519,17 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
                 6;
         }
     }
+#endif
 
     __m128i adjusted_weight_int16[4];
     __m256i adjusted_weight_int32[4];
 
     for (subblock_idx = 0; subblock_idx < 4; subblock_idx++) {
+#if OPT_LD_TF
+        uint32_t avg_err_fp10 = (block_error_fp8[subblock_idx] )<<2;
+        FP_ASSERT((((int64_t)block_error_fp8[subblock_idx] )<< 2) <
+            ((int64_t)1 << 31));
+#else
         uint32_t combined_error_fp8 = (window_error_quad_fp8[subblock_idx] *
                                            TF_WINDOW_BLOCK_BALANCE_WEIGHT +
                                        block_error_fp8[subblock_idx]) /
@@ -1526,6 +1538,7 @@ static void svt_av1_apply_temporal_filter_planewise_medium_partial_avx2(
         uint32_t avg_err_fp10 = ((combined_error_fp8 >> 3) * (d_factor_fp8[subblock_idx] >> 3));
         FP_ASSERT((((int64_t)combined_error_fp8 >> 3) * (d_factor_fp8[subblock_idx] >> 3)) <
                   ((int64_t)1 << 31));
+#endif
         uint32_t scaled_diff16 = AOMMIN(
             /*((16*avg_err)<<8)*/ (avg_err_fp10) / AOMMAX((tf_decay_factor >> 10), 1), 7 * 16);
 #if OPT_LD_TF

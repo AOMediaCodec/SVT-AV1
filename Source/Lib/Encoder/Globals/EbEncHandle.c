@@ -525,8 +525,8 @@ static EbErrorType load_default_buffer_configuration_settings(
     if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF)
     {
 #if OPT_LD_TF
-        scs->tf_segment_column_count = me_seg_w;//1;//
-        scs->tf_segment_row_count = me_seg_h;//1;//
+        scs->tf_segment_column_count = me_seg_w;
+        scs->tf_segment_row_count = me_seg_h;
 #else
         scs->tf_segment_column_count = 15;
         scs->tf_segment_row_count = 15;
@@ -2658,7 +2658,11 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
 
     case 1:
         // I_SLICE TF Params
+#if OPT_LD_TF
+        scs->tf_params_per_type[0].enabled = 0;
+#else
         scs->tf_params_per_type[0].enabled = 1;
+#endif
         // BASE TF Params
         scs->tf_params_per_type[1].enabled = 1;
         scs->tf_params_per_type[1].num_past_pics = 2;

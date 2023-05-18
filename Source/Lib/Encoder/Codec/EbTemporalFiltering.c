@@ -4678,9 +4678,10 @@ static EbErrorType produce_temporally_filtered_pic(
                 (blk_row * blk_height_ch) * stride[C_U];
 
             // reset accumulator and count
+#if !OPT_LD_TF
             memset(accumulator, 0, BLK_PELS * COLOR_CHANNELS * sizeof(accumulator[0]));
             memset(counter, 0, BLK_PELS * COLOR_CHANNELS * sizeof(counter[0]));
-
+#endif
             EbByte    src_center_ptr[COLOR_CHANNELS]           = {NULL};
             uint16_t *altref_buffer_highbd_ptr[COLOR_CHANNELS] = {NULL};
             // Prep 8bit source if 8bit content or using 8bit for subpel
@@ -4735,6 +4736,7 @@ static EbErrorType produce_temporally_filtered_pic(
                 me_context_ptr->me_ctx->tf_index_center = index_center;
                 // if frame to process is the center frame
                 if (frame_index == index_center) {
+#if !OPT_LD_TF
                     // skip MC (central frame)
                     if (!is_highbd) {
                         svt_aom_pic_copy_kernel_8bit(
@@ -4775,6 +4777,7 @@ static EbErrorType produce_temporally_filtered_pic(
                                                   blk_height_ch);
                         }
                     }
+#endif
 
                 } else {
                     // Initialize ME context
@@ -5116,9 +5119,7 @@ static EbErrorType produce_temporally_filtered_pic(
                         for (int block_col = 0; block_col < 2; block_col++) {
                             ctx->tf_block_col = block_col;
                             ctx->tf_block_row = block_row;
-#if 0//OPT_LD_TF
-                            if (ctx->tf_32x32_block_error[block_row * 2 + block_col] < 40000)
-#endif
+
                             apply_filtering_block_plane_wise(ctx,
                                                              block_row,
                                                              block_col,
