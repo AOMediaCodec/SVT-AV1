@@ -608,7 +608,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     me_ctx->use_best_unipred_cand_only = pcs->use_best_me_unipred_cand_only;
     if (enc_mode <= ENC_M5)
         me_ctx->me_early_exit_th = 0;
+#if OPT_LD_M12
+    else if (enc_mode <= ENC_M11 || (!rtc_tune && enc_mode <= ENC_M13))
+#else
     else if (enc_mode <= ENC_M12 || (!rtc_tune && enc_mode <= ENC_M13))
+#endif
         me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
     else
         me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
@@ -7803,7 +7807,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     Do not test this signal in M12 and below during preset tuning.  This signal should be kept as an enc_mode check
     instead of and LPD1_LEVEL check to ensure that M12 and below do not use it.
     */
+#if OPT_LD_M12
+    if (pcs->enc_mode >= ENC_M12) {
+#else
     if (pcs->enc_mode >= ENC_M13) {
+#endif
         if (lpd1_level <= LPD1_LVL_4)
             ctx->lpd1_tx_ctrls.chroma_detector_level = 4;
         else
@@ -7818,7 +7826,11 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     instead of and LPD1_LEVEL check to ensure that M12 and below do not use it.
     */
     if (rtc_tune) {
+#if OPT_LD_M12
+        if ((!pcs->ppcs->sc_class1 && pcs->enc_mode <= ENC_M11) ||
+#else
         if ((!pcs->ppcs->sc_class1 && pcs->enc_mode <= ENC_M12) ||
+#endif
             (pcs->ppcs->sc_class1 && pcs->enc_mode <= ENC_M11))
             ctx->lpd1_skip_inter_tx_level = 0;
         else {
