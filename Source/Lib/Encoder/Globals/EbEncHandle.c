@@ -4102,7 +4102,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
     // MRP level
     uint8_t mrp_level;
     if (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) {
+#if OPT_LD_M11
+        if (scs->static_config.enc_mode <= ENC_M10) {
+#else
         if (scs->static_config.enc_mode <= ENC_M11) {
+#endif
             mrp_level = 8;
         }
         else {

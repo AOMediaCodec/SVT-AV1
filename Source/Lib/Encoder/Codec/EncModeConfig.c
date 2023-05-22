@@ -4955,7 +4955,11 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
             nic_level = 15;
         else
             nic_level = 14;
+#if OPT_LD_M11
+    } else if (enc_mode <= ENC_M11)
+#else
     } else if (enc_mode <= ENC_M10)
+#endif
         nic_level = 15;
     else if (enc_mode <= ENC_M11)
         if (rtc_tune)
@@ -7494,7 +7498,11 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
     if (!rtc_tune)
         ctx->pd1_lvl_refinement = 0;
     else if ((pcs->ppcs->sc_class1 && enc_mode <= ENC_M10) ||
+#if OPT_LD_M11
+             (!pcs->ppcs->sc_class1 && enc_mode <= ENC_M10))
+#else
              (!pcs->ppcs->sc_class1 && enc_mode <= ENC_M11))
+#endif
         ctx->pd1_lvl_refinement = 1;
     else
         ctx->pd1_lvl_refinement = 2;
@@ -8688,7 +8696,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     // Set the level for the txt search
     pcs->txt_level = 0;
     if (rtc_tune) {
+#if OPT_LD_M11
+        if ((!pcs->ppcs->sc_class1 && (enc_mode <= ENC_M11)) ||
+#else
         if ((!pcs->ppcs->sc_class1 && (enc_mode <= ENC_M10)) ||
+#endif
             (pcs->ppcs->sc_class1 && (enc_mode <= ENC_M11))) {
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->txt_level = is_base ? 4 : 5;
@@ -9304,7 +9316,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         }
     }
     if (is_base && !pcs->ppcs->ld_enhanced_base_frame && pcs->slice_type != I_SLICE &&
+#if OPT_LD_M11
+        enc_mode > ENC_M10 && pcs->rtc_tune)
+#else
         enc_mode > ENC_M11 && pcs->rtc_tune)
+#endif
         pcs->pic_lpd1_lvl = pcs->pic_lpd1_lvl + 1;
     // Can only use light-PD1 under the following conditions
     // There is another check before PD1 is called; pred_depth_only is not checked here, because some modes
