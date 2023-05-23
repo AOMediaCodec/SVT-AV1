@@ -488,13 +488,8 @@ static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *
         me_ctx->hme_l0_sa.sa_max = (SearchArea){4, 4};
         me_ctx->hme_l1_sa        = (SearchArea){8, 8};
         me_ctx->hme_l2_sa        = (SearchArea){8, 8};
-#if OPT_LD_TF
-        me_ctx->me_sa.sa_min = (SearchArea) { 1, 1 };
-        me_ctx->me_sa.sa_max = (SearchArea) {1, 1 };
-#else
         me_ctx->me_sa.sa_min     = (SearchArea){8, 8};
         me_ctx->me_sa.sa_max     = (SearchArea){8, 8};
-#endif
         break;
 
     default: assert(0); break;
@@ -1883,13 +1878,8 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
 
     case 2:
     case 3:
-#if OPT_LD_TF
-        pcs->tf_enable_hme_flag        = 0;
-        pcs->tf_enable_hme_level0_flag = 0;
-#else
         pcs->tf_enable_hme_flag        = 1;
         pcs->tf_enable_hme_level0_flag = 1;
-#endif
         pcs->tf_enable_hme_level1_flag = 0;
         pcs->tf_enable_hme_level2_flag = 0;
         break;

@@ -2665,7 +2665,11 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
 #endif
         // BASE TF Params
         scs->tf_params_per_type[1].enabled = 1;
+#if OPT_LD_TF
+        scs->tf_params_per_type[1].num_past_pics = 1;
+#else
         scs->tf_params_per_type[1].num_past_pics = 2;
+#endif
         scs->tf_params_per_type[1].num_future_pics = 0;
         scs->tf_params_per_type[1].noise_adjust_past_pics = 0;
         scs->tf_params_per_type[1].noise_adjust_future_pics = 0;
@@ -2680,6 +2684,9 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].sub_sampling_shift = 0;
         scs->tf_params_per_type[1].use_fast_filter = 0;
         scs->tf_params_per_type[1].use_medium_filter = 1;
+#if OPT_LD_TF
+        scs->tf_params_per_type[1].use_zz_based_filter = 1;
+#endif
         scs->tf_params_per_type[1].avoid_2d_qpel = 0;
         scs->tf_params_per_type[1].use_2tap = 0;
         scs->tf_params_per_type[1].use_intra_for_noise_est = 0;
@@ -2716,6 +2723,9 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].sub_sampling_shift = 0;
         scs->tf_params_per_type[1].use_fast_filter = 0;
         scs->tf_params_per_type[1].use_medium_filter = 1;
+#if OPT_LD_TF
+        scs->tf_params_per_type[1].use_zz_based_filter = 1;
+#endif
         scs->tf_params_per_type[1].avoid_2d_qpel = 0;
         scs->tf_params_per_type[1].use_2tap = 0;
         scs->tf_params_per_type[1].use_intra_for_noise_est = 0;
@@ -3178,6 +3188,12 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         assert(0);
         break;
     }
+
+#if OPT_LD_TF
+    scs->tf_params_per_type[0].use_zz_based_filter = 0;
+    scs->tf_params_per_type[1].use_zz_based_filter = 0;
+    scs->tf_params_per_type[2].use_zz_based_filter = 0;
+#else
     if (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B ||
         scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P)
     {
@@ -3197,6 +3213,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         // L1 TF Params
         scs->tf_params_per_type[2].enabled = 0;
     }
+#endif
     scs->tf_params_per_type[0].use_fixed_point = 1;
     scs->tf_params_per_type[1].use_fixed_point = 1;
     scs->tf_params_per_type[2].use_fixed_point = 1;
