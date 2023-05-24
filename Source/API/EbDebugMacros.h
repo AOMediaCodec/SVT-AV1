@@ -49,6 +49,7 @@ extern "C" {
 
 #define OPT_LD_M12              1
 #define OPT_LD_M11              1
+#define OPT_LD_M10              1
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

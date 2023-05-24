@@ -4176,9 +4176,15 @@ static void set_param_based_on_input(SequenceControlSet *scs)
                                                 scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CBR
         ? 1
         : 0;
+#if OPT_LD_M10
+    scs->low_latency_kf = ((scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
+        || scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
+        scs->static_config.enc_mode <= ENC_M10)
+#else
     scs->low_latency_kf = ((scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_P
         || scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) &&
         scs->static_config.enc_mode <= ENC_M9)
+#endif
         ? 1
         : 0;
 }

@@ -95,7 +95,11 @@ static void set_hme_search_params(PictureParentControlSet *pcs, MeContext *me_ct
             me_ctx->hme_l0_sa.sa_min = (SearchArea){32, 32};
             me_ctx->hme_l0_sa.sa_max = (SearchArea){192, 192};
         }
+#if OPT_LD_M10
+    } else if ((!rtc_tune && pcs->enc_mode <= ENC_M11) || (rtc_tune && pcs->enc_mode <= ENC_M9)) {
+#else
     } else if ((!rtc_tune && pcs->enc_mode <= ENC_M11) || (rtc_tune && pcs->enc_mode <= ENC_M10)) {
+#endif
         if (pcs->sc_class1) {
             me_ctx->hme_l0_sa.sa_min = (SearchArea){32, 32};
             me_ctx->hme_l0_sa.sa_max = (SearchArea){192, 192};
@@ -140,7 +144,11 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
         if (pcs->sc_class1 && pcs->enc_mode <= ENC_M9) {
             me_ctx->me_sa.sa_min = (SearchArea){32, 32};
             me_ctx->me_sa.sa_max = (SearchArea){96, 96};
+#if OPT_LD_M10
+        } else if (pcs->enc_mode <= ENC_M10) {
+#else
         } else if (pcs->enc_mode <= ENC_M9) {
+#endif
             if (input_resolution < INPUT_SIZE_1080p_RANGE) {
                 me_ctx->me_sa.sa_min = (SearchArea){16, 16};
                 me_ctx->me_sa.sa_max = (SearchArea){32, 16};
@@ -529,7 +537,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
             me_ctx->reduce_hme_l0_sr_th_min = 0;
             me_ctx->reduce_hme_l0_sr_th_max = 0;
         }
+#if OPT_LD_M10
+    } else if (pcs->enc_mode <= ENC_M9) {
+#else
     } else if (pcs->enc_mode <= ENC_M10) {
+#endif
         me_ctx->reduce_hme_l0_sr_th_min = 0;
         me_ctx->reduce_hme_l0_sr_th_max = 0;
     } else if (pcs->enc_mode <= ENC_M11) {
@@ -549,7 +561,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     if (pcs->sc_class1)
         prehme_level = rtc_tune ? 1 : 2;
     else if (rtc_tune) {
+#if OPT_LD_M10
+        if (enc_mode <= ENC_M9)
+#else
         if (enc_mode <= ENC_M10)
+#endif
             prehme_level = 2;
         else if (enc_mode <= ENC_M12)
             prehme_level = 4;
@@ -1610,7 +1626,11 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
                 dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 4 : 0);
             else
                 dlf_level = is_ref ? 5 : 0;
+#if OPT_LD_M10
+        } else if (enc_mode <= ENC_M9)
+#else
         } else if (enc_mode <= ENC_M10)
+#endif
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 3 : 5);
         else if (enc_mode <= ENC_M11)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_ref ? 4 : 0);
