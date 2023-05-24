@@ -2080,13 +2080,8 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
 #if OPT_LD_TF
         if (me_ctx->tf_ctrls.use_zz_based_filter) {
             svt_av1_apply_zz_based_temporal_filter_planewise_medium(me_ctx,
-                src_ptr[C_Y],
-                stride[C_Y],
                 pred_ptr[C_Y],
                 stride_pred[C_Y],
-                src_ptr[C_U],
-                src_ptr[C_V],
-                stride[C_U],
                 pred_ptr[C_U],
                 pred_ptr[C_V],
                 stride_pred[C_U],
@@ -2176,13 +2171,8 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
 #if OPT_LD_TF
         if (me_ctx->tf_ctrls.use_zz_based_filter) {
             svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd(me_ctx,
-                src_ptr_16bit[C_Y],
-                stride[C_Y],
                 pred_ptr_16bit[C_Y],
                 stride_pred[C_Y],
-                src_ptr_16bit[C_U],
-                src_ptr_16bit[C_V],
-                stride[C_U],
                 pred_ptr_16bit[C_U],
                 pred_ptr_16bit[C_V],
                 stride_pred[C_U],
