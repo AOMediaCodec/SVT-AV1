@@ -1435,10 +1435,9 @@ void svt_av1_apply_temporal_filter_planewise_fast_hbd_c(
 *   point will be modified.
 ***************************************************************************************************/
 static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_partial_c(
-    struct MeContext *me_ctx, const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre,
+    struct MeContext *me_ctx, const uint8_t *y_pre,
     int y_pre_stride, unsigned int block_width, unsigned int block_height, uint32_t *y_accum,
-    uint16_t *y_count, const uint32_t tf_decay_factor_fp16, uint32_t luma_window_error_quad_fp8[4],
-    int is_chroma) {
+    uint16_t *y_count, const uint32_t tf_decay_factor_fp16) {
     unsigned int i, j, subblock_idx;
 
     // Decay factors for non-local mean approach.
@@ -1551,10 +1550,10 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_c(
 *   point will be modified.
 ***************************************************************************************************/
 static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_c(
-    struct MeContext *me_ctx, const uint16_t *y_src, int y_src_stride, const uint16_t *y_pre,
+    struct MeContext *me_ctx, const uint16_t *y_pre,
     int y_pre_stride, unsigned int block_width, unsigned int block_height, uint32_t *y_accum,
-    uint16_t *y_count, const uint32_t tf_decay_factor_fp16, uint32_t luma_window_error_quad_fp8[4],
-    int is_chroma, uint32_t encoder_bit_depth) {
+    uint16_t *y_count, const uint32_t tf_decay_factor_fp16,
+    uint32_t encoder_bit_depth) {
     unsigned int i, j, subblock_idx;
     // Decay factors for non-local mean approach.
     // Larger noise -> larger filtering weight.
@@ -5367,7 +5366,7 @@ static EbErrorType produce_temporally_filtered_pic_ld(
     EbPictureBufferDesc **list_input_picture_ptr, uint8_t index_center,
     MotionEstimationContext_t *me_context_ptr,
     const int32_t *noise_levels_log1p_fp16,
-    const double *noise_levels, int32_t segment_index, Bool is_highbd) {
+    int32_t segment_index, Bool is_highbd) {
     DECLARE_ALIGNED(16, uint32_t, accumulator[BLK_PELS * COLOR_CHANNELS]);
     DECLARE_ALIGNED(16, uint16_t, counter[BLK_PELS * COLOR_CHANNELS]);
     uint32_t *accum[COLOR_CHANNELS] = {
@@ -5464,7 +5463,6 @@ static EbErrorType produce_temporally_filtered_pic_ld(
         if (scs->static_config.qp <= ALT_REF_QP_THRESH)
             decay_control--;
     }
-    const int bit_depth = scs->static_config.encoder_bit_depth;
     FP_ASSERT(TF_FILTER_STRENGTH == 5);
     FP_ASSERT(TF_STRENGTH_THRESHOLD == 4);
     FP_ASSERT(TF_Q_DECAY_THRESHOLD == 20);
