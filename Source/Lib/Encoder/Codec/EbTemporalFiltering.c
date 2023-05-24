@@ -1491,45 +1491,33 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_c(
     uint32_t luma_window_error_quad_fp8[4];
 
     svt_av1_apply_zz_based_temporal_filter_planewise_medium_partial_c(me_ctx,
-        y_src,
-        y_src_stride,
         y_pre,
         y_pre_stride,
         (unsigned int)block_width,
         (unsigned int)block_height,
         y_accum,
         y_count,
-        me_ctx->tf_decay_factor_fp16[C_Y],
-        luma_window_error_quad_fp8,
-        0);
+        me_ctx->tf_decay_factor_fp16[C_Y]);
     if (me_ctx->tf_chroma) {
         svt_av1_apply_zz_based_temporal_filter_planewise_medium_partial_c(
             me_ctx,
-            u_src,
-            uv_src_stride,
             u_pre,
             uv_pre_stride,
             (unsigned int)block_width >> ss_x,
             (unsigned int)block_height >> ss_y,
             u_accum,
             u_count,
-            me_ctx->tf_decay_factor_fp16[C_U],
-            luma_window_error_quad_fp8,
-            1);
+            me_ctx->tf_decay_factor_fp16[C_U]);
 
         svt_av1_apply_zz_based_temporal_filter_planewise_medium_partial_c(
             me_ctx,
-            v_src,
-            uv_src_stride,
             v_pre,
             uv_pre_stride,
             (unsigned int)block_width >> ss_x,
             (unsigned int)block_height >> ss_y,
             v_accum,
             v_count,
-            me_ctx->tf_decay_factor_fp16[C_V],
-            luma_window_error_quad_fp8,
-            1);
+            me_ctx->tf_decay_factor_fp16[C_V]);
     }
 }
 
@@ -1609,8 +1597,6 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_c(
 
     svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_c(
         me_ctx,
-        y_src,
-        y_src_stride,
         y_pre,
         y_pre_stride,
         (unsigned int)block_width,
@@ -1618,15 +1604,11 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_c(
         y_accum,
         y_count,
         me_ctx->tf_decay_factor_fp16[C_Y],
-        luma_window_error_quad_fp8,
-        0,
         encoder_bit_depth);
 
     if (me_ctx->tf_chroma) {
         svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_c(
             me_ctx,
-            u_src,
-            uv_src_stride,
             u_pre,
             uv_pre_stride,
             (unsigned int)block_width >> ss_x,
@@ -1634,14 +1616,10 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_c(
             u_accum,
             u_count,
             me_ctx->tf_decay_factor_fp16[C_U],
-            luma_window_error_quad_fp8,
-            1,
             encoder_bit_depth);
 
         svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_c(
             me_ctx,
-            v_src,
-            uv_src_stride,
             v_pre,
             uv_pre_stride,
             (unsigned int)block_width >> ss_x,
@@ -1649,8 +1627,6 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_c(
             v_accum,
             v_count,
             me_ctx->tf_decay_factor_fp16[C_V],
-            luma_window_error_quad_fp8,
-            1,
             encoder_bit_depth);
     }
 }
@@ -6141,7 +6117,6 @@ EbErrorType svt_av1_init_temporal_filtering(
                                         index_center,
                                         me_context_ptr,
                                         noise_levels_log1p_fp16,
-                                        noise_levels,
                                         segment_index,
                                         is_highbd);
     else

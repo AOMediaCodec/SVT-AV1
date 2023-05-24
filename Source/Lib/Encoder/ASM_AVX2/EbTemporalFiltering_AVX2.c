@@ -1422,9 +1422,9 @@ static void calculate_squared_errors_sum_2x8xh_no_div_highbd_avx2(const uint16_t
 }
 #if OPT_LD_TF
 static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_partial_avx2(
-    struct MeContext *me_ctx, const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre,
+    struct MeContext *me_ctx, const uint8_t *y_pre,
     int y_pre_stride, unsigned int block_width, unsigned int block_height, uint32_t *y_accum,
-    uint16_t *y_count, const uint32_t tf_decay_factor, int is_chroma) {
+    uint16_t *y_count, const uint32_t tf_decay_factor) {
     unsigned int i, j, k, subblock_idx;
 
     int32_t  idx_32x32 = me_ctx->tf_block_col + me_ctx->tf_block_row * 2;
@@ -1718,10 +1718,9 @@ void svt_av1_apply_temporal_filter_planewise_medium_avx2(
 }
 #if OPT_LD_TF
 static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_avx2(
-    struct MeContext *me_ctx, const uint16_t *y_src, int y_src_stride, const uint16_t *y_pre,
+    struct MeContext *me_ctx, const uint16_t *y_pre,
     int y_pre_stride, unsigned int block_width, unsigned int block_height, uint32_t *y_accum,
-    uint16_t *y_count, const uint32_t tf_decay_factor, uint32_t luma_window_error_quad_fp8[4],
-    int is_chroma, uint32_t encoder_bit_depth) {
+    uint16_t *y_count, const uint32_t tf_decay_factor, uint32_t encoder_bit_depth) {
     unsigned int i, j, k, subblock_idx;
 
     int32_t  idx_32x32 = me_ctx->tf_block_col + me_ctx->tf_block_row * 2;
