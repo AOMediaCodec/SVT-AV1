@@ -7342,7 +7342,7 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
         ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
+        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
 #endif
         break;
     case 3:
@@ -7351,7 +7351,7 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->mds0_distortion_th           = 50;
 #if OPT_LD_MDS0
         ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
+        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
 #endif
         break;
     case 4:
@@ -7360,7 +7360,7 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
         ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
+        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
 #endif
         break;
     default: assert(0); break;

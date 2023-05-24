@@ -1122,7 +1122,7 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
             ? svt_full_distortion_kernel16_bits
             : svt_spatial_full_distortion_kernel;
 #if OPT_LD_MDS0
-        if (ctx->mds0_ctrls.mds0_dist_type == MDS0_VAR) {
+        if (pcs->rtc_tune && ctx->mds0_ctrls.mds0_dist_type == MDS0_VAR) {
             if (!ctx->hbd_md) {
                 const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[ctx->blk_geom->bsize];
                 unsigned int            sse;
