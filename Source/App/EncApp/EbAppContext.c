@@ -19,6 +19,9 @@
 
 #include "EbAppContext.h"
 #include "EbAppConfig.h"
+#if DEBUG_ROI
+#include <inttypes.h>
+#endif
 
 /***************************************
  * Variables Defining a memory table
@@ -368,9 +371,9 @@ static EbErrorType parse_rio_map_file(EbConfig *app_cfg) {
             ++roi_map->evt_num;
 #if DEBUG_ROI
             fprintf(stdout,
-                    "ROI map event %d. start picture num %d\n",
+                    "ROI map event %" PRIu32 ". start picture num %" PRIu64 "\n",
                     roi_map->evt_num,
-                    (int)evt->start_picture_number);
+                    evt->start_picture_number);
             fprintf(stdout, "qp_offset ");
             for (int i = 0; i <= evt->max_seg_id; ++i) { fprintf(stdout, "%d ", evt->seg_qp[i]); }
             fprintf(stdout, "\n");

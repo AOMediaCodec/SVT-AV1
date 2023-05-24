@@ -16,6 +16,7 @@
 #include "common_dsp_rtcd.h"
 #if DEBUG_SEGMENT_QP || DEBUG_ROI
 #include "EbLog.h"
+#include <inttypes.h>
 #endif
 #if FTR_ROI
 #include "EbDeblockingFilter.h"
@@ -208,8 +209,8 @@ static void roi_map_setup_segmentation(PictureControlSet *pcs, SequenceControlSe
     }
 #if DEBUG_ROI
     if (segmentation_params->feature_enabled[0][SEG_LVL_ALT_LF_Y_V]) {
-        SVT_LOG("frame %d, lf_y_v: %d %d %d %d %d %d %d %d\n",
-                (int)pcs->picture_number,
+        SVT_LOG("frame %" PRIu64 ", lf_y_v: %d %d %d %d %d %d %d %d\n",
+                pcs->picture_number,
                 segmentation_params->feature_data[0][SEG_LVL_ALT_LF_Y_V],
                 segmentation_params->feature_data[1][SEG_LVL_ALT_LF_Y_V],
                 segmentation_params->feature_data[2][SEG_LVL_ALT_LF_Y_V],
@@ -220,8 +221,8 @@ static void roi_map_setup_segmentation(PictureControlSet *pcs, SequenceControlSe
                 segmentation_params->feature_data[7][SEG_LVL_ALT_LF_Y_V]);
     }
     if (segmentation_params->feature_enabled[0][SEG_LVL_ALT_LF_Y_H]) {
-        SVT_LOG("frame %d, lf_y_h: %d %d %d %d %d %d %d %d\n",
-                (int)pcs->picture_number,
+        SVT_LOG("frame %" PRIu64 ", lf_y_h: %d %d %d %d %d %d %d %d\n",
+                pcs->picture_number,
                 segmentation_params->feature_data[0][SEG_LVL_ALT_LF_Y_H],
                 segmentation_params->feature_data[1][SEG_LVL_ALT_LF_Y_H],
                 segmentation_params->feature_data[2][SEG_LVL_ALT_LF_Y_H],
