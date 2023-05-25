@@ -7323,8 +7323,8 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
+        ctrls->mds0_dist_weight             = 1; // Used for RTC
+        ctrls->mds0_dist_div                = 1; // Used for RTC
 #endif
         break;
     case 1:
@@ -7332,8 +7332,8 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
+        ctrls->mds0_dist_weight = 1; // Used for RTC
+        ctrls->mds0_dist_div    = 1; // Used for RTC
 #endif
         break;
     case 2:
@@ -7341,8 +7341,8 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
+        ctrls->mds0_dist_weight = 1; // Used for RTC
+        ctrls->mds0_dist_div    = 1; // Used for RTC
 #endif
         break;
     case 3:
@@ -7350,8 +7350,8 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 50;
 #if OPT_LD_MDS0
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
+        ctrls->mds0_dist_weight = 1; // Used for RTC
+        ctrls->mds0_dist_div    = 1; // Used for RTC
 #endif
         break;
     case 4:
@@ -7359,8 +7359,8 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
 #if OPT_LD_MDS0
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = ctx->lpd1_ctrls.pd1_level > REGULAR_PD1 ? 8 : 4;
+        ctrls->mds0_dist_weight = 1; // Used for RTC
+        ctrls->mds0_dist_div    = 1; // Used for RTC
 #endif
         break;
     default: assert(0); break;
