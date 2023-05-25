@@ -538,7 +538,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
             me_ctx->reduce_hme_l0_sr_th_max = 0;
         }
 #if OPT_LD_M10
-    } else if (pcs->enc_mode <= ENC_M9) {
+    } else if ((rtc_tune && pcs->enc_mode <= ENC_M9) || (!rtc_tune && pcs->enc_mode <= ENC_M10)) {
 #else
     } else if (pcs->enc_mode <= ENC_M10) {
 #endif
@@ -617,6 +617,20 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         me_ctx->prune_me_candidates_th = 65;
     // Set signal at picture level b/c may check signal in MD
     me_ctx->use_best_unipred_cand_only = pcs->use_best_me_unipred_cand_only;
+#if OPT_LD_M12
+    if (rtc_tune) {
+        if (enc_mode <= ENC_M11)
+            me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
+        else
+            me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
+    }
+    else {
+        if (enc_mode <= ENC_M5)
+            me_ctx->me_early_exit_th = 0;
+        else
+            me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
+    }
+#else
     if (enc_mode <= ENC_M5)
         me_ctx->me_early_exit_th = 0;
 #if OPT_LD_M12
@@ -627,7 +641,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
     else
         me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
-
+#endif
     me_ctx->skip_frame                  = 0;
     me_ctx->prev_me_stage_based_exit_th = 0;
     if (enc_mode <= ENC_M12) {
@@ -7826,7 +7840,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     instead of and LPD1_LEVEL check to ensure that M12 and below do not use it.
     */
 #if OPT_LD_M12
-    if (pcs->enc_mode >= ENC_M12) {
+    if ((rtc_tune && pcs->enc_mode >= ENC_M12) || (!rtc_tune && pcs->enc_mode >= ENC_M13)) {
 #else
     if (pcs->enc_mode >= ENC_M13) {
 #endif
