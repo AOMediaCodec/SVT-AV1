@@ -45,7 +45,7 @@ extern "C" {
 #define OPT_LD_PD0              1 // Opimize PD0 interdepth decision
 #define OPT_LD_EN_BASE_FRAME    1 // change ld_enchanced_base_frame frequency
 
-#define OPT_LD_TF               1
+#define OPT_LD_TF               1 // TF optimization for low delay mode
 
 #define OPT_LD_M12              1
 #define OPT_LD_M11              1

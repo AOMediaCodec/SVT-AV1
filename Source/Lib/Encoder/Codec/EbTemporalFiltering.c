@@ -4806,9 +4806,6 @@ static EbErrorType produce_temporally_filtered_pic(
         FP_ASSERT(TF_FILTER_STRENGTH == 5);
         FP_ASSERT(TF_STRENGTH_THRESHOLD == 4);
         FP_ASSERT(TF_Q_DECAY_THRESHOLD == 20);
-#if OPT_LD_TF
-        uint32_t q_decay_fp8 = 256;
-#else
         int offset_idx;
         if (!centre_pcs->is_ref)
             offset_idx = -1;
@@ -4851,8 +4848,6 @@ static EbErrorType produce_temporally_filtered_pic(
             FP_ASSERT(q < (1 << 15));
             q_decay_fp8 = (q * q) >> 5;
         }
-#endif
-
         const int32_t const_0dot7_fp16 = 45875; //0.7
         /*Calculation of log and dceay_factor possible to move to estimate_noise() and calculate one time for GOP*/
         //decay_control * (0.7 + log1p(noise_levels[C_Y]))
