@@ -3041,7 +3041,7 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
         // Apply the loop filter
         //Jing: Don't work for tile_parallel since the SB of bottom tile comes early than the bottom SB of top tile
 #if OPT_LD_DLF
-        if (pcs->ppcs->is_ref || scs->static_config.recon_enabled) {
+        if (!pcs->rtc_tune || pcs->ppcs->is_ref || scs->static_config.recon_enabled) {
 #endif
             if (pcs->ppcs->frm_hdr.loop_filter_params.filter_level[0] ||
                 pcs->ppcs->frm_hdr.loop_filter_params.filter_level[1]) {
