@@ -535,8 +535,8 @@ static EbErrorType load_default_buffer_configuration_settings(
     }
     else
     {
-        scs->tf_segment_column_count = me_seg_w;//1;//
-        scs->tf_segment_row_count = me_seg_h;//1;//
+        scs->tf_segment_column_count = me_seg_w;
+        scs->tf_segment_row_count = me_seg_h;
     }
 
     // adjust buffer count for superres

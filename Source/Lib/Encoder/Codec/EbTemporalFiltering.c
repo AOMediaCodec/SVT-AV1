@@ -5537,122 +5537,83 @@ static EbErrorType produce_temporally_filtered_pic_ld(
                         ref_object->picture_number;
                     ctx->tf_me_exit_th =
                         centre_pcs->tf_ctrls.me_exit_th;
-                    ;
                     ctx->tf_use_pred_64x64_only_th =
                         centre_pcs->tf_ctrls.use_pred_64x64_only_th;
                     ctx->tf_subpel_early_exit =
                         centre_pcs->tf_ctrls.subpel_early_exit;
-                    ctx->p_best_mv64x64[0] = 0;
                     ctx->search_results[0][0].hme_sc_x = 0;
                     ctx->search_results[0][0].hme_sc_y = 0;
-                    ctx->p_best_mv32x32[0] = 0;
-                    ctx->p_best_mv32x32[1] = 0;
-                    ctx->p_best_mv32x32[2] = 0;
-                    ctx->p_best_mv32x32[3] = 0;
-                    if (ctx->tf_use_pred_64x64_only_th &&
-                        (ctx->tf_use_pred_64x64_only_th == (uint8_t)~0 ||
-                         tf_use_64x64_pred(ctx))) {
-                        tf_64x64_sub_pel_search(
-                            centre_pcs,
-                            ctx,
-                            pcs_list[frame_index],
-                            list_input_picture_ptr[frame_index],
-                            pred,
-                            pred_16bit,
-                            stride_pred,
-                            src_center_ptr,
-                            altref_buffer_highbd_ptr,
-                            stride,
-                            (uint32_t)blk_col * BW,
-                            (uint32_t)blk_row * BH,
-                            ss_x,
-                            (ctx->tf_ctrls.use_8bit_subpel) ? EB_EIGHT_BIT : encoder_bit_depth);
+                        
+                    tf_64x64_inter_prediction(centre_pcs,
+                        ctx,
+                        pcs_list[frame_index],
+                        list_input_picture_ptr[frame_index],
+                        pred,
+                        pred_16bit,
+                        (uint32_t)blk_col * BW,
+                        (uint32_t)blk_row * BH,
+                        ss_x,
+                        encoder_bit_depth);
 
-                        // Perform MC using the information acquired using the ME step
-                        tf_64x64_inter_prediction(centre_pcs,
-                                                  ctx,
-                                                  pcs_list[frame_index],
-                                                  list_input_picture_ptr[frame_index],
-                                                  pred,
-                                                  pred_16bit,
-                                                  (uint32_t)blk_col * BW,
-                                                  (uint32_t)blk_row * BH,
-                                                  ss_x,
-                                                  encoder_bit_depth);
+                    ctx->tf_32x32_mv_x[0] = ctx->tf_64x64_mv_x;
+                    ctx->tf_32x32_mv_y[0] = ctx->tf_64x64_mv_y;
 
-                    }
-                    else {
-                        tf_64x64_inter_prediction(centre_pcs,
-                            ctx,
-                            pcs_list[frame_index],
-                            list_input_picture_ptr[frame_index],
-                            pred,
-                            pred_16bit,
-                            (uint32_t)blk_col * BW,
-                            (uint32_t)blk_row * BH,
-                            ss_x,
-                            encoder_bit_depth);
+                    ctx->tf_32x32_mv_x[1] = ctx->tf_64x64_mv_x;
+                    ctx->tf_32x32_mv_y[1] = ctx->tf_64x64_mv_y;
 
-                        ctx->tf_32x32_mv_x[0] = ctx->tf_64x64_mv_x;
-                        ctx->tf_32x32_mv_y[0] = ctx->tf_64x64_mv_y;
+                    ctx->tf_32x32_mv_x[2] = ctx->tf_64x64_mv_x;
+                    ctx->tf_32x32_mv_y[2] = ctx->tf_64x64_mv_y;
 
-                        ctx->tf_32x32_mv_x[1] = ctx->tf_64x64_mv_x;
-                        ctx->tf_32x32_mv_y[1] = ctx->tf_64x64_mv_y;
+                    ctx->tf_32x32_mv_x[3] = ctx->tf_64x64_mv_x;
+                    ctx->tf_32x32_mv_y[3] = ctx->tf_64x64_mv_y;
 
-                        ctx->tf_32x32_mv_x[2] = ctx->tf_64x64_mv_x;
-                        ctx->tf_32x32_mv_y[2] = ctx->tf_64x64_mv_y;
+                    ctx->tf_32x32_block_split_flag[0] = 0;
+                    ctx->tf_32x32_block_split_flag[1] = 0;
+                    ctx->tf_32x32_block_split_flag[2] = 0;
+                    ctx->tf_32x32_block_split_flag[3] = 0;
 
-                        ctx->tf_32x32_mv_x[3] = ctx->tf_64x64_mv_x;
-                        ctx->tf_32x32_mv_y[3] = ctx->tf_64x64_mv_y;
+                    // Update the 32x32 block-error
+                    for (int block_row = 0; block_row < 2; block_row++) {
+                        for (int block_col = 0; block_col < 2; block_col++) {
 
-                        ctx->tf_32x32_block_split_flag[0] = 0;
-                        ctx->tf_32x32_block_split_flag[1] = 0;
-                        ctx->tf_32x32_block_split_flag[2] = 0;
-                        ctx->tf_32x32_block_split_flag[3] = 0;
+                            uint32_t bsize = 32;
+                            uint64_t distortion;
+                            ctx->idx_32x32 = block_col + (block_row << 1);
 
-                        // Update the 32x32 block-error
-                        for (int block_row = 0; block_row < 2; block_row++) {
-                            for (int block_col = 0; block_col < 2; block_col++) {
+                            if (!is_highbd) {
+                                uint8_t* pred_y_ptr = pred[C_Y] + bsize * block_row * stride_pred[C_Y] + bsize * block_col;
+                                uint8_t* src_y_ptr = src_center_ptr[C_Y] + bsize * block_row * stride[C_Y] + bsize * block_col;
 
-                                uint32_t bsize = 32;
-                                uint64_t distortion;
-                                ctx->idx_32x32 = block_col + (block_row << 1);
-
-                                if (!is_highbd) {
-                                    uint8_t* pred_y_ptr = pred[C_Y] + bsize * block_row * stride_pred[C_Y] + bsize * block_col;
-                                    uint8_t* src_y_ptr = src_center_ptr[C_Y] + bsize * block_row * stride[C_Y] + bsize * block_col;
-
-                                    const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
-                                        : &svt_aom_mefn_ptr[BLOCK_32X32];
-                                    unsigned int            sse;
-                                    distortion = fn_ptr->vf(pred_y_ptr,
-                                        stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
-                                        src_y_ptr,
-                                        stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
-                                        &sse)
-                                        << centre_pcs->tf_ctrls.sub_sampling_shift;
-                                }
-                                else {
-                                    uint16_t* pred_y_ptr = pred_16bit[C_Y] +
-                                        bsize * block_row * stride_pred[C_Y] +
-                                        bsize * block_col;
-                                    uint16_t* src_y_ptr = altref_buffer_highbd_ptr[C_Y] +
-                                        bsize * block_row * stride[C_Y] +
-                                        bsize * block_col;
-                                    const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
-                                        : &svt_aom_mefn_ptr[BLOCK_32X32];
-
-                                    unsigned int sse;
-
-                                    distortion = fn_ptr->vf_hbd_10(CONVERT_TO_BYTEPTR(pred_y_ptr),
-                                        stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
-                                        CONVERT_TO_BYTEPTR(src_y_ptr),
-                                        stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
-                                        &sse)
-                                        << centre_pcs->tf_ctrls.sub_sampling_shift;
-                                }
-                                ctx->tf_32x32_block_error[ctx->idx_32x32] = distortion;
+                                const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
+                                    : &svt_aom_mefn_ptr[BLOCK_32X32];
+                                unsigned int            sse;
+                                distortion = fn_ptr->vf(pred_y_ptr,
+                                    stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                    src_y_ptr,
+                                    stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                    &sse)
+                                    << centre_pcs->tf_ctrls.sub_sampling_shift;
                             }
+                            else {
+                                uint16_t* pred_y_ptr = pred_16bit[C_Y] +
+                                    bsize * block_row * stride_pred[C_Y] +
+                                    bsize * block_col;
+                                uint16_t* src_y_ptr = altref_buffer_highbd_ptr[C_Y] +
+                                    bsize * block_row * stride[C_Y] +
+                                    bsize * block_col;
+                                const AomVarianceFnPtr* fn_ptr = centre_pcs->tf_ctrls.sub_sampling_shift ? &svt_aom_mefn_ptr[BLOCK_32X16]
+                                    : &svt_aom_mefn_ptr[BLOCK_32X32];
+
+                                unsigned int sse;
+
+                                distortion = fn_ptr->vf_hbd_10(CONVERT_TO_BYTEPTR(pred_y_ptr),
+                                    stride_pred[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                    CONVERT_TO_BYTEPTR(src_y_ptr),
+                                    stride[C_Y] << centre_pcs->tf_ctrls.sub_sampling_shift,
+                                    &sse)
+                                    << centre_pcs->tf_ctrls.sub_sampling_shift;
+                            }
+                            ctx->tf_32x32_block_error[ctx->idx_32x32] = distortion;
                         }
                     }
 
