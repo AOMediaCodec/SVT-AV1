@@ -4708,7 +4708,7 @@ void* svt_aom_picture_decision_kernel(void *input_ptr) {
 
             // If the relevant frames are available, perform scene change detection
             if (window_avail == TRUE && queue_entry_ptr->picture_number > 0) {
-                perform_scene_change_detection(scs, pcs, ctx);//anaghdin scene change detection off for LD? is windwo_avail correct for LD?
+                perform_scene_change_detection(scs, pcs, ctx);
             }
 
             // If the required lookahead frames aren't available, and we haven't reached EOS, must wait for more frames before continuing

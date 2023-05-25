@@ -663,8 +663,7 @@ static void set_eos_terminating_signals(PictureParentControlSet *pcs) {
 
     svt_block_on_mutex(enc_ctx->total_number_of_shown_frames_mutex);
     enc_ctx->terminating_sequence_flag_received = TRUE;
-    enc_ctx->terminating_picture_number         = pcs->picture_number -
-        1; // pcs->picture_number_alt;//anaghdin to check -1 and picturenumber_alt
+    enc_ctx->terminating_picture_number         = pcs->picture_number - 1;
     svt_release_mutex(enc_ctx->total_number_of_shown_frames_mutex);
 }
 #endif

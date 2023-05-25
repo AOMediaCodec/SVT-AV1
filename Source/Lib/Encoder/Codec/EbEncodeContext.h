@@ -116,6 +116,8 @@ typedef struct EncodeContext {
     // Picture Decision decoded picture buffer - used to track PA refs
     PaReferenceEntry **pd_dpb;
 #if OPT_LD_LATENCY2
+    // Picture decision and Packetization process both access pd_dpb.
+    // Mutex added for protection
     EbHandle pd_dpb_mutex;
 #endif
 
@@ -127,6 +129,8 @@ typedef struct EncodeContext {
     ReferenceQueueEntry **ref_pic_list;
     uint32_t              ref_pic_list_length;
 #if OPT_LD_LATENCY2
+    // Picture manager and Packetization process both access ref_pic_list.
+    // Mutex added for protection
     EbHandle ref_pic_list_mutex;
 #endif
 

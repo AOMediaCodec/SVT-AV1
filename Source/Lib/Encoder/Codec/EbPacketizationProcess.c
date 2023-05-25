@@ -885,9 +885,6 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
         queue_entry_ptr->total_num_bits = pcs->ppcs->total_num_bits;
         queue_entry_ptr->frame_type     = frm_hdr->frame_type;
         queue_entry_ptr->poc            = pcs->picture_number;
-        //  printf("Write POC:%d\tALTPOC:%d\tqueuIndex:%d\n", pcs->picture_number,
-        //      pcs->ppcs->picture_number_alt,
-        //      pcs->ppcs->decode_order);//anaghdin
         svt_memcpy(
             &queue_entry_ptr->av1_ref_signal, &pcs->ppcs->av1_ref_signal, sizeof(Av1RpsNode));
 
@@ -965,7 +962,6 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             Bool eos = output_stream_ptr->flags & EB_BUFFERFLAG_EOS;
 #endif
 #if OPT_LD_LATENCY2
-            //  static uint64_t shown_frame_counter = 0;
             encode_tu(enc_ctx, frames, total_bytes, output_stream_ptr);
 
             if (eos && queue_entry_ptr->has_show_existing)
@@ -1016,16 +1012,16 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
         }
 #if OPT_LD_LATENCY2
         if (eos) {
-            EbObjectWrapper *tmp_output_stream_wrapper_ptr;
+            EbObjectWrapper *tmp_out_str_wrp;
             svt_get_empty_object(scs->enc_ctx->stream_output_fifo_ptr,
-                                 &tmp_output_stream_wrapper_ptr);
-            EbBufferHeaderType *tmp_output_stream_ptr =
-                (EbBufferHeaderType *)tmp_output_stream_wrapper_ptr->object_ptr;
+                                 &tmp_out_str_wrp);
+            EbBufferHeaderType *tmp_out_str =
+                (EbBufferHeaderType *)tmp_out_str_wrp->object_ptr;
 
-            tmp_output_stream_ptr->flags        = EB_BUFFERFLAG_EOS;
-            tmp_output_stream_ptr->n_filled_len = 0;
+            tmp_out_str->flags        = EB_BUFFERFLAG_EOS;
+            tmp_out_str->n_filled_len = 0;
 
-            svt_post_full_object(tmp_output_stream_wrapper_ptr);
+            svt_post_full_object(tmp_out_str_wrp);
             release_references_eos(scs);
         }
         svt_release_mutex(enc_ctx->total_number_of_shown_frames_mutex);
