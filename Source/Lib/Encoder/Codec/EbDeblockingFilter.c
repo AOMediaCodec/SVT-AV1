@@ -1231,7 +1231,7 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
 #if OPT_LD_DLF
     const bool    rtc_tune = pcs->rtc_tune ? true : false;
     const uint8_t in_res   = pcs->ppcs->input_resolution;
-    const int64_t ifmult   = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
+    const int64_t inter_frame_mult = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
 #endif
     (void)srcBuffer;
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;
@@ -1287,7 +1287,7 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
             filt_guess = (frm_hdr->frame_type == KEY_FRAME)
                 ? ROUND_POWER_OF_TWO(q * 17563 - 421574, 18)
 #if OPT_LD_DLF
-                : ROUND_POWER_OF_TWO(q * ifmult + 650707, 18);
+                : ROUND_POWER_OF_TWO(q * inter_frame_mult + 650707, 18);
 #else
                 : ROUND_POWER_OF_TWO(q * 6017 + 650707, 18);
 #endif
@@ -1312,11 +1312,12 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
                     total_me_sad += pcs->ppcs->rc_me_distortion[b64_index];
                 }
                 uint32_t       average_me_sad = total_me_sad / pcs->b64_total_count;
-                const uint32_t bypass_tf_th = disable_dlf_th[pcs->ppcs->dlf_ctrls.dlf_lvl][in_res] *
+                const uint32_t use_zero_strength_th =
+                    disable_dlf_th[pcs->ppcs->dlf_ctrls.ld_zero_filter_strength_lvl][in_res] *
                     (pcs->temporal_layer_index + 1);
-                if (average_me_sad < bypass_tf_th)
+                if (average_me_sad < use_zero_strength_th)
                     filt_guess = 0;
-                if (average_me_sad < (bypass_tf_th * 2))
+                if (average_me_sad < (use_zero_strength_th * 2))
                     filt_guess_chroma = 0;
             }
         } else {

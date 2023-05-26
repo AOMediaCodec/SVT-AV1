@@ -819,11 +819,6 @@ typedef struct Mds0Ctrls {
     // % TH used to compare candidate distortion to best cost; higher is safer (applies to reg. PD1
     // only)
     uint16_t mds0_distortion_th;
-#if OPT_LD_MDS0
-    // Weight and dividor to tune the distorsion metric for better quality/speed tradeoffs
-    uint16_t mds0_dist_weight;
-    uint16_t mds0_dist_div;
-#endif
 } Mds0Ctrls;
 typedef struct CandReductionCtrls {
     uint8_t            merge_inter_classes;

@@ -1128,9 +1128,8 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
                 unsigned int            sse;
                 uint8_t                *pred_y = ref_pic->buffer_y + ref_origin_index;
                 uint8_t                *src_y  = input_pic->buffer_y + input_origin_index;
-                *(cand_bf->fast_cost) =
-                    fn_ptr->vf(pred_y, ref_pic->stride_y, src_y, input_pic->stride_y, &sse) *
-                    ctx->mds0_ctrls.mds0_dist_weight / ctx->mds0_ctrls.mds0_dist_div;
+                *(cand_bf->fast_cost)          = fn_ptr->vf(
+                    pred_y, ref_pic->stride_y, src_y, input_pic->stride_y, &sse);
             } else {
                 const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[ctx->blk_geom->bsize];
                 unsigned int            sse;
@@ -1169,9 +1168,7 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
 #if OPT_LD_MDS0
                 if (pcs->rtc_tune)
                     *(cand_bf->fast_cost) =
-                        (fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) *
-                         ctx->mds0_ctrls.mds0_dist_weight) /
-                        ctx->mds0_ctrls.mds0_dist_div;
+                        fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) / 3;
                 else
                     *(cand_bf->fast_cost) =
                         fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >> 2;
@@ -1241,8 +1238,7 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
 #if OPT_LD_MDS0
         if (pcs->rtc_tune)
             cand_bf->luma_fast_dist = luma_fast_dist =
-                fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) *
-                ctx->mds0_ctrls.mds0_dist_weight / ctx->mds0_ctrls.mds0_dist_div;
+                fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) / 3;
         else
             cand_bf->luma_fast_dist = luma_fast_dist =
                 fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >> 3;
@@ -1542,8 +1538,7 @@ void fast_loop_core(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs
 #if OPT_LD_MDS0
             if (pcs->rtc_tune)
                 cand_bf->luma_fast_dist = luma_fast_dist =
-                    fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) *
-                    ctx->mds0_ctrls.mds0_dist_weight / ctx->mds0_ctrls.mds0_dist_div;
+                    fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) / 3;
             else
                 cand_bf->luma_fast_dist = luma_fast_dist =
                     fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >> 2;

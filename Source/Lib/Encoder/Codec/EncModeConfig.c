@@ -1687,7 +1687,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 0;
+        ctrls->ld_zero_filter_strength_lvl = 0;
 #endif
         break;
     case 1:
@@ -1698,7 +1698,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 0;
+        ctrls->ld_zero_filter_strength_lvl = 0;
 #endif
         break;
     case 2:
@@ -1709,7 +1709,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 1;
         ctrls->early_exit_convergence = 1;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 0;
+        ctrls->ld_zero_filter_strength_lvl = 0;
 #endif
         break;
     case 3:
@@ -1721,7 +1721,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 0;
+        ctrls->ld_zero_filter_strength_lvl = 0;
 #endif
         break;
     case 4:
@@ -1732,7 +1732,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 1;
+        ctrls->ld_zero_filter_strength_lvl = 1;
 #endif
         break;
     case 5:
@@ -1743,7 +1743,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->dlf_lvl = 2;
+        ctrls->ld_zero_filter_strength_lvl = 2;
 #endif
         break;
     default: assert(0); break;
@@ -7263,57 +7263,6 @@ static void set_tx_shortcut_ctrls(PictureControlSet *pcs, ModeDecisionContext *c
                "artifacts.");
 }
 
-#if OPT_LD_MDS0
-static void set_mds0_rtc_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
-    Mds0Ctrls *ctrls = &ctx->mds0_ctrls;
-
-    switch (mds0_level) {
-    case 0:
-        ctrls->mds0_dist_type               = MDS0_SAD;
-        ctrls->enable_cost_based_early_exit = 1;
-        ctrls->mds0_distortion_th           = 0;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
-        break;
-    case 1:
-        ctrls->mds0_dist_type               = MDS0_SSD;
-        ctrls->enable_cost_based_early_exit = 0;
-        ctrls->mds0_distortion_th           = 0;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
-        break;
-    case 2:
-        ctrls->mds0_dist_type               = MDS0_VAR;
-        ctrls->enable_cost_based_early_exit = 0;
-        ctrls->mds0_distortion_th           = 0;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 3;
-        break;
-    case 3:
-        ctrls->mds0_dist_type               = MDS0_VAR;
-        ctrls->enable_cost_based_early_exit = 1;
-        ctrls->mds0_distortion_th           = 50;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 3;
-        break;
-    case 4:
-        ctrls->mds0_dist_type               = MDS0_VAR;
-        ctrls->enable_cost_based_early_exit = 1;
-        ctrls->mds0_distortion_th           = 0;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 3;
-        break;
-    case 5:
-        ctrls->mds0_dist_type               = MDS0_VAR;
-        ctrls->enable_cost_based_early_exit = 1;
-        ctrls->mds0_distortion_th           = 0;
-        ctrls->mds0_dist_weight             = 1;
-        ctrls->mds0_dist_div                = 1;
-        break;
-    default: assert(0); break;
-    }
-}
-#endif
 static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
     Mds0Ctrls *ctrls = &ctx->mds0_ctrls;
 
@@ -7322,46 +7271,26 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
         ctrls->mds0_dist_type               = MDS0_SAD;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
-#if OPT_LD_MDS0
-        ctrls->mds0_dist_weight = 1; // Used for RTC
-        ctrls->mds0_dist_div    = 1; // Used for RTC
-#endif
         break;
     case 1:
         ctrls->mds0_dist_type               = MDS0_SSD;
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
-#if OPT_LD_MDS0
-        ctrls->mds0_dist_weight = 1; // Used for RTC
-        ctrls->mds0_dist_div    = 1; // Used for RTC
-#endif
         break;
     case 2:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 0;
         ctrls->mds0_distortion_th           = 0;
-#if OPT_LD_MDS0
-        ctrls->mds0_dist_weight = 1; // Used for RTC
-        ctrls->mds0_dist_div    = 1; // Used for RTC
-#endif
         break;
     case 3:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 50;
-#if OPT_LD_MDS0
-        ctrls->mds0_dist_weight = 1; // Used for RTC
-        ctrls->mds0_dist_div    = 1; // Used for RTC
-#endif
         break;
     case 4:
         ctrls->mds0_dist_type               = MDS0_VAR;
         ctrls->enable_cost_based_early_exit = 1;
         ctrls->mds0_distortion_th           = 0;
-#if OPT_LD_MDS0
-        ctrls->mds0_dist_weight = 1; // Used for RTC
-        ctrls->mds0_dist_div    = 1; // Used for RTC
-#endif
         break;
     default: assert(0); break;
     }
@@ -7609,16 +7538,14 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
 
 #if OPT_LD_MDS0
     if (rtc_tune)
-        set_mds0_rtc_controls(ctx, 5);
+        set_mds0_controls(ctx, 4);
 #endif
     if (pd0_level == VERY_LIGHT_PD0)
         return;
 
     uint8_t mds0_level = 4;
 #if OPT_LD_MDS0
-    if (rtc_tune)
-        set_mds0_rtc_controls(ctx, mds0_level);
-    else
+    if (!rtc_tune)
 #endif
         set_mds0_controls(ctx, mds0_level);
 
@@ -7812,12 +7739,8 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
               me_64x64_distortion < (250 * picture_qp))))
             mds0_level = 0;
     }
-#if OPT_LD_MDS0
-    if (rtc_tune)
-        set_mds0_rtc_controls(ctx, mds0_level);
-    else
-#endif
-        set_mds0_controls(ctx, mds0_level);
+    
+    set_mds0_controls(ctx, mds0_level);
 
     uint8_t lpd1_tx_level = 0;
     if (lpd1_level <= LPD1_LVL_2)
@@ -8191,12 +8114,8 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     if (pcs->scs->low_latency_kf && is_islice)
         intra_level = 4;
     set_intra_ctrls(pcs, ctx, intra_level);
-#if OPT_LD_MDS0
-    if (rtc_tune)
-        set_mds0_rtc_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
-    else
-#endif
-        set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
+    
+    set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
 
     set_subres_controls(ctx, 0);
     ctx->inter_depth_bias = 0;

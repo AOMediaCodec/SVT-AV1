@@ -670,7 +670,7 @@ typedef struct DlfCtrls {
     // Number of convergence points before exiting the filter search, 1 = exit on first convergence point, 2 = exit on second, 0 = off
     uint8_t early_exit_convergence;
 #if OPT_LD_DLF
-    uint8_t dlf_lvl;
+    uint8_t ld_zero_filter_strength_lvl;
 #endif
 } DlfCtrls;
 typedef struct IntraBCCtrls {
