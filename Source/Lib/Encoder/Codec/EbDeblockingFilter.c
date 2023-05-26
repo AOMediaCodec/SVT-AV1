@@ -1229,9 +1229,9 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
     SequenceControlSet *scs     = pcs->scs;
     FrameHeader        *frm_hdr = &pcs->ppcs->frm_hdr;
 #if OPT_LD_DLF
-    const bool rtc_tune  = pcs->rtc_tune ? true : false;
-    const uint8_t in_res = pcs->ppcs->input_resolution;
-    const int64_t ifmult = rtc_tune ? inter_frame_multiplier[in_res] :6017;
+    const bool    rtc_tune = pcs->rtc_tune ? true : false;
+    const uint8_t in_res   = pcs->ppcs->input_resolution;
+    const int64_t ifmult   = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
 #endif
     (void)srcBuffer;
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;
@@ -1304,16 +1304,15 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
             frm_hdr->frame_type == KEY_FRAME)
             filt_guess -= 4;
 #if OPT_LD_DLF
-        int32_t filt_guess_chroma = filt_guess/2;
-        if(pcs->rtc_tune){
+        int32_t filt_guess_chroma = filt_guess / 2;
+        if (pcs->rtc_tune) {
             if (pcs->slice_type != I_SLICE) {
-                uint32_t total_me_sad        = 0;
+                uint32_t total_me_sad = 0;
                 for (uint16_t b64_index = 0; b64_index < pcs->b64_total_count; ++b64_index) {
                     total_me_sad += pcs->ppcs->rc_me_distortion[b64_index];
                 }
-                uint32_t average_me_sad = total_me_sad / pcs->b64_total_count;
-                const uint32_t bypass_tf_th =
-                    disable_dlf_th[pcs->ppcs->dlf_ctrls.dlf_lvl][in_res] *
+                uint32_t       average_me_sad = total_me_sad / pcs->b64_total_count;
+                const uint32_t bypass_tf_th = disable_dlf_th[pcs->ppcs->dlf_ctrls.dlf_lvl][in_res] *
                     (pcs->temporal_layer_index + 1);
                 if (average_me_sad < bypass_tf_th)
                     filt_guess = 0;
@@ -1321,10 +1320,10 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
                     filt_guess_chroma = 0;
             }
         } else {
-            filt_guess = filt_guess > 2 ? filt_guess - 2
-                : filt_guess > 1        ? filt_guess - 1
-                                        : filt_guess;
-            filt_guess = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
+            filt_guess        = filt_guess > 2 ? filt_guess - 2
+                       : filt_guess > 1        ? filt_guess - 1
+                                               : filt_guess;
+            filt_guess        = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
             filt_guess_chroma = filt_guess > 1 ? filt_guess / 2 : filt_guess;
         }
 #else

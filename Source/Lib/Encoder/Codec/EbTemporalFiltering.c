@@ -5453,6 +5453,9 @@ static EbErrorType produce_temporally_filtered_pic_ld(
             int blk_ch_src_offset = (blk_col * blk_width_ch) +
                 (blk_row * blk_height_ch) * stride[C_U];
 
+            // reset accumulator and count
+            memset(accumulator, 0, BLK_PELS * COLOR_CHANNELS * sizeof(accumulator[0]));
+            memset(counter, 0, BLK_PELS * COLOR_CHANNELS * sizeof(counter[0]));
             EbByte    src_center_ptr[COLOR_CHANNELS]           = {NULL};
             uint16_t *altref_buffer_highbd_ptr[COLOR_CHANNELS] = {NULL};
             // Prep 8bit source if 8bit content or using 8bit for subpel
