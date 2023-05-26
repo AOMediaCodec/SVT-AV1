@@ -5546,7 +5546,7 @@ static EbErrorType produce_temporally_filtered_pic_ld(
                         centre_pcs->tf_ctrls.subpel_early_exit;
                     ctx->search_results[0][0].hme_sc_x = 0;
                     ctx->search_results[0][0].hme_sc_y = 0;
-                        
+
                     tf_64x64_inter_prediction(centre_pcs,
                         ctx,
                         pcs_list[frame_index],
