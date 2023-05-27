@@ -133,13 +133,14 @@ typedef struct TfControls {
     // Filtering set
     uint8_t enabled; // Specifies whether the current input will be filtered or not (0: OFF, 1: ON)
 #if OPT_LD_TF
-    // Specifies whether the U& V planes will be filered or not (0: filter all planes, 1 : filter Y
-    // plane only, 2 : filter Y and decide to filter U and V based on the noise level)
+    // Specifies whether the U& V planes will be filered or not (0: OFF (filter plane Y only) 
+    // 1: ON (filter all planes) 2: filter Y and decide to filter U and V based on the noise level)
+    uint8_t chroma_lvl;
 #else
     // Specifies whether the U& V planes will be filered or not (0: filter all planes, 1 : filter Y
     // plane only)
-#endif
     uint8_t do_chroma;
+#endif
     // Specifies whether the weights generation will use approximations or not (0: do not use
     // approximations, 1: per-block weights derivation, use an approximated exponential & log, use
     // an approximated noise level)
