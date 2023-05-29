@@ -1013,10 +1013,8 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
 #if OPT_LD_LATENCY2
         if (eos) {
             EbObjectWrapper *tmp_out_str_wrp;
-            svt_get_empty_object(scs->enc_ctx->stream_output_fifo_ptr,
-                                 &tmp_out_str_wrp);
-            EbBufferHeaderType *tmp_out_str =
-                (EbBufferHeaderType *)tmp_out_str_wrp->object_ptr;
+            svt_get_empty_object(scs->enc_ctx->stream_output_fifo_ptr, &tmp_out_str_wrp);
+            EbBufferHeaderType *tmp_out_str = (EbBufferHeaderType *)tmp_out_str_wrp->object_ptr;
 
             tmp_out_str->flags        = EB_BUFFERFLAG_EOS;
             tmp_out_str->n_filled_len = 0;
