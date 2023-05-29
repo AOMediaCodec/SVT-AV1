@@ -7537,18 +7537,12 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
     }
 
 #if OPT_LD_MDS0
-    if (rtc_tune)
-        set_mds0_controls(ctx, 4);
+    set_mds0_controls(ctx, 4);
 #endif
     if (pd0_level == VERY_LIGHT_PD0)
         return;
 
-#if OPT_LD_MDS0
-    if (!rtc_tune) {
-        uint8_t mds0_level = 4;
-        set_mds0_controls(ctx, mds0_level);
-    }
-#else
+#if !OPT_LD_MDS0
     uint8_t mds0_level = 4;
     set_mds0_controls(ctx, mds0_level);
 #endif
