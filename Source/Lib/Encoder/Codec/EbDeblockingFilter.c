@@ -22,10 +22,11 @@
 #include "EbCommonUtils.h"
 //#include "EbLog.h"
 #if OPT_LD_DLF
-#define DLF_MAX_LVL 3
-const uint32_t inter_frame_multiplier[INPUT_SIZE_COUNT] = {
+#define DLF_MAX_LVL 4
+const int32_t inter_frame_multiplier[INPUT_SIZE_COUNT] = {
     6017, 6017, 6017, 12034, 12034, 12034, 12034};
 const uint32_t disable_dlf_th[DLF_MAX_LVL][INPUT_SIZE_COUNT] = {
+    {0, 0, 0, 0, 0, 0, 0},
     {100, 200, 500, 800, 1000, 1300, 1600},
     {900, 1000, 2000, 3000, 4000, 6000, 7000},
     {6000, 7000, 8000, 9000, 10000, 20000, 30000}};
@@ -1307,18 +1308,21 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
         int32_t filt_guess_chroma = filt_guess / 2;
         if (pcs->rtc_tune) {
             if (pcs->slice_type != I_SLICE) {
-                uint32_t total_me_sad = 0;
-                for (uint16_t b64_index = 0; b64_index < pcs->b64_total_count; ++b64_index) {
-                    total_me_sad += pcs->ppcs->rc_me_distortion[b64_index];
-                }
-                uint32_t       average_me_sad = total_me_sad / pcs->b64_total_count;
                 const uint32_t use_zero_strength_th =
                     disable_dlf_th[pcs->ppcs->dlf_ctrls.ld_zero_filter_strength_lvl][in_res] *
                     (pcs->temporal_layer_index + 1);
-                if (average_me_sad < use_zero_strength_th)
-                    filt_guess = 0;
-                if (average_me_sad < (use_zero_strength_th * 2))
-                    filt_guess_chroma = 0;
+                if (use_zero_strength_th) {
+                    uint32_t total_me_sad = 0;
+                    for (uint16_t b64_index = 0; b64_index < pcs->b64_total_count; ++b64_index) {
+                        total_me_sad += pcs->ppcs->rc_me_distortion[b64_index];
+                    }
+                    uint32_t average_me_sad = total_me_sad / pcs->b64_total_count;
+
+                    if (average_me_sad < use_zero_strength_th)
+                        filt_guess = 0;
+                    if (average_me_sad < (use_zero_strength_th * 2))
+                        filt_guess_chroma = 0;
+                }
             }
         } else {
             filt_guess        = filt_guess > 2 ? filt_guess - 2

@@ -1721,7 +1721,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->ld_zero_filter_strength_lvl = 0;
+        ctrls->ld_zero_filter_strength_lvl = 1;
 #endif
         break;
     case 4:
@@ -1732,7 +1732,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->ld_zero_filter_strength_lvl = 1;
+        ctrls->ld_zero_filter_strength_lvl = 2;
 #endif
         break;
     case 5:
@@ -1743,7 +1743,7 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
 #if OPT_LD_DLF
-        ctrls->ld_zero_filter_strength_lvl = 2;
+        ctrls->ld_zero_filter_strength_lvl = 3;
 #endif
         break;
     default: assert(0); break;
