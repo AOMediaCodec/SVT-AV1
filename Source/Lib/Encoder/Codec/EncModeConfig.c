@@ -12331,7 +12331,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 #else
         if ((!pcs->ppcs->sc_class1 && (enc_mode <= ENC_M10)) ||
 #endif
+#if OPT_LD_M12_SC
+            (pcs->ppcs->sc_class1 && (enc_mode <= ENC_M12))) {
+#else
             (pcs->ppcs->sc_class1 && (enc_mode <= ENC_M11))) {
+#endif
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->txt_level = is_base ? 4 : 5;
             } else if (pcs->coeff_lvl == HIGH_LVL) {
