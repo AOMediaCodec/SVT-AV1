@@ -522,15 +522,14 @@ static EbErrorType load_default_buffer_configuration_settings(
     scs->rest_segment_column_count =  MIN(rest_seg_w, 6);
     scs->rest_segment_row_count =  MIN(rest_seg_h, 4);
 
+#if OPT_LD_TF
+    scs->tf_segment_column_count = me_seg_w;
+    scs->tf_segment_row_count = me_seg_h;
+#else
     if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF)
     {
-#if OPT_LD_TF
-        scs->tf_segment_column_count = me_seg_w;
-        scs->tf_segment_row_count = me_seg_h;
-#else
         scs->tf_segment_column_count = 15;
         scs->tf_segment_row_count = 15;
-#endif
 
     }
     else
@@ -538,6 +537,7 @@ static EbErrorType load_default_buffer_configuration_settings(
         scs->tf_segment_column_count = me_seg_w;
         scs->tf_segment_row_count = me_seg_h;
     }
+#endif
 
     // adjust buffer count for superres
     uint32_t superres_count = (scs->static_config.superres_mode == SUPERRES_AUTO &&
