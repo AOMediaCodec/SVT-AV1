@@ -2680,7 +2680,7 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 0;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
@@ -2777,7 +2777,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[0].quarter_pel_mode = 1;
         scs->tf_params_per_type[0].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[0].chroma_lvl = 0;
+        scs->tf_params_per_type[0].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[0].do_chroma = 1;
 #endif
@@ -2807,7 +2807,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 1;
         scs->tf_params_per_type[1].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
@@ -2837,7 +2837,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[2].quarter_pel_mode = 1;
         scs->tf_params_per_type[2].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[2].chroma_lvl = 0;
+        scs->tf_params_per_type[2].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[2].do_chroma = 1;
 #endif
@@ -2867,7 +2867,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[0].quarter_pel_mode = 1;
         scs->tf_params_per_type[0].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[0].chroma_lvl = 0;
+        scs->tf_params_per_type[0].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[0].do_chroma = 1;
 #endif
@@ -2897,7 +2897,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 1;
         scs->tf_params_per_type[1].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
@@ -2927,7 +2927,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[2].quarter_pel_mode = 1;
         scs->tf_params_per_type[2].eight_pel_mode = 1;
 #if OPT_LD_TF
-        scs->tf_params_per_type[2].chroma_lvl = 0;
+        scs->tf_params_per_type[2].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[2].do_chroma = 1;
 #endif
@@ -2956,7 +2956,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[0].quarter_pel_mode = 1;
         scs->tf_params_per_type[0].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[0].chroma_lvl = 0;
+        scs->tf_params_per_type[0].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[0].do_chroma = 1;
 #endif
@@ -2987,7 +2987,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 1;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
@@ -3018,7 +3018,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[2].quarter_pel_mode = 1;
         scs->tf_params_per_type[2].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[2].chroma_lvl = 0;
+        scs->tf_params_per_type[2].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[2].do_chroma = 1;
 #endif
@@ -3048,7 +3048,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[0].quarter_pel_mode = 1;
         scs->tf_params_per_type[0].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[0].chroma_lvl = 0;
+        scs->tf_params_per_type[0].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[0].do_chroma = 1;
 #endif
@@ -3078,7 +3078,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 1;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
@@ -3108,7 +3108,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[2].quarter_pel_mode = 1;
         scs->tf_params_per_type[2].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[2].chroma_lvl = 0;
+        scs->tf_params_per_type[2].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[2].do_chroma = 1;
 #endif
@@ -3169,7 +3169,7 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].quarter_pel_mode = 3;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
 #if OPT_LD_TF
-        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 1;
 #else
         scs->tf_params_per_type[1].do_chroma = 1;
 #endif
