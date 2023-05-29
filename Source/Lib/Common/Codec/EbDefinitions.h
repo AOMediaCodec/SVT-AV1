@@ -133,7 +133,7 @@ typedef struct TfControls {
     // Filtering set
     uint8_t enabled; // Specifies whether the current input will be filtered or not (0: OFF, 1: ON)
 #if OPT_LD_TF
-    // Specifies whether the U& V planes will be filered or not (0: OFF (filter plane Y only) 
+    // Specifies whether the U& V planes will be filered or not (0: OFF (filter plane Y only)
     // 1: ON (filter all planes) 2: filter Y and decide to filter U and V based on the noise level)
     uint8_t chroma_lvl;
 #else

@@ -7543,11 +7543,15 @@ void svt_aom_sig_deriv_enc_dec_light_pd0(SequenceControlSet *scs, PictureControl
     if (pd0_level == VERY_LIGHT_PD0)
         return;
 
-    uint8_t mds0_level = 4;
 #if OPT_LD_MDS0
-    if (!rtc_tune)
-#endif
+    if (!rtc_tune) {
+        uint8_t mds0_level = 4;
         set_mds0_controls(ctx, mds0_level);
+    }
+#else
+    uint8_t mds0_level = 4;
+        set_mds0_controls(ctx, mds0_level);
+#endif
 
     svt_aom_set_chroma_controls(ctx, 0 /*chroma off*/);
 
@@ -7739,7 +7743,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
               me_64x64_distortion < (250 * picture_qp))))
             mds0_level = 0;
     }
-    
+
     set_mds0_controls(ctx, mds0_level);
 
     uint8_t lpd1_tx_level = 0;
@@ -8114,7 +8118,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     if (pcs->scs->low_latency_kf && is_islice)
         intra_level = 4;
     set_intra_ctrls(pcs, ctx, intra_level);
-    
+
     set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
 
     set_subres_controls(ctx, 0);

@@ -1229,9 +1229,9 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc *srcBuffer, // source 
     SequenceControlSet *scs     = pcs->scs;
     FrameHeader        *frm_hdr = &pcs->ppcs->frm_hdr;
 #if OPT_LD_DLF
-    const bool    rtc_tune = pcs->rtc_tune ? true : false;
-    const uint8_t in_res   = pcs->ppcs->input_resolution;
-    const int64_t inter_frame_mult = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
+    const bool    rtc_tune         = pcs->rtc_tune ? true : false;
+    const uint8_t in_res           = pcs->ppcs->input_resolution;
+    const int32_t inter_frame_mult = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
 #endif
     (void)srcBuffer;
     struct LoopFilter *const lf = &frm_hdr->loop_filter_params;
