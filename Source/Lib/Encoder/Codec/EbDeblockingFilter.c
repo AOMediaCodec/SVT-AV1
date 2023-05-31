@@ -1148,8 +1148,8 @@ EbErrorType qp_based_dlf_param(PictureControlSet *pcs, int32_t *filter_level_y,
 * Choose the optimal loop filter levels by qindex
 *************************************************************************************************/
 void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int32_t *filter_level) {
-    SequenceControlSet *scs                     = pcs->scs;
-    FrameHeader        *frm_hdr                 = &pcs->ppcs->frm_hdr;
+    SequenceControlSet *scs     = pcs->scs;
+    FrameHeader        *frm_hdr = &pcs->ppcs->frm_hdr;
 
 #if OPT_LD_DLF
     const bool    rtc_tune         = pcs->rtc_tune ? true : false;
@@ -1157,9 +1157,9 @@ void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int3
     const int32_t inter_frame_mult = rtc_tune ? inter_frame_multiplier[in_res] : 6017;
 #endif
 
-    int32_t             min_ref_filter_level[2] = {MAX_LOOP_FILTER, MAX_LOOP_FILTER};
-    int32_t             min_ref_filter_level_u  = MAX_LOOP_FILTER;
-    int32_t             min_ref_filter_level_v  = MAX_LOOP_FILTER;
+    int32_t min_ref_filter_level[2] = {MAX_LOOP_FILTER, MAX_LOOP_FILTER};
+    int32_t min_ref_filter_level_u  = MAX_LOOP_FILTER;
+    int32_t min_ref_filter_level_v  = MAX_LOOP_FILTER;
 
     for (uint32_t ref_it = 0; ref_it < pcs->ppcs->tot_ref_frame_types; ++ref_it) {
         MvReferenceFrame ref_pair = pcs->ppcs->ref_frame_type_arr[ref_it];
@@ -1192,11 +1192,12 @@ void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int3
     int32_t filt_guess;
     switch (scs->static_config.encoder_bit_depth) {
     case EB_EIGHT_BIT:
-        filt_guess = (frm_hdr->frame_type == KEY_FRAME) ? ROUND_POWER_OF_TWO(q * 17563 - 421574, 18)
+        filt_guess = (frm_hdr->frame_type == KEY_FRAME)
+            ? ROUND_POWER_OF_TWO(q * 17563 - 421574, 18)
 #if OPT_LD_DLF
-                                                        : ROUND_POWER_OF_TWO(q * inter_frame_mult + 650707, 18);
+            : ROUND_POWER_OF_TWO(q * inter_frame_mult + 650707, 18);
 #else
-                                                        : ROUND_POWER_OF_TWO(q * 6017 + 650707, 18);
+            : ROUND_POWER_OF_TWO(q * 6017 + 650707, 18);
 #endif
         break;
     case EB_TEN_BIT: filt_guess = ROUND_POWER_OF_TWO(q * 20723 + 4060632, 20); break;
@@ -1231,10 +1232,8 @@ void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int3
             }
         }
     } else {
-        filt_guess        = filt_guess > 2 ? filt_guess - 2
-            : filt_guess > 1        ? filt_guess - 1
-            : filt_guess;
-        filt_guess        = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
+        filt_guess = filt_guess > 2 ? filt_guess - 2 : filt_guess > 1 ? filt_guess - 1 : filt_guess;
+        filt_guess = filt_guess > pcs->ppcs->dlf_ctrls.min_filter_level ? filt_guess : 0;
         filt_guess_chroma = filt_guess > 1 ? filt_guess / 2 : filt_guess;
     }
 #else
