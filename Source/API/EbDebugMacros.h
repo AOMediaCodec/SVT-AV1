@@ -256,6 +256,7 @@ extern "C" {
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define FIX_DEADLOCK            1 // Deadlock Fix
 #define OPT_LD_M12_SC           1
+#define OPT_LD_M8_SC            1
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

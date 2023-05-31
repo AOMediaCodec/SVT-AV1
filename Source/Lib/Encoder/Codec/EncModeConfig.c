@@ -12419,8 +12419,13 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (rtc_tune) {
         if (enc_mode <= ENC_M4)
             pcs->tx_shortcut_level = 0;
+#if OPT_LD_M8_SC
+        else if ((enc_mode <= ENC_M7 && !pcs->ppcs->sc_class1) || (enc_mode <= ENC_M8 && pcs->ppcs->sc_class1))
+            pcs->tx_shortcut_level = is_base ? 0 : 1;
+#else
         else if (enc_mode <= ENC_M7)
             pcs->tx_shortcut_level = is_base ? 0 : 1;
+#endif
         else if (enc_mode <= ENC_M10)
             pcs->tx_shortcut_level = is_islice ? 0 : 1;
         else
