@@ -3365,12 +3365,23 @@ static void send_picture_out(
     MrpCtrls* mrp_ctrl = &(scs->mrp_ctrls);
 
     //limit (1,1) for picture that have very close references.
+#if TUNE_11_SEC_TOP
+    if (scs->mrp_ctrls.safe_limit_nref && pcs->slice_type == B_SLICE && pcs->hierarchical_levels>0 &&
+        (pcs->temporal_layer_index >= pcs->hierarchical_levels - 1) ) {
+#else
     if (scs->mrp_ctrls.safe_limit_nref && pcs->slice_type == B_SLICE && !pcs->is_ref) {
+#endif
         EbPaReferenceObject *ref_obj_0 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[0][0]->object_ptr;
         EbPaReferenceObject *ref_obj_1 = (EbPaReferenceObject *)pcs->ref_pa_pic_ptr_array[1][0]->object_ptr;
         if (ref_obj_0->avg_luma != INVALID_LUMA && ref_obj_1->avg_luma != INVALID_LUMA) {
+#if TUNE_11_SEC_TOP
+            const int32_t luma_th = 5;
+            if (ABS((int)ref_obj_0->avg_luma - (int)pcs->avg_luma) < luma_th &&
+                ABS((int)ref_obj_1->avg_luma - (int)pcs->avg_luma) < luma_th)
+#else
             if (ABS((int)ref_obj_0->avg_luma - (int)pcs->avg_luma) < 100 &&
                 ABS((int)ref_obj_1->avg_luma - (int)pcs->avg_luma) < 100)
+#endif
             {
                 pcs->ref_list0_count_try = pcs->ref_list1_count_try = 1;
             }

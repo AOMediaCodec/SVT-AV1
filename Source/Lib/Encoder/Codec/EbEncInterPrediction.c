@@ -3555,6 +3555,22 @@ void tf_inter_predictor(SequenceControlSet *scs, uint8_t *src_ptr, uint8_t *dst_
                             0); // use_intrabc);
     }
 }
+#if OPT_LPD0_8BIT_ONLY
+static void enc_make_inter_predictor_light_pd0(uint8_t *src_ptr, uint8_t *dst_ptr,
+                                               SubpelParams *  subpel_params,
+                                               ConvolveParams *conv_params, uint8_t blk_width,
+                                               uint8_t blk_height, int32_t src_stride,
+                                               int32_t dst_stride) {
+    svt_inter_predictor_light_pd0(src_ptr,
+                                  src_stride,
+                                  dst_ptr,
+                                  dst_stride,
+                                  blk_width,
+                                  blk_height,
+                                  subpel_params,
+                                  conv_params);
+}
+#else
 /*
 
 */
@@ -3589,6 +3605,7 @@ static void enc_make_inter_predictor_light_pd0(uint8_t *src_ptr, uint8_t *src_pt
                                       conv_params);
     }
 }
+#endif
 void svt_aom_enc_make_inter_predictor(
     SequenceControlSet *scs, uint8_t *src_ptr, uint8_t *src_ptr_2b, uint8_t *dst_ptr, int16_t pre_y,
     int16_t pre_x, MV mv, const struct ScaleFactors *const sf, ConvolveParams *conv_params,
@@ -3770,6 +3787,109 @@ EbErrorType svt_aom_simple_luma_unipred(SequenceControlSet *scs, ScaleFactors sf
                        subsampling_shift);
     return return_error;
 }
+#if OPT_LPD0_8BIT_ONLY
+static void av1_inter_prediction_light_pd0(
+    SequenceControlSet *scs, MvUnit *mv_unit, struct ModeDecisionContext *ctx, uint16_t pu_origin_x,
+    uint16_t pu_origin_y, uint8_t bwidth, uint8_t bheight, EbPictureBufferDesc *ref_pic_list0,
+    EbPictureBufferDesc *ref_pic_list1, EbPictureBufferDesc *pred, uint16_t dst_origin_x,
+    uint16_t dst_origin_y, ScaleFactors *sf0, ScaleFactors *sf1) {
+    const uint8_t is_compound = (mv_unit->pred_direction == BI_PRED) ? 1 : 0;
+    DECLARE_ALIGNED(32, uint16_t, tmp_dstY[64 * 64]);
+    uint8_t *src_ptr;
+    uint8_t *dst_ptr = pred->buffer_y +
+        ((pred->org_x + dst_origin_x + (pred->org_y + dst_origin_y) * pred->stride_y));
+    int32_t        dst_stride  = pred->stride_y;
+    ConvolveParams conv_params = get_conv_params_no_round(
+        0, 0, 0, tmp_dstY, 64, is_compound, EB_EIGHT_BIT);
+
+    if (mv_unit->pred_direction == UNI_PRED_LIST_0 || mv_unit->pred_direction == BI_PRED) {
+        SubpelParams subpel_params = {SCALE_SUBPEL_SHIFTS, SCALE_SUBPEL_SHIFTS, 0, 0};
+        int32_t      pos_y, pos_x;
+        pos_x = pu_origin_x + (mv_unit->mv[REF_LIST_0].x >> 3);
+        pos_y = pu_origin_y + (mv_unit->mv[REF_LIST_0].y >> 3);
+        assert(ref_pic_list0 != NULL);
+        if (EB_UNLIKELY(av1_is_scaled(sf0))) {
+            MV mv;
+            mv.col = mv_unit->mv[REF_LIST_0].x;
+            mv.row = mv_unit->mv[REF_LIST_0].y;
+            compute_subpel_params(scs,
+                                  pu_origin_y,
+                                  pu_origin_x,
+                                  mv,
+                                  sf0,
+                                  ref_pic_list0->width,
+                                  ref_pic_list0->height,
+                                  bwidth,
+                                  bheight,
+                                  ctx->blk_ptr->av1xd,
+                                  0,
+                                  0,
+                                  &subpel_params,
+                                  &pos_y,
+                                  &pos_x);
+        }
+
+        src_ptr = ref_pic_list0->buffer_y +
+            ((ref_pic_list0->org_x + pos_x +
+              (ref_pic_list0->org_y + pos_y) * ref_pic_list0->stride_y));
+
+        enc_make_inter_predictor_light_pd0(src_ptr,
+                                           dst_ptr,
+                                           &subpel_params,
+                                           &conv_params,
+                                           bwidth,
+                                           bheight,
+                                           ref_pic_list0->stride_y,
+                                           dst_stride);
+    }
+
+    if (mv_unit->pred_direction == UNI_PRED_LIST_1 || mv_unit->pred_direction == BI_PRED) {
+        SubpelParams subpel_params = {SCALE_SUBPEL_SHIFTS, SCALE_SUBPEL_SHIFTS, 0, 0};
+        int32_t      pos_y, pos_x;
+        pos_x = pu_origin_x + (mv_unit->mv[REF_LIST_1].x >> 3);
+        pos_y = pu_origin_y + (mv_unit->mv[REF_LIST_1].y >> 3);
+        assert(ref_pic_list1 != NULL);
+        if (EB_UNLIKELY(av1_is_scaled(sf1))) {
+            MV mv;
+            mv.col = mv_unit->mv[REF_LIST_1].x;
+            mv.row = mv_unit->mv[REF_LIST_1].y;
+            compute_subpel_params(scs,
+                                  pu_origin_y,
+                                  pu_origin_x,
+                                  mv,
+                                  sf1,
+                                  ref_pic_list1->width,
+                                  ref_pic_list1->height,
+                                  bwidth,
+                                  bheight,
+                                  ctx->blk_ptr->av1xd,
+                                  0,
+                                  0,
+                                  &subpel_params,
+                                  &pos_y,
+                                  &pos_x);
+        }
+        src_ptr = ref_pic_list1->buffer_y +
+            ((ref_pic_list1->org_x + pos_x +
+              (ref_pic_list1->org_y + pos_y) * ref_pic_list1->stride_y));
+
+        if (is_compound) {
+            conv_params.do_average            = 1;
+            conv_params.use_dist_wtd_comp_avg = 0;
+        }
+
+        assert(IMPLIES(conv_params.do_average, is_compound));
+        enc_make_inter_predictor_light_pd0(src_ptr,
+                                           dst_ptr,
+                                           &subpel_params,
+                                           &conv_params,
+                                           bwidth,
+                                           bheight,
+                                           ref_pic_list1->stride_y,
+                                           dst_stride);
+    }
+}
+#else
 void av1_inter_prediction_light_pd0(
     SequenceControlSet *scs, MvUnit *mv_unit, struct ModeDecisionContext *ctx, uint16_t pu_origin_x,
     uint16_t pu_origin_y, uint8_t bwidth, uint8_t bheight, EbPictureBufferDesc *ref_pic_list0,
@@ -3889,6 +4009,7 @@ void av1_inter_prediction_light_pd0(
                                            bit_depth);
     }
 }
+#endif
 /*
   inter prediction for light PD1
 */
@@ -5391,7 +5512,9 @@ EbErrorType svt_aom_inter_pu_prediction_av1_light_pd0(uint8_t hbd_md, ModeDecisi
                                    cand_bf->pred,
                                    ctx->blk_geom->org_x,
                                    ctx->blk_geom->org_y,
+#if !OPT_LPD0_8BIT_ONLY
                                    hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT,
+#endif
                                    &ref0_scale_factors,
                                    &ref1_scale_factors);
 

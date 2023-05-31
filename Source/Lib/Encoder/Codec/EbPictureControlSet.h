@@ -425,7 +425,9 @@ typedef struct PictureControlSet {
     uint8_t pic_depth_removal_level_rtc;
     // block_based_depth_refinement_level signal set at the picture level
     uint8_t          pic_block_based_depth_refinement_level;
+#if !FIX_DEPTH_EXIT_CHECK
     uint8_t          pic_depth_early_exit_lvl;
+#endif
     uint8_t          pic_lpd0_lvl; // lpd0_lvl signal set at the picture level
     uint8_t          pic_lpd1_lvl; // lpd1_lvl signal set at the picture level
     Bool             pic_bypass_encdec;

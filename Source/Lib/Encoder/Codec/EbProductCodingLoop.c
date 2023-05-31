@@ -150,6 +150,17 @@ static void mode_decision_update_neighbor_arrays_light_pd0(ModeDecisionContext *
     uint32_t org_x = ctx->blk_org_x;
     uint32_t org_y = ctx->blk_org_y;
 
+#if OPT_LPD0_8BIT_ONLY
+    assert(!ctx->skip_intra); // only get here when using intra
+    svt_aom_update_recon_neighbor_array(
+        ctx->recon_neigh_y,
+        ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
+        ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0],
+        org_x,
+        org_y,
+        bwidth,
+        bheight);
+#else
     if (!ctx->skip_intra) {
         if (!ctx->hbd_md) {
             svt_aom_update_recon_neighbor_array(
@@ -171,6 +182,7 @@ static void mode_decision_update_neighbor_arrays_light_pd0(ModeDecisionContext *
                 bheight);
         }
     }
+#endif
 
     return;
 }
@@ -494,6 +506,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
     }
     return;
 }
+#if !OPT_LPD0_8BIT_ONLY
 void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                      uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
                                      uint32_t sb_org_x, uint32_t sb_org_y) {
@@ -522,6 +535,7 @@ void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext
                                NEIGHBOR_ARRAY_UNIT_FULL_MASK);
     }
 }
+#endif
 void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                    uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
                                    uint32_t sb_org_x, uint32_t sb_org_y) {
@@ -1079,7 +1093,80 @@ static void product_coding_loop_init_fast_loop(PictureControlSet *pcs, ModeDecis
 
     return;
 }
+#if OPT_LPD0_8BIT_ONLY
+static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
+                                     ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
+                                     uint32_t input_origin_index, uint32_t cu_origin_index) {
+    ModeDecisionCandidate *cand = cand_bf->cand;
+    EbPictureBufferDesc *  pred = cand_bf->pred;
 
+    if (ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0) {
+        MvReferenceFrame rf[2];
+        av1_set_ref_frame(rf, cand->ref_frame_type);
+
+        assert(rf[1] == NONE_FRAME);
+
+        EbPictureBufferDesc *ref_pic;
+        const int8_t         ref_idx_first  = get_ref_frame_idx(rf[0]);
+        const int8_t         list_idx_first = get_list_idx(rf[0]);
+        int32_t              ref_origin_index;
+        int16_t              mv_x, mv_y;
+
+        EbReferenceObject *ref_obj =
+            (EbReferenceObject *)pcs->ref_pic_ptr_array[list_idx_first][ref_idx_first]->object_ptr;
+        if (list_idx_first == 0) {
+            ref_pic = svt_aom_get_ref_pic_buffer(pcs, 0, 0, ref_idx_first);
+            mv_x    = cand->mv[REF_LIST_0].x >> 3;
+            mv_y    = cand->mv[REF_LIST_0].y >> 3;
+        } else {
+            ref_pic = svt_aom_get_ref_pic_buffer(pcs, 0, 1, ref_idx_first);
+            mv_x    = cand->mv[REF_LIST_1].x >> 3;
+            mv_y    = cand->mv[REF_LIST_1].y >> 3;
+        }
+        // -------
+        // Use scaled references if resolution of the reference is different from that of the input
+        // -------
+        svt_aom_use_scaled_rec_refs_if_needed(pcs, input_pic, ref_obj, &ref_pic, 0);
+        ref_origin_index = ref_pic->org_x + (ctx->blk_org_x + mv_x) +
+            (ctx->blk_org_y + mv_y + ref_pic->org_y) * ref_pic->stride_y;
+
+        *(cand_bf->fast_cost) = (uint32_t)(svt_spatial_full_distortion_kernel(
+                                    input_pic->buffer_y,
+                                    input_origin_index,
+                                    input_pic->stride_y << 1,
+                                    ref_pic->buffer_y,
+                                    ref_origin_index,
+                                    ref_pic->stride_y << 1,
+                                    ctx->blk_geom->bwidth,
+                                    ctx->blk_geom->bheight >> 1))
+            << 1;
+    } else {
+        // intrabc not allowed in light_pd0
+        svt_product_prediction_fun_table_light_pd0[is_inter_mode(cand->pred_mode)](
+            0, ctx, pcs, cand_bf);
+        if (ctx->mds0_ctrls.mds0_dist_type == MDS0_VAR) {
+            const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[ctx->blk_geom->bsize];
+            unsigned int            sse;
+            uint8_t *               pred_y = pred->buffer_y + cu_origin_index;
+            uint8_t *               src_y  = input_pic->buffer_y + input_origin_index;
+            *(cand_bf->fast_cost)          = fn_ptr->vf(
+                                        pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >>
+                2;
+
+        } else {
+            assert(ctx->mds0_ctrls.mds0_dist_type == MDS0_SAD);
+            assert((ctx->blk_geom->bwidth >> 3) < 17);
+            *(cand_bf->fast_cost) = svt_nxm_sad_kernel_sub_sampled(
+                input_pic->buffer_y + input_origin_index,
+                input_pic->stride_y,
+                pred->buffer_y + cu_origin_index,
+                pred->stride_y,
+                ctx->blk_geom->bheight,
+                ctx->blk_geom->bwidth);
+        }
+    }
+}
+#else
 /*
 */
 static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
@@ -1212,10 +1299,18 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
         }
     }
 }
+#endif
+#if OPT_LPD0_8BIT_ONLY
+// Light PD1 fast loop core; assumes luma only, 8bit only, and that SSD is not used.
+static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
+                                     ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
+                                     BlockLocation *loc) {
+#else
 // Light PD1 fast loop core; assumes luma only, 8bit only, and that SSD is not used.
 static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
                                      ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
                                      BlockLocation *loc, BlkStruct *blk_ptr) {
+#endif
     uint32_t       luma_fast_dist;
     const uint32_t fast_lambda = ctx->fast_lambda_md[EB_8_BIT_MD];
 
@@ -1274,7 +1369,11 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
     } else {
         *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
             ctx,
+#if OPT_LPD0_8BIT_ONLY
+            ctx->blk_ptr,
+#else
             blk_ptr,
+#endif
             cand_bf,
             NOT_USED_VALUE,
             luma_fast_dist,
@@ -1839,6 +1938,70 @@ void get_mds3_intra_count_for_chroma(struct ModeDecisionContext   *ctx,
     if ((ctx->best_inter_cost * ctx->uv_ctrls.uv_intra_th) < (ctx->best_intra_cost * 100))
         ctx->md_stage_3_total_intra_count = 0;
 }
+
+#if OPT_LPD0_8BIT_ONLY
+static void md_stage_0_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                 uint32_t fast_cand_count, EbPictureBufferDesc *input_pic,
+                                 uint32_t input_origin_index, uint32_t blk_origin_index) {
+    uint32_t cand_buff_idx = 0;
+    for (uint32_t cand_idx = 0; cand_idx < fast_cand_count; cand_idx++) {
+        ModeDecisionCandidateBuffer *cand_bf = ctx->cand_bf_ptr_array[cand_buff_idx];
+        cand_bf->cand                        = &ctx->fast_cand_array[cand_idx];
+
+        // Initialize tx_depth
+        cand_bf->cand->tx_depth = 0;
+        fast_loop_core_light_pd0(
+            cand_bf, pcs, ctx, input_pic, input_origin_index, blk_origin_index);
+
+        if (*cand_bf->fast_cost < ctx->mds0_best_cost) {
+            ctx->mds0_best_cost = *cand_bf->fast_cost;
+            ctx->mds0_best_idx  = cand_buff_idx;
+            cand_buff_idx       = !cand_buff_idx;
+        }
+    }
+}
+static void md_stage_0_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                 ModeDecisionCandidateBuffer **cand_bf_ptr_array_base,
+                                 ModeDecisionCandidate *fast_cand_array, uint32_t fast_cand_count,
+                                 EbPictureBufferDesc *input_pic, BlockLocation *loc) {
+    // Set MD Staging fast_loop_core settings
+    ctx->mds_skip_uv_pred = TRUE;
+    ctx->end_plane        = 1;
+#if CLN_IFS_PATH
+    /* If the interpolation filter type is assigned at the picture level, use that value, OW use regular.
+     * NB intra_bc always uses BILINEAR, but IBC is not allowed in LPD1. */
+    const InterpFilter default_interp_filter = (pcs->ppcs->frm_hdr.interpolation_filter ==
+                                                SWITCHABLE)
+        ? 0
+        : av1_broadcast_interp_filter(pcs->ppcs->frm_hdr.interpolation_filter);
+#endif
+
+    // 2nd fast loop: src-to-recon
+    uint32_t cand_buff_idx = 0;
+
+    for (uint32_t cand_idx = 0; cand_idx < fast_cand_count; cand_idx++) {
+        ModeDecisionCandidateBuffer *cand_bf = cand_bf_ptr_array_base[cand_buff_idx];
+        cand_bf->cand                        = &fast_cand_array[cand_idx];
+
+#if CLN_IFS_PATH
+        cand_bf->cand->tx_depth       = 0;
+        cand_bf->cand->interp_filters = default_interp_filter;
+#else
+        // Initialize tx_depth
+        cand_bf->cand->tx_depth = 0;
+#endif
+
+        // Prediction
+        fast_loop_core_light_pd1(cand_bf, pcs, ctx, input_pic, loc);
+
+        if (*cand_bf->fast_cost < ctx->mds0_best_cost) {
+            ctx->mds0_best_cost = *cand_bf->fast_cost;
+            ctx->mds0_best_idx  = cand_buff_idx;
+            cand_buff_idx       = !cand_buff_idx;
+        }
+    }
+}
+#else
 static void md_stage_0_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                  int32_t fast_candidate_end_index, EbPictureBufferDesc *input_pic,
                                  uint32_t input_origin_index, uint32_t blk_origin_index) {
@@ -1890,6 +2053,7 @@ static void md_stage_0_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ct
         --fast_cand_idx;
     }
 }
+#endif
 // returns true if the candidate should be processed during the current MDS0 iteration, false otherwise.
 // Function will only be applicate to classes which use multiple iterations
 static bool process_cand_itr(ModeDecisionCandidate *cand, uint8_t itr,
@@ -4845,7 +5009,11 @@ static void perform_tx_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
                                NOT_USED_VALUE,
                                tx_size,
                                &ctx->three_quad_energy,
+#if OPT_LPD0_8BIT_ONLY
+                               EB_EIGHT_BIT,
+#else
                                ctx->hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT,
+#endif
                                tx_type,
                                PLANE_TYPE_Y,
                                pf_shape);
@@ -4858,7 +5026,11 @@ static void perform_tx_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
                                         tx_size,
                                         &cand_bf->eob[0][0],
                                         y_count_non_zero_coeffs,
+#if OPT_LPD0_8BIT_ONLY
+                                        EB_EIGHT_BIT,
+#else
                                         ctx->hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT,
+#endif
                                         DCT_DCT);
 
     // LUMA DISTORTION
@@ -6429,12 +6601,32 @@ static void full_loop_core_light_pd0(PictureControlSet *pcs, ModeDecisionContext
     uint64_t y_full_distortion[DIST_CALC_TOTAL];
     uint32_t cnt_nz_coeff;
     uint64_t y_coeff_bits;
+#if OPT_LPD0_8BIT_ONLY
+    uint32_t full_lambda = ctx->full_sb_lambda_md[EB_8_BIT_MD];
+#else
     uint32_t full_lambda = ctx->hbd_md ? ctx->full_sb_lambda_md[EB_10_BIT_MD]
                                        : ctx->full_sb_lambda_md[EB_8_BIT_MD];
+#endif
     if (ctx->subres_ctrls.odd_to_even_deviation_th && ctx->pd_pass == PD_PASS_0 &&
         ctx->md_stage == MD_STAGE_3 && ctx->is_subres_safe == (uint8_t)~0 /* only if invalid*/ &&
         ctx->blk_geom->bheight == 64 && ctx->blk_geom->bwidth == 64) {
         uint32_t sad_even, sad_odd;
+#if OPT_LPD0_8BIT_ONLY
+        sad_even = svt_nxm_sad_kernel_sub_sampled(input_pic->buffer_y + input_origin_index,
+                                                  input_pic->stride_y << 1,
+                                                  cand_bf->pred->buffer_y + blk_origin_index,
+                                                  cand_bf->pred->stride_y << 1,
+                                                  ctx->blk_geom->bheight >> 1,
+                                                  ctx->blk_geom->bwidth);
+
+        sad_odd = svt_nxm_sad_kernel_sub_sampled(
+            input_pic->buffer_y + input_origin_index + input_pic->stride_y,
+            input_pic->stride_y << 1,
+            cand_bf->pred->buffer_y + blk_origin_index + cand_bf->pred->stride_y,
+            cand_bf->pred->stride_y << 1,
+            ctx->blk_geom->bheight >> 1,
+            ctx->blk_geom->bwidth);
+#else
         if (!ctx->hbd_md) {
             sad_even = svt_nxm_sad_kernel_sub_sampled(input_pic->buffer_y + input_origin_index,
                                                       input_pic->stride_y << 1,
@@ -6467,7 +6659,7 @@ static void full_loop_core_light_pd0(PictureControlSet *pcs, ModeDecisionContext
                 ctx->blk_geom->bheight >> 1,
                 ctx->blk_geom->bwidth);
         }
-
+#endif
         int deviation = (int)(((int)MAX(sad_even, 1) - (int)MAX(sad_odd, 1)) * 100) /
             (int)MAX(sad_odd, 1);
         if (ABS(deviation) <= ctx->subres_ctrls.odd_to_even_deviation_th) {
@@ -6495,7 +6687,11 @@ static void full_loop_core_light_pd0(PictureControlSet *pcs, ModeDecisionContext
                             (int16_t *)cand_bf->residual->buffer_y,
                             blk_origin_index,
                             cand_bf->residual->stride_y,
+#if OPT_LPD0_8BIT_ONLY
+                            0,
+#else
                             ctx->hbd_md,
+#endif
                             ctx->blk_geom->bwidth,
                             ctx->blk_geom->bheight >> ctx->mds_subres_step);
 
@@ -7699,6 +7895,7 @@ static void md_stage_3_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
                                  EbPictureBufferDesc *input_pic, uint32_t input_origin_index,
                                  uint32_t blk_origin_index) {
     ModeDecisionCandidateBuffer *cand_bf = ctx->cand_bf_ptr_array[ctx->mds0_best_idx];
+#if !OPT_LPD0_8BIT_ONLY
     //TO MOVE ALL OF THESE at SB LEVEL
     ctx->mds_do_inter_pred        = 0;
     ctx->mds_skip_ifs             = 1;
@@ -7709,6 +7906,7 @@ static void md_stage_3_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
     ctx->mds_skip_rdoq            = 0;
     ctx->mds_spatial_sse          = 0;
     ctx->mds_fast_coeff_est_level = ctx->rate_est_ctrls.pd0_fast_coeff_est_level; //ON  !!!
+#endif
 
     // For 8x8 blocks, can't use 4x subsampling b/c no 8x2 transform
     ctx->mds_subres_step = ctx->blk_geom->sq_size >= 16 ? ctx->subres_ctrls.step
@@ -7719,7 +7917,9 @@ static void md_stage_3_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
     svt_aom_assert_err(IMPLIES(!ctx->disallow_4x4, ctx->mds_subres_step == 0),
                        "residual subsampling cannot be used with 4x4 blocks");
 
+#if !OPT_LPD0_8BIT_ONLY
     ctx->mds_do_intra_uv_pred = TRUE;
+#endif
 
     full_loop_core_light_pd0(pcs, ctx, cand_bf, input_pic, input_origin_index, blk_origin_index);
 }
@@ -8794,11 +8994,19 @@ static void md_encode_block_light_pd0(PictureControlSet *pcs, ModeDecisionContex
         cand_bf->cand                        = &ctx->fast_cand_array[0];
         cand_bf->cand->tx_depth              = 0;
         svt_product_prediction_fun_table_light_pd0[is_inter_mode(cand_bf->cand->pred_mode)](
+#if OPT_LPD0_8BIT_ONLY
+            0, ctx, pcs, cand_bf);
+#else
             ctx->hbd_md, ctx, pcs, cand_bf);
+#endif
     } else
         md_stage_0_light_pd0(pcs,
                              ctx,
+#if OPT_LPD0_8BIT_ONLY
+                             fast_candidate_total_count,
+#else
                              fast_candidate_total_count - 1,
+#endif
                              input_pic,
                              input_origin_index,
                              blk_origin_index);
@@ -8866,6 +9074,17 @@ static void md_encode_block_light_pd0(PictureControlSet *pcs, ModeDecisionContex
         uint32_t             rec_luma_offset = ctx->blk_geom->org_x +
             ctx->blk_geom->org_y * recon_ptr->stride_y;
 
+#if OPT_LPD0_8BIT_ONLY
+        svt_memcpy(ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
+                   recon_ptr->buffer_y + rec_luma_offset +
+                       (ctx->blk_geom->bheight - 1) * recon_ptr->stride_y,
+                   ctx->blk_geom->bwidth);
+
+        for (j = 0; j < ctx->blk_geom->bheight; ++j)
+            ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_left_recon[0][j] =
+                recon_ptr->buffer_y[rec_luma_offset + ctx->blk_geom->bwidth - 1 +
+                                    j * recon_ptr->stride_y];
+#else
         if (!ctx->hbd_md) {
             svt_memcpy(ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].neigh_top_recon[0],
                        recon_ptr->buffer_y + rec_luma_offset +
@@ -8889,6 +9108,7 @@ static void md_encode_block_light_pd0(PictureControlSet *pcs, ModeDecisionContex
                     ((uint16_t *)recon_ptr->buffer_y)[rec_luma_offset + ctx->blk_geom->bwidth - 1 +
                                                       j * recon_ptr->stride_y];
         }
+#endif
     }
 
     ctx->avail_blk_flag[blk_ptr->mds_idx] = TRUE;
@@ -9672,10 +9892,16 @@ static void md_encode_block_light_pd1(PictureControlSet *pcs, ModeDecisionContex
                              ctx,
                              cand_bf_ptr_array_base,
                              fast_cand_array,
+#if OPT_LPD0_8BIT_ONLY
+                             fast_candidate_total_count,
+                             input_pic,
+                             &loc);
+#else
                              fast_candidate_total_count - 1,
                              input_pic,
                              &loc,
                              blk_ptr);
+#endif
 
         ctx->perform_mds1 = 0;
         lpd1_tx_shortcut_detector(pcs, ctx, cand_bf_ptr_array);
@@ -10849,6 +11075,13 @@ static EbPictureBufferDesc *pad_hbd_pictures(SequenceControlSet *scs, PictureCon
 /*
  * Update the neighbour arrays before starting block processing.
  */
+#if OPT_LPD0_8BIT_ONLY
+static INLINE void update_neighbour_arrays_light_pd0(PictureControlSet *  pcs,
+                                                     ModeDecisionContext *ctx) {
+    const uint16_t tile_idx = ctx->tile_index;
+    ctx->recon_neigh_y      = pcs->md_luma_recon_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+}
+#else
 void update_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     const uint16_t tile_idx = ctx->tile_index;
 
@@ -10866,6 +11099,7 @@ void update_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionConte
         }
     }
 }
+#endif
 /*
  * Update the neighbour arrays before starting block processing.
  */
@@ -10945,7 +11179,11 @@ static void check_curr_to_parent_cost_light_pd0(SequenceControlSet *scs, Picture
                                                 Bool     *md_early_exit_sq) {
     const BlockGeom *blk_geom = ctx->blk_geom;
     BlkStruct       *blk_ptr  = ctx->blk_ptr;
-
+#if FIX_DEPTH_EXIT_CHECK
+    // skip until we reach the next block @ the parent block depth
+    if (blk_ptr->mds_idx >= *next_non_skip_blk_idx_mds && *md_early_exit_sq == 1)
+        *md_early_exit_sq = 0;
+#endif
     // For quadrant 0 the cost will just be the split rate cost
     if (!(*md_early_exit_sq)) {
         uint64_t parent_depth_cost = 0, current_depth_cost = 0;
@@ -10983,9 +11221,11 @@ static void check_curr_to_parent_cost_light_pd0(SequenceControlSet *scs, Picture
             }
         }
     }
+#if !FIX_DEPTH_EXIT_CHECK
     // skip until we reach the next block @ the parent block depth
     if (blk_ptr->mds_idx >= *next_non_skip_blk_idx_mds && *md_early_exit_sq == 1)
         *md_early_exit_sq = 0;
+#endif
 }
 /*
  * Check cost of current depth to parent depth, and if current cost is larger, signal to exit
@@ -10997,6 +11237,11 @@ static void check_curr_to_parent_cost(SequenceControlSet *scs, PictureControlSet
                                       uint8_t d1_blk_count) {
     const BlockGeom *blk_geom = ctx->blk_geom;
     BlkStruct       *blk_ptr  = ctx->blk_ptr;
+#if FIX_DEPTH_EXIT_CHECK
+    // skip until we reach the next block @ the parent block depth
+    if (blk_ptr->mds_idx >= *next_non_skip_blk_idx_mds && *md_early_exit_sq == 1)
+        *md_early_exit_sq = 0;
+#endif
     // For quadrant 0 the cost will just be the split rate cost
     if (d1_blk_count == 0 && !(*md_early_exit_sq)) {
         uint64_t parent_depth_cost = 0, current_depth_cost = 0;
@@ -11031,9 +11276,11 @@ static void check_curr_to_parent_cost(SequenceControlSet *scs, PictureControlSet
             *md_early_exit_sq = 0;
         }
     }
+#if !FIX_DEPTH_EXIT_CHECK
     // skip until we reach the next block @ the parent block depth
     if (blk_ptr->mds_idx >= *next_non_skip_blk_idx_mds && *md_early_exit_sq == 1)
         *md_early_exit_sq = 0;
+#endif
 }
 
 /*
@@ -11205,8 +11452,24 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
 
     // encode the current block only if it's not redundant
     if (!ctx->redundant_blk || !update_redundant(pcs, ctx)) {
+#if OPT_SKIP_DISALLOWED_NSQ
+#if OPT_SUB_DEPTH_ALL_EXIT
+        Bool skip_processing_block = (*md_early_exit_nsq) || (*md_early_exit_sq) ||
+            md_skip_sub_depths ||
+#else
+        Bool skip_processing_block = (*md_early_exit_nsq) || (*md_early_exit_sq) ||
+#endif
+#if !OPT_SUB_DEPTH_ALL_EXIT
+            (!ctx->disallow_4x4 && ctx->do_not_process_blk[blk_idx_mds]) ||
+#endif
+            /* Don't test NSQ blocks when the SQ block is not allowed because the SQ cost is
+            set to 0 and will be selected over NSQ anyway.
+            TODO: Allow NSQ blocks to be selected, even when SQ is not allowed (AV1 spec 5.11.4). */
+            !pcs->ppcs->sb_geom[sb_addr].block_is_allowed[blk_geom->sqi_mds];
+#else
         Bool skip_processing_block = (*md_early_exit_nsq) || (*md_early_exit_sq) ||
             (!ctx->disallow_4x4 && ctx->do_not_process_blk[blk_idx_mds]);
+#endif
         // call nsq-reduction func if NSQ is on
         if (!ctx->md_disallow_nsq) {
             skip_processing_block |= update_skip_nsq_based_on_split_rate(pcs, ctx);
@@ -11449,15 +11712,22 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb_light_pd0(SequenceControlSet    *
     ctx->txb_itr               = 0;
     ctx->luma_txb_skip_context = 0;
     ctx->luma_dc_sign_context  = 0;
+#if OPT_LPD0_8BIT_ONLY
+    ctx->mds_skip_rdoq            = 0;
+    ctx->mds_spatial_sse          = 0;
+    ctx->mds_fast_coeff_est_level = ctx->rate_est_ctrls.pd0_fast_coeff_est_level; //ON  !!!
+#endif
     // Update neighbour arrays for the SB
     if (!ctx->skip_intra)
         update_neighbour_arrays_light_pd0(pcs, ctx);
 
     // get the input picture; if high bit-depth, pad the input pic
     EbPictureBufferDesc *input_pic = pcs->ppcs->enhanced_pic;
+#if !OPT_LPD0_8BIT_ONLY
     if (ctx->hbd_md) {
         input_pic = pad_hbd_pictures(scs, pcs, ctx, input_pic, sb_org_x, sb_org_y);
     }
+#endif
 
     // Initialize variables used to track blocks
     uint32_t                   leaf_count      = mdc_sb_data->leaf_count;

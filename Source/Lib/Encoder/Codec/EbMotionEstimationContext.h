@@ -284,6 +284,14 @@ typedef struct MeHmeRefPruneCtrls {
     // TH used to prune references based on me sad deviation
     uint16_t prune_ref_if_me_sad_dev_bigger_than_th;
     Bool     protect_closest_refs; // if true, do not prune closest ref frames
+#if OPT_ZZ_REF_PRUNE
+    uint32_t zz_sad_th; // enable zz based ref pruning if zz sad < this threshold. set to zero to disable.
+    uint16_t zz_sad_pct; // prune the ref that has sad-deviation-to-best > th_percentage
+#endif
+#if OPT_PHME_PRUNE
+    uint32_t phme_sad_th; // enable preHme based ref pruning if prehme sad < this threshold. set to zero to disable.
+    uint16_t phme_sad_pct; // prune the ref that has sad-deviation-to-best > th_percentage
+#endif
 } MeHmeRefPruneCtrls;
 
 typedef struct MeSrCtrls {
@@ -314,6 +322,9 @@ typedef struct SearchInfo {
     SearchArea sa; // search area sizes
     IntMv      best_mv; // best mv
     uint64_t   sad; // best sad
+#if CLN_PHME_DATA
+    uint8_t valid; //1 if the mv+sad are valid; invalid for some pruned references.
+#endif
 } SearchInfo;
 
 typedef struct PreHmeCtrls {

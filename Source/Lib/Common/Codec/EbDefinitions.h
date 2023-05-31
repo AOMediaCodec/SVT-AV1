@@ -654,7 +654,12 @@ typedef enum ATTRIBUTE_PACKED {
     LPD0_LVL_1     = 1,
     LPD0_LVL_2     = 2,
     LPD0_LVL_3     = 3,
+#if OPT_DEPTH_REFIN
+    LPD0_LVL_4     = 4,
+    VERY_LIGHT_PD0 = 5, // Lightest PD0 path, doesn't perform TX
+#else
     VERY_LIGHT_PD0 = 4, // Lightest PD0 path, doesn't perform TX
+#endif
     LPD0_LEVELS // Number of light-PD0 paths (regular PD0 isn't a light-PD0 path)
 } Pd0Level;
 

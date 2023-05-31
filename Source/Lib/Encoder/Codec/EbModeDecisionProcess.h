@@ -271,6 +271,10 @@ typedef struct DepthRefinementCtrls {
     unsigned int sub_to_current_pd0_coeff_th;
     // sub_to_current_th towards skipping child depths (doesn't work with very light PD0)
     int sub_to_current_pd0_coeff_offset;
+#if OPT_DEPTH_REFIN
+    // Prune child depths if they were not tested in PD0 (typically due to elimination from depth early exit tools)
+    uint8_t prune_child_if_not_avail;
+#endif
 } DepthRefinementCtrls;
 typedef struct SubresCtrls {
     // Residual sub-sampling step (0:OFF)
@@ -1207,8 +1211,12 @@ extern EbErrorType svt_aom_mode_decision_context_ctor(
     ModeDecisionContext *ctx, EbColorFormat color_format, uint8_t sb_size, EncMode enc_mode,
     uint16_t max_block_cnt, uint32_t encoder_bit_depth,
     EbFifo *mode_decision_configuration_input_fifo_ptr, EbFifo *mode_decision_output_fifo_ptr,
+#if TUNE_SIG_DERIV_HL
+    uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, bool rtc_tune);
+#else
     uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, bool rtc_tune,
     uint32_t hierarchical_levels);
+#endif
 
 extern const EbAv1LambdaAssignFunc svt_aom_av1_lambda_assignment_function_table[4];
 

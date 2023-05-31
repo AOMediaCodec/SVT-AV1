@@ -3474,7 +3474,11 @@ static void set_mrp_ctrl(SequenceControlSet* scs, uint8_t mrp_level) {
         mrp_ctrl->use_best_references         = 1;
         break;
     case 6:
+#if TUNE_MRP_M8_TO_M12
+        mrp_ctrl->referencing_scheme = 0;
+#else
         mrp_ctrl->referencing_scheme          = 1;
+#endif
         mrp_ctrl->sc_base_ref_list0_count     = 2;
         mrp_ctrl->sc_base_ref_list1_count     = 2;
         mrp_ctrl->sc_non_base_ref_list0_count = 1;
@@ -4195,10 +4199,45 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             mrp_level = 8;
         }
         else {
+#if TUNE_MRP_LEVELS
+            mrp_level = 9;
+#else
             mrp_level = 10;
+#endif
         }
     }
     else {
+#if TUNE_MRP_LEVELS
+        if (scs->static_config.enc_mode <= ENC_M1) {
+            mrp_level = 2;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M3) {
+            mrp_level = 3;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M4) {
+            mrp_level = 4;
+        }
+#if TUNE_M6_2
+        else if (scs->static_config.enc_mode <= ENC_M5) {
+#else
+        else if (scs->static_config.enc_mode <= ENC_M6) {
+#endif
+            mrp_level = 5;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M7) {
+            mrp_level = 6;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M12) {
+            mrp_level = 7;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M13) {
+            mrp_level = 10;
+        }
+        else {
+            mrp_level = 0;
+        }
+    }
+#else
         if (scs->static_config.enc_mode <= ENC_M1) {
             mrp_level = 2;
         }
@@ -4211,20 +4250,26 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         else if (scs->static_config.enc_mode <= ENC_M7) {
             mrp_level = 5;
         }
+#if TUNE_MRP_M8_TO_M12
+        else if (scs->static_config.enc_mode <= ENC_M12) {
+            mrp_level = 6;
+        }
+#else
         else if (scs->static_config.enc_mode <= ENC_M8){
             if (scs->static_config.hierarchical_levels <= 4)
                 mrp_level = 11;
             else
                 mrp_level = 6;
         }
-
-    else if (scs->static_config.enc_mode <= ENC_M13) {
-        mrp_level = 11;
-    }
+#endif
+        else if (scs->static_config.enc_mode <= ENC_M13) {
+            mrp_level = 11;
+        }
         else {
             mrp_level = 0;
         }
     }
+#endif
     set_mrp_ctrl(scs, mrp_level);
     scs->is_short_clip = scs->static_config.gop_constraint_rc ? 1 : 0; // set to 1 if multipass and less than 200 frames in resourcecordination
 

@@ -101,8 +101,12 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
                                                EbFifo *mode_decision_configuration_input_fifo_ptr,
                                                EbFifo *mode_decision_output_fifo_ptr,
                                                uint8_t enable_hbd_mode_decision,
+#if TUNE_SIG_DERIV_HL
+                                               uint8_t cfg_palette, bool rtc_tune) {
+#else
                                                uint8_t cfg_palette, bool rtc_tune,
                                                uint32_t hierarchical_levels) {
+#endif
     uint32_t buffer_index;
     uint32_t cand_index;
 
@@ -123,11 +127,21 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
     // determine MAX_NICS for a given preset
     // get the min scaling level (the smallest scaling level is the most conservative)
     uint8_t min_nic_scaling_level = NICS_SCALING_LEVELS - 1;
+#if TUNE_SIG_DERIV_HL
+    for (uint8_t hl = 0; hl < MAX_TEMPORAL_LAYERS; hl++) {
+        for (uint8_t is_base = 0; is_base < 2; is_base++) {
+            uint8_t nic_level         = svt_aom_get_nic_level(enc_mode, is_base, hl, rtc_tune);
+            uint8_t nic_scaling_level = svt_aom_set_nic_controls(NULL, nic_level);
+            min_nic_scaling_level     = MIN(min_nic_scaling_level, nic_scaling_level);
+        }
+    }
+#else
     for (uint8_t is_base = 0; is_base < 2; is_base++) {
         uint8_t nic_level = svt_aom_get_nic_level(enc_mode, is_base, hierarchical_levels, rtc_tune);
         uint8_t nic_scaling_level = svt_aom_set_nic_controls(NULL, nic_level);
         min_nic_scaling_level     = MIN(min_nic_scaling_level, nic_scaling_level);
     }
+#endif
     uint8_t stage1_scaling_num = MD_STAGE_NICS_SCAL_NUM[min_nic_scaling_level][MD_STAGE_1];
 
     // scale max_nics

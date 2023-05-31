@@ -1705,7 +1705,9 @@ static void prehme_core(MeContext *me_ctx, int16_t org_x, int16_t org_y, uint32_
     prehme_data->best_mv.as_mv.col *= 4; // Multiply by 4 because operating on 1/4 resolution
     prehme_data->best_mv.as_mv.row += y_search_area_origin;
     prehme_data->best_mv.as_mv.row *= 4; // Multiply by 4 because operating on 1/4 resolution
-
+#if CLN_PHME_DATA
+    prehme_data->valid = 1;
+#endif
     return;
 }
 static uint32_t get_zz_sad(EbPictureBufferDesc *ref_pic_ptr, MeContext *me_ctx, uint32_t sb_origin_x,
@@ -1742,18 +1744,28 @@ static Bool check_prehme_early_exit(MeContext *me_ctx, uint8_t list_i, uint8_t r
             prehme_data->best_mv.as_mv.col = 0;
             prehme_data->best_mv.as_mv.row = 0;
             prehme_data->sad               = 0;
+            #if CLN_PHME_DATA
+            prehme_data->valid             = 1;
+#endif
             return 1;
         }
     }
 
     if (me_ctx->prehme_ctrl.l1_early_exit) {
+#if CLN_PHME_DATA
+        if (list_i == 1 && me_ctx->prehme_data[0][ref_i][sr_i].valid  &&
+#else
         if ((list_i == 1) &&
+#endif
             ((me_ctx->prehme_data[0][ref_i][sr_i].sad < (32 * 32)) ||
              ((ABS(me_ctx->prehme_data[0][ref_i][sr_i].best_mv.as_mv.col) < 16) &&
               (ABS(me_ctx->prehme_data[0][ref_i][sr_i].best_mv.as_mv.row) < 16)))) {
             prehme_data->best_mv.as_mv.col = -me_ctx->prehme_data[0][ref_i][sr_i].best_mv.as_mv.col;
             prehme_data->best_mv.as_mv.row = -me_ctx->prehme_data[0][ref_i][sr_i].best_mv.as_mv.row;
             prehme_data->sad               = me_ctx->prehme_data[0][ref_i][sr_i].sad;
+#if CLN_PHME_DATA
+            prehme_data->valid             = 1;
+#endif
             return 1;
         }
     }
@@ -1765,6 +1777,9 @@ static void prehme_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_t or
                        MeContext *me_ctx, EbPictureBufferDesc *input_ptr) {
     const uint32_t block_width  = me_ctx->b64_width;
     const uint32_t block_height = me_ctx->b64_height;
+#if OPT_PHME_PRUNE
+    uint32_t best_sad = 0xFFFFFFFF;
+#endif
     // List Loop
     for (int list_i = REF_LIST_0; list_i < me_ctx->num_of_list_to_search; ++list_i) {
         // Ref Picture Loop
@@ -1783,7 +1798,14 @@ static void prehme_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_t or
                         continue;
 
                     SearchInfo *prehme_data = &me_ctx->prehme_data[list_i][ref_i][sr_i];
-
+#if OPT_ZZ_REF_PRUNE
+                    if (!me_ctx->search_results[list_i][ref_i].do_ref) {
+                        prehme_data->best_mv.as_mv.col = 0;
+                        prehme_data->best_mv.as_mv.row = 0;
+                        prehme_data->sad = 0xFFFFFFFF;
+                        continue;
+                    }
+#endif
                     prehme_data->sa.width = MIN(
                         (me_ctx->prehme_ctrl.prehme_sa_cfg[sr_i].sa_min.width * hme_sr_factor),
                         me_ctx->prehme_ctrl.prehme_sa_cfg[sr_i].sa_max.width);
@@ -1800,6 +1822,10 @@ static void prehme_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_t or
                                 prehme_data);
                     me_ctx->performed_phme[list_i][ref_i][sr_i] = 1;
                 }
+#if OPT_PHME_PRUNE
+                uint32_t min_sad = (uint32_t)MIN(me_ctx->prehme_data[list_i][ref_i][0].sad, me_ctx->prehme_data[list_i][ref_i][1].sad);
+                best_sad = MIN(best_sad, min_sad);
+#endif
             } else {
                 // PW: Does this account for base pictures
                 for (uint8_t sr_i = 0; sr_i < SEARCH_REGION_COUNT; sr_i++) {
@@ -1812,6 +1838,23 @@ static void prehme_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_t or
             }
         } // End ref pic loop
     } // End list loop
+#if OPT_PHME_PRUNE
+    if (me_ctx->temporal_layer_index > 0 && best_sad < me_ctx->me_hme_prune_ctrls.phme_sad_th) {
+        for (int list_i = REF_LIST_0; list_i < me_ctx->num_of_list_to_search; ++list_i) {
+            for (uint8_t ref_i = 0; ref_i < me_ctx->num_of_ref_pic_to_search[list_i]; ++ref_i) {
+                if (!me_ctx->search_results[list_i][ref_i].do_ref) continue;
+                if (ref_i == 0) continue;
+
+                const uint32_t prhme_th = me_ctx->me_hme_prune_ctrls.phme_sad_pct;
+                uint32_t prehme_sad = (uint32_t)MIN(me_ctx->prehme_data[list_i][ref_i][0].sad,
+                                                    me_ctx->prehme_data[list_i][ref_i][1].sad);
+                if ((prehme_sad - best_sad) * 100 > (prhme_th * best_sad)) {
+                    me_ctx->search_results[list_i][ref_i].do_ref = 0;
+                }
+            }
+        }
+    }
+#endif
 }
 
 // Set the HME L0 search area.  Perform scaling based on list index and ref index.
@@ -1974,6 +2017,19 @@ static void hme_level0_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_
                 }
             }
 
+#if OPT_ZZ_REF_PRUNE
+            if (!me_ctx->search_results[list_index][ref_pic_index].do_ref) {
+
+                for (uint32_t sr_idx_y = 0; sr_idx_y < me_ctx->num_hme_sa_h; sr_idx_y++) {
+                    for (uint32_t sr_idx_x = 0; sr_idx_x < me_ctx->num_hme_sa_w; sr_idx_x++) {
+                        me_ctx->x_hme_level0_search_center[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0;
+                        me_ctx->y_hme_level0_search_center[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0;
+                        me_ctx->hme_level0_sad[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0xFFFFFFFF;
+                    }
+                }
+                continue;
+            }
+#endif
             // Get the sixteenth downsampled reference picture
             uint16_t             dist              = 0;
             EbPictureBufferDesc *sixteenth_ref_pic = get_me_reference(
@@ -2078,6 +2134,19 @@ static void hme_level1_b64(PictureParentControlSet *pcs, uint32_t org_x, uint32_
                         continue;
                     }
                 }
+#if OPT_ZZ_REF_PRUNE
+                if (!me_ctx->search_results[list_index][ref_pic_index].do_ref) {
+
+                    for (uint32_t sr_idx_y = 0; sr_idx_y < me_ctx->num_hme_sa_h; sr_idx_y++) {
+                        for (uint32_t sr_idx_x = 0; sr_idx_x < me_ctx->num_hme_sa_w; sr_idx_x++) {
+                            me_ctx->x_hme_level1_search_center[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0;
+                            me_ctx->y_hme_level1_search_center[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0;
+                            me_ctx->hme_level1_sad[list_index][ref_pic_index][sr_idx_x][sr_idx_y] = 0xFFFFFFFF;
+                        }
+                    }
+                    continue;
+                }
+#endif
                 for (uint8_t sr_h = 0; sr_h < me_ctx->num_hme_sa_h; sr_h++) {
                     for (uint8_t sr_w = 0; sr_w < me_ctx->num_hme_sa_w; sr_w++) {
                         if (me_ctx->prev_me_stage_based_exit_th) {
@@ -2367,7 +2436,9 @@ void set_final_seach_centre_sb(PictureParentControlSet *pcs, MeContext *me_ctx) 
             me_ctx->search_results[list_index][ref_pic_index].hme_sad =
                 hmeMvSad; //this is not valid in all cases. only when HME is done, and when HMELevel2 is done
                           //also for base layer some references are redundant!!
+#if !CLN_ME_DO_REF
             me_ctx->search_results[list_index][ref_pic_index].do_ref = 1;
+#endif
             if (hmeMvSad < best_cost) {
                 best_cost                  = hmeMvSad;
                 me_ctx->best_list_idx = list_index;
@@ -2380,6 +2451,9 @@ void set_final_seach_centre_sb(PictureParentControlSet *pcs, MeContext *me_ctx) 
 static void init_zz_sad(MeContext *me_ctx, uint32_t org_x, uint32_t org_y) {
     const uint32_t block_width  = me_ctx->b64_width;
     const uint32_t block_height = me_ctx->b64_height;
+#if OPT_ZZ_REF_PRUNE
+    uint32_t best_zz_sad = 0xFFFFFFFF;
+#endif
     // List Loop
     for (int list_i = REF_LIST_0; list_i < me_ctx->num_of_list_to_search; ++list_i) {
         // Ref Picture Loop
@@ -2389,9 +2463,28 @@ static void init_zz_sad(MeContext *me_ctx, uint32_t org_x, uint32_t org_y) {
                 uint32_t             zz_sad  = get_zz_sad(
                     ref_pic, me_ctx, org_x, org_y, block_width, block_height);
                 me_ctx->zz_sad[list_i][ref_i] = zz_sad;
+#if OPT_ZZ_REF_PRUNE
+                best_zz_sad = MIN(best_zz_sad, zz_sad);
+#endif
             }
         }
     }
+#if OPT_ZZ_REF_PRUNE
+    const uint32_t zz_th = me_ctx->me_hme_prune_ctrls.zz_sad_th;
+    if (me_ctx->temporal_layer_index > 0 && best_zz_sad < zz_th) {
+        for (int list_i = REF_LIST_0; list_i < me_ctx->num_of_list_to_search; ++list_i) {
+            for (uint8_t ref_i = 0; ref_i < me_ctx->num_of_ref_pic_to_search[list_i]; ++ref_i) {
+
+                if (ref_i == 0) continue;
+
+                const uint32_t zz_th = me_ctx->me_hme_prune_ctrls.zz_sad_pct;
+                if ((me_ctx->zz_sad[list_i][ref_i] - best_zz_sad) * 100 > (zz_th * best_zz_sad)) {
+                    me_ctx->search_results[list_i][ref_i].do_ref = 0;
+                }
+            }
+        }
+    }
+#endif
 }
 /*******************************************
  * performs hierarchical ME for a 64x64 block for every ref frame
@@ -3015,6 +3108,10 @@ static INLINE void init_me_hme_data(MeContext *me_ctx) {
             me_ctx->search_results[li][ri].hme_sad  = 0xFFFFFFFF;
             me_ctx->reduce_me_sr_divisor[li][ri] = 1;
             me_ctx->zz_sad[li][ri] = (uint32_t)~0;
+#if CLN_PHME_DATA
+            me_ctx->prehme_data[li][ri][0].valid = 0;
+            me_ctx->prehme_data[li][ri][1].valid = 0;
+#endif
         }
     }
     memset(me_ctx->performed_phme,0,

@@ -51,6 +51,18 @@ extern "C" {
 #define OPT_LD_M11              1
 #define OPT_LD_M10              1
 
+#define OPT_LPD0_8BIT_ONLY                         1 // Make MDS0 8bit only
+#define OPT_SKIP_DISALLOWED_NSQ                    1 // Skip testing NSQ shapes when SQ block is disallowed (as cost of SQ is set to 0 and will be selected anyway)
+#define TUNE_SIG_DERIV_HL                          1 // Use picture-level hierarchical levels in signal derivation functions at MDC and encdec
+#define FIX_DEPTH_EXIT_CHECK                       1 // Move check for depth early exit to account for all quadrants
+#define OPT_DEPTH_REFIN                            1 // Opt depth refinement
+#define CLN_ME_DO_REF                              1 // Lossless Clean-Up for setting do ref flag in ME
+#define OPT_ZZ_REF_PRUNE                           1 // ZZ sad based ref pruning
+#define TUNE_11_SEC_TOP                            1 // limit 1,1 to safe second last layer
+#define TUNE_MRP_M8_TO_M12                         1 // enable mrp-6 for M8-M12 + Use Ref scheme 0 for mrp level 6
+#define OPT_PHME_PRUNE                             1 // PreHme based ref pruning
+#define CLN_PHME_DATA                              1 //lossles fix for pre-hme to consider checking validity of list0 data
+                                                     //TODO: remove performed_phme
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
