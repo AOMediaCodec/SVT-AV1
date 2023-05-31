@@ -26,6 +26,126 @@
 #define GMV_ME_SAD_TH_2 10
 #define GMV_PIC_VAR_TH 750
 
+#if GM_PP
+
+void gm_pre_processor(PictureParentControlSet *pcs, PictureParentControlSet **pcs_list) {
+    uint8_t              det_refn_sf;
+    EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement, *ref_refinement;
+    EbWarpedMotionParams wm_tmp[MAX_NUM_OF_REF_PIC_LIST];
+
+    pcs->gm_ctrls.enabled                      = 1;
+    pcs->gm_ctrls.identiy_exit                 = 1;
+    pcs->gm_ctrls.rotzoom_model_only           = 1;
+    pcs->gm_ctrls.bipred_only                  = 0;
+    pcs->gm_ctrls.bypass_based_on_me           = 1;
+    pcs->gm_ctrls.use_stationary_block         = 0;
+    pcs->gm_ctrls.use_distance_based_active_th = 0;
+    pcs->gm_ctrls.params_refinement_steps      = 2;
+    pcs->gm_ctrls.downsample_level             = GM_FULL; //GM_DOWN;//
+    pcs->gm_ctrls.corners                      = 2;
+    pcs->gm_ctrls.chess_rfn                    = 1;
+    pcs->gm_ctrls.match_sz                     = 7;
+    pcs->gm_ctrls.inj_psq_glb                  = TRUE;
+
+    //printf(" pic:%i  past:%i future:%i \n", pcs->picture_number, pcs->past_altref_nframes, pcs->future_altref_nframes);
+
+    PictureParentControlSet *ref_pcs_list[2];
+#if 0
+    ref_pcs_list[0] = pcs->past_altref_nframes   > 0 ? pcs_list[pcs->past_altref_nframes - 1] : NULL;
+    ref_pcs_list[1] = pcs->future_altref_nframes > 0 ? pcs_list[pcs->past_altref_nframes + 1] : NULL;
+#endif
+
+    PictureParentControlSet *cur_pcs   = pcs_list[0];
+    uint8_t                  list_size = pcs->past_altref_nframes + pcs->future_altref_nframes + 1;
+    ref_pcs_list[0]                    = list_size > 0 ? pcs_list[1] : NULL;
+    ref_pcs_list[1] = list_size > 5 ? pcs_list[5] : list_size > 2 ? pcs_list[list_size - 1] : NULL;
+
+    EbPaReferenceObject *src_object = (EbPaReferenceObject *)
+                                          cur_pcs->pa_ref_pic_wrapper->object_ptr;
+    EbPictureBufferDesc *input_pic = src_object->input_padded_pic;
+    EbPictureBufferDesc *quart_pic = src_object->quarter_downsampled_picture_ptr;
+    EbPictureBufferDesc *sixt_pic  = src_object->sixteenth_downsampled_picture_ptr;
+
+    if (pcs->gm_ctrls.downsample_level == GM_DOWN16) {
+        inp_detection  = sixt_pic;
+        inp_refinement = sixt_pic;
+    } else if (pcs->gm_ctrls.downsample_level == GM_DOWN) {
+        inp_detection  = quart_pic;
+        inp_refinement = quart_pic;
+    } else {
+        inp_detection  = input_pic;
+        inp_refinement = input_pic;
+    }
+
+#if OPT_GM_CORNER
+    int frm_corners[2 * MAX_CORNERS];
+    int num_frm_corners = svt_av1_fast_corner_detect(
+        inp_detection->buffer_y + inp_detection->org_x +
+            inp_detection->org_y * inp_detection->stride_y,
+        inp_detection->width,
+        inp_detection->height,
+        inp_detection->stride_y,
+        frm_corners,
+        MAX_CORNERS);
+#endif
+
+    for (uint32_t ref_idx = 0; ref_idx < 2; ++ref_idx) {
+        if (ref_pcs_list[ref_idx] == NULL)
+            continue;
+        EbPaReferenceObject *ref_obj       = ref_pcs_list[ref_idx]->pa_ref_pic_wrapper->object_ptr;
+        EbPictureBufferDesc *ref_pic       = ref_obj->input_padded_pic;
+        EbPictureBufferDesc *quart_ref_pic = ref_obj->quarter_downsampled_picture_ptr;
+        EbPictureBufferDesc *sixt_ref_pic  = ref_obj->sixteenth_downsampled_picture_ptr;
+
+        if (pcs->gm_ctrls.downsample_level == GM_DOWN16) {
+            ref_detection  = sixt_ref_pic;
+            ref_refinement = sixt_ref_pic;
+            det_refn_sf    = 1;
+        } else if (pcs->gm_ctrls.downsample_level == GM_DOWN) {
+            ref_detection  = quart_ref_pic;
+            ref_refinement = quart_ref_pic;
+            det_refn_sf    = 1;
+        } else {
+            ref_detection  = ref_pic;
+            ref_refinement = ref_pic;
+            det_refn_sf    = 1;
+        }
+
+        compute_global_motion(pcs,
+#if OPT_GM_CORNER
+                              frm_corners,
+                              num_frm_corners,
+#endif
+                              inp_detection,
+                              ref_detection,
+                              inp_refinement,
+                              ref_refinement,
+                              det_refn_sf,
+                              pcs->gm_ctrls.chess_rfn,
+                              &wm_tmp[0],
+                              pcs->frm_hdr.allow_high_precision_mv);
+
+#if 0 //CHKN_DBG
+        if (wm_tmp[0].wmtype > TRANSLATION) {
+
+            printf("         PreProc pic:%lld  curpic:%lld REF:%lld  m0:%i m1:%i m2:%i m3:%i \n", pcs->picture_number, cur_pcs->picture_number, ref_pcs_list[ref_idx]->picture_number,
+                wm_tmp[0].wmmat[0],
+                wm_tmp[0].wmmat[1],
+                wm_tmp[0].wmmat[2],
+                wm_tmp[0].wmmat[3]);
+        }
+        else {
+            printf("         PreProc pic:%lld curpic:%lld REF:%lld  IDT \n", pcs->picture_number, cur_pcs->picture_number, ref_pcs_list[ref_idx]->picture_number);
+        }
+#endif
+
+        if (wm_tmp[0].wmtype > TRANSLATION) {
+            pcs->gm_pp_detected = true;
+            break;
+        }
+    }
+}
+#endif
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                       EbPictureBufferDesc     *input_pic) {
     // Get downsampled pictures with a downsampling factor of 2 in each dimension
@@ -138,7 +258,32 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
         }
     }
 #endif
+#if OPT_GM_CORNER
+    if (global_motion_estimation_level) {
+        EbPictureBufferDesc *inp_detection, *inp_refinement;
+        if (pcs->gm_downsample_level == GM_DOWN16) {
+            inp_detection  = sixteenth_picture_ptr;
+            inp_refinement = sixteenth_picture_ptr;
+        } else if (pcs->gm_downsample_level == GM_DOWN) {
+            inp_detection  = quarter_picture_ptr;
+            inp_refinement = quarter_picture_ptr;
+        } else {
+            inp_detection  = input_pic;
+            inp_refinement = input_pic;
+        }
+
+        int frm_corners[2 * MAX_CORNERS];
+        int num_frm_corners = svt_av1_fast_corner_detect(
+            inp_detection->buffer_y + inp_detection->org_x +
+                inp_detection->org_y * inp_detection->stride_y,
+            inp_detection->width,
+            inp_detection->height,
+            inp_detection->stride_y,
+            frm_corners,
+            MAX_CORNERS);
+#else
     if (global_motion_estimation_level)
+#endif
         for (uint32_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
             uint32_t num_of_ref_pic_to_search;
             num_of_ref_pic_to_search = pcs->slice_type == P_SLICE ? pcs->ref_list0_count_try
@@ -204,43 +349,47 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
 
                 } else {
 #endif
-                ref_picture_ptr       = ref_object->input_padded_pic;
-                quarter_ref_pic_ptr   = ref_object->quarter_downsampled_picture_ptr;
-                sixteenth_ref_pic_ptr = ref_object->sixteenth_downsampled_picture_ptr;
+                    ref_picture_ptr       = ref_object->input_padded_pic;
+                    quarter_ref_pic_ptr   = ref_object->quarter_downsampled_picture_ptr;
+                    sixteenth_ref_pic_ptr = ref_object->sixteenth_downsampled_picture_ptr;
 
-                if (pcs->gm_downsample_level == GM_DOWN16) {
-                    inp_detection = sixteenth_picture_ptr;
-                    ref_detection = sixteenth_ref_pic_ptr;
+                    if (pcs->gm_downsample_level == GM_DOWN16) {
+                        inp_detection = sixteenth_picture_ptr;
+                        ref_detection = sixteenth_ref_pic_ptr;
 
-                    inp_refinement = sixteenth_picture_ptr;
-                    ref_refinement = sixteenth_ref_pic_ptr;
+                        inp_refinement = sixteenth_picture_ptr;
+                        ref_refinement = sixteenth_ref_pic_ptr;
 
-                    det_refn_sf = 1;
-                    chess_refn  = 0;
-                } else if (pcs->gm_downsample_level == GM_DOWN) {
-                    inp_detection = quarter_picture_ptr;
-                    ref_detection = quarter_ref_pic_ptr;
+                        det_refn_sf = 1;
+                        chess_refn  = 0;
+                    } else if (pcs->gm_downsample_level == GM_DOWN) {
+                        inp_detection = quarter_picture_ptr;
+                        ref_detection = quarter_ref_pic_ptr;
 
-                    inp_refinement = quarter_picture_ptr;
-                    ref_refinement = quarter_ref_pic_ptr;
+                        inp_refinement = quarter_picture_ptr;
+                        ref_refinement = quarter_ref_pic_ptr;
 
-                    det_refn_sf = 1;
-                    chess_refn  = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
-                } else {
-                    inp_detection = input_pic;
-                    ref_detection = ref_picture_ptr;
+                        det_refn_sf = 1;
+                        chess_refn  = GM_ADAPT_1 ? pcs->gm_ctrls.chess_rfn : 0;
+                    } else {
+                        inp_detection = input_pic;
+                        ref_detection = ref_picture_ptr;
 
-                    inp_refinement = input_pic;
-                    ref_refinement = ref_picture_ptr;
+                        inp_refinement = input_pic;
+                        ref_refinement = ref_picture_ptr;
 
-                    det_refn_sf = 1;
-                    chess_refn  = pcs->gm_ctrls.chess_rfn;
-                }
+                        det_refn_sf = 1;
+                        chess_refn  = pcs->gm_ctrls.chess_rfn;
+                    }
 #if GM_REFINFO
                 }
 #endif
                 compute_global_motion(
                     pcs,
+#if OPT_GM_CORNER
+                    frm_corners,
+                    num_frm_corners,
+#endif
                     inp_detection,
                     ref_detection,
                     inp_refinement,
@@ -259,6 +408,13 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                 }
             }
         }
+#if OPT_GM_CORNER
+    }
+#endif
+
+#if OPT_CMP
+        pcs->is_gm_on = 0;
+#endif
     for (uint32_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
         uint32_t num_of_ref_pic_to_search = pcs->slice_type == P_SLICE ? pcs->ref_list0_count
             : list_index == REF_LIST_0                                 ? pcs->ref_list0_count
@@ -268,9 +424,18 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
         for (uint32_t ref_pic_index = 0; ref_pic_index < num_of_ref_pic_to_search;
              ++ref_pic_index) {
             pcs->is_global_motion[list_index][ref_pic_index] = FALSE;
+#if OPT_CMP
+            if (pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index].wmtype >
+                TRANSLATION) {
+                pcs->is_global_motion[list_index][ref_pic_index] = TRUE;
+
+                pcs->is_gm_on = 1;
+            }
+#else
             if (pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index].wmtype >
                 TRANSLATION)
                 pcs->is_global_motion[list_index][ref_pic_index] = TRUE;
+#endif
         }
     }
 }
@@ -290,6 +455,10 @@ void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_fa
     }
 }
 void compute_global_motion(PictureParentControlSet *pcs,
+#if OPT_GM_CORNER
+                           int *frm_corners,
+                           int  num_frm_corners,
+#endif
                            EbPictureBufferDesc     *det_input_pic, //src frame for detection
                            EbPictureBufferDesc     *det_ref_pic, //ref frame for detection
                            EbPictureBufferDesc     *input_pic, //src frame for refinement
@@ -328,6 +497,10 @@ void compute_global_motion(PictureParentControlSet *pcs,
     const EbWarpedMotionParams *ref_params = &default_warp_params;
 
     {
+#if OPT_GM_CORNER
+        int inliers_by_motion[RANSAC_NUM_MOTIONS];
+
+#else
         int frm_corners[2 * MAX_CORNERS], inliers_by_motion[RANSAC_NUM_MOTIONS];
         // compute interest points using FAST features
 
@@ -337,7 +510,7 @@ void compute_global_motion(PictureParentControlSet *pcs,
                                                          det_input_pic->stride_y,
                                                          frm_corners,
                                                          MAX_CORNERS);
-
+#endif
         num_frm_corners = num_frm_corners * pcs->gm_ctrls.corners / 4;
 
         TransformationType   model;

@@ -226,16 +226,30 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
     } else if (pcs->enc_mode <= ENC_MR) {
         me_ctx->me_sa.sa_min = (SearchArea){64, 64};
         me_ctx->me_sa.sa_max = (SearchArea){256, 256};
+#if FTR_ME_COST_VAR
+    } else if (pcs->enc_mode <= ENC_M2) {
+#else
     } else if (pcs->enc_mode <= ENC_M1) {
+#endif
         me_ctx->me_sa.sa_min = (SearchArea){64, 64};
         me_ctx->me_sa.sa_max = (SearchArea){128, 128};
+#if TUNE_M4
+    } else if (pcs->enc_mode <= ENC_M4) {
+        me_ctx->me_sa.sa_min = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_max = (SearchArea){128, 128};
+#else
     } else if (pcs->enc_mode <= ENC_M3) {
         me_ctx->me_sa.sa_min = (SearchArea){16, 16};
         me_ctx->me_sa.sa_max = (SearchArea){128, 128};
     } else if (pcs->enc_mode <= ENC_M4) {
         me_ctx->me_sa.sa_min = (SearchArea){16, 16};
         me_ctx->me_sa.sa_max = (SearchArea){64, 64};
+#endif
+#if FTR_ME_COST_VAR
+    } else if (pcs->enc_mode <= ENC_M6) {
+#else
     } else if (pcs->enc_mode <= ENC_M5) {
+#endif
         me_ctx->me_sa.sa_min = (SearchArea){16, 16};
         me_ctx->me_sa.sa_max = (SearchArea){64, 32};
     } else if (pcs->enc_mode <= ENC_M7) {
@@ -262,7 +276,11 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
             me_ctx->me_sa.sa_min = (SearchArea){16, 6};
             me_ctx->me_sa.sa_max = (SearchArea){16, 9};
         }
+#if FTR_ME_COST_VAR
+    } else if (pcs->enc_mode <= ENC_M10) {
+#else
     } else if (pcs->enc_mode <= ENC_M9) {
+#endif
         if (input_resolution < INPUT_SIZE_1080p_RANGE) {
             me_ctx->me_sa.sa_min = (SearchArea){16, 16};
             me_ctx->me_sa.sa_max = (SearchArea){32, 16};
@@ -270,7 +288,9 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
             me_ctx->me_sa.sa_min = (SearchArea){16, 6};
             me_ctx->me_sa.sa_max = (SearchArea){16, 9};
         }
-    } else if (pcs->enc_mode <= ENC_M10) {
+    }
+#if !FTR_ME_COST_VAR
+    else if (pcs->enc_mode <= ENC_M10) {
         if (input_resolution < INPUT_SIZE_4K_RANGE) {
             me_ctx->me_sa.sa_min = (SearchArea){8, 5};
             me_ctx->me_sa.sa_max = (SearchArea){16, 9};
@@ -278,7 +298,9 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
             me_ctx->me_sa.sa_min = (SearchArea){8, 1};
             me_ctx->me_sa.sa_max = (SearchArea){8, 1};
         }
-    } else if (pcs->enc_mode <= ENC_M12) {
+    }
+#endif
+    else if (pcs->enc_mode <= ENC_M12) {
         if (input_resolution < INPUT_SIZE_720p_RANGE) {
             me_ctx->me_sa.sa_min = (SearchArea){8, 3};
             me_ctx->me_sa.sa_max = (SearchArea){16, 9};
@@ -579,6 +601,21 @@ static void svt_aom_set_me_sr_adjustment_ctrls(MeContext *me_ctx, uint8_t sr_adj
         }
     }
 }
+#if FTR_ME_COST_VAR
+static void svt_aom_set_me_8x8_var_ctrls(MeContext *me_ctx, uint8_t level) {
+    Me8x8VarCtrls *me_8x8_var_ctrls = &me_ctx->me_8x8_var_ctrls;
+
+    switch (level) {
+    case 0: me_8x8_var_ctrls->enabled = 0; break;
+    case 1:
+        me_8x8_var_ctrls->enabled       = 1;
+        me_8x8_var_ctrls->me_sr_div4_th = 80000;
+        me_8x8_var_ctrls->me_sr_div2_th = 150000;
+        break;
+    default: assert(0);
+    }
+}
+#endif
 /*configure PreHme control*/
 static void svt_aom_set_prehme_ctrls(MeContext *me_ctx, uint8_t level) {
     PreHmeCtrls *ctrl = &me_ctx->prehme_ctrl;
@@ -765,6 +802,62 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     svt_aom_set_prehme_ctrls(me_ctx, prehme_level);
 
     // Set hme/me based reference pruning level (0-4)
+#if TUNE_MRP_LEVELS
+    if (pcs->sc_class1) {
+        if (enc_mode <= ENC_M1)
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 1);
+        else if (enc_mode <= ENC_M9)
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
+        else
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 5);
+    } else {
+#if TUNE_M1_2
+        if (enc_mode <= ENC_M0)
+#else
+        if (enc_mode <= ENC_M1)
+#endif
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 1);
+#if FIX_ME_HME_PRUNE_CTRLS
+#if TUNE_M7_FD
+        else if (enc_mode <= ENC_M6) {
+#else
+        else if (enc_mode <= ENC_M7) {
+#endif
+            if (pcs->temporal_layer_index == 0)
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 1);
+            else
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
+        }
+#if TUNE_M8
+#if TUNE_M9_2
+        else if (enc_mode <= ENC_M9) {
+#else
+        else if (enc_mode <= ENC_M8) {
+#endif
+            if (pcs->temporal_layer_index == 0)
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 1);
+            else
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 3);
+        }
+#endif
+#else
+#if TUNE_M8
+        else if (enc_mode <= ENC_M8) {
+#else
+        else if (enc_mode <= ENC_M7) {
+#endif
+            if (pcs->temporal_layer_index == 0)
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 1);
+            else
+                svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
+        }
+#endif
+        else if (enc_mode <= ENC_M11)
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 3);
+        else
+            svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 4);
+    }
+#else
     if (pcs->sc_class1) {
         if (enc_mode <= ENC_M1)
             svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 2);
@@ -783,6 +876,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         } else
             svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, 5);
     }
+#endif
     // Set hme-based me sr adjustment level
     if (pcs->sc_class1)
         if (enc_mode <= ENC_M9)
@@ -793,6 +887,14 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 1);
     else
         svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 3);
+#if FTR_ME_COST_VAR
+    uint8_t me_8x8_var_lvl = 0;
+    if (enc_mode <= ENC_M0)
+        me_8x8_var_lvl = 0;
+    else
+        me_8x8_var_lvl = 1;
+    svt_aom_set_me_8x8_var_ctrls(me_ctx, me_8x8_var_lvl);
+#endif
     if (enc_mode <= ENC_M2)
         me_ctx->prune_me_candidates_th = 0;
     else
@@ -860,11 +962,19 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     // ME SR adjustment is disallowed for TF in motion_estimate_sb()
     svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
 
+#if FTR_ME_COST_VAR
+    svt_aom_set_me_8x8_var_ctrls(me_ctx, 0);
+#endif
+
     me_ctx->me_early_exit_th            = 0;
     me_ctx->reduce_hme_l0_sr_th_min     = 0;
     me_ctx->reduce_hme_l0_sr_th_max     = 0;
     me_ctx->skip_frame                  = 0;
     me_ctx->prev_me_stage_based_exit_th = 0;
+#if GM_PP
+    // Set GME ctrls
+    svt_aom_set_gm_controls(pcs, svt_aom_derive_gm_level(pcs));
+#endif
 };
 
 /* Wrapper function to compute TPL Synthesizer block size: Used in init memory allocation and TPL Controls*/
@@ -2910,12 +3020,20 @@ void svt_aom_first_pass_sig_deriv_me(SequenceControlSet *scs, PictureParentContr
 
     // Set hme-based me sr adjustment level
     svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
+#if FTR_ME_COST_VAR
+    svt_aom_set_me_8x8_var_ctrls(me_ctx, 0);
+#endif
     me_ctx->prune_me_candidates_th     = 0; // No impact on tf
     me_ctx->use_best_unipred_cand_only = 0; // No impact on tf
     svt_aom_set_prehme_ctrls(me_ctx, 0);
     svt_aom_set_skip_frame_in_ipp(pcs, me_ctx);
 };
+#if OPT_CMP
+static void set_inter_comp_controls(ModeDecisionContext *ctx, PictureControlSet *pcs,
+                                    uint8_t inter_comp_mode) {
+#else
 static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp_mode) {
+#endif
     InterCompCtrls *inter_comp_ctrls = &ctx->inter_comp_ctrls;
 
     switch (inter_comp_mode) {
@@ -2937,6 +3055,9 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
         inter_comp_ctrls->skip_mvp_on_ref_info = 0;
         inter_comp_ctrls->use_rate             = 1;
         inter_comp_ctrls->pred0_to_pred1_mult  = 0;
+#if OPT_CMP
+        inter_comp_ctrls->no_dist = 0;
+#endif
 
         break;
     case 2:
@@ -2954,6 +3075,9 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
         inter_comp_ctrls->skip_mvp_on_ref_info = 0;
         inter_comp_ctrls->use_rate             = 0;
         inter_comp_ctrls->pred0_to_pred1_mult  = 0;
+#if OPT_CMP
+        inter_comp_ctrls->no_dist = 0;
+#endif
 
         break;
 
@@ -2972,6 +3096,9 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
         inter_comp_ctrls->skip_mvp_on_ref_info = 0;
         inter_comp_ctrls->use_rate             = 0;
         inter_comp_ctrls->pred0_to_pred1_mult  = 1;
+#if OPT_CMP
+        inter_comp_ctrls->no_dist = 0;
+#endif
 
         break;
     case 4:
@@ -2989,15 +3116,24 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
         inter_comp_ctrls->skip_mvp_on_ref_info = 1;
         inter_comp_ctrls->use_rate             = 0;
         inter_comp_ctrls->pred0_to_pred1_mult  = 4;
+#if OPT_CMP
+        inter_comp_ctrls->no_dist = 0;
+#endif
 
         break;
     case 5:
-        inter_comp_ctrls->tot_comp_types = (svt_aom_get_wedge_params_bits(ctx->blk_geom->bsize) ==
-                                            0)
-            ? MD_COMP_WEDGE
-            : MD_COMP_TYPES;
+#if OPT_CMP
+
+        if (ctx->blk_geom->shape != PART_N || pcs->ppcs->is_gm_on == 1)
+            inter_comp_ctrls->tot_comp_types = 1;
+        else
+            inter_comp_ctrls->tot_comp_types = (svt_aom_get_wedge_params_bits(
+                                                    ctx->blk_geom->bsize) == 0)
+                ? MD_COMP_WEDGE
+                : MD_COMP_TYPES;
+
         inter_comp_ctrls->do_nearest_nearest  = 1;
-        inter_comp_ctrls->do_near_near        = 0;
+        inter_comp_ctrls->do_near_near        = 1;
         inter_comp_ctrls->do_me               = 0;
         inter_comp_ctrls->do_pme              = 0;
         inter_comp_ctrls->do_nearest_near_new = 0;
@@ -3005,8 +3141,26 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
 
         inter_comp_ctrls->skip_mvp_on_ref_info = 1;
         inter_comp_ctrls->use_rate             = 0;
-        inter_comp_ctrls->pred0_to_pred1_mult  = 2;
+        inter_comp_ctrls->pred0_to_pred1_mult  = 4;
+#if OPT_CMP
+        inter_comp_ctrls->no_dist = 1;
+#endif
+#else
+        inter_comp_ctrls->tot_comp_types = (svt_aom_get_wedge_params_bits(ctx->blk_geom->bsize) ==
+                                            0)
+            ? MD_COMP_WEDGE
+            : MD_COMP_TYPES;
+        inter_comp_ctrls->do_nearest_nearest = 1;
+        inter_comp_ctrls->do_near_near = 0;
+        inter_comp_ctrls->do_me = 0;
+        inter_comp_ctrls->do_pme = 0;
+        inter_comp_ctrls->do_nearest_near_new = 0;
+        inter_comp_ctrls->do_3x3_bi = 0;
 
+        inter_comp_ctrls->skip_mvp_on_ref_info = 1;
+        inter_comp_ctrls->use_rate = 0;
+        inter_comp_ctrls->pred0_to_pred1_mult = 2;
+#endif
         break;
     default: assert(0); break;
     }
@@ -3020,7 +3174,11 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
 void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     ctx->spatial_sse_full_loop_level = ctx->spatial_sse_ctrls.spatial_sse_full_loop_level;
     // set compound_types_to_try
+#if OPT_CMP
+    set_inter_comp_controls(ctx, pcs, ctx->inter_compound_mode);
+#else
     set_inter_comp_controls(ctx, ctx->inter_compound_mode);
+#endif
     if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb &&
         ctx->blk_geom->shape != PART_N)
         if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds])
@@ -9864,7 +10022,9 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         intra_level = 5;
 
     set_intra_ctrls(pcs, ctx, intra_level);
-
+#if OPT_BIAS_PARENT
+    ctx->d2_parent_bias = 995;
+#endif
     /* Set signals that have assumed values in the light-PD1 path (but need to be initialized as they may be checked) */
 
     // Use coeff rate and slit flag rate only (i.e. no fast rate)
@@ -10158,6 +10318,29 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
 
     set_subres_controls(ctx, 0);
     ctx->inter_depth_bias = 0;
+#if OPT_BIAS_PARENT
+    if (pd_pass == PD_PASS_0)
+        ctx->d2_parent_bias = 1000;
+    else
+        ctx->d2_parent_bias = 995;
+#endif
+#if OPT_SUB_DEPTH_ALL_EXIT
+    uint8_t skip_sub_depth_lvl;
+    if (pd_pass == PD_PASS_0 || pcs->ppcs->sc_class1)
+        skip_sub_depth_lvl = 0;
+#if TUNE_M2_FD
+    else if (enc_mode <= ENC_M1)
+#else
+    else if (enc_mode <= ENC_M2)
+#endif
+        skip_sub_depth_lvl = 1;
+    else if (enc_mode <= ENC_M5)
+        skip_sub_depth_lvl = 2;
+    else
+        skip_sub_depth_lvl = 3;
+
+    set_skip_sub_depth_ctrls(&ctx->skip_sub_depth_ctrls, skip_sub_depth_lvl);
+#else
     uint8_t skip_4x4_depth_lvl;
     if (pd_pass == PD_PASS_0)
         skip_4x4_depth_lvl = 0;
@@ -10167,6 +10350,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
         skip_4x4_depth_lvl = 1;
 
     set_skip_4x4_depth_ctrls(&ctx->skip_4x4_depth_ctrls, skip_4x4_depth_lvl);
+#endif
 }
 /*
 * return the 4x4 level
@@ -10997,12 +11181,19 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     }
 
     // Set the level for inter-inter compound
+#if FIX_INTER_CMP
+    pcs->inter_compound_mode = get_inter_compound_level(enc_mode);
+#else
     if (scs->compound_mode) {
         if (scs->compound_level == DEFAULT) {
             if (enc_mode <= ENC_M1)
                 pcs->inter_compound_mode = 3;
             else if (enc_mode <= ENC_M3)
                 pcs->inter_compound_mode = 4;
+#if OPT_CMP
+            else if (enc_mode <= ENC_M4)
+                pcs->inter_compound_mode = 5;
+#endif
             else
                 pcs->inter_compound_mode = 0;
         } else {
@@ -11011,6 +11202,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     } else {
         pcs->inter_compound_mode = 0;
     }
+#endif
 
     // Set the level for the distance-based red pruning
     if (pcs->ppcs->ref_list0_count_try > 1 || pcs->ppcs->ref_list1_count_try > 1) {

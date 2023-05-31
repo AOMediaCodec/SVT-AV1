@@ -102,6 +102,21 @@ extern "C" {
 #define NEW_TPL_LVL_3                              1 // New TPL level 3 based on existing features
 #define CLN_PSQ_CPLX_LVL                           1 // Remove unused NSQ levels
 
+#define OPT_TF_REF_PICS                            1 // Modulate BASE and L1 tf ref-pics using the filt_INTRA-to-unfilterd_INTRA distortion range
+#if OPT_TF_REF_PICS
+#define INCREASE_REF_PICS                          1 // Limit the ref-pics increase for only high filt_INTRA-to-unfilterd_INTRA distortion range
+#define ENHANCE_KEY_FRAME                          1
+#endif
+#define OPT_BIAS_PARENT                            1 // Apply a bias @ d2-decision towards a larger block(s)
+
+#define GM_PP                                      1 //GM detection pre-processor for TF pictures
+#define OPT_GM_CORNER                              1
+
+#define TUNE_MRP_LEVELS                            1 //re-tune new MRP levels
+#define FTR_ME_COST_VAR                            1 // Modify ME search area based on the 8x8 SAD variance of the search centre
+
+#define OPT_CMP                                    1 //optimize inter compound
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

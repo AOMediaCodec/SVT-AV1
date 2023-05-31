@@ -159,12 +159,19 @@ typedef struct TfControls {
     // Number of reference frame(s) set
     uint8_t num_past_pics; // Specifies the default number of frame(s) from past
     uint8_t num_future_pics; // Specifies the default number of frame(s) from future
+#if OPT_TF_REF_PICS
+    // Specifies whether the number of reference frame(s) will be modified or not
+    // For INTRA, the modulation uses the noise level
+    // For BASE and L1, the modulation uses the filt_INTRA-to-unfilterd_INTRA distortion range
+    uint8_t modulate_pics;
+#else
     // Specifies whether num_past_pics will be incremented or not based on the noise level of the
     // central frame(0: OFF or 1 : ON)
     uint8_t noise_adjust_past_pics;
     // Specifies whether num_future_pics will be incremented or not based on the noise level of the
     // central frame(0: OFF or 1 : ON)
     uint8_t noise_adjust_future_pics;
+#endif
     // Specifies whether to use the key- rame noise level for all inputs or to re - compute the
     // noise level for each input
     uint8_t use_intra_for_noise_est;
@@ -217,6 +224,10 @@ typedef struct TfControls {
     uint8_t use_pred_64x64_only_th;
     // Specifies whether to early exit the Sub-Pel search based on a pred-error-th or not
     uint8_t subpel_early_exit;
+#if ENHANCE_KEY_FRAME
+    // Specifies whether to skip reference frame e.g. 1 = use all frames, 2 = use every other frame, 4 = use 1/4 frames, etc.
+    uint8_t ref_frame_factor;
+#endif
 } TfControls;
 typedef enum GM_LEVEL {
     GM_FULL   = 0, // Exhaustive search mode.
@@ -312,6 +323,19 @@ enum {
 #define NSQ_TAB_SIZE 8
 #define NUMBER_OF_DEPTH 6
 #define NUMBER_OF_SHAPES 10
+#if OPT_TF_REF_PICS
+#if INCREASE_REF_PICS
+#define TF_MAX_EXTENSION 7 // Max additional tf pics after modulation per side
+#define TF_MAX_BASE_REF_PICS_6L 8 // Max additional tf pics at each side for BASE for 6L hierarchy
+#define TF_MAX_BASE_REF_PICS_SUB_6L 8 // Max additional tf pics at each side for BASE for sub-6L hierarchy
+#else
+#define TF_MAX_EXTENSION 5 // Max additional tf pics after modulation per side
+#define TF_MAX_BASE_REF_PICS_6L 6 // Max additional tf pics at each side for BASE for 6L hierarchy
+#define TF_MAX_BASE_REF_PICS_SUB_6L 6 // Max additional tf pics at each side for BASE for sub-6L hierarchy
+#endif
+#define TF_MAX_L1_REF_PICS_6L 2 // Max additional tf pics at each side for L1 for 6L hierarchy
+#define TF_MAX_L1_REF_PICS_SUB_6L 1 // Max additional tf pics at each side for L1 for sub-6L hierarchy
+#endif
 //  Delta QP support
 #define ADD_DELTA_QP_SUPPORT 1 // Add delta QP support
 #define BLOCK_MAX_COUNT_SB_128 4421

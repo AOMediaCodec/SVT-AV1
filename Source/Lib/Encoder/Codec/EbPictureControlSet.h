@@ -629,6 +629,10 @@ typedef struct GmControls {
     uint8_t match_sz;
     //Inject global only if Parent SQ is global
     bool inj_psq_glb;
+#if GM_PP
+    //enable Pre-processor for GM
+    bool pp_enabled;
+#endif
 } GmControls;
 typedef struct CdefControls {
     uint8_t enabled;
@@ -896,6 +900,9 @@ typedef struct PictureParentControlSet {
     Bool                 is_global_motion[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     EbWarpedMotionParams svt_aom_global_motion_estimation[MAX_NUM_OF_REF_PIC_LIST]
                                                          [REF_LIST_MAX_DEPTH];
+#if OPT_CMP
+    int8_t is_gm_on; //-1 invalid, 1: gm on in one of the ref frames,  0:gm off for all ref frames
+#endif
     uint16_t      me_processed_b64_count;
     EbHandle      me_processed_b64_mutex;
     FirstPassData firstpass_data;
@@ -1106,6 +1113,10 @@ typedef struct PictureParentControlSet {
     TfControls   tf_ctrls;
     GmControls   gm_ctrls;
     GM_LEVEL     gm_downsample_level;
+#if GM_PP
+    bool         gm_pp_enabled;
+    bool         gm_pp_detected; //gm detection enabled at the pre-processing level
+#endif
     CdefControls cdef_ctrls;
     // RC related variables
     int                             q_low;
@@ -1182,6 +1193,9 @@ typedef struct PictureParentControlSet {
     DGDetectorSeg *dg_detector; // dg detector segments control struct
 #if FTR_ROI
     SvtAv1RoiMapEvt *roi_map_evt;
+#endif
+#if OPT_TF_REF_PICS
+    uint32_t filt_to_unfilt_diff;
 #endif
 } PictureParentControlSet;
 

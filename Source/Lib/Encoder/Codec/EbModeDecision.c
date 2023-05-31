@@ -1252,6 +1252,10 @@ static void bipred_3x3_candidates_injection(const SequenceControlSet *scs, Pictu
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       me_block_results_ptr->ref0_list,
@@ -1381,6 +1385,10 @@ static void bipred_3x3_candidates_injection(const SequenceControlSet *scs, Pictu
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       me_block_results_ptr->ref0_list,
@@ -1989,6 +1997,10 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                     Bool mask_done = 0;
                     for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                          cur_type++) {
+#if OPT_CMP
+                        if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                            continue;
+#endif
                         if (!is_valid_bi_type(
                                 ctx, cur_type, list_idx_0, ref_idx_0, list_idx_1, ref_idx_1))
                             continue;
@@ -2066,6 +2078,10 @@ static void inject_mvp_candidates_ii(const SequenceControlSet *scs, PictureContr
                         Bool mask_done = 0;
                         for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                              cur_type++) {
+#if OPT_CMP
+                            if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                continue;
+#endif
                             if (!is_valid_bi_type(
                                     ctx, cur_type, list_idx_0, ref_idx_0, list_idx_1, ref_idx_1))
                                 continue;
@@ -2180,6 +2196,10 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
                         Bool mask_done = 0;
                         for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                              cur_type++) {
+#if OPT_CMP
+                            if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                continue;
+#endif
                             if (!is_valid_bi_type(
                                     ctx, cur_type, list_idx_0, ref_idx_0, list_idx_1, ref_idx_1))
                                 continue;
@@ -2268,6 +2288,10 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
                         Bool mask_done = 0;
                         for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                              cur_type++) {
+#if OPT_CMP
+                            if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                continue;
+#endif
                             if (!is_valid_bi_type(
                                     ctx, cur_type, list_idx_0, ref_idx_0, list_idx_1, ref_idx_1))
                                 continue;
@@ -2349,6 +2373,10 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       list_idx_0,
@@ -2429,6 +2457,10 @@ static void inject_new_nearest_new_comb_candidates(const SequenceControlSet *scs
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       list_idx_0,
@@ -3633,6 +3665,10 @@ static void inject_new_candidates(const SequenceControlSet *scs, struct ModeDeci
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       me_block_results_ptr->ref0_list,
@@ -3852,6 +3888,10 @@ static void inject_global_candidates(const SequenceControlSet *scs, struct ModeD
                 uint8_t to_inject_ref_type = av1_ref_frame_type(rf);
 
                 for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types; cur_type++) {
+#if OPT_CMP
+                    if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                        continue;
+#endif
                     if (!is_valid_bi_type(
                             ctx, cur_type, list_idx_0, ref_idx_0, list_idx_1, ref_idx_1))
                         continue;
@@ -4125,6 +4165,11 @@ static void inject_pme_candidates(
                             Bool mask_done = 0;
                             for (MD_COMP_TYPE cur_type = MD_COMP_AVG; cur_type < tot_comp_types;
                                  cur_type++) {
+#if OPT_CMP
+                                if (ctx->inter_comp_ctrls.no_dist && cur_type == MD_COMP_DIST)
+                                    continue;
+#endif
+
                                 if (!is_valid_bi_type(ctx,
                                                       cur_type,
                                                       list_idx_0,

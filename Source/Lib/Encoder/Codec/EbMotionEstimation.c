@@ -1389,7 +1389,77 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
                     }
                 }
             }
+#if FTR_ME_COST_VAR
+            svt_initialize_buffer_32bits(
+                me_ctx->p_sb_best_sad[list_index][ref_pic_index], 21, 1, MAX_SAD_VALUE);
+            me_ctx->p_best_sad_64x64 = &(
+                me_ctx->p_sb_best_sad[list_index][ref_pic_index][ME_TIER_ZERO_PU_64x64]);
+            me_ctx->p_best_sad_32x32 = &(
+                me_ctx->p_sb_best_sad[list_index][ref_pic_index][ME_TIER_ZERO_PU_32x32_0]);
+            me_ctx->p_best_sad_16x16 = &(
+                me_ctx->p_sb_best_sad[list_index][ref_pic_index][ME_TIER_ZERO_PU_16x16_0]);
+            me_ctx->p_best_sad_8x8 = &(
+                me_ctx->p_sb_best_sad[list_index][ref_pic_index][ME_TIER_ZERO_PU_8x8_0]);
 
+            me_ctx->p_best_mv64x64 = &(
+                me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_64x64]);
+            me_ctx->p_best_mv32x32 = &(
+                me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_32x32_0]);
+            me_ctx->p_best_mv16x16 = &(
+                me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_16x16_0]);
+            me_ctx->p_best_mv8x8 = &(
+                me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_8x8_0]);
+
+            /* If search area is large enough, check the ME 8x8 SAD variance, and if low, reduce search area
+            * (as the 64x64 MVs are likely good for all the 8x8 blocks that make it up).  If the search area
+            * is already low, the overhead of searching one additional point will be high (and fruitless, since
+            * the minimum search size that will be set by the 8x8 SAD variance algorithm is 8x3.
+            */
+            if (me_ctx->me_8x8_var_ctrls.enabled && (search_area_width * search_area_height > 24)) {
+
+                x_search_area_origin = x_search_center;
+                y_search_area_origin = y_search_center;
+                x_top_left_search_region = (int16_t)(ref_pic_ptr->org_x + b64_origin_x) -
+                    (ME_FILTER_TAP >> 1) + x_search_area_origin;
+                y_top_left_search_region = (int16_t)(ref_pic_ptr->org_y + b64_origin_y) -
+                    (ME_FILTER_TAP >> 1) + y_search_area_origin;
+                search_region_index = (x_top_left_search_region)+
+                    (y_top_left_search_region)*ref_pic_ptr->stride_y;
+                me_ctx->integer_buffer_ptr[list_index][ref_pic_index] = &(
+                    ref_pic_ptr->buffer_y[search_region_index]);
+                me_ctx->interpolated_full_stride[list_index][ref_pic_index] =
+                    ref_pic_ptr->stride_y;
+
+                open_loop_me_fullpel_search_sblock(me_ctx,
+                    list_index,
+                    ref_pic_index,
+                    x_search_center,
+                    y_search_center,
+                    1,
+                    1);
+
+                // Since only one point was searched, the 64x64 SAD will be the same as the sum of the 8x8 SADs
+                const uint32_t mean_dist_8x8 = me_ctx->p_best_sad_64x64[0] / 64;
+                uint32_t sum_ofsq_dist_8x8 = 0;
+                for (unsigned i = 0; i < 64; i++) {
+                    const int32_t diff = ((int32_t)me_ctx->p_best_sad_8x8[i] - (int32_t)mean_dist_8x8);
+                    sum_ofsq_dist_8x8 += diff * diff;
+                }
+
+                uint32_t me_8x8_cost_var = (uint32_t)(sum_ofsq_dist_8x8 / 64);
+
+                if (me_8x8_cost_var < me_ctx->me_8x8_var_ctrls.me_sr_div4_th) {
+                    search_area_width = (MAX(1, search_area_width >> 2) + 7) & ~0x7;
+                    search_area_height = MAX(1, search_area_height >> 2);
+                    search_area_height = MAX(3, search_area_height);
+                }
+                else if (me_8x8_cost_var < me_ctx->me_8x8_var_ctrls.me_sr_div2_th) {
+                    search_area_width = (MIN(search_area_width, search_area_width >> 1) + 7) & ~0x7;
+                    search_area_height = MIN(search_area_height, search_area_height >> 1);
+                    search_area_height = MAX(3, search_area_height);
+                }
+            }
+#endif
             x_search_area_origin = x_search_center - (search_area_width >> 1);
             y_search_area_origin = y_search_center - (search_area_height >> 1);
 
@@ -1510,8 +1580,10 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
                                picture_height))
                       : search_area_height;
             }
+#if !FTR_ME_COST_VAR
             me_ctx->adj_search_area_width  = search_area_width;
             me_ctx->adj_search_area_height = search_area_height;
+#endif
 
             x_top_left_search_region            = (int16_t)(ref_pic_ptr->org_x + b64_origin_x) -
                 (ME_FILTER_TAP >> 1) + x_search_area_origin;
@@ -1527,7 +1599,7 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
             // Move to the top left of the search region
             x_top_left_search_region = (int16_t)(ref_pic_ptr->org_x + b64_origin_x) + x_search_area_origin;
             y_top_left_search_region = (int16_t)(ref_pic_ptr->org_y + b64_origin_y) + y_search_area_origin;
-
+#if !FTR_ME_COST_VAR
             search_region_index = x_top_left_search_region +
                 y_top_left_search_region * ref_pic_ptr->stride_y;
             svt_initialize_buffer_32bits(
@@ -1549,6 +1621,7 @@ static void integer_search_b64(PictureParentControlSet *pcs, uint32_t b64_index,
                 me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_16x16_0]);
             me_ctx->p_best_mv8x8 = &(
                 me_ctx->p_sb_best_mv[list_index][ref_pic_index][ME_TIER_ZERO_PU_8x8_0]);
+#endif
             open_loop_me_fullpel_search_sblock(me_ctx,
                                                list_index,
                                                ref_pic_index,

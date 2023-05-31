@@ -648,7 +648,10 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                     EB_FREE_ARRAY(pcs->tile_tok[0][0]);
             }
         }
-
+#if OPT_TF_REF_PICS
+        else if (!scs->static_config.stat_report)
+            free_temporal_filtering_buffer(pcs, scs);
+#endif
         //****************************************************
         // Input Entropy Results into Reordering Queue
         //****************************************************

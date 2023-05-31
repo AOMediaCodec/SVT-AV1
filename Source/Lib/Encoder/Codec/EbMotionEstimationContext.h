@@ -308,7 +308,20 @@ typedef struct MeSrCtrls {
     uint16_t me_sr_divisor_for_low_hme_sad;
     uint8_t  distance_based_hme_resizing; // scale down the HME search area for high ref-indices
 } MeSrCtrls;
-
+#if FTR_ME_COST_VAR
+/* Me8x8VarCtrls will adjust the ME search area based on the 8x8 SAD variance of the search centre. The minimum
+* search dimensions will be limited to height=8, width=3 when the algorithm is used.  Consequently, this
+* algorithm will be bypassed if height * width <= 24.
+*/
+typedef struct Me8x8VarCtrls {
+    // If true, adjust the ME search area based on the variance of the 8x8 SAD of the search centre
+    uint8_t enabled;
+    // If ME 8x8 SAD variance is below me_sr_div4_th, divide the search area width/height by 4
+    uint32_t me_sr_div4_th;
+    // If ME 8x8 SAD variance is below me_sr_div2_th, divide the search area width/height by 2
+    uint32_t me_sr_div2_th;
+} Me8x8VarCtrls;
+#endif
 #define SEARCH_REGION_COUNT 2
 typedef struct SearchArea {
     uint16_t width; // search area width
@@ -396,6 +409,9 @@ typedef struct MeContext {
     Bool               enable_hme_level2_flag;
     MeHmeRefPruneCtrls me_hme_prune_ctrls;
     MeSrCtrls          me_sr_adjustment_ctrls;
+#if FTR_ME_COST_VAR
+    Me8x8VarCtrls me_8x8_var_ctrls;
+#endif
     uint8_t            max_hme_sr_area_multipler;
     // ME
     uint8_t          best_list_idx;
@@ -441,8 +457,10 @@ typedef struct MeContext {
     int16_t adjust_hme_l2_factor[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     int16_t hme_factor;
     // ------- Context for Alt-Ref ME ------
+#if !FTR_ME_COST_VAR
     uint16_t adj_search_area_width;
     uint16_t adj_search_area_height;
+#endif
     void    *alt_ref_reference_ptr;
     // Open Loop ME
     EbMeType                    me_type;

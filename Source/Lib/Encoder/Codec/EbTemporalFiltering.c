@@ -4969,11 +4969,34 @@ static EbErrorType produce_temporally_filtered_pic(
                                                ss_x,
                                                ss_y);
 
+#if ENHANCE_KEY_FRAME
+            // 1st segment: past pics - from closest to farthest
+            // 2nd segment: current pic
+            // 3rd segment: future pics - from closest to farthest
+
+            int start_frame_index[3] =
+            { 0,
+              centre_pcs->past_altref_nframes ,
+              centre_pcs->past_altref_nframes + 1 };
+
+            int end_frame_index[3] =
+            { centre_pcs->past_altref_nframes - 1,
+              centre_pcs->past_altref_nframes ,
+              centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes };
+
+            for (int segment_index = 0; segment_index < 3; segment_index++)
+#if ENHANCE_KEY_FRAME
+                for (int frame_index = start_frame_index[segment_index]; frame_index <= end_frame_index[segment_index]; frame_index = frame_index+ me_context_ptr->me_ctx->tf_ctrls.ref_frame_factor) {
+#else
+                for (int frame_index = start_frame_index[segment_index]; frame_index <= end_frame_index[segment_index]; frame_index++) {
+#endif
+#else
             // for every frame to filter
             for (int frame_index = 0;
                  frame_index < (centre_pcs->past_altref_nframes +
                                 centre_pcs->future_altref_nframes + 1);
                  frame_index++) {
+#endif
                 // ------------
                 // Step 1: motion estimation + compensation
                 // ------------
@@ -5956,7 +5979,94 @@ static EbErrorType save_src_pic_buffers(PictureParentControlSet *centre_pcs,
 
     return EB_ErrorNone;
 }
+#if OPT_TF_REF_PICS
+static EbErrorType save_y_src_pic_buffers(PictureParentControlSet* centre_pcs,
+    uint32_t ss_y, Bool is_highbd) {
+    // save buffer from full size frame enhanced_unscaled_pic
+    EbPictureBufferDesc* src_pic_ptr =
+        centre_pcs->enhanced_unscaled_pic;
+    assert(src_pic_ptr != NULL);
+    // allocate memory for the copy of the original enhanced buffer
+    EB_MALLOC_ARRAY(centre_pcs->save_source_picture_ptr[C_Y],
+        src_pic_ptr->luma_size);
 
+    // if highbd, allocate memory for the copy of the original enhanced buffer - bit inc
+    if (is_highbd) {
+        EB_MALLOC_ARRAY(centre_pcs->save_source_picture_bit_inc_ptr[C_Y],
+            src_pic_ptr->luma_size);
+    }
+    centre_pcs->save_source_picture_width = src_pic_ptr->width;
+    centre_pcs->save_source_picture_height = src_pic_ptr->height;
+
+    // copy buffers
+    // Y
+    uint32_t height_y = (uint32_t)(src_pic_ptr->height + src_pic_ptr->org_y +
+        src_pic_ptr->origin_bot_y);
+
+    assert(height_y * src_pic_ptr->stride_y == src_pic_ptr->luma_size);
+
+    svt_aom_pic_copy_kernel_8bit(src_pic_ptr->buffer_y,
+        src_pic_ptr->stride_y,
+        centre_pcs->save_source_picture_ptr[C_Y],
+        src_pic_ptr->stride_y,
+        src_pic_ptr->stride_y,
+        height_y);
+
+    if (is_highbd) {
+        // if highbd, copy bit inc buffers
+        // Y
+        svt_c_unpack_compressed_10bit(
+            centre_pcs->enhanced_pic->buffer_bit_inc_y,
+            centre_pcs->enhanced_pic->stride_bit_inc_y / 4,
+            centre_pcs->save_source_picture_bit_inc_ptr[C_Y],
+            centre_pcs->enhanced_pic->stride_bit_inc_y,
+            height_y);
+    }
+
+    return EB_ErrorNone;
+}
+#endif
+
+#if OPT_TF_REF_PICS
+uint32_t static filt_unfilt_dist(
+    PictureParentControlSet* ppcs,
+    EbByte filt,
+    EbByte unfil,
+    uint16_t stride_y,
+    Bool is_highbd) {
+
+    uint32_t pic_width_in_b64 = (ppcs->aligned_width + ppcs->scs->b64_size - 1) / ppcs->scs->b64_size;
+    uint32_t pic_height_in_b64 = (ppcs->aligned_height + ppcs->scs->b64_size - 1) / ppcs->scs->b64_size;
+
+    EbSpatialFullDistType spatial_full_dist_type_fun = is_highbd
+        ? svt_full_distortion_kernel16_bits
+        : svt_spatial_full_distortion_kernel;
+
+    uint32_t dist = 0;
+    for (uint32_t y_b64_idx = 0; y_b64_idx < pic_height_in_b64; ++y_b64_idx) {
+        for (uint32_t x_b64_idx = 0; x_b64_idx < pic_width_in_b64; ++x_b64_idx) {
+
+            uint32_t b64_origin_x = x_b64_idx * 64;
+            uint32_t b64_origin_y = y_b64_idx * 64;
+
+            uint32_t buffer_index = b64_origin_y * stride_y + b64_origin_x;
+
+
+            dist += (uint32_t)(spatial_full_dist_type_fun(
+                filt,
+                buffer_index,
+                stride_y,
+                unfil,
+                buffer_index,
+                stride_y,
+                ppcs->scs->b64_size,
+                ppcs->scs->b64_size));
+
+        }
+    }
+    return (dist / (pic_width_in_b64 * pic_height_in_b64));
+}
+#endif
 EbErrorType svt_av1_init_temporal_filtering(
     PictureParentControlSet ** pcs_list,
     PictureParentControlSet *  centre_pcs,
@@ -6047,10 +6157,20 @@ EbErrorType svt_av1_init_temporal_filtering(
              (search_type == SUPERRES_AUTO_ALL)) // auto-dual or auto-all
             && ((frame_update_type == SVT_AV1_KF_UPDATE) ||
                 (frame_update_type == SVT_AV1_ARF_UPDATE)); // recode only applies to key and arf
+#if OPT_TF_REF_PICS
         if (centre_pcs->scs->static_config.stat_report ||
             superres_recode_enabled) {
             save_src_pic_buffers(centre_pcs, ss_y, is_highbd);
         }
+        else if (centre_pcs->slice_type == I_SLICE) {
+            save_y_src_pic_buffers(centre_pcs, ss_y, is_highbd);
+        }
+#else
+        if (centre_pcs->scs->static_config.stat_report ||
+            superres_recode_enabled) {
+            save_src_pic_buffers(centre_pcs, ss_y, is_highbd);
+        }
+#endif
     }
     svt_release_mutex(centre_pcs->temp_filt_mutex);
     me_context_ptr->me_ctx->min_frame_size = MIN(
@@ -6151,7 +6271,19 @@ EbErrorType svt_av1_init_temporal_filtering(
 
         // padding + decimation: even if highbd src, this is only performed on the 8 bit buffer (excluding the LSBs)
         pad_and_decimate_filtered_pic(centre_pcs);
+#if OPT_TF_REF_PICS
+        if (centre_pcs->slice_type == I_SLICE)
+        {
 
+            EbPaReferenceObject* src_object = (EbPaReferenceObject*)centre_pcs->pa_ref_pic_wrapper->object_ptr;
+            EbPictureBufferDesc* input_pic = centre_pcs->enhanced_pic;
+            EbByte filt = input_pic->buffer_y + input_pic->org_y * input_pic->stride_y + input_pic->org_x;
+            EbByte unfil = centre_pcs->save_source_picture_ptr[C_Y] + input_pic->org_y * input_pic->stride_y + input_pic->org_x;
+
+            centre_pcs->filt_to_unfilt_diff = filt_unfilt_dist(centre_pcs, filt, unfil, centre_pcs->enhanced_pic->stride_y, FALSE);
+        }
+
+#endif
         // signal that temp filt is done
         svt_post_semaphore(centre_pcs->temp_filt_done_semaphore);
     }

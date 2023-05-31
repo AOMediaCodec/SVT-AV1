@@ -71,6 +71,13 @@ static void motion_estimation_context_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj);
 }
 
+#if GM_PP
+void gm_pre_processor(
+    PictureParentControlSet  *pcs,
+    PictureParentControlSet **pcs_list
+);
+#endif
+
 /************************************************
  * Motion Analysis Context Constructor
  ************************************************/
@@ -333,6 +340,13 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
             // Post the Full Results Object
             svt_post_full_object(out_results_wrapper);
         } else if (in_results_ptr->task_type == TASK_TFME) {
+#if GM_PP
+            //gm pre-processing for only base B
+            if (pcs->gm_ctrls.pp_enabled && pcs->gm_pp_enabled && in_results_ptr->segment_index==0)
+                gm_pre_processor(
+                    pcs,
+                    pcs->temp_filt_pcs_list);
+#endif
             // temporal filtering start
             me_context_ptr->me_ctx->me_type = ME_MCTF;
             svt_av1_init_temporal_filtering(

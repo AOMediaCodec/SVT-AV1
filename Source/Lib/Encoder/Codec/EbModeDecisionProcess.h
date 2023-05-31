@@ -149,6 +149,10 @@ typedef struct InterCompCtrls {
     uint8_t pred0_to_pred1_mult;
     // if true, use rate @ compound params derivation
     uint8_t use_rate;
+#if OPT_CMP
+    // if true, do not consider distance compound
+    uint8_t no_dist;
+#endif
 } InterCompCtrls;
 typedef struct InterIntraCompCtrls {
     uint8_t enabled;
@@ -1287,6 +1291,9 @@ typedef struct ModeDecisionContext {
     // Enable pSad
     uint8_t     enable_psad;
     uint32_t    inter_depth_bias;
+#if OPT_BIAS_PARENT
+    uint32_t    d2_parent_bias;
+#endif
     uint8_t     bipred_available;
     uint8_t     is_intra_bordered;
     uint8_t     updated_enable_pme;

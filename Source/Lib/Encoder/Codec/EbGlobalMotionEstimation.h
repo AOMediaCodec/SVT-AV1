@@ -19,6 +19,9 @@
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs, EbPictureBufferDesc *input_pic);
 
 void compute_global_motion(PictureParentControlSet *pcs,
+#if OPT_GM_CORNER
+                           int *frm_corners, int num_frm_corners,
+#endif
                            EbPictureBufferDesc     *det_input_pic, //src frame for detection
                            EbPictureBufferDesc     *det_ref_pic, //ref frame for detection
                            EbPictureBufferDesc     *input_pic, //src frame for refinement
