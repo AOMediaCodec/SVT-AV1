@@ -165,13 +165,20 @@ struct PredictionUnit;
 typedef struct EbMdcLeafData {
     uint32_t mds_idx;
     uint32_t tot_d1_blocks; // how many d1 bloks every parent square would have
+#if TAG_SUB_PRED_NSQ
+    bool is_child; // does is it belong to the child depth(s); relative to PRED (the output of PD0)
+#endif
 } EbMdcLeafData;
 
 typedef struct MdcSbData {
     uint32_t      leaf_count;
     EbMdcLeafData leaf_data_array[BLOCK_MAX_COUNT_SB_128];
     Bool          split_flag[BLOCK_MAX_COUNT_SB_128];
-    uint8_t       consider_block[BLOCK_MAX_COUNT_SB_128];
+#if TAG_SUB_PRED_NSQ
+    uint8_t consider_block[BLOCK_MAX_COUNT_SB_128]; // 0: do not encode, 1: current or parent depth(s), 2: child depth(s)
+#else
+    uint8_t consider_block[BLOCK_MAX_COUNT_SB_128];
+#endif
     uint8_t       refined_split_flag[BLOCK_MAX_COUNT_SB_128];
 } MdcSbData;
 
@@ -608,6 +615,12 @@ typedef struct GmControls {
     // of 2 in each dimension; GM_TRAN_ONLY: Translation only using ME MV.
     uint8_t params_refinement_steps;
     uint8_t downsample_level;
+#if GM_REFINFO
+    // do GM in the closed loop instead of the open loop and use reference information 0: off 1: on
+    bool use_ref_info;
+    // do the detection bypass for last layer pictures   0:off     1:last layer     2:last 2 layers 3: last 3 layers
+    uint8_t layer_offset;
+#endif
     //use a fraction of corner points for computing correspondences for RANSAC in detection. 1:1/4   2:2/4   3:3/4   4:all
     uint8_t corners;
     //skip global motion refinement using a chess pattern to skip blocks
@@ -839,7 +852,10 @@ typedef struct PictureParentControlSet {
     double                                  luma_ssim;
     double                                  cr_ssim;
     double                                  cb_ssim;
-
+#if GM_REFINFO
+    EbPictureBufferDesc *quarter_src_pic;
+    EbPictureBufferDesc *sixteenth_src_pic;
+#endif
     // Pointer array for down scaled pictures
     EbObjectWrapper            *downscaled_pic_wrapper;
     EbDownScaledBufDescPtrArray ds_pics;
@@ -1270,7 +1286,10 @@ EbErrorType svt_aom_me_sb_results_ctor(MeSbResults               *obj_ptr,
                                        PictureControlSetInitData *init_data_ptr);
 
 extern Bool svt_aom_is_pic_skipped(PictureParentControlSet *pcs);
-
+#if GM_REFINFO
+void svt_aom_get_gm_needed_resolutions(uint8_t ds_lvl, bool *gm_need_full, bool *gm_need_quart,
+                                       bool *gm_need_sixteen);
+#endif
 #ifdef __cplusplus
 }
 #endif

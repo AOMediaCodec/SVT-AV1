@@ -893,7 +893,15 @@ static INLINE void update_list0_only_base(SequenceControlSet* scs, PictureParent
         pcs->ref_list1_count_try = 0;
     }
 }
+#if GM_REFINFO
+void  svt_aom_get_gm_needed_resolutions(uint8_t ds_lvl, bool *gm_need_full, bool *gm_need_quart, bool *gm_need_sixteen) {
 
+    *gm_need_full = (ds_lvl == GM_FULL) || (ds_lvl == GM_ADAPT_0);
+    *gm_need_quart =  (ds_lvl == GM_DOWN) || (ds_lvl == GM_ADAPT_0) || (ds_lvl == GM_ADAPT_1);
+    *gm_need_sixteen =  (ds_lvl == GM_DOWN16) || (ds_lvl == GM_ADAPT_1);
+
+}
+#endif
 Bool svt_aom_is_pic_skipped(PictureParentControlSet *pcs) {
     if (!pcs->is_ref &&
         pcs->scs->rc_stat_gen_pass_mode &&

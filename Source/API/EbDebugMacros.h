@@ -63,6 +63,31 @@ extern "C" {
 #define OPT_PHME_PRUNE                             1 // PreHme based ref pruning
 #define CLN_PHME_DATA                              1 //lossles fix for pre-hme to consider checking validity of list0 data
                                                      //TODO: remove performed_phme
+#define GM_REFINFO                                 1 // Use References to determine wether or not to do Global
+#define TUNE_GM_LEVELS                             1 // Tune GM Levels
+
+#define NSQ_PACKAGE                                1 // Optimizations towards NSQ for M7 & M8
+#if NSQ_PACKAGE
+#define OPT_NSQ_M7_M8                              1 // Turn ON NSQ for M7 and M8
+#define FIX_NSQ_LPD1                               1 // LPD1=f(NSQ)
+#define OPT_NSQ_SUPPORT                            1 // Optimize NSQ infrastructure set0
+#define OPT_NSQ_PSQ_MODE                           1 // Skip NSQ based on the pred-mode of the SQ
+#define OPT_32x16_16x32_GEOM                       1 // Shut 16x8/8x16, and optimixed thegeom; from 169 to 105 blocks
+#define FIX_NSQ_MD_SETTINGS_SHIFT                  1 // Optimize NSQ infrastructure set1
+#define OPT_NON_NORMATIVE_TXS                      1 // Optimize the non-normative SQ txs
+#define OPT_SKIP_NSQ_PATH                          1 // Optimize NSQ infrastructure set2
+#define OPT_NSQ_PSQ_MODE_BIS                       1 // Optimize NSQ infrastructure set2
+
+#define FIX_NSQ_SETTINGS                           1 // Optimize ParentSqCmplxCtrls
+
+#define OPT_NSQ_SETTINGS                           1 // Optimize ParentSqCmplxCtrls
+#if OPT_NSQ_SETTINGS
+#define OPT_SHUT_PME_ACTION                        1 // Optimize ParentSqCmplxCtrls
+#define OPT_SHUT_MRP_ACTION                        1 // Optimize ParentSqCmplxCtrls
+#endif
+#define TAG_SUB_PRED_NSQ                           1 // Opt the NSQ(s) that belong to the child depth(s); relative to PRED (the output of PD0)
+#endif
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

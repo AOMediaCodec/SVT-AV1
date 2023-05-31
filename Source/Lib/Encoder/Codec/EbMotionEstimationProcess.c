@@ -285,11 +285,24 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
                                 pcs->me_processed_b64_count++;
                                 // We need to finish ME for all SBs to do GM
                                 if (pcs->me_processed_b64_count == pcs->b64_total_count) {
+#if GM_REFINFO
+#if GM_PP
+                                    if (pcs->gm_ctrls.enabled && !pcs->gm_ctrls.use_ref_info && pcs->gm_pp_detected) {
+#else
+                                    if (pcs->gm_ctrls.enabled && !pcs->gm_ctrls.use_ref_info) {
+#endif
+                                        svt_aom_global_motion_estimation(pcs, input_pic);
+                                    } else {
+                                        // Initilize global motion to be OFF when GM is OFF
+                                        memset(pcs->is_global_motion, FALSE, MAX_NUM_OF_REF_PIC_LIST * REF_LIST_MAX_DEPTH);
+                                    }
+#else
                                     if (pcs->gm_ctrls.enabled)
                                         svt_aom_global_motion_estimation(pcs, input_pic);
                                     else
                                         // Initilize global motion to be OFF when GM is OFF
                                         memset(pcs->is_global_motion, FALSE, MAX_NUM_OF_REF_PIC_LIST * REF_LIST_MAX_DEPTH);
+#endif
                                 }
 
                                 svt_release_mutex(pcs->me_processed_b64_mutex);

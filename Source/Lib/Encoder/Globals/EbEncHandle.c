@@ -4054,6 +4054,9 @@ static void set_param_based_on_input(SequenceControlSet *scs)
     uint8_t h_v_only = 1;
     uint8_t  min_nsq_bsize = 0;
     uint8_t  no_8x4_4x8 = 1;
+#if OPT_32x16_16x32_GEOM
+    uint8_t  no_16x8_8x16 = 1;
+#endif
     for (uint8_t is_base = 0; is_base <= 1; is_base++)
         for (uint8_t is_islice = 0; is_islice <= 1; is_islice++)
             for (uint8_t coeff_lvl = 0; coeff_lvl <= HIGH_LVL + 1; coeff_lvl++)
@@ -4063,10 +4066,46 @@ static void set_param_based_on_input(SequenceControlSet *scs)
                 svt_aom_set_nsq_ctrls(NULL, nsq_level, &allow_HVA_HVB, &allow_HV4, &min_nsq_bsize);
                 h_v_only = h_v_only && !allow_HVA_HVB && !allow_HV4;
                 no_8x4_4x8 = no_8x4_4x8 && min_nsq_bsize >= 8;
+#if OPT_32x16_16x32_GEOM
+                no_16x8_8x16 = no_16x8_8x16 && min_nsq_bsize >= 16;
+#endif
             }
     bool disallow_4x4 = true;
     for (SliceType slice_type = 0; slice_type < IDR_SLICE + 1; slice_type++)
         disallow_4x4 = MIN(disallow_4x4, svt_aom_get_disallow_4x4(scs->static_config.enc_mode, slice_type));
+#if OPT_32x16_16x32_GEOM
+    if (scs->super_block_size == 128) {
+        scs->svt_aom_geom_idx = GEOM_6;
+        scs->max_block_cnt = 4421;
+    }
+    else {
+        //SB 64x64
+        if (disallow_nsq && disallow_4x4) {
+            scs->svt_aom_geom_idx = GEOM_0;
+            scs->max_block_cnt = 85;
+        }
+        else if (h_v_only && disallow_4x4 && no_16x8_8x16) {
+            scs->svt_aom_geom_idx = GEOM_1;
+            scs->max_block_cnt = 105;
+        }
+        else if (h_v_only && disallow_4x4 && no_8x4_4x8) {
+            scs->svt_aom_geom_idx = GEOM_2;
+            scs->max_block_cnt = 169;
+        }
+        else if (h_v_only && disallow_4x4) {
+            scs->svt_aom_geom_idx = GEOM_3;
+            scs->max_block_cnt = 425;
+        }
+        else if (h_v_only) {
+            scs->svt_aom_geom_idx = GEOM_4;
+            scs->max_block_cnt = 681;
+        }
+        else {
+            scs->svt_aom_geom_idx = GEOM_5;
+            scs->max_block_cnt = 1101;
+        }
+    }
+#else
     if (scs->super_block_size == 128) {
         scs->svt_aom_geom_idx = GEOM_5;
         scs->max_block_cnt = 4421;
@@ -4094,6 +4133,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             scs->max_block_cnt = 1101;
         }
     }
+#endif
     //printf("\n\nGEOM:%i \n", scs->svt_aom_geom_idx);
     // Configure the padding
     scs->left_padding = BLOCK_SIZE_64 + 4;

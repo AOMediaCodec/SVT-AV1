@@ -28,5 +28,7 @@ void compute_global_motion(PictureParentControlSet *pcs,
                            int allow_high_precision_mv);
 
 void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_factor);
-
+#if GM_REFINFO
+extern MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx);
+#endif
 #endif // EbGlobalMotionEstimation_h

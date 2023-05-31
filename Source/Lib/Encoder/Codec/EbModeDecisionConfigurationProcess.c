@@ -639,6 +639,11 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         // Init block selection
         // Set reference sg ep
         set_reference_sg_ep(pcs);
+#if GM_REFINFO
+        if (pcs->ppcs->gm_ctrls.use_ref_info)
+            svt_aom_global_motion_estimation(pcs->ppcs, pcs->ppcs->enhanced_pic);
+
+#endif
         set_global_motion_field(pcs);
 
         svt_av1_qm_init(pcs->ppcs);

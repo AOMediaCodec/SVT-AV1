@@ -1803,6 +1803,38 @@ void pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs) {
     // set up the Slice Type
     ref_object->slice_type = pcs->ppcs->slice_type;
     ref_object->r0         = pcs->ppcs->r0;
+#if GM_REFINFO
+    if (pcs->ppcs->gm_ctrls.enabled) {
+        bool gm_need_full, gm_need_quart, gm_need_sixteen;
+
+        svt_aom_get_gm_needed_resolutions(
+            +pcs->ppcs->gm_ctrls.downsample_level, &gm_need_full, &gm_need_quart, &gm_need_sixteen);
+
+        if (gm_need_full) {
+            EbPictureBufferDesc *inp = pcs->ppcs->enhanced_pic;
+            uint8_t *            src = inp->buffer_y + inp->org_x + inp->org_y * inp->stride_y;
+
+            EbPictureBufferDesc *ref = ref_object->input_picture;
+            uint8_t *            dst = ref->buffer_y + ref->org_x + ref->org_y * ref->stride_y;
+
+            svt_aom_assert_err(inp->max_height == ref->max_height, "ERR BUF");
+            svt_aom_assert_err(inp->max_width == ref->max_width, "ERR BUF");
+            for (int j = 0; j < inp->max_height; j++)
+                memcpy(dst + j * ref->stride_y, src + j * inp->stride_y, inp->max_width);
+        }
+        if (gm_need_quart) {
+            EbPictureBufferDesc *ref = ref_object->quarter_reference_picture;
+            svt_aom_assert_err(pcs->ppcs->quarter_src_pic->luma_size == ref->luma_size, "ERR BUF");
+            memcpy(ref->buffer_y, pcs->ppcs->quarter_src_pic->buffer_y, ref->luma_size);
+        }
+        if (gm_need_sixteen) {
+            EbPictureBufferDesc *ref = ref_object->sixteenth_reference_picture;
+            svt_aom_assert_err(pcs->ppcs->sixteenth_src_pic->luma_size == ref->luma_size,
+                               "ERR BUF");
+            memcpy(ref->buffer_y, pcs->ppcs->sixteenth_src_pic->buffer_y, ref->luma_size);
+        }
+    }
+#endif
 }
 /*
  * Generate depth removal settings
@@ -2197,12 +2229,26 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
         // All child blocks are same sq_size, so will share the same tot_d1_blocks
         const unsigned int child_default_tot_d1_blocks = get_default_tot_d1_blocks(
             ctx, child1_blk_geom, disallow_nsq);
-        const unsigned int child_tot_d1_blocks = (!ctx->nsq_ctrls.enabled ||
-                                                  !depth_ctrls->allow_nsq_in_child_depths)
+#if TAG_SUB_PRED_NSQ
+        const unsigned int child_tot_d1_blocks = !ctx->nsq_ctrls.enabled
             ? 1
             : child_default_tot_d1_blocks;
+#else
+        const unsigned int child_tot_d1_blocks = (!ctx->nsq_ctrls.enabled ||
+#if OPT_NSQ_ONLY_PRED_DEPTH
+                                                  !ctx->nsq_ctrls.allow_nsq_in_child_depths)
+#else
+                                                  !depth_ctrls->allow_nsq_in_child_depths)
+#endif
+            ? 1
+            : child_default_tot_d1_blocks;
+#endif
         for (unsigned block_1d_idx = 0; block_1d_idx < child_tot_d1_blocks; block_1d_idx++) {
-            results_ptr->consider_block[child_block_idx_1 + block_1d_idx]     = 1;
+#if TAG_SUB_PRED_NSQ
+            results_ptr->consider_block[child_block_idx_1 + block_1d_idx] = 2;
+#else
+            results_ptr->consider_block[child_block_idx_1 + block_1d_idx] = 1;
+#endif
             results_ptr->refined_split_flag[child_block_idx_1 + block_1d_idx] = FALSE;
         }
         // Add children blocks if more depth to consider (depth_step is > 1), or block not allowed (add next depth)
@@ -2223,7 +2269,11 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
 #endif
         for (unsigned block_1d_idx = 0; block_1d_idx < child_tot_d1_blocks; block_1d_idx++) {
-            results_ptr->consider_block[child_block_idx_2 + block_1d_idx]     = 1;
+#if TAG_SUB_PRED_NSQ
+            results_ptr->consider_block[child_block_idx_2 + block_1d_idx] = 2;
+#else
+            results_ptr->consider_block[child_block_idx_2 + block_1d_idx] = 1;
+#endif
             results_ptr->refined_split_flag[child_block_idx_2 + block_1d_idx] = FALSE;
         }
         // Add children blocks if more depth to consider (depth_step is > 1), or block not allowed (add next depth)
@@ -2244,7 +2294,11 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
 #endif
         for (unsigned block_1d_idx = 0; block_1d_idx < child_tot_d1_blocks; block_1d_idx++) {
-            results_ptr->consider_block[child_block_idx_3 + block_1d_idx]     = 1;
+#if TAG_SUB_PRED_NSQ
+            results_ptr->consider_block[child_block_idx_3 + block_1d_idx] = 2;
+#else
+            results_ptr->consider_block[child_block_idx_3 + block_1d_idx] = 1;
+#endif
             results_ptr->refined_split_flag[child_block_idx_3 + block_1d_idx] = FALSE;
         }
 
@@ -2266,7 +2320,11 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
 #endif
         for (unsigned block_1d_idx = 0; block_1d_idx < child_tot_d1_blocks; block_1d_idx++) {
-            results_ptr->consider_block[child_block_idx_4 + block_1d_idx]     = 1;
+#if TAG_SUB_PRED_NSQ
+            results_ptr->consider_block[child_block_idx_4 + block_1d_idx] = 2;
+#else
+            results_ptr->consider_block[child_block_idx_4 + block_1d_idx] = 1;
+#endif
             results_ptr->refined_split_flag[child_block_idx_4 + block_1d_idx] = FALSE;
         }
         // Add children blocks if more depth to consider (depth_step is > 1), or block not allowed (add next depth)
@@ -2399,6 +2457,10 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                     results_ptr->leaf_data_array[results_ptr->leaf_count].mds_idx = idx;
                     results_ptr->leaf_data_array[results_ptr->leaf_count].tot_d1_blocks =
                         to_test_d1_blocks;
+#if TAG_SUB_PRED_NSQ
+                    results_ptr->leaf_data_array[results_ptr->leaf_count].is_child =
+                        results_ptr->consider_block[idx] == 2 ? 1 : 0;
+#endif
                     results_ptr->split_flag[results_ptr->leaf_count++] =
                         results_ptr->refined_split_flag[idx];
                 }
@@ -3701,7 +3763,11 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
 
                         // Can only use light-PD1 under the following conditions
                         if (!(md_ctx->hbd_md == 0 && md_ctx->pred_depth_only &&
+#if FIX_NSQ_LPD1
+                              md_ctx->disallow_4x4 == TRUE &&
+#else
                               !md_ctx->nsq_ctrls.enabled && md_ctx->disallow_4x4 == TRUE &&
+#endif
                               scs->super_block_size == 64)) {
                             md_ctx->lpd1_ctrls.pd1_level = REGULAR_PD1;
                         }

@@ -70,6 +70,9 @@ typedef struct MdBlkStruct {
     // Similar to cost but does not get updated @ svt_aom_d1_non_square_block_decision() and
     // svt_aom_d2_inter_depth_block_decision()
     uint64_t default_cost;
+#if OPT_NSQ_PSQ_MODE
+    uint64_t best_intra_new_cost;
+#endif
     // to be used in MD and EncDec
     CandidateMv ed_ref_mv_stack[MODE_CTX_REF_FRAMES][MAX_REF_MV_STACK_SIZE];
     // only for MD
@@ -86,8 +89,13 @@ typedef struct MdBlkStruct {
     uint8_t  u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint8_t  v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint8_t  y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+#if OPT_NON_NORMATIVE_TXS
+    uint16_t min_nz_h;
+    uint16_t min_nz_v;
+#else
     uint16_t cnt_non_zero_h[2];
     uint16_t cnt_non_zero_v[2];
+#endif
 } MdBlkStruct;
 
 struct ModeDecisionCandidate;
@@ -240,8 +248,10 @@ typedef struct DepthCtrls {
     // end depth; 0: consider no child blocks; else number of child blocks to consider, specified as
     // a positive number (e.g. 2 means consider 2 children)
     int8_t e_depth;
+#if !TAG_SUB_PRED_NSQ
     // Allow NSQ in depths below the PD0-selected depths.
     Bool allow_nsq_in_child_depths;
+#endif
 } DepthCtrls;
 #define MAX_RANGE_CNT 8
 #define MAX_RANGE_CNT 8
@@ -431,6 +441,7 @@ typedef struct ParentSqCmplxCtrls {
     uint8_t enable_one_coeff_action;
     // level of action to use if parent SQ has 1 luma coeff
     uint8_t one_coeff_action;
+#if !FIX_NSQ_MD_SETTINGS_SHIFT
     // cutoff for the lowest coeff-area band [0-100]; should be less than high_freq_band2_th
     uint8_t low_freq_band1_th;
     // level of action to use if luma coeff-area of parent SQ is < low_freq_band1_th
@@ -440,8 +451,22 @@ typedef struct ParentSqCmplxCtrls {
     uint8_t low_freq_band2_th;
     // level of action to use if luma coeff-area of parent SQ is < low_freq_band2_th
     uint8_t low_freq_band2_level;
+#endif
 } ParentSqCmplxCtrls;
-
+#if OPT_NON_NORMATIVE_TXS
+typedef struct NsqPsqTxsCtrls {
+    uint8_t  enabled;
+    uint32_t th0;
+    uint32_t th1;
+} NsqPsqTxsCtrls;
+#endif
+#if OPT_NSQ_PSQ_MODE
+typedef struct NsqPsqPredCtrls {
+    uint8_t  enabled;
+    uint32_t cost_th;
+    uint8_t  coef_th;
+} NsqPsqPredCtrls;
+#endif
 typedef struct RdoqCtrls {
     uint8_t enabled;
 
@@ -586,8 +611,28 @@ typedef struct NsqCtrls {
     // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
     // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
     uint32_t non_HV_split_rate_th;
+#if OPT_NSQ_HIGH_COST_COMP
+    // If the distortion (or rate) component of the SQ cost is more than component_multiple_th times the rate (or distortion) component, skip the NSQ shapes
+    // 0: off, higher is safer
+    uint32_t component_multiple_th;
+#endif
     // Predict the number of non-zero coeff per NSQ shape using a non-conformant txs-search
+#if OPT_NON_NORMATIVE_TXS
+    uint8_t psq_txs_lvl;
+#else
     uint32_t sq_txs_th;
+#endif
+#if OPT_NSQ_PSQ_MODE
+    uint8_t psq_pred_lvl;
+#endif
+#if TAG_SUB_PRED_NSQ
+    // Whether to use the default or aggressive settings for the sub-Pred_depth block(s) (i.e. not applicable when PRED only)
+    uint8_t sub_depth_block_lvl;
+#endif
+#if CHECK_PARENT_COST_MDS3
+    uint32_t sq_mds1_cost_th;
+    uint32_t sq_mds3_cost_th;
+#endif
 } NsqCtrls;
 typedef struct DepthEarlyExitCtrls {
     // If the rate cost of splitting into lower depths is greater than the percentage threshold of the cost of the parent block, skip testing the lower depth.
@@ -1094,8 +1139,20 @@ typedef struct ModeDecisionContext {
     RdoqCtrls           rdoq_ctrls;
     uint8_t             disallow_4x4;
     uint8_t             md_disallow_nsq;
+#if FIX_NSQ_MD_SETTINGS_SHIFT
+    uint8_t params_status; // specifies the status of MD parameters; 0: default, 1: modified
+#endif
+#if OPT_SKIP_NSQ_PATH
+    bool d1_skip_flag[25];
+#endif
     // was parent_sq_coeff_area_based_cycles_reduction_ctrls
     ParentSqCmplxCtrls   psq_cplx_ctrls;
+#if OPT_NON_NORMATIVE_TXS
+    NsqPsqTxsCtrls nsq_psq_txs_ctrls;
+#endif
+#if OPT_NSQ_PSQ_MODE
+    NsqPsqPredCtrls nsq_psq_pred_ctrls;
+#endif
     uint8_t              sb_size;
     EbPictureBufferDesc *recon_coeff_ptr[TX_TYPES];
     EbPictureBufferDesc *recon_ptr[TX_TYPES];

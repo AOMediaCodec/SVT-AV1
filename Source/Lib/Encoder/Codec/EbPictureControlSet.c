@@ -1317,6 +1317,10 @@ static void picture_parent_control_set_dctor(EbPtr ptr) {
     EB_DESTROY_MUTEX(obj->pcs_total_rate_mutex);
     if (obj->dg_detector)
         EB_DELETE(obj->dg_detector);
+#if GM_REFINFO
+    EB_DELETE(obj->quarter_src_pic);
+    EB_DELETE(obj->sixteenth_src_pic);
+#endif
 }
 static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *object_ptr,
                                                    EbPtr                    object_init_data_ptr) {
@@ -1517,6 +1521,41 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
         ? svt_aom_get_enable_me_8x8(init_data_ptr->enc_mode, init_data_ptr->rtc_tune)
         : 0;
     EB_NEW(object_ptr->dg_detector, svt_aom_dg_detector_seg_ctor);
+#if GM_REFINFO
+    {
+        EbPictureBufferDescInitData input_pic_buf_desc_init_data;
+        input_pic_buf_desc_init_data.max_width          = init_data_ptr->picture_width >> 1;
+        input_pic_buf_desc_init_data.max_height         = init_data_ptr->picture_height >> 1;
+        input_pic_buf_desc_init_data.bit_depth          = 8; //Should be 8bit
+        input_pic_buf_desc_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_LUMA_MASK;
+        input_pic_buf_desc_init_data.left_padding       = 32;
+        input_pic_buf_desc_init_data.right_padding      = 32;
+        input_pic_buf_desc_init_data.top_padding        = 32;
+        input_pic_buf_desc_init_data.bot_padding        = 32;
+        input_pic_buf_desc_init_data.color_format       = EB_YUV420;
+        input_pic_buf_desc_init_data.split_mode         = FALSE;
+
+        EB_NEW(object_ptr->quarter_src_pic,
+               svt_picture_buffer_desc_ctor,
+               (EbPtr)(&input_pic_buf_desc_init_data));
+
+        input_pic_buf_desc_init_data.max_width          = init_data_ptr->picture_width >> 2;
+        input_pic_buf_desc_init_data.max_height         = init_data_ptr->picture_height >> 2;
+        input_pic_buf_desc_init_data.bit_depth          = 8; //Should be 8bit
+        input_pic_buf_desc_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_LUMA_MASK;
+        input_pic_buf_desc_init_data.left_padding       = 16;
+        input_pic_buf_desc_init_data.right_padding      = 16;
+        input_pic_buf_desc_init_data.top_padding        = 16;
+        input_pic_buf_desc_init_data.bot_padding        = 16;
+        input_pic_buf_desc_init_data.color_format       = EB_YUV420;
+        input_pic_buf_desc_init_data.split_mode         = FALSE;
+
+        EB_NEW(object_ptr->sixteenth_src_pic,
+               svt_picture_buffer_desc_ctor,
+               (EbPtr)(&input_pic_buf_desc_init_data));
+    }
+
+#endif
     return return_error;
 }
 static void me_dctor(EbPtr p) {

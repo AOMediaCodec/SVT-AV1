@@ -140,7 +140,11 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
             picture_buffer_desc_init_data_16bit_ptr.bit_depth);
     }
     ref_object->input_picture = NULL;
-
+#if GM_REFINFO
+    EB_NEW(ref_object->input_picture,
+           svt_picture_buffer_desc_ctor,
+           (EbPtr)picture_buffer_desc_init_data_ptr);
+#endif
     uint32_t mi_rows = ref_object->reference_picture->height >> MI_SIZE_LOG2;
     uint32_t mi_cols = ref_object->reference_picture->width >> MI_SIZE_LOG2;
     // there should be one unit info per plane and per rest unit
@@ -155,7 +159,39 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
     }
     ref_object->quarter_reference_picture   = NULL;
     ref_object->sixteenth_reference_picture = NULL;
+#if GM_REFINFO
+    {
+        EbPictureBufferDescInitData buf_desc;
+        buf_desc.max_width          = picture_buffer_desc_init_data_ptr->max_width >> 1;
+        buf_desc.max_height         = picture_buffer_desc_init_data_ptr->max_height >> 1;
+        buf_desc.bit_depth          = 8; //Should be 8bit
+        buf_desc.buffer_enable_mask = PICTURE_BUFFER_DESC_LUMA_MASK;
+        buf_desc.left_padding       = 32;
+        buf_desc.right_padding      = 32;
+        buf_desc.top_padding        = 32;
+        buf_desc.bot_padding        = 32;
+        buf_desc.color_format       = EB_YUV420;
+        buf_desc.split_mode         = FALSE;
 
+        EB_NEW(
+            ref_object->quarter_reference_picture, svt_picture_buffer_desc_ctor, (EbPtr)&buf_desc);
+
+        buf_desc.max_width          = picture_buffer_desc_init_data_ptr->max_width >> 2;
+        buf_desc.max_height         = picture_buffer_desc_init_data_ptr->max_height >> 2;
+        buf_desc.bit_depth          = 8; //Should be 8bit
+        buf_desc.buffer_enable_mask = PICTURE_BUFFER_DESC_LUMA_MASK;
+        buf_desc.left_padding       = 16;
+        buf_desc.right_padding      = 16;
+        buf_desc.top_padding        = 16;
+        buf_desc.bot_padding        = 16;
+        buf_desc.color_format       = EB_YUV420;
+        buf_desc.split_mode         = FALSE;
+
+        EB_NEW(ref_object->sixteenth_reference_picture,
+               svt_picture_buffer_desc_ctor,
+               (EbPtr)&buf_desc);
+    }
+#endif
     ref_object->ds_pics.picture_ptr           = ref_object->reference_picture;
     ref_object->ds_pics.quarter_picture_ptr   = ref_object->quarter_reference_picture;
     ref_object->ds_pics.sixteenth_picture_ptr = ref_object->sixteenth_reference_picture;
