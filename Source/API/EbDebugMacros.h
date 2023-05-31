@@ -88,6 +88,20 @@ extern "C" {
 #define TAG_SUB_PRED_NSQ                           1 // Opt the NSQ(s) that belong to the child depth(s); relative to PRED (the output of PD0)
 #endif
 
+#define CHROMA_PACKAGE 1 // All chroma optimizations and cleanups
+#if CHROMA_PACKAGE
+#define REMOVE_UV_CFL_TH                           1 // Remove uv_cfl_th from chroma ctrls because it is useless
+#define CLN_IND_UV_SEARCH                          1 // Cleanup how independent chroma data is used
+#define FIX_FI_UV_RATE                             1 // Fix rate used for independent chroma filter-intra candidates
+#define FIX_UV_INTRA_MODE_RATE                     1 // Fix chroma fast rate when CFL is used. Enabled independent chroma modes for palette since chroma palette is not supported
+#define CLN_CFL_SIGNALLING                         1 // Clean how CFL testing is signalled and add new fast chroma search path
+#if CLN_CFL_SIGNALLING
+#define TEST_UV_DC_ALWAYS 1 // Always test chroma DC prediction in independent chroma search
+#endif
+#endif
+#define NEW_TPL_LVL_3                              1 // New TPL level 3 based on existing features
+#define CLN_PSQ_CPLX_LVL                           1 // Remove unused NSQ levels
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

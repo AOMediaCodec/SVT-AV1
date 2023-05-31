@@ -3686,8 +3686,23 @@ static uint8_t get_tpl_level(int8_t enc_mode, int32_t pass, int32_t lap_rc, uint
     }
     else if (enc_mode <= ENC_M4)
         tpl_level = 1;
+#if !TUNE_M5_2
+#if NEW_TPL_LVL_3
+#if TUNE_M6
+    else if (enc_mode <= ENC_M5)
+#else
+    else if (enc_mode <= ENC_M6)
+#endif
+        tpl_level = 3;
+#else
     else if (enc_mode <= ENC_M5)
         tpl_level = 2;
+#endif
+#endif
+#if TUNE_M8
+    else if (enc_mode <= ENC_M8)
+        tpl_level = 4;
+#else
     else if (enc_mode <= ENC_M7)
         tpl_level = 4;
     else if (enc_mode <= ENC_M8)
@@ -3695,6 +3710,7 @@ static uint8_t get_tpl_level(int8_t enc_mode, int32_t pass, int32_t lap_rc, uint
             tpl_level = 4;
         else
             tpl_level = 5;
+#endif
     else if (enc_mode <= ENC_M10)
         tpl_level = 5;
     else if (enc_mode <= ENC_M11)
@@ -4460,8 +4476,12 @@ static void copy_api_from_app(
     scs->over_bndry_blk              = DEFAULT;
     scs->new_nearest_comb_inject     = DEFAULT;
     scs->frame_end_cdf_update        = DEFAULT;
+#if !CLN_IND_UV_SEARCH
     scs->disable_cfl_flag            = DEFAULT;
+#endif
+#if !CLN_MISC_CLEANUPS
     scs->obmc_level                  = DEFAULT;
+#endif
     scs->rdoq_level                  = DEFAULT;
     scs->pred_me                     = DEFAULT;
     scs->bipred_3x3_inject           = DEFAULT;

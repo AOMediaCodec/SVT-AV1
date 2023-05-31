@@ -68,6 +68,11 @@ extern uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDe
                                             uint32_t blk_mds_idx, PartitionType p, uint64_t lambda,
                                             bool                     use_accurate_part_ctx,
                                             MdRateEstimationContext *md_rate_est_ctx);
+#if FIX_UV_INTRA_MODE_RATE
+uint64_t svt_aom_get_intra_uv_fast_rate(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                        ModeDecisionCandidateBuffer *cand_bf,
+                                        bool                         use_accurate_cfl);
+#endif
 extern uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                         ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
                                         uint64_t luma_distortion, uint64_t chroma_distortion,

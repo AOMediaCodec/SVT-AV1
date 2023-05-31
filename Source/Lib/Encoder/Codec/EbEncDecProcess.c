@@ -2981,7 +2981,11 @@ static void exaustive_light_pd1_features(ModeDecisionContext *md_ctx, PicturePar
             md_ctx->pred_depth_only && md_ctx->md_disallow_nsq == TRUE &&
             md_ctx->disallow_4x4 == TRUE && ppcs->scs->super_block_size == 64 &&
             ppcs->ref_list0_count_try == 1 && ppcs->ref_list1_count_try == 1 &&
+#if CLN_IND_UV_SEARCH
+            md_ctx->cfl_ctrls.enabled == 0 &&
+#else
             md_ctx->cfl_ctrls.enabled == 0 && md_ctx->uv_ctrls.nd_uv_serach_mode == 0 &&
+#endif
             md_ctx->uv_ctrls.uv_mode == CHROMA_MODE_1) {
             light_pd1 = 1;
         } else {

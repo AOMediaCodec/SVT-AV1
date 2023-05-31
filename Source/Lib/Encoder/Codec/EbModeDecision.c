@@ -4619,6 +4619,236 @@ void svt_av1_get_gradient_hist_c(const uint8_t *src, int src_stride, int rows,
 
      return;
  }
+ #if CLN_IND_UV_SEARCH
+static void inject_intra_candidates(
+    PictureControlSet            *pcs,
+    ModeDecisionContext          *ctx,
+    Bool                        dc_cand_only_flag,
+    uint32_t                     *candidate_total_cnt){
+    FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
+    PredictionMode              intra_mode_start = DC_PRED;
+    PredictionMode              intra_mode_end = dc_cand_only_flag ? DC_PRED : ctx->intra_ctrls.intra_mode_end;
+    uint32_t                    cand_total_cnt = *candidate_total_cnt;
+    ModeDecisionCandidate    *cand_array = ctx->fast_cand_array;
+#if !CLN_CFL_SIGNALLING
+    Bool                      disable_cfl_flag = (MAX(ctx->blk_geom->bheight, ctx->blk_geom->bwidth) > 32) ? TRUE : FALSE;
+    disable_cfl_flag = ctx->cfl_ctrls.enabled ? disable_cfl_flag : TRUE;
+#endif
+    const Bool use_angle_delta = av1_use_angle_delta(ctx->blk_geom->bsize, ctx->intra_ctrls.angular_pred_level);
+    const uint8_t disable_angle_prediction = (ctx->intra_ctrls.angular_pred_level == 0);
+    uint8_t directional_mode_skip_mask[INTRA_MODES] = { 0 };
+    if (ctx->intra_ctrls.angular_pred_level >= 4) {
+        for (uint8_t i = D45_PRED; i < INTRA_MODE_END; i++)
+            directional_mode_skip_mask[i] = 1;
+    }
+
+    for (PredictionMode intra_mode = intra_mode_start; intra_mode <= intra_mode_end; ++intra_mode) {
+        if (av1_is_directional_mode(intra_mode) &&
+            (disable_angle_prediction || directional_mode_skip_mask[intra_mode]))
+            continue;
+
+        const uint8_t angle_delta_count = av1_is_directional_mode(intra_mode) && ctx->intra_ctrls.angular_pred_level <= 2 && use_angle_delta ? 7 : 1;
+
+        for (uint8_t angle_delta_counter = 0; angle_delta_counter < angle_delta_count; ++angle_delta_counter) {
+            int32_t angle_delta = CLIP((angle_delta_count == 1 ? 0 : angle_delta_counter - MAX_ANGLE_DELTA), -MAX_ANGLE_DELTA, MAX_ANGLE_DELTA);
+            if ((ctx->intra_ctrls.angular_pred_level >= 2 && (angle_delta == -1 || angle_delta == 1 || angle_delta == -2 || angle_delta == 2)) ||
+                (ctx->intra_ctrls.angular_pred_level >= 3 && angle_delta != 0))
+                continue;
+            cand_array[cand_total_cnt].skip_mode_allowed = FALSE;
+            cand_array[cand_total_cnt].palette_info = NULL;
+            cand_array[cand_total_cnt].pred_mode = intra_mode;
+            cand_array[cand_total_cnt].use_intrabc = 0;
+            cand_array[cand_total_cnt].filter_intra_mode = FILTER_INTRA_MODES;
+            cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y] = angle_delta;
+#if FIX_UV_INTRA_MODE_RATE
+            cand_array[cand_total_cnt].intra_chroma_mode = ctx->ind_uv_avail
+                ? ctx->best_uv_mode[intra_mode]
+                : intra_luma_to_chroma[intra_mode];
+            cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = ctx->ind_uv_avail
+                ? ctx->best_uv_angle[intra_mode]
+                : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y];
+#if !CLN_CFL_SIGNALLING
+            if (!disable_cfl_flag) {
+                cand_array[cand_total_cnt].intra_chroma_mode = UV_CFL_PRED;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+            }
+#endif
+#else
+            // Search the best independent intra chroma mode
+            if (ctx->uv_ctrls.uv_mode == CHROMA_MODE_0) {
+#if FIX_FI_UV_RATE
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_mode[intra_mode] : intra_luma_to_chroma[intra_mode]) :
+                    UV_CFL_PRED;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_angle[intra_mode] : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]) :
+                    0;
+#else
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_mode[intra_mode][MAX_ANGLE_DELTA + cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]] : intra_luma_to_chroma[intra_mode]) :
+                    UV_CFL_PRED ;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_angle[cand_array[cand_total_cnt].pred_mode][MAX_ANGLE_DELTA + cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]] : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]) :
+                    0;
+#endif
+            }
+            else {
+                // Hsan/Omar: why the restriction below ? (i.e. disable_ang_uv)
+                const int32_t disable_ang_uv = (ctx->blk_geom->bwidth == 4 || ctx->blk_geom->bheight == 4) && ctx->blk_geom->has_uv ? 1 : 0;
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ?
+                    intra_luma_to_chroma[intra_mode] :
+                    (ctx->uv_ctrls.uv_mode == CHROMA_MODE_1) ?
+                    UV_CFL_PRED :
+                    UV_DC_PRED;
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_ang_uv && av1_is_directional_mode(get_uv_mode(cand_array[cand_total_cnt].intra_chroma_mode)) ?
+                    UV_DC_PRED : cand_array[cand_total_cnt].intra_chroma_mode;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+            }
+#endif
+            cand_array[cand_total_cnt].cfl_alpha_signs = 0;
+            cand_array[cand_total_cnt].cfl_alpha_idx = 0;
+            cand_array[cand_total_cnt].transform_type[0] = DCT_DCT;
+#if !CLN_CFL_SIGNALLING
+            if (cand_array[cand_total_cnt].intra_chroma_mode == UV_CFL_PRED)
+                cand_array[cand_total_cnt].transform_type_uv = DCT_DCT;
+            else
+#endif
+                cand_array[cand_total_cnt].transform_type_uv =
+#if FIX_TXT
+                svt_aom_get_intra_uv_tx_type(cand_array[cand_total_cnt].intra_chroma_mode,
+                    ctx->blk_geom->txsize_uv[0][0],
+                    frm_hdr->reduced_tx_set);
+#else
+                av1_get_tx_type(
+                    0, // is_inter
+                    cand_array[cand_total_cnt].pred_mode,
+                    (UvPredictionMode)cand_array[cand_total_cnt].intra_chroma_mode,
+                    PLANE_TYPE_UV,
+                    ctx->blk_geom->txsize_uv[0][0],
+                    frm_hdr->reduced_tx_set);
+#endif
+            cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
+            cand_array[cand_total_cnt].motion_mode = SIMPLE_TRANSLATION;
+            cand_array[cand_total_cnt].is_interintra_used = 0;
+            INC_MD_CAND_CNT (cand_total_cnt,pcs->ppcs->max_can_count);
+        }
+    }
+
+    // update the total number of candidates injected
+    (*candidate_total_cnt) = cand_total_cnt;
+
+    return;
+}
+
+static void inject_filter_intra_candidates(
+    PictureControlSet            *pcs,
+    ModeDecisionContext          *ctx,
+    uint32_t                     *candidate_total_cnt){
+    FilterIntraMode             intra_mode_start = FILTER_DC_PRED;
+    FilterIntraMode intra_mode_end = ctx->intra_ctrls.intra_mode_end == PAETH_PRED ? FILTER_PAETH_PRED :
+                                     ctx->intra_ctrls.intra_mode_end >= D157_PRED ? FILTER_D157_PRED :
+                                     ctx->intra_ctrls.intra_mode_end >= H_PRED ? FILTER_H_PRED :
+                                     ctx->intra_ctrls.intra_mode_end >= V_PRED ? FILTER_V_PRED :
+                                     FILTER_DC_PRED;
+
+    FilterIntraMode             filter_intra_mode;
+    uint32_t                    cand_total_cnt = *candidate_total_cnt;
+    ModeDecisionCandidate      *cand_array = ctx->fast_cand_array;
+#if !CLN_CFL_SIGNALLING
+    Bool                      disable_cfl_flag = (MAX(ctx->blk_geom->bheight, ctx->blk_geom->bwidth) > 32) ? TRUE : FALSE;
+    disable_cfl_flag = ctx->cfl_ctrls.enabled ? disable_cfl_flag : TRUE;
+#endif
+    FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
+
+    for (filter_intra_mode = intra_mode_start; filter_intra_mode <= intra_mode_end; ++filter_intra_mode) {
+            cand_array[cand_total_cnt].skip_mode_allowed = FALSE;
+            cand_array[cand_total_cnt].pred_mode = DC_PRED;
+            cand_array[cand_total_cnt].use_intrabc = 0;
+            cand_array[cand_total_cnt].filter_intra_mode = filter_intra_mode;
+            cand_array[cand_total_cnt].palette_info = NULL;
+            cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y] = 0;
+
+#if FIX_UV_INTRA_MODE_RATE
+            cand_array[cand_total_cnt].intra_chroma_mode = ctx->ind_uv_avail
+                ? ctx->best_uv_mode[fimode_to_intramode[filter_intra_mode]]
+                : intra_luma_to_chroma[fimode_to_intramode[filter_intra_mode]];
+            cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = ctx->ind_uv_avail
+                ? ctx->best_uv_angle[fimode_to_intramode[filter_intra_mode]]
+                : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y];
+#if !CLN_CFL_SIGNALLING
+            if (!disable_cfl_flag) {
+                cand_array[cand_total_cnt].intra_chroma_mode = UV_CFL_PRED;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+            }
+#endif
+#else
+            // Search the best independent intra chroma mode
+            if (ctx->uv_ctrls.uv_mode == CHROMA_MODE_0) {
+#if FIX_FI_UV_RATE // TODO: should we use DC_PRED instead of filter intra mode?
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_mode[fimode_to_intramode[filter_intra_mode]] : intra_luma_to_chroma[fimode_to_intramode[filter_intra_mode]]) :
+                    UV_CFL_PRED;
+
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_angle[fimode_to_intramode[filter_intra_mode]] : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]) :
+                    0;
+#else
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ?
+                    (ctx->ind_uv_avail ? ctx->best_uv_mode[fimode_to_intramode[filter_intra_mode]][MAX_ANGLE_DELTA + cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]] : intra_luma_to_chroma[fimode_to_intramode[filter_intra_mode]]):
+                    UV_CFL_PRED;
+
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = disable_cfl_flag ? (ctx->ind_uv_avail ? ctx->best_uv_angle[fimode_to_intramode[filter_intra_mode]][MAX_ANGLE_DELTA + cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]] : cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_Y]):
+                0;
+#endif
+            }
+            else {
+                // Hsan/Omar: why the restriction below ? (i.e. disable_ang_uv)
+                const int32_t disable_ang_uv = (ctx->blk_geom->bwidth == 4 || ctx->blk_geom->bheight == 4) && ctx->blk_geom->has_uv ? 1 : 0;
+                cand_array[cand_total_cnt].intra_chroma_mode = disable_cfl_flag ? intra_luma_to_chroma[fimode_to_intramode[filter_intra_mode]] :
+                    (ctx->uv_ctrls.uv_mode == CHROMA_MODE_1) ?
+                        UV_CFL_PRED :
+                        UV_DC_PRED;
+
+                cand_array[cand_total_cnt].intra_chroma_mode =  disable_ang_uv && av1_is_directional_mode(get_uv_mode(cand_array[cand_total_cnt].intra_chroma_mode)) ?
+                    UV_DC_PRED : cand_array[cand_total_cnt].intra_chroma_mode;
+                cand_array[cand_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+            }
+#endif
+
+            cand_array[cand_total_cnt].cfl_alpha_signs = 0;
+            cand_array[cand_total_cnt].cfl_alpha_idx = 0;
+            cand_array[cand_total_cnt].transform_type[0] = DCT_DCT;
+#if !CLN_CFL_SIGNALLING
+            if (cand_array[cand_total_cnt].intra_chroma_mode == UV_CFL_PRED)
+                cand_array[cand_total_cnt].transform_type_uv = DCT_DCT;
+            else
+#endif
+                cand_array[cand_total_cnt].transform_type_uv =
+#if FIX_TXT
+                svt_aom_get_intra_uv_tx_type(cand_array[cand_total_cnt].intra_chroma_mode,
+                    ctx->blk_geom->txsize_uv[0][0],
+                    frm_hdr->reduced_tx_set);
+#else
+                av1_get_tx_type(
+                    0, // is_inter
+                    cand_array[cand_total_cnt].pred_mode,
+                    (UvPredictionMode)cand_array[cand_total_cnt].intra_chroma_mode,
+                    PLANE_TYPE_UV,
+                    ctx->blk_geom->txsize_uv[0][0],
+                    frm_hdr->reduced_tx_set);
+#endif
+            cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
+            cand_array[cand_total_cnt].motion_mode = SIMPLE_TRANSLATION;
+            cand_array[cand_total_cnt].is_interintra_used = 0;
+            INC_MD_CAND_CNT (cand_total_cnt,pcs->ppcs->max_can_count);
+    }
+
+    // update the total number of candidates injected
+    (*candidate_total_cnt) = cand_total_cnt;
+
+    return;
+}
+#else
 // END of Function Declarations
 void  inject_intra_candidates(
     PictureControlSet            *pcs,
@@ -4841,6 +5071,7 @@ void  inject_filter_intra_candidates(
 
     return;
 }
+#endif
 static void inject_zz_backup_candidate(
      PictureControlSet   *pcs,
     struct ModeDecisionContext *ctx,
@@ -4901,20 +5132,25 @@ void  inject_palette_candidates(
 
     uint32_t                  can_total_cnt = *candidate_total_cnt;
     ModeDecisionCandidate    *cand_array = ctx->fast_cand_array;
+#if !CLN_CFL_SIGNALLING
     Bool                    disable_cfl_flag = (MAX(ctx->blk_geom->bheight, ctx->blk_geom->bwidth) > 32) ? TRUE : FALSE;
     disable_cfl_flag = ctx->cfl_ctrls.enabled ? disable_cfl_flag : TRUE;
+#endif
     uint32_t cand_i;
     uint32_t tot_palette_cands = 0;
     PaletteInfo    *palette_cand_array = ctx->palette_cand_array;
     // MD palette search
     uint8_t  * palette_size_array_0  = ctx->palette_size_array_0;
+#if !FIX_UV_INTRA_MODE_RATE
     uint8_t  * palette_size_array_1  = ctx->palette_size_array_1;
+#endif
 
+#if !CLN_IND_UV_SEARCH
     SequenceControlSet *scs = pcs->scs;
     if (scs->disable_cfl_flag != DEFAULT && !disable_cfl_flag)
         // if disable_cfl_flag == 1 then it doesn't matter what cli says otherwise change it to cli
         disable_cfl_flag = (Bool)scs->disable_cfl_flag;
-
+#endif
     search_palette_luma(
         pcs,
         ctx,
@@ -4924,9 +5160,16 @@ void  inject_palette_candidates(
 
     for (cand_i = 0; cand_i < tot_palette_cands; ++cand_i) {
         cand_array[can_total_cnt].is_interintra_used = 0;
+#if !FIX_UV_INTRA_MODE_RATE
         palette_size_array_1[cand_i] = 0;
+#endif
         cand_array[can_total_cnt].palette_size[0] = palette_size_array_0[cand_i];
+#if FIX_UV_INTRA_MODE_RATE
+        // Palette is not supported for chroma
+        cand_array[can_total_cnt].palette_size[1] = 0;
+#else
         cand_array[can_total_cnt].palette_size[1] = palette_size_array_1[cand_i];
+#endif
         cand_array[can_total_cnt].palette_info = &palette_cand_array[cand_i];
         assert(palette_size_array_0[cand_i] < 9);
         //to re check these fields
@@ -4936,6 +5179,23 @@ void  inject_palette_candidates(
 
         cand_array[can_total_cnt].filter_intra_mode = FILTER_INTRA_MODES;
         cand_array[can_total_cnt].angle_delta[PLANE_TYPE_Y] = 0;
+#if FIX_UV_INTRA_MODE_RATE
+        // Palette is not supported for chroma mode, so we can set the intra chroma mode to anything. To use palette
+        // for chroma, we must force DC_PRED to be used for the intra chroma mode
+        assert(cand_array[can_total_cnt].palette_size[1] == 0);
+        cand_array[can_total_cnt].intra_chroma_mode = ctx->ind_uv_avail
+            ? ctx->best_uv_mode[DC_PRED]
+            : intra_luma_to_chroma[DC_PRED];
+        cand_array[can_total_cnt].angle_delta[PLANE_TYPE_UV] = ctx->ind_uv_avail
+            ? ctx->best_uv_angle[DC_PRED]
+            : cand_array[can_total_cnt].angle_delta[PLANE_TYPE_Y];
+#if !CLN_CFL_SIGNALLING
+        if (!disable_cfl_flag) {
+            cand_array[can_total_cnt].intra_chroma_mode = UV_CFL_PRED;
+            cand_array[can_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+        }
+#endif
+#else
         const int32_t disable_ang_uv = (ctx->blk_geom->bwidth == 4 || ctx->blk_geom->bheight == 4) && ctx->blk_geom->has_uv ? 1 : 0;
         cand_array[can_total_cnt].intra_chroma_mode = disable_cfl_flag ?
             intra_luma_to_chroma[DC_PRED] :
@@ -4945,14 +5205,17 @@ void  inject_palette_candidates(
 
         cand_array[can_total_cnt].intra_chroma_mode = disable_ang_uv && av1_is_directional_mode(get_uv_mode(cand_array[can_total_cnt].intra_chroma_mode)) ?
             UV_DC_PRED : cand_array[can_total_cnt].intra_chroma_mode;
+
         cand_array[can_total_cnt].angle_delta[PLANE_TYPE_UV] = 0;
+#endif
         cand_array[can_total_cnt].cfl_alpha_signs = 0;
         cand_array[can_total_cnt].cfl_alpha_idx = 0;
         cand_array[can_total_cnt].transform_type[0] = DCT_DCT;
-
+#if !CLN_CFL_SIGNALLING
         if (cand_array[can_total_cnt].intra_chroma_mode == UV_CFL_PRED)
             cand_array[can_total_cnt].transform_type_uv = DCT_DCT;
         else
+#endif
             cand_array[can_total_cnt].transform_type_uv =
             av1_get_tx_type(
                 0, // is_inter
@@ -5034,12 +5297,16 @@ EbErrorType generate_md_stage_0_cand_light_pd0(
    generate candidates for light pd1
 */
 void generate_md_stage_0_cand_light_pd1(
+#if !CLN_IND_UV_SEARCH
     SuperBlock          *sb_ptr,
+#endif
     ModeDecisionContext *ctx,
     uint32_t            *candidate_total_count_ptr,
     PictureControlSet   *pcs)
 {
+#if !CLN_IND_UV_SEARCH
     const SequenceControlSet *scs = pcs->scs;
+#endif
     const SliceType slice_type = pcs->slice_type;
     uint32_t cand_total_cnt = 0;
     // Reset duplicates variables
@@ -5058,8 +5325,10 @@ void generate_md_stage_0_cand_light_pd1(
         inject_intra_candidates(
             pcs,
             ctx,
+#if !CLN_IND_UV_SEARCH
             scs,
             sb_ptr,
+#endif
             dc_cand_only_flag,
             &cand_total_cnt);
     }
@@ -5107,8 +5376,10 @@ EbErrorType generate_md_stage_0_cand(
              inject_intra_candidates(
                  pcs,
                  ctx,
+#if !CLN_IND_UV_SEARCH
                  scs,
                  sb_ptr,
+#endif
                  dc_cand_only_flag,
                  &cand_total_cnt);
          }

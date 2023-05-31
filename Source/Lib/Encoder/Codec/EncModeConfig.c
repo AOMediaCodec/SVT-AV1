@@ -934,6 +934,20 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->subpel_depth                 = QUARTER_PEL;
         break;
     case 3:
+#if NEW_TPL_LVL_3
+        tpl_ctrls->enable                  = 1;
+        tpl_ctrls->compute_rate            = 0;
+        tpl_ctrls->enable_tpl_qps          = 0;
+        tpl_ctrls->disable_intra_pred_nref = 1;
+        tpl_ctrls->intra_mode_end          = DC_PRED;
+        tpl_ctrls->reduced_tpl_group = is_islice ? -1 : (pcs->hierarchical_levels == 5 ? 4 : 3);
+        tpl_ctrls->pf_shape          = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
+        tpl_ctrls->use_pred_sad_in_intra_search = 0;
+        tpl_ctrls->use_pred_sad_in_inter_search = 0;
+        tpl_ctrls->dispenser_search_level       = 0;
+        tpl_ctrls->subsample_tx                 = 0;
+        tpl_ctrls->subpel_depth                 = QUARTER_PEL;
+#else
         tpl_ctrls->enable                       = 1;
         tpl_ctrls->compute_rate                 = 0;
         tpl_ctrls->enable_tpl_qps               = 0;
@@ -946,6 +960,7 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->dispenser_search_level       = 0;
         tpl_ctrls->subsample_tx                 = 0;
         tpl_ctrls->subpel_depth                 = FULL_PEL;
+#endif
         break;
     case 4:
         tpl_ctrls->enable                  = 1;
@@ -5437,56 +5452,105 @@ uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level) 
     case 0:
         uv_mode = CHROMA_MODE_2;
         if (uv_ctrls) {
-            uv_ctrls->enabled           = 0;
+            uv_ctrls->enabled = 0;
+#if !CLN_IND_UV_SEARCH
             uv_ctrls->nd_uv_serach_mode = 0;
+#endif
         }
         break;
     case 1:
         uv_mode = CHROMA_MODE_0;
         if (uv_ctrls) {
-            uv_ctrls->enabled            = 1;
-            uv_ctrls->nd_uv_serach_mode  = 0;
-            uv_ctrls->uv_intra_th        = (uint32_t)~0;
-            uv_ctrls->uv_cfl_th          = (uint32_t)~0;
+            uv_ctrls->enabled = 1;
+#if CLN_IND_UV_SEARCH
+            uv_ctrls->ind_uv_last_mds = 0;
+#else
+            uv_ctrls->nd_uv_serach_mode = 0;
+#endif
+#if CLN_CFL_SIGNALLING
+            uv_ctrls->inter_vs_intra_cost_th = 0;
+            uv_ctrls->skip_ind_uv_if_only_dc = 0;
+#else
+            uv_ctrls->uv_intra_th = (uint32_t)~0;
+#endif
+#if !REMOVE_UV_CFL_TH
+            uv_ctrls->uv_cfl_th = (uint32_t)~0;
+#endif
             uv_ctrls->uv_nic_scaling_num = 16;
         }
         break;
     case 2:
         uv_mode = CHROMA_MODE_0;
         if (uv_ctrls) {
-            uv_ctrls->enabled            = 1;
-            uv_ctrls->nd_uv_serach_mode  = 1;
-            uv_ctrls->uv_intra_th        = 130;
-            uv_ctrls->uv_cfl_th          = 130;
+            uv_ctrls->enabled = 1;
+#if CLN_IND_UV_SEARCH
+            uv_ctrls->ind_uv_last_mds = 1;
+#else
+            uv_ctrls->nd_uv_serach_mode = 1;
+#endif
+#if CLN_CFL_SIGNALLING
+            uv_ctrls->inter_vs_intra_cost_th = 130;
+            uv_ctrls->skip_ind_uv_if_only_dc = 0;
+#else
+            uv_ctrls->uv_intra_th = 130;
+#endif
+#if !REMOVE_UV_CFL_TH
+            uv_ctrls->uv_cfl_th = 130;
+#endif
             uv_ctrls->uv_nic_scaling_num = 8;
         }
         break;
     case 3:
         uv_mode = CHROMA_MODE_0;
         if (uv_ctrls) {
-            uv_ctrls->enabled            = 1;
-            uv_ctrls->nd_uv_serach_mode  = 1;
-            uv_ctrls->uv_intra_th        = 100;
-            uv_ctrls->uv_cfl_th          = 100;
+            uv_ctrls->enabled = 1;
+#if CLN_IND_UV_SEARCH
+            uv_ctrls->ind_uv_last_mds = 1;
+#else
+            uv_ctrls->nd_uv_serach_mode = 1;
+#endif
+#if CLN_CFL_SIGNALLING
+            uv_ctrls->inter_vs_intra_cost_th = 100;
+            uv_ctrls->skip_ind_uv_if_only_dc = 0;
+#else
+            uv_ctrls->uv_intra_th = 100;
+#endif
+#if !REMOVE_UV_CFL_TH
+            uv_ctrls->uv_cfl_th = 100;
+#endif
             uv_ctrls->uv_nic_scaling_num = 1;
         }
         break;
     case 4:
         uv_mode = CHROMA_MODE_0;
         if (uv_ctrls) {
-            uv_ctrls->enabled            = 1;
-            uv_ctrls->nd_uv_serach_mode  = 1;
-            uv_ctrls->uv_intra_th        = 50;
-            uv_ctrls->uv_cfl_th          = 50;
+            uv_ctrls->enabled = 1;
+#if CLN_CFL_SIGNALLING
+            uv_ctrls->ind_uv_last_mds        = 2;
+            uv_ctrls->inter_vs_intra_cost_th = 100;
+            uv_ctrls->skip_ind_uv_if_only_dc = 1;
+#else
+#if CLN_IND_UV_SEARCH
+            uv_ctrls->ind_uv_last_mds = 1;
+#else
+            uv_ctrls->nd_uv_serach_mode = 1;
+#endif
+            uv_ctrls->uv_intra_th = 50;
+#endif
+#if !REMOVE_UV_CFL_TH
+            uv_ctrls->uv_cfl_th = 50;
+#endif
             uv_ctrls->uv_nic_scaling_num = 1;
         }
         break;
     case 5:
         uv_mode = CHROMA_MODE_1;
         if (uv_ctrls) {
-            uv_ctrls->enabled            = 1;
+            uv_ctrls->enabled = 1;
+#if !CLN_IND_UV_SEARCH
             uv_ctrls->nd_uv_serach_mode  = 0;
             uv_ctrls->uv_nic_scaling_num = 1;
+#endif
         }
         break;
     default: assert(0); break;
@@ -9807,7 +9871,9 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     ctx->shut_fast_rate             = FALSE;
     ctx->uv_ctrls.enabled           = 1;
     ctx->uv_ctrls.uv_mode           = CHROMA_MODE_1;
+#if !CLN_IND_UV_SEARCH
     ctx->uv_ctrls.nd_uv_serach_mode = 0;
+#endif
     set_cfl_ctrls(ctx, 0);
 #if FIX_NSQ_LPD1
     ctx->md_disallow_nsq = 1;
@@ -10275,12 +10341,29 @@ uint8_t svt_aom_get_update_cdf_level(EncMode enc_mode, SliceType is_islice, uint
 
 uint8_t svt_aom_get_chroma_level(EncMode enc_mode) {
     uint8_t chroma_level = 0;
+#if CLN_CFL_SIGNALLING
+#if TUNE_M0_2
+    if (enc_mode <= ENC_MR)
+#else
+#if TUNE_M1
+    if (enc_mode <= ENC_M0)
+#else
+    if (enc_mode <= ENC_M1)
+#endif
+#endif
+        chroma_level = 2;
+    else if (enc_mode <= ENC_M12)
+        chroma_level = 4;
+    else
+        chroma_level = 5;
+#else
     if (enc_mode <= ENC_M2)
         chroma_level = 2;
     else if (enc_mode <= ENC_M5)
         chroma_level = 3;
     else
         chroma_level = 5;
+#endif
 
     return chroma_level;
 }
@@ -10879,8 +10962,13 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         else
             pcs->cfl_level = 0;
     }
+#if CLN_IND_UV_SEARCH
+    if (scs->low_latency_kf && is_islice)
+        pcs->cfl_level = 0;
+#else
     if (pcs->scs->low_latency_kf && is_islice)
         pcs->cfl_level = 0;
+#endif
     // Set the level for new/nearest/near injection
     if (scs->new_nearest_comb_inject == DEFAULT)
         if (enc_mode <= ENC_MR)

@@ -50,7 +50,11 @@ typedef struct ModeDecisionCandidate {
     TxType                 transform_type[MAX_TXB_COUNT];
     TxType                 transform_type_uv;
     uint16_t               num_proj_ref;
-    uint8_t                palette_size[2];
+#if FIX_UV_INTRA_MODE_RATE
+    uint8_t                palette_size[PLANE_TYPES];
+#else
+    uint8_t palette_size[2];
+#endif
 
     CandClass      cand_class;
     PredictionMode pred_mode;
@@ -177,6 +181,32 @@ extern uint8_t svt_aom_obmc_motion_refinement(PictureControlSet          *pcs,
                                               struct ModeDecisionContext *ctx,
                                               ModeDecisionCandidate *cand, uint8_t ref_list_idx,
                                               int refine_level);
+#if CLN_FUNC_DECL
+EbErrorType generate_md_stage_0_cand(SuperBlock *sb_ptr, struct ModeDecisionContext *ctx,
+                                     uint32_t *fast_candidate_total_count, PictureControlSet *pcs);
+#if CLN_IND_UV_SEARCH
+void generate_md_stage_0_cand_light_pd1(struct ModeDecisionContext *ctx,
+#else
+void generate_md_stage_0_cand_light_pd1(SuperBlock *sb_ptr, struct ModeDecisionContext *ctx,
+#endif
+                                        uint32_t *         fast_candidate_total_count,
+                                        PictureControlSet *pcs);
+EbErrorType generate_md_stage_0_cand_light_pd0(struct ModeDecisionContext *ctx,
+                                               uint32_t *         fast_candidate_total_count,
+                                               PictureControlSet *pcs);
+
+static INLINE int svt_aom_is_interintra_allowed_bsize(const BlockSize bsize) {
+    return (bsize >= BLOCK_8X8) && (bsize <= BLOCK_32X32);
+}
+
+static INLINE int svt_aom_is_interintra_allowed_mode(const PredictionMode mode) {
+    return (mode >= SINGLE_INTER_MODE_START) && (mode < SINGLE_INTER_MODE_END);
+}
+
+static INLINE int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]) {
+    return (rf[0] > INTRA_FRAME) && (rf[1] <= INTRA_FRAME);
+}
+#endif
 int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]);
 

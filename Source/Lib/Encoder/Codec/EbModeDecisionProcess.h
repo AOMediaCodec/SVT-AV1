@@ -690,15 +690,37 @@ typedef struct UvCtrls {
     // CHROMA_MODE_1: Fast chroma search @ MD - No independent chroma mode search
     // CHROMA_MODE_2: Chroma blind @ MD
     uint8_t uv_mode;
+#if CLN_CFL_SIGNALLING
+    // 0: Perform independent chroma search before candidate preparation
+    // 1: Perform independent chroma search before last MD stage
+    // 2: Perform independent chroma search before last MD stage and test only the modes corresponding to luma modes that made it to MDS3
+    uint8_t ind_uv_last_mds;
+    // Skip the independent chroma search if the only intra chroma mode at MDS3 is DC (applies only when ind. chroma search is done at MDS3)
+    uint8_t skip_ind_uv_if_only_dc;
+#else
+#if CLN_IND_UV_SEARCH
+    // If true, perform independent chroma search before last MD stage, else before injecting candidates
+    uint8_t ind_uv_last_mds;
+#else
     // Non-direct chroma search 0: pre chroma search is used, 1: chroma search at last md_stage is
     // used
     uint8_t nd_uv_serach_mode;
-    // Scaling numerator for independent chroma NICS: <x>/16
+#endif
+#endif
     uint8_t uv_nic_scaling_num;
+#if CLN_CFL_SIGNALLING
+    // Threshold to skip the independent chroma search when the search is performed before the last MD stage.
+    // Compare the best inter cost vs the best intra cost and skip the independent chroma search if intra cost
+    // is less than TH% of the inter cost. 0 is off.
+    uint32_t inter_vs_intra_cost_th;
+#else
     // Threshold to skip non-directional chroma search.
     uint32_t uv_intra_th;
+#endif
+#if !REMOVE_UV_CFL_TH
     // Threshold to skip cfl.
     uint32_t uv_cfl_th;
+#endif
 } UvCtrls;
 typedef struct InterpolationSearchCtrls {
     // Specifies the MD Stage where the interpolation filter search will take place (IFS_MDS0,
@@ -962,7 +984,9 @@ typedef struct ModeDecisionContext {
     PaletteInfo      palette_cand_array[MAX_PAL_CAND];
     // MD palette search
     uint8_t *palette_size_array_0;
+#if !FIX_UV_INTRA_MODE_RATE
     uint8_t *palette_size_array_1;
+#endif
     // simple geometry 64x64SB, Sq only, no 4xN
     uint8_t          sb64_sq_no4xn_geom;
     uint8_t          pu_itr;
@@ -980,15 +1004,44 @@ typedef struct ModeDecisionContext {
     uint64_t         three_quad_energy;
     uint32_t         txb_1d_offset;
     Bool             uv_intra_comp_only;
+#if FIX_FI_UV_RATE
+    Bool             ind_uv_avail; // True if independent chroma search data is available
+    UvPredictionMode best_uv_mode[UV_PAETH_PRED + 1];
+    int8_t           best_uv_angle[UV_PAETH_PRED + 1];
+    uint64_t         best_uv_cost[UV_PAETH_PRED + 1];
+#if !FIX_UV_INTRA_MODE_RATE
+    uint64_t fast_chroma_rate[UV_PAETH_PRED + 1];
+#endif
+#else
+#if CLN_IND_UV_SEARCH
+    Bool             ind_uv_avail; // True if independent chroma search data is available
+    UvPredictionMode best_uv_mode[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    int8_t           best_uv_angle[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    uint64_t         best_uv_cost[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    uint64_t         fast_chroma_rate[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+#else
     UvPredictionMode best_uv_mode[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
     int32_t          best_uv_angle[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
     uint64_t         best_uv_cost[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
     uint64_t         fast_luma_rate[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
     uint64_t         fast_chroma_rate[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+#endif
+#endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+    // Context values for rate estimation
+    uint8_t is_inter_ctx;
+    uint8_t skip_mode_ctx;
+#if FIX_SKIP_NEIGH_ARRAY
+    uint8_t skip_coeff_ctx;
+#endif
+    uint8_t intra_luma_left_ctx;
+    uint8_t intra_luma_top_ctx;
+#else
     // Needed for DC prediction
     int32_t is_inter_ctx;
     uint8_t intra_luma_left_mode;
     uint8_t intra_luma_top_mode;
+#endif
 
     // Hsan: both MD and EP to use pred_buf_q3 (kept 1, and removed the 2nd)
     EB_ALIGN(64)
@@ -1056,9 +1109,11 @@ typedef struct ModeDecisionContext {
     uint32_t  md_stage_1_total_count;
     uint32_t  md_stage_2_total_count;
     uint32_t  md_stage_3_total_count;
-    uint32_t  md_stage_3_total_intra_count;
-    uint64_t  best_intra_cost;
-    uint64_t  best_inter_cost;
+#if !CLN_IND_UV_SEARCH
+    uint32_t md_stage_3_total_intra_count;
+    uint64_t best_intra_cost;
+    uint64_t best_inter_cost;
+#endif
     CandClass target_class;
     uint8_t   perform_mds1;
     uint8_t   use_tx_shortcuts_mds3;
@@ -1301,11 +1356,12 @@ extern void svt_aom_reset_mode_decision(SequenceControlSet *scs, ModeDecisionCon
 
 extern void svt_aom_mode_decision_configure_sb(ModeDecisionContext *ctx, PictureControlSet *pcs,
                                                uint8_t sb_qp, uint8_t me_sb_qp);
+#if !CLN_CFL_SIGNALLING
 extern void md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandidateBuffer *cand_bf,
                                  ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
                                  uint32_t input_cb_origin_in_index,
                                  uint32_t blk_chroma_origin_index);
-
+#endif
 #ifdef __cplusplus
 }
 #endif

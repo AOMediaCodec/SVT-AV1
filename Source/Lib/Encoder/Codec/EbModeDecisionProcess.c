@@ -31,8 +31,10 @@ static void mode_decision_context_dctor(EbPtr p) {
     // MD palette search
     if (obj->palette_size_array_0)
         EB_FREE_ARRAY(obj->palette_size_array_0);
+#if !FIX_UV_INTRA_MODE_RATE
     if (obj->palette_size_array_1)
         EB_FREE_ARRAY(obj->palette_size_array_1);
+#endif
     for (CandClass cand_class_it = CAND_CLASS_0; cand_class_it < CAND_CLASS_TOTAL; cand_class_it++)
         EB_FREE_ARRAY(obj->cand_buff_indices[cand_class_it]);
     EB_FREE_ARRAY(obj->best_candidate_index_array);
@@ -214,7 +216,9 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
 
     // MD palette search
     EB_MALLOC_ARRAY(ctx->palette_size_array_0, MAX_PAL_CAND);
+#if !FIX_UV_INTRA_MODE_RATE
     EB_MALLOC_ARRAY(ctx->palette_size_array_1, MAX_PAL_CAND);
+#endif
 
     // Cost Arrays
     EB_MALLOC_ARRAY(ctx->fast_cost_array, ctx->max_nics_uv);
