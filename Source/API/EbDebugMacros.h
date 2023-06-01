@@ -169,6 +169,21 @@ extern "C" {
 #define OPT_SQ_WEIGHT                             1 // Optimize sq-weight
 #define FIX_ISSUE_2070                            1 // Fix issue #2070
 
+#define TUNE_M0_2                                 1 // Tune m0 for vmaf neg
+#define TUNE_M1_2                                 1 // Tune m1 for vmaf neg
+#define TUNE_M5_2                                 1 // Tune m5 for vmaf neg
+#define TUNE_M13_2                                1 // Tune m13 for vmaf neg
+#define TUNE_M12_2                                1 // Tune m12 for vmaf neg
+#define TUNE_M11_2                                1 // Tune m11 for vmaf neg
+#define TUNE_M2_2                                 1 // Tune m1 for vmaf neg
+#define TUNE_M3_2                                 1 // Tune m5 for vmaf neg
+#define TUNE_M7_2                                 1 // Tune m7 for vmaf neg
+#define TUNE_M4_2                                 1 // Tune M4 for vmaf neg
+#define TUNE_M6_2                                 1 // Tune M6 for Vmaf neg
+#define TUNE_M10_2                                1 // Tune m10 for vmaf neg
+#define TUNE_M9_2                                 1 // Tune m9 for vmaf neg
+#define TUNE_M8_2                                 1 // Tune m8 for vmaf neg
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
