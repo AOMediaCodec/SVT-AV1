@@ -699,9 +699,16 @@ static int av1_get_pred_context_switchable_interp(const MacroBlockD *xd, int dir
 /*******************************************************************************
  * Updates all the filter type stats/CDF for the current block
  ******************************************************************************/
+#if FIX_IFS_RATE_UPDATE
+static AOM_INLINE void update_filter_type_cdf(MacroBlockD *xd, const MbModeInfo *const mbmi,
+                                              const bool enable_dual_filter) {
+    const int max_dir = enable_dual_filter ? 2 : 1;
+    for (int dir = 0; dir < max_dir; ++dir) {
+#else
 static AOM_INLINE void update_filter_type_cdf(MacroBlockD *xd, const MbModeInfo *const mbmi) {
     int dir;
     for (dir = 0; dir < 2; ++dir) {
+#endif
         const int ctx = av1_get_pred_context_switchable_interp(xd, dir);
 
         InterpFilter filter = av1_extract_interp_filter(mbmi->block_mi.interp_filters, dir);
@@ -1079,7 +1086,11 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
         blk_ptr->prediction_unit_array[0].motion_mode != WARPED_CAUSAL &&
         !svt_aom_is_nontrans_global_motion_ec(
             mbmi->block_mi.ref_frame[0], mbmi->block_mi.ref_frame[1], blk_ptr, bsize, pcs->ppcs)) {
+#if FIX_IFS_RATE_UPDATE
+        update_filter_type_cdf(xd, mbmi, pcs->scs->seq_header.enable_dual_filter);
+#else
         update_filter_type_cdf(xd, mbmi);
+#endif
     }
     if (inter_block && !seg_ref_active) {
         const PredictionMode mode = mbmi->block_mi.mode;

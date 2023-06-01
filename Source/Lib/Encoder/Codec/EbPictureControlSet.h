@@ -367,6 +367,9 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **ep_cr_dc_sign_level_coeff_na_update;
     NeighborArrayUnit **ep_cb_dc_sign_level_coeff_na_update;
     NeighborArrayUnit **ep_partition_context_na;
+#if FIX_TXS_RATE_UPDATE
+    NeighborArrayUnit **ep_txfm_context_na;
+#endif
 
     // Entropy Coding Neighbor Arrays
     NeighborArrayUnit **mode_type_na;

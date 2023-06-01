@@ -95,6 +95,7 @@ typedef uint64_t (*EbFastCostFunc)(struct ModeDecisionContext *ctx, BlkStruct *b
                                    CandidateMv *ref_mv_stack, const BlockGeom *blk_geom,
                                    uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
                                    uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
+#if !FIX_SKIP_COST
 typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                          struct ModeDecisionCandidateBuffer *cand_bf,
                                          BlkStruct *blk_ptr, uint64_t *y_distortion,
@@ -102,6 +103,7 @@ typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDeci
                                          uint64_t lambda, uint64_t *y_coeff_bits,
                                          uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits,
                                          BlockSize bsize);
+#endif
 /**************************************
     * Mode Decision Candidate Buffer
     **************************************/

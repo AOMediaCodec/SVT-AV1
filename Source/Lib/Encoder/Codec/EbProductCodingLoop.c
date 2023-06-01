@@ -88,11 +88,12 @@ static const EbFastCostFunc av1_product_fast_cost_func_table[2] = {
     svt_aom_intra_fast_cost, /*INTRA */
     svt_aom_inter_fast_cost /*INTER */
 };
-
+#if !FIX_SKIP_COST
 const EbAv1FullCostFunc svt_av1_product_full_cost_func_table[2] = {
     svt_aom_intra_full_cost, /*INTRA */
     svt_aom_inter_full_cost /*INTER */
 };
+#endif
 #define MV_COST_WEIGHT 108
 #if !CLN_FUNC_DECL
 int32_t svt_av1_mv_bit_cost(const MV *mv, const MV *ref, const int32_t *mvjcost, int32_t *mvcost[2],
@@ -6145,6 +6146,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     }
 }
 
+#if !FIX_TXS_RATE_UPDATE
 static INLINE int block_signals_txsize(BlockSize bsize) { return bsize > BLOCK_4X4; }
 
 static INLINE int get_vartx_max_txsize(/*const MbModeInfo *xd,*/ BlockSize bsize, int plane) {
@@ -6441,6 +6443,7 @@ uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
                                  tx_depth,
                                  ctx->md_rate_est_ctx);
 }
+#endif
 #if CLN_TXS
 static void init_tx_cand_bf(ModeDecisionCandidateBuffer *cand_bf, ModeDecisionContext *ctx,
                             uint8_t tx_depth, uint8_t is_inter) {
@@ -7819,6 +7822,19 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
             cr_coeff_bits                            = INIT_BIT_EST;
             cand_bf->cand->transform_type[0]         = DCT_DCT;
             cand_bf->cand->transform_type_uv         = DCT_DCT;
+#if FIX_SKIP_COST
+            svt_aom_full_cost(
+                pcs,
+                ctx,
+                cand_bf,
+                ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD],
+                y_full_distortion,
+                cb_full_distortion,
+                cr_full_distortion,
+                &y_coeff_bits,
+                &cb_coeff_bits,
+                &cr_coeff_bits);
+#else
             svt_av1_product_full_cost_func_table[1](
                 pcs,
                 ctx,
@@ -7832,7 +7848,7 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
                 &cb_coeff_bits,
                 &cr_coeff_bits,
                 ctx->blk_geom->bsize);
-
+#endif
             uint32_t th = (ctx->qp_index * ctx->blk_geom->bheight * ctx->blk_geom->bwidth) /
                 ctx->lpd1_bypass_tx_th_div;
             if (*(cand_bf->full_cost) < th)
@@ -7956,6 +7972,19 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
                                     cand_bf->v_has_coeff)
             ? TRUE
             : FALSE;
+#if FIX_SKIP_COST
+        svt_aom_full_cost(
+            pcs,
+            ctx,
+            cand_bf,
+            ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD],
+            y_full_distortion,
+            cb_full_distortion,
+            cr_full_distortion,
+            &y_coeff_bits,
+            &cb_coeff_bits,
+            &cr_coeff_bits);
+#else
         //ALL PLANE
         svt_av1_product_full_cost_func_table[is_inter_mode(cand->pred_mode)](
             pcs,
@@ -7970,6 +7999,7 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
             &cb_coeff_bits,
             &cr_coeff_bits,
             ctx->blk_geom->bsize);
+#endif
     } else {
         // Only need chroma pred if generating recon
         if (ctx->lpd1_chroma_comp > COMPONENT_LUMA) {
@@ -8456,6 +8486,10 @@ static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecis
                                 cand_bf->v_has_coeff)
         ? TRUE
         : FALSE;
+#if FIX_SKIP_COST
+    svt_aom_full_cost(pcs, ctx, cand_bf, full_lambda, y_full_distortion, cb_full_distortion,
+                      cr_full_distortion, &y_coeff_bits, &cb_coeff_bits, &cr_coeff_bits);
+#else
     //ALL PLANE
     svt_av1_product_full_cost_func_table[is_inter_mode(cand->pred_mode)](pcs,
                                                                          ctx,
@@ -8469,6 +8503,7 @@ static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecis
                                                                          &cb_coeff_bits,
                                                                          &cr_coeff_bits,
                                                                          ctx->blk_geom->bsize);
+#endif
 }
 static void md_stage_1(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
                        EbPictureBufferDesc *input_pic, uint32_t input_origin_index,

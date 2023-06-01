@@ -147,6 +147,16 @@ extern "C" {
 #define OPT_NSQ_HIGH_COST_COMP                     1 // Skip NSQ shapes when the cost of the SQ is concentrated in either distortion or rate
 #define CLN_FUNC_DECL                              1 // Move some hanging functions declarations to appropriate header files
 
+#define RATE_FIXES 1
+#if RATE_FIXES
+#define FIX_SKIP_COST                              1 // Fix how skip cost is computed
+#define FIX_II_RATE                                1 // Fix inter-intra rate in inter fast cost
+#define FIX_COEF_RATE_UPDATE                       1 // Fix coeff rate updates at EncDec
+#define FIX_EOB_RATE_UPDATE                        1 // Fix eob rate updates at EncDec
+#define FIX_TXS_RATE_UPDATE                        1 // Fix TXS rate updates at EncDec
+#define FIX_IFS_RATE_UPDATE                        1 // Fix IFS rate updates at EncDec
+#endif
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

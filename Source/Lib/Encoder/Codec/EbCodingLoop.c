@@ -2854,7 +2854,11 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                         // Rate estimation function uses the values from CandidatePtr. The right values are copied from blk_ptr to CandidatePtr
                         cand_bf->cand->pred_mode         = blk_ptr->pred_mode;
                         cand_bf->cand->filter_intra_mode = blk_ptr->filter_intra_mode;
+#if FIX_COEF_RATE_UPDATE
+                        if (blk_ptr->block_has_coeff)
+#else
                         if (blk_ptr->skip_mode != TRUE)
+#endif
                             svt_aom_txb_estimate_coeff_bits(
                                 md_ctx,
                                 1, //allow_update_cdf,
@@ -2963,6 +2967,25 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
 
                 // Update the CDFs based on the current block
                 blk_ptr->av1xd->tile_ctx = &pcs->ec_ctx_array[sb_addr];
+#if FIX_TXS_RATE_UPDATE
+                uint32_t txfm_context_left_index = get_neighbor_array_unit_left_index(
+                    pcs->ep_txfm_context_na[tile_idx], ctx->blk_org_y);
+                uint32_t txfm_context_above_index = get_neighbor_array_unit_top_index(
+                    pcs->ep_txfm_context_na[tile_idx], ctx->blk_org_x);
+                blk_ptr->av1xd->above_txfm_context = &(
+                    pcs->ep_txfm_context_na[tile_idx]->top_array[txfm_context_above_index]);
+                blk_ptr->av1xd->left_txfm_context = &(
+                    pcs->ep_txfm_context_na[tile_idx]->left_array[txfm_context_left_index]);
+                svt_aom_tx_size_bits(md_ctx->md_rate_est_ctx,
+                                     blk_ptr->av1xd,
+                                     &(blk_ptr->av1xd->mi[0]->mbmi),
+                                     blk_geom->txsize[blk_ptr->tx_depth][0],
+                                     pcs->ppcs->frm_hdr.tx_mode,
+                                     blk_geom->bsize,
+                                     !blk_ptr->block_has_coeff,
+                                     &pcs->ec_ctx_array[sb_addr],
+                                     1 /*allow_update_cdf*/);
+#endif
                 svt_aom_update_stats(
                     pcs, blk_ptr, ctx->blk_org_y >> MI_SIZE_LOG2, ctx->blk_org_x >> MI_SIZE_LOG2);
             }

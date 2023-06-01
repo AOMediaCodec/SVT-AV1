@@ -207,11 +207,20 @@ static INLINE int32_t get_eob_pos_token(const int32_t eob, int32_t *const extra)
     return t;
 }
 #define TX_SIZE TxSize
+#if FIX_EOB_RATE_UPDATE
+void svt_av1_update_eob_context(int eob, TxSize tx_size, TxClass tx_class, PlaneType plane,
+#else
 void svt_av1_update_eob_context(int eob, TX_SIZE tx_size, TxClass tx_class, PlaneType plane,
+#endif
                                 FRAME_CONTEXT *ec_ctx, uint8_t allow_update_cdf) {
     int       eob_extra;
     const int eob_pt  = get_eob_pos_token(eob, &eob_extra);
-    TX_SIZE   txs_ctx = get_txsize_entropy_ctx_tab[tx_size];
+#if FIX_EOB_RATE_UPDATE
+    const TxSize txs_ctx = (TxSize)((txsize_sqr_map[tx_size] + txsize_sqr_up_map[tx_size] + 1) >>
+                                    1);
+#else
+    TX_SIZE txs_ctx = get_txsize_entropy_ctx_tab[tx_size];
+#endif
     assert(txs_ctx < TX_SIZES);
     const int eob_multi_size = txsize_log2_minus4[tx_size];
     const int eob_multi_ctx  = (tx_class == TX_CLASS_2D) ? 0 : 1;
@@ -273,6 +282,18 @@ void svt_av1_update_eob_context(int eob, TX_SIZE tx_size, TxClass tx_class, Plan
         break;
     }
 
+#if FIX_EOB_RATE_UPDATE
+    const int16_t eob_offset_bits = eb_k_eob_offset_bits[eob_pt];
+    if (eob_offset_bits > 0) {
+        int eob_shift = eob_offset_bits - 1;
+        int bit       = (eob_extra & (1 << eob_shift)) ? 1 : 0;
+#if CONFIG_ENTROPY_STATS
+        counts->eob_extra[cdf_idx][txs_ctx][plane][eob_pt][bit]++;
+#endif // CONFIG_ENTROPY_STATS
+        if (allow_update_cdf)
+            update_cdf(ec_ctx->eob_extra_cdf[txs_ctx][plane][eob_pt], bit, 2);
+    }
+#else
     if (eb_k_eob_offset_bits[eob_pt] > 0) {
         int eob_ctx   = eob_pt - 3;
         int eob_shift = eb_k_eob_offset_bits[eob_pt] - 1;
@@ -283,6 +304,7 @@ void svt_av1_update_eob_context(int eob, TX_SIZE tx_size, TxClass tx_class, Plan
         if (allow_update_cdf)
             update_cdf(ec_ctx->eob_extra_cdf[txs_ctx][plane][eob_ctx], bit, 2);
     }
+#endif
 }
 // Transform end of block bit estimation
 static int get_eob_cost(int eob, const LvMapEobCost *txb_eob_costs, const LvMapCoeffCost *txb_costs,
@@ -1474,7 +1496,14 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     // inter intra mode rate
     if (pcs->ppcs->frm_hdr.reference_mode != COMPOUND_REFERENCE &&
         pcs->ppcs->scs->seq_header.enable_interintra_compound &&
+#if FIX_II_RATE
+        /* Check if inter-intra is allowed for current block size / mode (even if the feature is off
+        * for the current block, we still need to signal inter-intra off.
+        */
+        svt_is_interintra_allowed(TRUE, blk_geom->bsize, cand->pred_mode, rf)) {
+#else
         svt_is_interintra_allowed(enable_inter_intra, blk_geom->bsize, cand->pred_mode, rf)) {
+#endif
         const int interintra  = cand->is_interintra_used;
         const int bsize_group = size_group_lookup[blk_geom->bsize];
 
@@ -2320,6 +2349,329 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
     }
     return;
 }
+
+#if FIX_TXS_RATE_UPDATE
+static INLINE int block_signals_txsize(BlockSize bsize) { return bsize > BLOCK_4X4; }
+
+static INLINE int get_vartx_max_txsize(/*const MbModeInfo *xd,*/ BlockSize bsize, int plane) {
+    /* if (xd->lossless[xd->mi[0]->segment_id]) return TX_4X4;*/
+    const TxSize max_txsize = max_txsize_rect_lookup[bsize];
+    if (plane == 0)
+        return max_txsize; // luma
+    return av1_get_adjusted_tx_size(max_txsize); // chroma
+}
+
+static INLINE int max_block_wide(const MacroBlockD *xd, BlockSize bsize, int plane) {
+    int max_blocks_wide = block_size_wide[bsize];
+
+    if (xd->mb_to_right_edge < 0)
+        max_blocks_wide += gcc_right_shift(xd->mb_to_right_edge, 3 + !!plane);
+
+    // Scale the width in the transform block unit.
+    return max_blocks_wide >> tx_size_wide_log2[0];
+}
+
+static INLINE int max_block_high(const MacroBlockD *xd, BlockSize bsize, int plane) {
+    int max_blocks_high = block_size_high[bsize];
+
+    if (xd->mb_to_bottom_edge < 0)
+        max_blocks_high += gcc_right_shift(xd->mb_to_bottom_edge, 3 + !!plane);
+
+    // Scale the height in the transform block unit.
+    return max_blocks_high >> tx_size_high_log2[0];
+}
+
+static INLINE void txfm_partition_update(TXFM_CONTEXT *above_ctx, TXFM_CONTEXT *left_ctx,
+                                         TxSize tx_size, TxSize txb_size) {
+    BlockSize bsize = txsize_to_bsize[txb_size];
+    assert(bsize < BlockSizeS_ALL);
+    int     bh  = mi_size_high[bsize];
+    int     bw  = mi_size_wide[bsize];
+    uint8_t txw = tx_size_wide[tx_size];
+    uint8_t txh = tx_size_high[tx_size];
+    int     i;
+    for (i = 0; i < bh; ++i) left_ctx[i] = txh;
+    for (i = 0; i < bw; ++i) above_ctx[i] = txw;
+}
+
+static INLINE TxSize get_sqr_tx_size(int tx_dim) {
+    switch (tx_dim) {
+    case 128:
+    case 64: return TX_64X64; break;
+    case 32: return TX_32X32; break;
+    case 16: return TX_16X16; break;
+    case 8: return TX_8X8; break;
+    default: return TX_4X4;
+    }
+}
+static INLINE int txfm_partition_context(TXFM_CONTEXT *above_ctx, TXFM_CONTEXT *left_ctx,
+                                         BlockSize bsize, TxSize tx_size) {
+    const uint8_t txw      = tx_size_wide[tx_size];
+    const uint8_t txh      = tx_size_high[tx_size];
+    const int     above    = *above_ctx < txw;
+    const int     left     = *left_ctx < txh;
+    int           category = TXFM_PARTITION_CONTEXTS;
+
+    // dummy return, not used by others.
+    if (tx_size == TX_4X4)
+        return 0;
+
+    TxSize max_tx_size = get_sqr_tx_size(AOMMAX(block_size_wide[bsize], block_size_high[bsize]));
+
+    if (max_tx_size >= TX_8X8) {
+        category = (txsize_sqr_up_map[tx_size] != max_tx_size && max_tx_size > TX_8X8) +
+            (TX_SIZES - 1 - max_tx_size) * 2;
+    }
+    assert(category != TXFM_PARTITION_CONTEXTS);
+    return category * 3 + above + left;
+}
+
+static uint64_t cost_tx_size_vartx(MacroBlockD *xd, const MbModeInfo *mbmi, TxSize tx_size,
+                                   int depth, int blk_row, int blk_col,
+                                   MdRateEstimationContext *md_rate_est_ctx, FRAME_CONTEXT *ec_ctx,
+                                   uint8_t allow_update_cdf) {
+    uint64_t  bits            = 0;
+    const int max_blocks_high = max_block_high(xd, mbmi->block_mi.sb_type, 0);
+    const int max_blocks_wide = max_block_wide(xd, mbmi->block_mi.sb_type, 0);
+
+    if (blk_row >= max_blocks_high || blk_col >= max_blocks_wide)
+        return bits;
+
+    if (depth == MAX_VARTX_DEPTH) {
+        txfm_partition_update(
+            xd->above_txfm_context + blk_col, xd->left_txfm_context + blk_row, tx_size, tx_size);
+
+        return bits;
+    }
+
+    const int ctx = txfm_partition_context(xd->above_txfm_context + blk_col,
+                                           xd->left_txfm_context + blk_row,
+                                           mbmi->block_mi.sb_type,
+                                           tx_size);
+    const int write_txfm_partition =
+        (tx_size == tx_depth_to_tx_size[mbmi->block_mi.tx_depth][mbmi->block_mi.sb_type]);
+    if (write_txfm_partition) {
+        bits += md_rate_est_ctx->txfm_partition_fac_bits[ctx][0];
+
+        if (allow_update_cdf)
+            update_cdf(ec_ctx->txfm_partition_cdf[ctx], 0, 2);
+
+        txfm_partition_update(
+            xd->above_txfm_context + blk_col, xd->left_txfm_context + blk_row, tx_size, tx_size);
+
+    } else {
+        assert(tx_size < TX_SIZES_ALL);
+        const TxSize sub_txs = sub_tx_size_map[tx_size];
+        const int    bsw     = tx_size_wide_unit[sub_txs];
+        const int    bsh     = tx_size_high_unit[sub_txs];
+
+        bits += md_rate_est_ctx->txfm_partition_fac_bits[ctx][1];
+
+        if (allow_update_cdf)
+            update_cdf(ec_ctx->txfm_partition_cdf[ctx], 1, 2);
+
+        if (sub_txs == TX_4X4) {
+            txfm_partition_update(xd->above_txfm_context + blk_col,
+                                  xd->left_txfm_context + blk_row,
+                                  sub_txs,
+                                  tx_size);
+
+            return bits;
+        }
+
+        assert(bsw > 0 && bsh > 0);
+        for (int row = 0; row < tx_size_high_unit[tx_size]; row += bsh)
+            for (int col = 0; col < tx_size_wide_unit[tx_size]; col += bsw) {
+                int offsetr = blk_row + row;
+                int offsetc = blk_col + col;
+                bits += cost_tx_size_vartx(xd,
+                                           mbmi,
+                                           sub_txs,
+                                           depth + 1,
+                                           offsetr,
+                                           offsetc,
+                                           md_rate_est_ctx,
+                                           ec_ctx,
+                                           allow_update_cdf);
+            }
+    }
+    return bits;
+}
+
+static INLINE void set_txfm_ctx(TXFM_CONTEXT *txfm_ctx, uint8_t txs, int len) {
+    int i;
+    for (i = 0; i < len; ++i) txfm_ctx[i] = txs;
+}
+
+static INLINE void set_txfm_ctxs(TxSize tx_size, int n8_w, int n8_h, int skip,
+                                 const MacroBlockD *xd) {
+    uint8_t bw = tx_size_wide[tx_size];
+    uint8_t bh = tx_size_high[tx_size];
+
+    if (skip) {
+        bw = n8_w * MI_SIZE;
+        bh = n8_h * MI_SIZE;
+    }
+
+    set_txfm_ctx(xd->above_txfm_context, bw, n8_w);
+    set_txfm_ctx(xd->left_txfm_context, bh, n8_h);
+}
+
+static INLINE int tx_size_to_depth(TxSize tx_size, BlockSize bsize) {
+    TxSize ctx_size = max_txsize_rect_lookup[bsize];
+    int    depth    = 0;
+    while (tx_size != ctx_size) {
+        depth++;
+        ctx_size = sub_tx_size_map[ctx_size];
+        assert(depth <= MAX_TX_DEPTH);
+    }
+    return depth;
+}
+
+// Returns a context number for the given MB prediction signal
+// The mode info data structure has a one element border above and to the
+// left of the entries corresponding to real blocks.
+// The prediction flags in these dummy entries are initialized to 0.
+static INLINE int get_tx_size_context(const MacroBlockD *xd) {
+    const ModeInfo *        mi          = xd->mi[0];
+    const MbModeInfo *      mbmi        = &mi->mbmi;
+    const MbModeInfo *const above_mbmi  = xd->above_mbmi;
+    const MbModeInfo *const left_mbmi   = xd->left_mbmi;
+    const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.sb_type];
+    const int               max_tx_wide = tx_size_wide[max_tx_size];
+    const int               max_tx_high = tx_size_high[max_tx_size];
+    const int               has_above   = xd->up_available;
+    const int               has_left    = xd->left_available;
+
+    int above = xd->above_txfm_context[0] >= max_tx_wide;
+    int left  = xd->left_txfm_context[0] >= max_tx_high;
+
+    if (has_above)
+        if (is_inter_block(&above_mbmi->block_mi))
+            above = block_size_wide[above_mbmi->block_mi.sb_type] >= max_tx_wide;
+
+    if (has_left)
+        if (is_inter_block(&left_mbmi->block_mi))
+            left = block_size_high[left_mbmi->block_mi.sb_type] >= max_tx_high;
+
+    if (has_above && has_left)
+        return (above + left);
+    else if (has_above)
+        return above;
+    else if (has_left)
+        return left;
+    else
+        return 0;
+}
+static uint64_t cost_selected_tx_size(const MacroBlockD *      xd,
+                                      MdRateEstimationContext *md_rate_est_ctx, TxSize tx_size,
+                                      FRAME_CONTEXT *ec_ctx, uint8_t allow_update_cdf) {
+    const ModeInfo *const   mi    = xd->mi[0];
+    const MbModeInfo *const mbmi  = &mi->mbmi;
+    const BlockSize         bsize = mbmi->block_mi.sb_type;
+    uint64_t                bits  = 0;
+
+    if (block_signals_txsize(bsize)) {
+        const int tx_size_ctx = get_tx_size_context(xd);
+        assert(bsize < BlockSizeS_ALL);
+        const int     depth       = tx_size_to_depth(tx_size, bsize);
+        const int32_t tx_size_cat = bsize_to_tx_size_cat(bsize);
+        bits += md_rate_est_ctx->tx_size_fac_bits[tx_size_cat][tx_size_ctx][depth];
+
+        if (allow_update_cdf) {
+            const int max_depths = bsize_to_max_depth(bsize);
+            assert(depth >= 0 && depth <= max_depths);
+            assert(!is_inter_block(&mbmi->block_mi));
+            assert(IMPLIES(is_rect_tx(tx_size), is_rect_tx_allowed(/*xd,*/ mbmi)));
+            update_cdf(ec_ctx->tx_size_cdf[tx_size_cat][tx_size_ctx], depth, max_depths + 1);
+        }
+    }
+
+    return bits;
+}
+
+/* Get the TXS rate and update the txfm context.  If allow_update_cdf is true, the TX size CDFs will
+be updated. */
+uint64_t svt_aom_tx_size_bits(MdRateEstimationContext *md_rate_est_ctx, MacroBlockD *xd,
+                              const MbModeInfo *mbmi, TxSize tx_size, TxMode tx_mode,
+                              BlockSize bsize, uint8_t skip, FRAME_CONTEXT *ec_ctx,
+                              uint8_t allow_update_cdf) {
+    uint64_t bits        = 0;
+    int      is_inter_tx = is_inter_block(&mbmi->block_mi);
+    if (tx_mode == TX_MODE_SELECT && block_signals_txsize(bsize) &&
+        !(is_inter_tx && skip) /*&& !xd->lossless[segment_id]*/) {
+        if (is_inter_tx) { // This implies skip flag is 0.
+            const TxSize max_tx_size = get_vartx_max_txsize(/*xd,*/ bsize, 0);
+            const int    txbh        = tx_size_high_unit[max_tx_size];
+            const int    txbw        = tx_size_wide_unit[max_tx_size];
+            const int    width       = block_size_wide[bsize] >> tx_size_wide_log2[0];
+            const int    height      = block_size_high[bsize] >> tx_size_high_log2[0];
+            int          idx, idy;
+            for (idy = 0; idy < height; idy += txbh)
+                for (idx = 0; idx < width; idx += txbw)
+                    bits += cost_tx_size_vartx(xd,
+                                               mbmi,
+                                               max_tx_size,
+                                               0,
+                                               idy,
+                                               idx,
+                                               md_rate_est_ctx,
+                                               ec_ctx,
+                                               allow_update_cdf);
+        } else {
+            bits += cost_selected_tx_size(xd, md_rate_est_ctx, tx_size, ec_ctx, allow_update_cdf);
+            set_txfm_ctxs(tx_size, xd->n8_w, xd->n8_h, 0, xd);
+        }
+    } else {
+        set_txfm_ctxs(tx_size, xd->n8_w, xd->n8_h, skip && is_inter_block(&mbmi->block_mi), xd);
+    }
+
+    return bits;
+}
+
+/* Get the TXS rate.  A dummy txfm context array will be used, so context updates will not be saved for
+future blocks. */
+uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
+                                  ModeDecisionContext *ctx, PictureControlSet *pcs,
+                                  uint8_t tx_depth, Bool block_has_coeff) {
+    NeighborArrayUnit *txfm_context_array = ctx->txfm_context_array;
+    uint32_t txfm_context_left_index      = get_neighbor_array_unit_left_index(txfm_context_array,
+                                                                          ctx->blk_org_y);
+    uint32_t txfm_context_above_index     = get_neighbor_array_unit_top_index(txfm_context_array,
+                                                                          ctx->blk_org_x);
+
+    TxMode       tx_mode = pcs->ppcs->frm_hdr.tx_mode;
+    MacroBlockD *xd      = ctx->blk_ptr->av1xd;
+    BlockSize    bsize   = ctx->blk_geom->bsize;
+    MbModeInfo * mbmi    = &xd->mi[0]->mbmi;
+
+    svt_memcpy(ctx->above_txfm_context,
+               &(txfm_context_array->top_array[txfm_context_above_index]),
+               (ctx->blk_geom->bwidth >> MI_SIZE_LOG2) * sizeof(TXFM_CONTEXT));
+    svt_memcpy(ctx->left_txfm_context,
+               &(txfm_context_array->left_array[txfm_context_left_index]),
+               (ctx->blk_geom->bheight >> MI_SIZE_LOG2) * sizeof(TXFM_CONTEXT));
+
+    xd->above_txfm_context      = ctx->above_txfm_context;
+    xd->left_txfm_context       = ctx->left_txfm_context;
+    mbmi->block_mi.sb_type      = ctx->blk_geom->bsize;
+    mbmi->block_mi.use_intrabc  = candidateBuffer->cand->use_intrabc;
+    mbmi->block_mi.ref_frame[0] = candidateBuffer->cand->ref_frame_type;
+    mbmi->block_mi.tx_depth     = tx_depth;
+
+    const uint64_t bits = svt_aom_tx_size_bits(ctx->md_rate_est_ctx,
+                                               xd,
+                                               mbmi,
+                                               ctx->blk_geom->txsize[tx_depth][0],
+                                               tx_mode,
+                                               bsize,
+                                               !block_has_coeff,
+                                               NULL,
+                                               0);
+    return bits;
+}
+#endif
+
 /*
  * av1_partition_rate_cost function is used to generate the rate of signaling the
  * partition type for a given block.

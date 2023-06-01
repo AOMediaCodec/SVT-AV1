@@ -208,6 +208,9 @@ static void reset_encode_pass_neighbor_arrays(PictureControlSet *pcs, uint16_t t
     svt_aom_neighbor_array_unit_reset(pcs->ep_cb_dc_sign_level_coeff_na_update[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_cr_dc_sign_level_coeff_na_update[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_partition_context_na[tile_idx]);
+#if FIX_TXS_RATE_UPDATE
+    svt_aom_neighbor_array_unit_reset(pcs->ep_txfm_context_na[tile_idx]);
+#endif
     // TODO(Joel): 8-bit ep_luma_recon_na (Cb,Cr) when is_16bit==0?
     if (pcs->ppcs->scs->is_16bit_pipeline) {
         svt_aom_neighbor_array_unit_reset(pcs->ep_luma_recon_na_16bit[tile_idx]);

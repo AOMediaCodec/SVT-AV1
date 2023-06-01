@@ -178,6 +178,9 @@ static void picture_control_set_dctor(EbPtr p) {
 
     // EB_DELETE(obj->ep_partition_context_na); //Jing: Double check here
     EB_DELETE_PTR_ARRAY(obj->ep_partition_context_na, tile_cnt);
+#if FIX_TXS_RATE_UPDATE
+    EB_DELETE_PTR_ARRAY(obj->ep_txfm_context_na, tile_cnt);
+#endif
 
     for (depth = 0; depth < NA_TOT_CNT; depth++) {
         EB_DELETE_PTR_ARRAY(obj->md_intra_luma_mode_na[depth], tile_cnt);
@@ -812,6 +815,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
     EB_ALLOC_PTR_ARRAY(object_ptr->ep_cb_dc_sign_level_coeff_na_update, total_tile_cnt);
     EB_ALLOC_PTR_ARRAY(object_ptr->ep_cr_dc_sign_level_coeff_na_update, total_tile_cnt);
     EB_ALLOC_PTR_ARRAY(object_ptr->ep_partition_context_na, total_tile_cnt);
+#if FIX_TXS_RATE_UPDATE
+    EB_ALLOC_PTR_ARRAY(object_ptr->ep_txfm_context_na, total_tile_cnt);
+#endif
     // Entropy
     EB_ALLOC_PTR_ARRAY(object_ptr->mode_type_na, total_tile_cnt);
     EB_ALLOC_PTR_ARRAY(object_ptr->partition_context_na, total_tile_cnt);
@@ -977,6 +983,18 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
                 PU_NEIGHBOR_ARRAY_GRANULARITY,
                 NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK,
             },
+#if FIX_TXS_RATE_UPDATE
+            // Encode pass txfm neighbor array
+            {
+                &object_ptr->ep_txfm_context_na[tile_idx],
+                na_max_pic_w,
+                na_max_pic_h,
+                sizeof(struct PartitionContext),
+                PU_NEIGHBOR_ARRAY_GRANULARITY,
+                PU_NEIGHBOR_ARRAY_GRANULARITY,
+                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK,
+            },
+#endif
             // Entropy Coding Neighbor Arrays
             {
                 &object_ptr->mode_type_na[tile_idx],
