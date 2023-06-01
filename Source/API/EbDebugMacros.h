@@ -184,6 +184,8 @@ extern "C" {
 #define TUNE_M9_2                                 1 // Tune m9 for vmaf neg
 #define TUNE_M8_2                                 1 // Tune m8 for vmaf neg
 
+#define CLN_OBMC_WARP                             1 // Cleanup OBMC/Warp
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

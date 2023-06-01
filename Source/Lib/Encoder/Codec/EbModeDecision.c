@@ -2593,7 +2593,9 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
         (ctx->blk_org_x + input_pic->org_x);
     const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[ctx->blk_geom->bsize];
     unsigned int            sse;
-    uint8_t                *pred_y = pred->buffer_y + blk_origin_index;
+#if !CLN_OBMC_WARP
+    uint8_t *pred_y = pred->buffer_y + blk_origin_index;
+#endif
     uint8_t                *src_y  = input_pic->buffer_y + input_origin_index;
 
     int mv_prec_shift    = ppcs->frm_hdr.allow_high_precision_mv ? 0 : 1;
@@ -2650,11 +2652,76 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
                 shut_approx);
             if (!local_warp_valid)
                 continue;
+#if CLN_OBMC_WARP
+            EbPictureBufferDesc *        ref_pic_list0 = (EbPictureBufferDesc *)NULL;
+            EbPictureBufferDesc *        ref_pic_list1 = (EbPictureBufferDesc *)NULL;
+            ModeDecisionCandidate *const cand          = cand_bf->cand;
+            SequenceControlSet *         scs           = pcs->scs;
+            MvReferenceFrame             rf[2];
+            av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
+            int8_t  ref_idx_l0 = get_ref_frame_idx(rf[0]);
+            int8_t  ref_idx_l1 = rf[1] == NONE_FRAME ? get_ref_frame_idx(rf[0])
+                                                     : get_ref_frame_idx(rf[1]);
+            uint8_t list_idx0  = get_list_idx(rf[0]);
+            uint8_t list_idx1  = rf[1] == NONE_FRAME ? get_list_idx(rf[0]) : get_list_idx(rf[1]);
+            assert(list_idx0 < MAX_NUM_OF_REF_PIC_LIST && list_idx1 < MAX_NUM_OF_REF_PIC_LIST);
 
+            if (ref_idx_l0 >= 0) {
+                ref_pic_list0 = svt_aom_get_ref_pic_buffer(pcs, 0, list_idx0, ref_idx_l0);
+            }
+
+            if (ref_idx_l1 >= 0) {
+                ref_pic_list1 = svt_aom_get_ref_pic_buffer(pcs, 0, list_idx1, ref_idx_l1);
+            }
+
+            svt_aom_wm_count_samples(ctx->blk_ptr,
+                                     pcs->scs->seq_header.sb_size,
+                                     ctx->blk_geom,
+                                     ctx->blk_org_x,
+                                     ctx->blk_org_y,
+                                     cand->ref_frame_type,
+                                     pcs,
+                                     &cand->num_proj_ref);
+
+            svt_aom_warped_motion_prediction(pcs,
+                                             &mv_unit,
+                                             cand->ref_frame_type,
+                                             cand->compound_idx,
+                                             &cand->interinter_comp,
+                                             ctx->blk_org_x,
+                                             ctx->blk_org_y,
+                                             ctx->blk_ptr,
+                                             ctx->blk_geom,
+                                             ref_pic_list0,
+                                             ref_pic_list1,
+                                             ctx->scratch_prediction_ptr, //cand_bf->pred,
+                                             ctx->blk_geom->org_x,
+                                             ctx->blk_geom->org_y,
+                                             ctx->recon_neigh_y,
+                                             ctx->recon_neigh_cb,
+                                             ctx->recon_neigh_cr,
+                                             cand,
+                                             &cand->wm_params_l0,
+                                             &cand->wm_params_l1,
+                                             EB_EIGHT_BIT,
+#if OPT_WM_UV_ONLY
+                                             PICTURE_BUFFER_DESC_LUMA_MASK,
+#else
+                                             ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 &&
+                                                 ctx->mds_skip_uv_pred == FALSE,
+#endif
+                                             FALSE);
+
+            int var = fn_ptr->vf(ctx->scratch_prediction_ptr->buffer_y + blk_origin_index,
+                                 ctx->scratch_prediction_ptr->stride_y,
+                                 src_y,
+                                 input_pic->stride_y,
+                                 &sse);
+#else
             svt_aom_inter_pu_prediction_av1(0, ctx, pcs, cand_bf);
 
             int var = fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse);
-
+#endif
             MV curr = (MV){.col = test_mv.x, .row = test_mv.y};
             if (ctx->approx_inter_rate)
                 var += svt_aom_mv_err_cost_light(&curr, &ref_mv);
