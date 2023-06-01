@@ -117,6 +117,19 @@ extern "C" {
 
 #define OPT_CMP                                    1 //optimize inter compound
 
+#define TUNE_NSQ                                   1 // Tune NSQ THs
+#define TUNE_M12                                   1 // Tune m12 for vmaf neg
+#define TUNE_M11                                   1 // Tune m11 for vmaf neg
+#define TUNE_M1                                    1 // Tune m1 for vmaf neg
+#define TUNE_M2                                    1 // Tune m2 for vmaf neg
+#define TUNE_M3                                    1 // Tune m3 for vmaf neg
+#define TUNE_M0                                    1 // Tune m0 for vmaf neg
+#define TUNE_M4                                    1 // Tune m4 for vmaf neg
+#define TUNE_M5                                    1 // Tune m5 for vmaf neg
+#define TUNE_M6                                    1 // Tune m6 for vmaf neg
+#define TUNE_M7                                    1 // Tune m7 for vmaf neg
+#define TUNE_M8                                    1 // Tune m8 for vmaf neg
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

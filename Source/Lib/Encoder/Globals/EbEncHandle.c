@@ -5228,7 +5228,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         (scs->tpl_level && scs->input_resolution == INPUT_SIZE_240p_RANGE))
         scs->super_block_size = 64;
     else
+#if TUNE_M3
+        if (scs->static_config.enc_mode <= ENC_M3)
+#else
         if (scs->static_config.enc_mode <= ENC_M2)
+#endif
             scs->super_block_size = 128;
         else
             scs->super_block_size = 64;
