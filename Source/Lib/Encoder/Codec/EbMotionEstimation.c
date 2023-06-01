@@ -36,6 +36,7 @@
  ********************************************/
 #define TF_HME_MV_SAD_TH 512 // SAD_TH beyond which a penalty is applied to hme_mv_cost
 #define TF_HME_MV_COST_WEIGHT 125 // MV_COST weight when the SAD_TH condition is valid
+#if !CLN_FUNC_DECL
 Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift) {
     MV mv;
     //go to 1/8th if input is 1/4pel
@@ -51,7 +52,7 @@ Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift) {
     }
     return TRUE;
 }
-
+#endif
 #define REFERENCE_PIC_LIST_0 0
 #define REFERENCE_PIC_LIST_1 1
 /*******************************************

@@ -64,8 +64,9 @@ void svt_aom_get_syntax_rate_from_cdf(int32_t *costs, const AomCdfProb *cdf,
             break;
     }
 }
+#if !CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
-
+#endif
 /*************************************************************
  * svt_aom_estimate_syntax_rate()
  * Estimate the rate for each syntax elements and for
@@ -606,7 +607,9 @@ int         svt_aom_get_comp_group_idx_context_enc(const MacroBlockD *xd);
 int32_t svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
                                              BlkStruct *blk_ptr, BlockSize sb_type,
                                              PictureParentControlSet *pcs);
+#if !CLN_FUNC_DECL
 int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
+#endif
 //Returns a context number for the given MB prediction signal
 /*static*/ InterpFilter svt_aom_get_ref_filter_type(const BlockModeInfoEnc *ref_mbmi, int dir,
                                                     MvReferenceFrame ref_frame) {
@@ -615,9 +618,10 @@ int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
                 : SWITCHABLE_FILTERS);
 }
 extern int svt_aom_allow_intrabc(const FrameHeader *frm_hdr, SliceType slice_type);
-
+#if !CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, uint8_t palette_size,
                                  uint32_t mode);
+#endif
 
 INLINE int32_t is_chroma_reference(int32_t mi_row, int32_t mi_col, BlockSize bsize,
                                    int32_t subsampling_x, int32_t subsampling_y);

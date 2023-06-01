@@ -4366,7 +4366,12 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 0;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 0;
+        md_subpel_me_ctrls->mvp_th     = 0;
+#endif
         break;
+#if OPT_SPEL
     case 2:
         md_subpel_me_ctrls->enabled               = 1;
         md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
@@ -4378,6 +4383,264 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 0;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 18;
+#endif
+        break;
+    case 3:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 2;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 0;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 4:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 0;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 5:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_8_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 2;
+        md_subpel_me_ctrls->max_precision         = EIGHTH_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 1;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 6:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_8_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 2;
+        md_subpel_me_ctrls->max_precision         = EIGHTH_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 2;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 7:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 2;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 2;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 8:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 1;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 9:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 2;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 10:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 3;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 11:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 2;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 12:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 3;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 13:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 50;
+        md_subpel_me_ctrls->abs_th_mult           = 2;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 3;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 14:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 100;
+        md_subpel_me_ctrls->abs_th_mult           = 2;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->round_dev_th = rtc_tune ? MAX_SIGNED_VALUE : -25;
+#else
+        md_subpel_me_ctrls->round_dev_th = -25;
+#endif
+        md_subpel_me_ctrls->skip_diag_refinement  = 4;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 15:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 100;
+        md_subpel_me_ctrls->abs_th_mult           = 2;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->round_dev_th = rtc_tune ? MAX_SIGNED_VALUE : -25;
+#else
+        md_subpel_me_ctrls->round_dev_th = -25;
+#endif
+        md_subpel_me_ctrls->skip_diag_refinement = 4;
+#if OPT_SUBPEL_ME_LD
+        md_subpel_me_ctrls->skip_zz_mv = rtc_tune ? 0 : 1;
+#else
+        md_subpel_me_ctrls->skip_zz_mv   = 1;
+#endif
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+    case 16:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 1;
+        md_subpel_me_ctrls->max_precision         = HALF_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE_PRUNED;
+        md_subpel_me_ctrls->pred_variance_th      = 100;
+        md_subpel_me_ctrls->abs_th_mult           = 2;
+        md_subpel_me_ctrls->round_dev_th          = -25;
+        md_subpel_me_ctrls->skip_diag_refinement  = 4;
+        md_subpel_me_ctrls->skip_zz_mv            = 1;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th     = 12;
+#endif
+        break;
+
+#else
+    case 2:
+        md_subpel_me_ctrls->enabled               = 1;
+        md_subpel_me_ctrls->subpel_search_type    = USE_4_TAPS;
+        md_subpel_me_ctrls->subpel_iters_per_step = 2;
+        md_subpel_me_ctrls->max_precision         = QUARTER_PEL;
+        md_subpel_me_ctrls->subpel_search_method  = SUBPEL_TREE;
+        md_subpel_me_ctrls->pred_variance_th      = 0;
+        md_subpel_me_ctrls->abs_th_mult           = 0;
+        md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
+        md_subpel_me_ctrls->skip_diag_refinement  = 0;
+        md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 3:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4390,6 +4653,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 0;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 4:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4402,6 +4669,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 1;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 5:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4414,6 +4685,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 2;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 6:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4426,6 +4701,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 2;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 7:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4438,6 +4717,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 1;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 8:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4450,6 +4733,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 2;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 9:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4462,6 +4749,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 3;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 10:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4474,6 +4765,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 2;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 11:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4486,6 +4781,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 3;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 12:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4498,6 +4797,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_me_ctrls->skip_diag_refinement  = 3;
         md_subpel_me_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 13:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4514,6 +4817,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
 #endif
         md_subpel_me_ctrls->skip_diag_refinement = 4;
         md_subpel_me_ctrls->skip_zz_mv           = 0;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 14:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4534,6 +4841,10 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
 #else
         md_subpel_me_ctrls->skip_zz_mv = 1;
 #endif
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
     case 15:
         md_subpel_me_ctrls->enabled               = 1;
@@ -4546,7 +4857,12 @@ static void md_subpel_me_controls(ModeDecisionContext *ctx, uint8_t md_subpel_me
         md_subpel_me_ctrls->round_dev_th          = -25;
         md_subpel_me_ctrls->skip_diag_refinement  = 4;
         md_subpel_me_ctrls->skip_zz_mv            = 1;
+#if OPT_SPEL
+        md_subpel_me_ctrls->min_blk_sz = 4;
+        md_subpel_me_ctrls->mvp_th = 12;
+#endif
         break;
+#endif
     default: assert(0); break;
     }
 }
@@ -4569,6 +4885,10 @@ static void md_subpel_pme_controls(ModeDecisionContext *ctx, uint8_t md_subpel_p
         md_subpel_pme_ctrls->abs_th_mult           = 0;
         md_subpel_pme_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_pme_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_pme_ctrls->min_blk_sz = 0;
+        md_subpel_pme_ctrls->mvp_th     = 0;
+#endif
         break;
     case 2:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -4580,6 +4900,10 @@ static void md_subpel_pme_controls(ModeDecisionContext *ctx, uint8_t md_subpel_p
         md_subpel_pme_ctrls->abs_th_mult           = 0;
         md_subpel_pme_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_pme_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_pme_ctrls->min_blk_sz = 0;
+        md_subpel_pme_ctrls->mvp_th     = 0;
+#endif
         break;
     case 3:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -4591,6 +4915,10 @@ static void md_subpel_pme_controls(ModeDecisionContext *ctx, uint8_t md_subpel_p
         md_subpel_pme_ctrls->abs_th_mult           = 0;
         md_subpel_pme_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_pme_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_pme_ctrls->min_blk_sz = 0;
+        md_subpel_pme_ctrls->mvp_th     = 0;
+#endif
         break;
     case 4:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -4602,6 +4930,10 @@ static void md_subpel_pme_controls(ModeDecisionContext *ctx, uint8_t md_subpel_p
         md_subpel_pme_ctrls->abs_th_mult           = 0;
         md_subpel_pme_ctrls->round_dev_th          = MAX_SIGNED_VALUE;
         md_subpel_pme_ctrls->skip_zz_mv            = 0;
+#if OPT_SPEL
+        md_subpel_pme_ctrls->min_blk_sz = 0;
+        md_subpel_pme_ctrls->mvp_th     = 0;
+#endif
         break;
     default: assert(0); break;
     }
@@ -9021,7 +9353,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
     case 0: txs_ctrls->enabled = 0; break;
     case 1:
         txs_ctrls->enabled                   = 1;
-        txs_ctrls->prev_depth_coeff_exit     = 1;
+#if CLN_TXS
+        txs_ctrls->prev_depth_coeff_exit_th = 1;
+#else
+        txs_ctrls->prev_depth_coeff_exit = 1;
+#endif
         txs_ctrls->intra_class_max_depth_sq  = 2;
         txs_ctrls->intra_class_max_depth_nsq = 2;
         txs_ctrls->inter_class_max_depth_sq  = 2;
@@ -9032,7 +9368,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         break;
     case 2:
         txs_ctrls->enabled                   = 1;
-        txs_ctrls->prev_depth_coeff_exit     = 1;
+#if CLN_TXS
+        txs_ctrls->prev_depth_coeff_exit_th = 1;
+#else
+        txs_ctrls->prev_depth_coeff_exit = 1;
+#endif
         txs_ctrls->intra_class_max_depth_sq  = 2;
         txs_ctrls->intra_class_max_depth_nsq = 2;
         txs_ctrls->inter_class_max_depth_sq  = 1;
@@ -9043,7 +9383,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         break;
     case 3:
         txs_ctrls->enabled                   = 1;
-        txs_ctrls->prev_depth_coeff_exit     = 1;
+#if CLN_TXS
+        txs_ctrls->prev_depth_coeff_exit_th = 1;
+#else
+        txs_ctrls->prev_depth_coeff_exit = 1;
+#endif
         txs_ctrls->intra_class_max_depth_sq  = 2;
         txs_ctrls->intra_class_max_depth_nsq = 1;
         txs_ctrls->inter_class_max_depth_sq  = 1;
@@ -9054,7 +9398,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         break;
     case 4:
         txs_ctrls->enabled                   = 1;
-        txs_ctrls->prev_depth_coeff_exit     = 1;
+#if CLN_TXS
+        txs_ctrls->prev_depth_coeff_exit_th = 1;
+#else
+        txs_ctrls->prev_depth_coeff_exit = 1;
+#endif
         txs_ctrls->intra_class_max_depth_sq  = 1;
         txs_ctrls->intra_class_max_depth_nsq = 0;
         txs_ctrls->inter_class_max_depth_sq  = 1;
@@ -9065,7 +9413,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         break;
     case 5:
         txs_ctrls->enabled                   = 1;
-        txs_ctrls->prev_depth_coeff_exit     = 1;
+#if CLN_TXS
+        txs_ctrls->prev_depth_coeff_exit_th = 1;
+#else
+        txs_ctrls->prev_depth_coeff_exit = 1;
+#endif
         txs_ctrls->intra_class_max_depth_sq  = 1;
         txs_ctrls->intra_class_max_depth_nsq = 0;
         txs_ctrls->inter_class_max_depth_sq  = 0;
@@ -10136,6 +10488,20 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
             ctx->rdoq_level = 0;
     }
     set_rdoq_controls(ctx, ctx->rdoq_level);
+#if OPT_SPEL
+    if (lpd1_level <= LPD1_LVL_0)
+        ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 10 : 12)
+                                                                             : 16;
+    else if (lpd1_level <= LPD1_LVL_1)
+        ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 13 : 14)
+                                                                             : 16;
+    else if (lpd1_level <= LPD1_LVL_2) {
+        ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 14 : 15)
+                                                                             : 16;
+    } else {
+        ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 14 : 15)
+                                                                             : 16;
+#else
     if (lpd1_level <= LPD1_LVL_0)
         ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 9 : 11)
                                                                              : 15;
@@ -10148,6 +10514,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     } else {
         ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_1080p_RANGE ? (is_ref ? 13 : 14)
                                                                              : 15;
+#endif
         if (((l0_was_skip && l1_was_skip && ref_skip_perc > 50) ||
              (l0_was_64x64_mvp && l1_was_64x64_mvp)) &&
             me_8x8_cost_variance < (200 * picture_qp) && me_64x64_distortion < (200 * picture_qp))
@@ -10515,9 +10882,27 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
 
     svt_aom_md_pme_search_controls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->md_pme_level);
     if (pd_pass == PD_PASS_0)
+#if OPT_SPEL
+        ctx->md_subpel_me_level = enc_mode <= ENC_M5 ? 4 : 0;
+#else
         ctx->md_subpel_me_level = enc_mode <= ENC_M5 ? 3 : 0;
+#endif
     else if (enc_mode <= ENC_MR)
         ctx->md_subpel_me_level = 1;
+#if OPT_SPEL
+    else if (enc_mode <= ENC_M2)
+        ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_480p_RANGE ? 1 : 2;
+    else if (enc_mode <= ENC_M4)
+        ctx->md_subpel_me_level = 2;
+    else if (enc_mode <= ENC_M5)
+        ctx->md_subpel_me_level = 3;
+    else if (enc_mode <= ENC_M9)
+        ctx->md_subpel_me_level = is_base ? 3 : (is_ref ? 5 : 8);
+    else
+        ctx->md_subpel_me_level = is_ref ? 5 : 8;
+    ctx->md_subpel_me_level += hierarchical_levels <= 2 ? 2 : 0;
+    ctx->md_subpel_me_level = MIN(16, ctx->md_subpel_me_level);
+#else
     else if (enc_mode <= ENC_M5)
         ctx->md_subpel_me_level = input_resolution <= INPUT_SIZE_480p_RANGE ? 1 : 2;
     else if (enc_mode <= ENC_M9)
@@ -10526,6 +10911,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
         ctx->md_subpel_me_level = is_ref ? 4 : 7;
     ctx->md_subpel_me_level += hierarchical_levels <= 2 ? 2 : 0;
     ctx->md_subpel_me_level = MIN(15, ctx->md_subpel_me_level);
+#endif
 #if OPT_SUBPEL_ME_LD
     md_subpel_me_controls(ctx, ctx->md_subpel_me_level, rtc_tune);
 #else

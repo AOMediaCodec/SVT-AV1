@@ -19,7 +19,9 @@
 
 void        set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
                                                       uint8_t block_based_depth_refinement_level);
-int         svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+#if !CLN_FUNC_DECL
+int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
+#endif
 static void mode_decision_context_dctor(EbPtr p) {
     ModeDecisionContext *obj = (ModeDecisionContext *)p;
 

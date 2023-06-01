@@ -525,7 +525,11 @@ static void tpl_subpel_search(SequenceControlSet *scs, PictureParentControlSet *
     ms_params->skip_diag_refinement = 0;
     uint8_t early_exit              = 0;
 
-    subpel_search_method(xd,
+    subpel_search_method(
+#if OPT_SPEL
+                         NULL,
+#endif
+                         xd,
                          (const struct AV1Common *const)cm,
                          ms_params,
                          subpel_start_mv,

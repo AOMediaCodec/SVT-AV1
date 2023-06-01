@@ -1203,6 +1203,7 @@ static void encode_skip_coeff_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_wr
 
     return;
 }
+#if !CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs) {
     if (!enable_filter_intra)
         return 0;
@@ -1213,7 +1214,7 @@ int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, u
     return mode == DC_PRED && palette_size == 0 &&
         svt_aom_filter_intra_allowed_bsize(enable_filter_intra, bsize);
 }
-
+#endif
 /*********************************************************************
 * encode_intra_luma_mode_av1
 *   Encodes the Intra Luma Mode
@@ -5285,7 +5286,7 @@ static void write_inter_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_
         }
     }
 }
-
+#if !CLN_FUNC_DECL
 int svt_aom_is_interintra_allowed_bsize(const BlockSize bsize) {
     return (bsize >= BLOCK_8X8) && (bsize <= BLOCK_32X32);
 }
@@ -5297,6 +5298,7 @@ int svt_aom_is_interintra_allowed_mode(const PredictionMode mode) {
 int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]) {
     return (rf[0] > INTRA_FRAME) && (rf[1] <= INTRA_FRAME);
 }
+#endif
 int svt_aom_is_interintra_allowed(const MbModeInfo *mbmi) {
     return svt_aom_is_interintra_allowed_bsize(mbmi->block_mi.sb_type) &&
         svt_aom_is_interintra_allowed_mode(mbmi->block_mi.mode) &&

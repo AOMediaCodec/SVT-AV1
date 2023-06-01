@@ -771,6 +771,12 @@ typedef enum {
 } InterpFilter;
 
 #define AV1_COMMON Av1Common
+#if OPT_SPEL
+enum {
+    SPEL_ME, //ME
+    SPEL_PME, //PME
+} UENUM1BYTE(SUBPEL_STAGE);
+#endif
 enum {
     USE_2_TAPS_ORIG = 0, // This is used in temporal filtering.
     USE_2_TAPS,

@@ -875,8 +875,9 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         return (RDCOST(lambda, rate, total_distortion));
     }
 }
-
+#if !CLN_FUNC_DECL
 extern int32_t    svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
+#endif
 static INLINE int svt_aom_has_second_ref(const MbModeInfo *mbmi) {
     return mbmi->block_mi.ref_frame[1] > INTRA_FRAME;
 }

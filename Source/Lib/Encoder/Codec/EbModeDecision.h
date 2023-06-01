@@ -209,12 +209,28 @@ static INLINE int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]
 #endif
 int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]);
+#if CLN_FUNC_DECL
+int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
+int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, uint8_t palette_size,
+                                 uint32_t mode);
 
+uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_offset,
+                                   const MeSbResults *me_results, uint8_t list_idx,
+                                   uint8_t ref_idx);
+
+int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
+uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode);
+#endif
 MotionMode svt_aom_obmc_motion_mode_allowed(const PictureControlSet    *pcs,
                                             struct ModeDecisionContext *ctx, const BlockSize bsize,
                                             uint8_t situation, MvReferenceFrame rf0,
                                             MvReferenceFrame rf1, PredictionMode mode);
-
+#if FIX_TXT
+/* For intra prediction, the chroma transform type may not follow the luma type.
+This function will return the intra chroma TX type to be used, which is based on TX size and chroma mode. */
+TxType svt_aom_get_intra_uv_tx_type(UvPredictionMode pred_mode_uv, TxSize tx_size,
+                                    int32_t reduced_tx_set);
+#endif
 void svt_aom_set_tuned_blk_lambda(struct ModeDecisionContext *ctx, PictureControlSet *pcs);
 
 typedef EbErrorType (*EB_INTRA_4x4_FAST_LUMA_COST_FUNC)(struct ModeDecisionContext  *ctx,

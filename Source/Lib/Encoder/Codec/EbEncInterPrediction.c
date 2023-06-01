@@ -29,10 +29,11 @@ void svt_aom_enc_make_inter_predictor(
     BlockSize bsize, MacroBlockD *av1xd, int32_t src_stride, int32_t dst_stride, uint8_t plane,
     const uint32_t ss_y, const uint32_t ss_x, uint8_t bit_depth, uint8_t use_intrabc,
     uint8_t is_masked_compound, uint8_t is16bit);
-
+#if !CLN_FUNC_DECL
 void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride, uint8_t *inn_bit_buffer,
                         uint32_t inn_stride, uint16_t *out16_bit_buffer, uint32_t out_stride,
                         uint32_t width, uint32_t height);
+#endif
 EbPictureBufferDesc *svt_aom_get_ref_pic_buffer(PictureControlSet *pcs, uint8_t is_highbd,
                                                 uint8_t list_idx, uint8_t ref_idx) {
     (void)is_highbd;
@@ -1925,7 +1926,11 @@ static void calc_target_weighted_pred(PictureControlSet *pcs, ModeDecisionContex
 /* perform all neigh predictions and get wighted src to be used for obmc
 motion refinement
 */
+#if CLN_FUNC_DECL
+void svt_aom_precompute_obmc_data(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+#else
 void precompute_obmc_data(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+#endif
     // cppcheck-suppress unassignedVariable
     DECLARE_ALIGNED(16, uint8_t, junk_2b[6 * MAX_MB_PLANE * MAX_SB_SQUARE]);
     uint8_t *tmp_obmc_bufs[] = {

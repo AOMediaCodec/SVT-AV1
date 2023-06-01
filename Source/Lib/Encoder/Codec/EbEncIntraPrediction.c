@@ -1021,7 +1021,11 @@ EbErrorType svt_av1_intra_prediction_cl(
     return return_error;
 }
 
+#if CLN_FUNC_DECL
+static EbErrorType intra_luma_prediction_for_interintra(
+#else
 EbErrorType  intra_luma_prediction_for_interintra(
+#endif
         ModeDecisionContext         *ctx,
         PictureControlSet           *pcs,
         InterIntraMode              interintra_mode,
@@ -1133,6 +1137,21 @@ EbErrorType  intra_luma_prediction_for_interintra(
     return return_error;
 }
 
+#if CLN_FUNC_DECL
+//for every CU, perform DC/V/H/S intra prediction to be used later in inter-intra search
+void svt_aom_precompute_intra_pred_for_inter_intra(PictureControlSet* pcs, ModeDecisionContext* ctx) {
+    uint32_t            j;
+    EbPictureBufferDesc pred_desc;
+    pred_desc.org_x = pred_desc.org_y = 0;
+    pred_desc.stride_y = ctx->blk_geom->bwidth;
+
+    for (j = 0; j < INTERINTRA_MODES; ++j) {
+        InterIntraMode interintra_mode = (InterIntraMode)j;
+        pred_desc.buffer_y = ctx->intrapred_buf[j];
+        intra_luma_prediction_for_interintra(ctx, pcs, interintra_mode, &pred_desc);
+    }
+}
+#endif
 
 EbErrorType svt_aom_update_neighbor_samples_array_open_loop_mb(
         uint8_t                            use_top_righ_bottom_left,

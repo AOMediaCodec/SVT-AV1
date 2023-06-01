@@ -113,7 +113,11 @@ extern uint64_t    svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candida
                                             uint8_t tx_depth, Bool block_has_coeff);
 
 MvJointType svt_av1_get_mv_joint(const MV *mv);
-
+#if CLN_FUNC_DECL
+int32_t svt_av1_mv_bit_cost(const MV *mv, const MV *ref, const int32_t *mvjcost, int32_t *mvcost[2],
+                            int32_t weight);
+int32_t svt_av1_mv_bit_cost_light(const MV *mv, const MV *ref);
+#endif
 static INLINE uint8_t av1_drl_ctx(const CandidateMv *ref_mv_stack, int32_t ref_idx) {
     return ref_mv_stack[ref_idx].weight >= REF_CAT_LEVEL
         ? ref_mv_stack[ref_idx + 1].weight >= REF_CAT_LEVEL ? 0 : 1

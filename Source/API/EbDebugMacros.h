@@ -140,6 +140,12 @@ extern "C" {
 #define OPT_SUB_DEPTH_ALL_EXIT                     1 // Cond0: use the nsq-to-sq cost deviation to skip sub-depth(s)
                                                      // Cond1: use the 4 quad(s) src-to-recon cost deviation to skip sub-depth(s)
 #endif
+#define CLN_TXS                                    1 // Lossless TXS cleanup
+#define CLN_MVP_ARR                                1 // clean up for the MVP array
+#define OPT_SPEL                                   1 // optimize subpel
+#define FIX_TXT                                    1 // Fix TXT restriction that prevented some allowable TX types from being searched
+#define OPT_NSQ_HIGH_COST_COMP                     1 // Skip NSQ shapes when the cost of the SQ is concentrated in either distortion or rate
+#define CLN_FUNC_DECL                              1 // Move some hanging functions declarations to appropriate header files
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

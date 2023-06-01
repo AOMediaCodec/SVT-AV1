@@ -40,9 +40,28 @@
     MULTI_LINE_MACRO_END
 
 #define SUPERRES_INVALID_STATE 0x7fffffff
-
-int  svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
-Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
+#if !CLN_FUNC_DECL
+int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
+#endif
+#if CLN_FUNC_DECL
+static Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift) {
+    MV mv;
+    //go to 1/8th if input is 1/4pel
+    mv.row = y_mv << need_shift;
+    mv.col = x_mv << need_shift;
+    /* AV1 limits
+      -16384 < MV_x_in_1/8 or MV_y_in_1/8 < 16384
+      which means in full pel:
+      -2048 < MV_x_in_full_pel or MV_y_in_full_pel < 2048
+    */
+    if (!is_mv_valid(&mv)) {
+        return FALSE;
+    }
+    return TRUE;
+}
+#else
+Bool                 check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
+#endif
 
 static INLINE int32_t derive_rmv_setting(const SequenceControlSet      *scs,
                                          const PictureParentControlSet *ppcs) {
@@ -52,7 +71,7 @@ static INLINE int32_t derive_rmv_setting(const SequenceControlSet      *scs,
                                                               : 0;
     return rmv;
 }
-
+#if !CLN_FUNC_DECL
 static INLINE int svt_aom_is_interintra_allowed_bsize(const BlockSize bsize) {
     return (bsize >= BLOCK_8X8) && (bsize <= BLOCK_32X32);
 }
@@ -64,11 +83,24 @@ static INLINE int svt_aom_is_interintra_allowed_mode(const PredictionMode mode) 
 static INLINE int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]) {
     return (rf[0] > INTRA_FRAME) && (rf[1] <= INTRA_FRAME);
 }
+#endif
 int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]) {
     return enable_inter_intra && svt_aom_is_interintra_allowed_bsize((const BlockSize)sb_type) &&
         svt_aom_is_interintra_allowed_mode(mode) && svt_aom_is_interintra_allowed_ref(ref_frame);
 }
+#if CLN_FUNC_DECL
+int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs) {
+    if (!enable_filter_intra)
+        return 0;
+    return block_size_wide[bs] <= 32 && block_size_high[bs] <= 32;
+}
+int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, uint8_t palette_size,
+                                 uint32_t mode) {
+    return mode == DC_PRED && palette_size == 0 &&
+        svt_aom_filter_intra_allowed_bsize(enable_filter_intra, bsize);
+}
+#endif
 //Given one reference frame identified by the pair (list_index,ref_index)
 //indicate if ME data is valid
 uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_offset,
@@ -98,7 +130,11 @@ uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_of
 // 3 - Regular uni-pred + Wedge compound Inter Intra + Smooth compound Inter Intra
 
 #define II_COUNT 3
+#if CLN_FUNC_DECL
+static Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+#else
 Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+#endif
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
     return frm_hdr->allow_warped_motion && has_overlappable_candidates(ctx->blk_ptr) &&
         ctx->blk_geom->bwidth >= 8 && ctx->blk_geom->bheight >= 8 && ctx->wm_ctrls.enabled &&
@@ -138,7 +174,9 @@ MotionMode svt_aom_obmc_motion_mode_allowed(
         return SIMPLE_TRANSLATION;
 }
 
+#if !CLN_FUNC_DECL
 void precompute_obmc_data(PictureControlSet *pcs, ModeDecisionContext *ctx);
+#endif
 
 //static uint32_t  AntiContouringIntraMode[11] = { EB_INTRA_PLANAR, EB_INTRA_DC, EB_INTRA_HORIZONTAL, EB_INTRA_VERTICAL,
 //EB_INTRA_MODE_2, EB_INTRA_MODE_6, EB_INTRA_MODE_14, EB_INTRA_MODE_18, EB_INTRA_MODE_22, EB_INTRA_MODE_30, EB_INTRA_MODE_34 };
@@ -153,14 +191,41 @@ static MvReferenceFrame to_ref_frame[2][4] = {
 MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx) {
     return to_ref_frame[list][ref_idx];
 };
+#if CLN_FUNC_DECL
+uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode) {
+    uint8_t max_drl = 0;
+
+    if (mode == NEWMV || mode == NEW_NEWMV) {
+        if (refmvCnt < 2)
+            max_drl = 1;
+        else if (refmvCnt == 2)
+            max_drl = 2;
+        else
+            max_drl = 3;
+    }
+
+    if (mode == NEARMV || mode == NEAR_NEARMV || mode == NEAR_NEWMV || mode == NEW_NEARMV) {
+        if (refmvCnt < 3)
+            max_drl = 1;
+        else if (refmvCnt == 3)
+            max_drl = 2;
+        else
+            max_drl = 3;
+    }
+
+    return max_drl;
+}
+#else
 extern uint32_t stage1ModesArray[];
 
 uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode);
 int32_t svt_av1_mv_bit_cost(const MV *mv, const MV *ref, const int32_t *mvjcost, int32_t *mvcost[2],
                             int32_t weight);
 int32_t svt_av1_mv_bit_cost_light(const MV *mv, const MV *ref);
+#endif
 #define MV_COST_WEIGHT 108
 #define MAX_INTERINTRA_SB_SQUARE 32 * 32
+#if !CLN_FUNC_DECL
 EbErrorType intra_luma_prediction_for_interintra(ModeDecisionContext *ctx, PictureControlSet *pcs,
                                                  InterIntraMode       interintra_mode,
                                                  EbPictureBufferDesc *prediction_ptr);
@@ -174,7 +239,7 @@ void model_rd_for_sb_with_curvfit(PictureControlSet *pcs, ModeDecisionContext *c
                                   int plane_to, int mi_row, int mi_col, int *out_rate_sum,
                                   int64_t *out_dist_sum, int *plane_rate, int64_t *plane_sse,
                                   int64_t *plane_dist);
-
+#endif
 static int64_t pick_interintra_wedge(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                      const BlockSize bsize, const uint8_t *const p0,
                                      const uint8_t *const p1, uint8_t *src_buf, uint32_t src_stride,
@@ -202,6 +267,7 @@ static int64_t pick_interintra_wedge(PictureControlSet *pcs, ModeDecisionContext
 
     return rd;
 }
+#if !CLN_FUNC_DECL
 //for every CU, perform DC/V/H/S intra prediction to be used later in inter-intra search
 void precompute_intra_pred_for_inter_intra(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     uint32_t            j;
@@ -215,11 +281,11 @@ void precompute_intra_pred_for_inter_intra(PictureControlSet *pcs, ModeDecisionC
         intra_luma_prediction_for_interintra(ctx, pcs, interintra_mode, &pred_desc);
     }
 }
-
 void svt_aom_combine_interintra(InterIntraMode mode, int8_t use_wedge_interintra, int wedge_index,
                                 int wedge_sign, BlockSize bsize, BlockSize plane_bsize,
                                 uint8_t *comppred, int compstride, const uint8_t *interpred,
                                 int interstride, const uint8_t *intrapred, int intrastride);
+#endif
 static void inter_intra_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                ModeDecisionCandidate *cand) {
     SequenceControlSet *scs = pcs->scs;
@@ -1443,7 +1509,7 @@ static void bipred_3x3_candidates_injection(const SequenceControlSet *scs, Pictu
 
     return;
 }
-
+#if !CLN_FUNC_DECL
 uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode) {
     uint8_t max_drl = 0;
 
@@ -1467,6 +1533,7 @@ uint8_t svt_aom_get_max_drl_index(uint8_t refmvCnt, PredictionMode mode) {
 
     return max_drl;
 }
+#endif
 /*********************************************************************
 **********************************************************************
         Upto 12 inter Candidated injected
@@ -4283,8 +4350,13 @@ void svt_aom_inject_inter_candidates(PictureControlSet *pcs, ModeDecisionContext
     const uint8_t is_obmc_allowed = svt_aom_obmc_motion_mode_allowed(
                                         pcs, ctx, ctx->blk_geom->bsize, 1, LAST_FRAME, -1, NEWMV) ==
         OBMC_CAUSAL;
+#if CLN_FUNC_DECL
+    if (is_obmc_allowed)
+        svt_aom_precompute_obmc_data(pcs, ctx);
+#else
     if (is_obmc_allowed)
         precompute_obmc_data(pcs, ctx);
+#endif
     /**************
          MVP
     ************* */
@@ -4335,7 +4407,25 @@ void svt_aom_inject_inter_candidates(PictureControlSet *pcs, ModeDecisionContext
     // update the total number of candidates injected
     *candidate_total_cnt = cand_total_cnt;
 }
+#if FIX_TXT
+/* For intra prediction, the chroma transform type may not follow the luma type.
+This function will return the intra chroma TX type to be used, which is based on TX size and chroma mode.
+Refer to section 5.11.40 of the AV1 spec (compute_tx_type). */
+TxType svt_aom_get_intra_uv_tx_type(UvPredictionMode pred_mode_uv, TxSize tx_size,
+                                    int32_t reduced_tx_set) {
+    if (txsize_sqr_up_map[tx_size] > TX_32X32) {
+        return DCT_DCT;
+    }
 
+    // In intra mode, uv planes don't share the same prediction mode as y
+    // plane, so the tx_type should not be shared. Pass DC_PRED as luma mode because the arguement
+    // will not be used.
+    TxType tx_type = intra_mode_to_tx_type(DC_PRED, pred_mode_uv, PLANE_TYPE_UV);
+    assert(tx_type < TX_TYPES);
+    const TxSetType tx_set_type = get_ext_tx_set_type(tx_size, /*is_inter*/ 0, reduced_tx_set);
+    return !av1_ext_tx_used[tx_set_type][tx_type] ? DCT_DCT : tx_type;
+}
+#else
 static INLINE TxType av1_get_tx_type(int32_t is_inter, PredictionMode pred_mode,
                                      UvPredictionMode pred_mode_uv, PlaneType plane_type,
                                      TxSize tx_size, int32_t reduced_tx_set) {
@@ -4350,6 +4440,7 @@ static INLINE TxType av1_get_tx_type(int32_t is_inter, PredictionMode pred_mode,
     const TxSetType tx_set_type = get_ext_tx_set_type(tx_size, is_inter, reduced_tx_set);
     return !av1_ext_tx_used[tx_set_type][tx_type] ? DCT_DCT : tx_type;
 }
+#endif
 double svt_av1_convert_qindex_to_q(int32_t qindex, EbBitDepth bit_depth);
 
 // Values are now correlated to quantizer.
@@ -4529,6 +4620,7 @@ static void intra_bc_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 2; j++) free(x->hash_value_buffer[i][j]);
 }
+#if !CLN_FUNC_DECL
 void svt_init_mv_cost_params(MV_COST_PARAMS *mv_cost_params, ModeDecisionContext *ctx,
                              const MV *ref_mv, uint8_t base_q_idx, uint32_t rdmult,
                              uint8_t hbd_md) {
@@ -4544,6 +4636,7 @@ void svt_init_mv_cost_params(MV_COST_PARAMS *mv_cost_params, ModeDecisionContext
     mv_cost_params->mvcost[0]     = ctx->md_rate_est_ctx->nmvcoststack[0];
     mv_cost_params->mvcost[1]     = ctx->md_rate_est_ctx->nmvcoststack[1];
 }
+#endif
 static void inject_intra_bc_candidates(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                        const SequenceControlSet *scs, BlkStruct *blk_ptr,
                                        uint32_t *cand_cnt) {
@@ -5262,6 +5355,11 @@ void  inject_palette_candidates(
         else
 #endif
             cand_array[can_total_cnt].transform_type_uv =
+#if FIX_TXT
+            svt_aom_get_intra_uv_tx_type(cand_array[can_total_cnt].intra_chroma_mode,
+                ctx->blk_geom->txsize_uv[0][0],
+                pcs->ppcs->frm_hdr.reduced_tx_set);
+#else
             av1_get_tx_type(
                 0, // is_inter
                 cand_array[can_total_cnt].pred_mode,
@@ -5269,6 +5367,7 @@ void  inject_palette_candidates(
                 PLANE_TYPE_UV,
                 ctx->blk_geom->txsize_uv[0][0],
                 pcs->ppcs->frm_hdr.reduced_tx_set);
+#endif
         cand_array[can_total_cnt].ref_frame_type = INTRA_FRAME;
         cand_array[can_total_cnt].motion_mode = SIMPLE_TRANSLATION;
         INC_MD_CAND_CNT (can_total_cnt,pcs->ppcs->max_can_count);

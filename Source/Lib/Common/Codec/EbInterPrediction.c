@@ -23,7 +23,11 @@
 #define SCALE_SUBPEL_MASK (SCALE_SUBPEL_SHIFTS - 1)
 #define SCALE_EXTRA_BITS (SCALE_SUBPEL_BITS - SUBPEL_BITS)
 
+#if CLN_FUNC_DECL
+void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride,
+#else
 extern void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride,
+#endif
                                uint8_t *inn_bit_buffer, uint32_t inn_stride,
                                uint16_t *out16_bit_buffer, uint32_t out_stride, uint32_t width,
                                uint32_t height) {

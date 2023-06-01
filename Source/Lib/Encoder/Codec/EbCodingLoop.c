@@ -31,7 +31,9 @@
 #include "EbEncInterPrediction.h"
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
-int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+#if !CLN_FUNC_DECL
+int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
+#endif
 uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t sq_size,
                                  const uint8_t disallow_nsq);
 

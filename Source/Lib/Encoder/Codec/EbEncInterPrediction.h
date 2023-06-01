@@ -94,6 +94,21 @@ EbErrorType svt_aom_warped_motion_prediction(
     EbWarpedMotionParams *wm_params_l0, EbWarpedMotionParams *wm_params_l1, uint8_t bit_depth,
     Bool perform_chroma, Bool is_encode_pass);
 
+#if CLN_FUNC_DECL
+void svt_aom_precompute_obmc_data(PictureControlSet *pcs, struct ModeDecisionContext *ctx);
+
+int64_t pick_wedge_fixed_sign(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                              const BlockSize bsize, const int16_t *const residual1,
+                              const int16_t *const diff10, const int8_t wedge_sign,
+                              int8_t *const best_wedge_index);
+
+void model_rd_for_sb_with_curvfit(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                  BlockSize bsize, int bw, int bh, uint8_t *src_buf,
+                                  uint32_t src_stride, uint8_t *pred_buf, uint32_t pred_stride,
+                                  int plane_from, int plane_to, int mi_row, int mi_col,
+                                  int *out_rate_sum, int64_t *out_dist_sum, int *plane_rate,
+                                  int64_t *plane_sse, int64_t *plane_dist);
+#endif
 const uint8_t *svt_av1_get_obmc_mask(int length);
 
 void model_rd_from_sse(BlockSize bsize, int16_t quantizer, uint8_t bit_depth, uint64_t sse,

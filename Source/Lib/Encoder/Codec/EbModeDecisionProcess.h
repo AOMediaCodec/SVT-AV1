@@ -421,6 +421,10 @@ typedef struct MdSubPelSearchCtrls {
     // Specifies whether the Sub-Pel search will be performed for around (0,0) or not (0: OFF, 1:
     // ON)
     uint8_t skip_zz_mv;
+#if OPT_SPEL
+    uint8_t min_blk_sz; //blk size below which we skip subpel
+    uint8_t mvp_th; // when > 0, use mvp info to skip hpel search. skip if ME is  worse than MVP.
+#endif
 } MdSubPelSearchCtrls;
 typedef struct ParentSqCmplxCtrls {
     Bool enabled;
@@ -650,8 +654,13 @@ typedef struct DepthEarlyExitCtrls {
 } DepthEarlyExitCtrls;
 typedef struct TxsControls {
     uint8_t enabled;
+#if CLN_TXS
+    // Skip current depth if previous depth has coeff count below the TH
+    uint8_t prev_depth_coeff_exit_th;
+#else
     // Skip current depth if previous depth has no coeff
     uint8_t prev_depth_coeff_exit;
+#endif
     // Max number of depth(s) for INTRA classes in SQ blocks
     uint8_t intra_class_max_depth_sq;
     // Max number of depth(s) for INTRA classes in NSQ blocks

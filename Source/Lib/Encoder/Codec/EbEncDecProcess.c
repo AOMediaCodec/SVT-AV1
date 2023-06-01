@@ -29,8 +29,11 @@
 #include "EncModeConfig.h"
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
-int  svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+#if !CLN_FUNC_DECL
+int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
+#endif
 void copy_mv_rate(PictureControlSet *pcs, MdRateEstimationContext *dst_rate);
+#if !CLN_FUNC_DECL
 void svt_av1_cdef_search(EncDecContext *ed_ctx, SequenceControlSet *scs, PictureControlSet *pcs);
 
 void av1_cdef_frame16bit(uint8_t is_16bit, SequenceControlSet *scs, PictureControlSet *pCs);
@@ -44,6 +47,7 @@ void svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *c
                                            int32_t optimized_lr);
 extern void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr,
                                   Bool is_highbd);
+#endif
 void        svt_c_unpack_compressed_10bit(const uint8_t *inn_bit_buffer, uint32_t inn_stride,
                                           uint8_t *in_compn_bit_buffer, uint32_t out_stride,
                                           uint32_t height);
@@ -425,6 +429,103 @@ static Bool assign_enc_dec_segments(EncDecSegments *segmentPtr, uint16_t *segmen
 
     return continue_processing_flag;
 }
+#if CLN_FUNC_DECL
+static void svt_av1_add_film_grain(EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
+                                   AomFilmGrain *film_grain_ptr) {
+    uint8_t *luma, *cb, *cr;
+    int32_t  height, width, luma_stride, chroma_stride;
+    int32_t  use_high_bit_depth = 0;
+    int32_t  chroma_subsamp_x   = 0;
+    int32_t  chroma_subsamp_y   = 0;
+
+    AomFilmGrain params = *film_grain_ptr;
+
+    switch (src->bit_depth) {
+    case EB_EIGHT_BIT:
+        params.bit_depth   = 8;
+        use_high_bit_depth = 0;
+        chroma_subsamp_x   = 1;
+        chroma_subsamp_y   = 1;
+        break;
+    case EB_TEN_BIT:
+        params.bit_depth   = 10;
+        use_high_bit_depth = 1;
+        chroma_subsamp_x   = 1;
+        chroma_subsamp_y   = 1;
+        break;
+    default: //todo: Throw an error if unknown format?
+        params.bit_depth   = 10;
+        use_high_bit_depth = 1;
+        chroma_subsamp_x   = 1;
+        chroma_subsamp_y   = 1;
+    }
+
+    dst->max_width  = src->max_width;
+    dst->max_height = src->max_height;
+
+    svt_aom_fgn_copy_rect(
+        src->buffer_y + ((src->org_y * src->stride_y + src->org_x) << use_high_bit_depth),
+        src->stride_y,
+        dst->buffer_y + ((dst->org_y * dst->stride_y + dst->org_x) << use_high_bit_depth),
+        dst->stride_y,
+        dst->width,
+        dst->height,
+        use_high_bit_depth);
+
+    svt_aom_fgn_copy_rect(
+        src->buffer_cb +
+            ((src->stride_cb * (src->org_y >> chroma_subsamp_y) + (src->org_x >> chroma_subsamp_x))
+             << use_high_bit_depth),
+        src->stride_cb,
+        dst->buffer_cb +
+            ((dst->stride_cb * (dst->org_y >> chroma_subsamp_y) + (dst->org_x >> chroma_subsamp_x))
+             << use_high_bit_depth),
+        dst->stride_cb,
+        dst->width >> chroma_subsamp_x,
+        dst->height >> chroma_subsamp_y,
+        use_high_bit_depth);
+
+    svt_aom_fgn_copy_rect(
+        src->buffer_cr +
+            ((src->stride_cr * (src->org_y >> chroma_subsamp_y) + (src->org_x >> chroma_subsamp_x))
+             << use_high_bit_depth),
+        src->stride_cr,
+        dst->buffer_cr +
+            ((dst->stride_cr * (dst->org_y >> chroma_subsamp_y) + (dst->org_x >> chroma_subsamp_x))
+             << use_high_bit_depth),
+        dst->stride_cr,
+        dst->width >> chroma_subsamp_x,
+        dst->height >> chroma_subsamp_y,
+        use_high_bit_depth);
+
+    luma = dst->buffer_y + ((dst->org_y * dst->stride_y + dst->org_x) << use_high_bit_depth);
+    cb   = dst->buffer_cb +
+        ((dst->stride_cb * (dst->org_y >> chroma_subsamp_y) + (dst->org_x >> chroma_subsamp_x))
+         << use_high_bit_depth);
+    cr = dst->buffer_cr +
+        ((dst->stride_cr * (dst->org_y >> chroma_subsamp_y) + (dst->org_x >> chroma_subsamp_x))
+         << use_high_bit_depth);
+
+    luma_stride   = dst->stride_y;
+    chroma_stride = dst->stride_cb;
+
+    width  = dst->width;
+    height = dst->height;
+
+    svt_av1_add_film_grain_run(&params,
+                               luma,
+                               cb,
+                               cr,
+                               height,
+                               width,
+                               luma_stride,
+                               chroma_stride,
+                               use_high_bit_depth,
+                               chroma_subsamp_y,
+                               chroma_subsamp_x);
+    return;
+}
+#endif
 void svt_aom_recon_output(PictureControlSet *pcs, SequenceControlSet *scs) {
     EncodeContext *enc_ctx = scs->enc_ctx;
     // The totalNumberOfReconFrames counter has to be write/read protected as
@@ -3935,7 +4036,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
     }
     return NULL;
 }
-
+#if !CLN_FUNC_DECL
 void svt_av1_add_film_grain(EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
                             AomFilmGrain *film_grain_ptr) {
     uint8_t *luma, *cb, *cr;
@@ -4031,3 +4132,4 @@ void svt_av1_add_film_grain(EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
                                chroma_subsamp_x);
     return;
 }
+#endif

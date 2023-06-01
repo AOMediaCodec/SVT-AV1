@@ -21,7 +21,9 @@
 #include "EbInterPrediction.h"
 #include "aom_dsp_rtcd.h"
 
-int svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+#if !CLN_FUNC_DECL
+int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
+#endif
 #if FTR_ROI
 int  svt_av1_get_spatial_seg_prediction(PictureControlSet *pcs, MacroBlockD *xd, uint32_t blk_org_x,
                                         uint32_t blk_org_y, int *cdf_index);
@@ -32,7 +34,9 @@ void svt_av1_update_segmentation_map(PictureControlSet *pcs, BlockSize bsize, ui
 #define MVREF_ROWS 3
 #define MVREF_COLS 3
 
+#if !CLN_FUNC_DECL
 extern int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
+#endif
 
 typedef struct position {
     int32_t row;
