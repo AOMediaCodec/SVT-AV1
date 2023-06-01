@@ -998,7 +998,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
 #endif
     // Set hme-based me sr adjustment level
     if (pcs->sc_class1)
+#if OPT_LD_M9_SC
+        if (enc_mode <= ENC_M8)
+#else
         if (enc_mode <= ENC_M9)
+#endif
             svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 4);
         else
             svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 5);
@@ -13276,7 +13280,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     } else {
         if (rtc_tune) {
             if (pcs->ppcs->sc_class1) {
+#if OPT_LD_M9_SC
+                if (enc_mode <= ENC_M9)
+#else
                 if (enc_mode <= ENC_M8)
+#endif
                     pcs->vq_ctrls.detect_high_freq_lvl = 1;
                 else
                     pcs->vq_ctrls.detect_high_freq_lvl = 0;

@@ -257,6 +257,7 @@ extern "C" {
 #define FIX_DEADLOCK            1 // Deadlock Fix
 #define OPT_LD_M12_SC           1
 #define OPT_LD_M8_SC            1
+#define OPT_LD_M9_SC            1
 #define OPT_LD_SC_PRESETS       1
 #define OPT_LD_SC_RC            1
 //FOR DEBUGGING - Do not remove
