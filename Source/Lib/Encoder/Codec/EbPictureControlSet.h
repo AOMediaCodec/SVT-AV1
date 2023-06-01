@@ -417,6 +417,9 @@ typedef struct PictureControlSet {
     uint8_t  spatial_sse_full_loop_level;
     uint8_t  psq_cplx_lvl;
     uint32_t sq_weight;
+#if OPT_SQ_WEIGHT
+    uint32_t hv_weight;
+#endif
     uint32_t max_part0_to_part1_dev;
     // if true, skip H4/V4 shapes when best partition so far is not H/V
     uint32_t skip_hv4_on_best_part;

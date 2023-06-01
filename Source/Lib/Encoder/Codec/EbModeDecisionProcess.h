@@ -601,6 +601,9 @@ typedef struct NsqCtrls {
     // b shapes should be skipped. Namely: skip HA, HB, and H4 if h_cost > (weighted sq_cost) skip
     // VA, VB, and V4 if v_cost > (weighted sq_cost)
     uint32_t sq_weight;
+#if OPT_SQ_WEIGHT
+    uint32_t hv_weight;
+#endif
     // max_part0_to_part1_dev is used to:
     // (1) skip the H_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 2nd quadrant) and the Parent-SQ src-to-recon distortion of (3rd quadrant + 4th quadrant) is less than TH,
     // (2) skip the V_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 3rd quadrant) and the Parent-SQ src-to-recon distortion of (2nd quadrant + 4th quadrant) is less than TH.
@@ -1179,6 +1182,9 @@ typedef struct ModeDecisionContext {
     uint8_t     *left_txfm_context;
     // square cost weighting for deciding if a/b shapes could be skipped
     uint32_t sq_weight;
+#if OPT_SQ_WEIGHT
+    uint32_t hv_weight;
+#endif
     uint32_t max_part0_to_part1_dev;
     // if true, skip H4/V4 shapes when best partition so far is not H/V
     uint32_t       skip_hv4_on_best_part;

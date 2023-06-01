@@ -8087,7 +8087,11 @@ static INLINE void update_fast_luma_rate(ModeDecisionContext         *ctx,
 
 static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                                    ModeDecisionCandidateBuffer *cand_bf,
+#if FIX_ISSUE_2070
+                                                   ModeDecisionCandidate *cand) {
+#else
                                                    ModeDecisionCandidate *cand, int *refined) {
+#endif
     MdStage warp_refine_mds = ctx->wm_ctrls.refine_level == 1 ? MD_STAGE_1
         : ctx->wm_ctrls.refine_level == 2                     ? MD_STAGE_3
                                                               : INVALID_MD_STAGE;
@@ -8126,12 +8130,25 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
                                              ctx->wm_ctrls.lower_band_th,
                                              ctx->wm_ctrls.upper_band_th,
                                              ctx->wm_ctrls.shut_approx_if_not_mds0);
-        }
+#if FIX_ISSUE_2070
+#if CLN_OBMC_WARP
+            if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int) {
+                update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
+                cand_bf->valid_pred = 0;
+            }
+#else
+            if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int)
+                update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
 
+            cand_bf->valid_pred = 0;
+#endif
+#endif
+        }
+#if !FIX_ISSUE_2070
         if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int)
             update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
-
         *refined = 1;
+#endif
     }
     MdStage obmc_refine_mds = (ctx->obmc_ctrls.refine_level == 1 ||
                                ctx->obmc_ctrls.refine_level == 2)
@@ -8153,11 +8170,20 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
 
         svt_aom_obmc_motion_refinement(
             pcs, ctx, cand_bf->cand, list_idx, ctx->obmc_ctrls.refine_level);
-
+#if CLN_OBMC_WARP
+        if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int) {
+            update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
+            cand_bf->valid_pred = 0;
+        }
+#else
         if (default_mv.as_int != cand_bf->cand->mv[list_idx].as_int)
             update_fast_luma_rate(ctx, cand_bf, cand, default_mv, default_ref_mv, list_idx);
-
+#if FIX_ISSUE_2070
+        cand_bf->valid_pred = 0;
+#else
         *refined = 1;
+#endif
+#endif
     }
 }
 static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
@@ -8187,9 +8213,14 @@ static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecis
     // Set Skip Flag
     cand->skip_mode = FALSE;
     if (is_inter_mode(cand->pred_mode)) {
+#if FIX_ISSUE_2070
+        opt_non_translation_motion_mode(pcs, ctx, cand_bf, cand);
+        if (ctx->mds_do_inter_pred || cand_bf->valid_pred == 0) {
+#else
         int refined = 0;
         opt_non_translation_motion_mode(pcs, ctx, cand_bf, cand, &refined);
         if (ctx->mds_do_inter_pred || refined || cand_bf->valid_pred == 0) {
+#endif
             // Perform INTER prediction
             svt_product_prediction_fun_table[1](ctx->hbd_md, ctx, pcs, cand_bf);
             cand_bf->valid_pred = 1;
@@ -12223,7 +12254,11 @@ static uint8_t update_skip_nsq_shapes(ModeDecisionContext *ctx) {
                 //compute the cost of V partition
                 const uint64_t v_cost = local_cu_unit[sqi + 3].default_cost +
                     local_cu_unit[sqi + 4].default_cost;
+#if OPT_SQ_WEIGHT
+                const uint32_t v_weight = ctx->nsq_ctrls.hv_weight;
+#else
                 const uint32_t v_weight = 110;
+#endif
 
                 //if the cost of H partition is bigger than the V partition by a certain percentage
                 skip_nsq = (h_cost > ((v_cost * v_weight) / 100));
@@ -12256,7 +12291,11 @@ static uint8_t update_skip_nsq_shapes(ModeDecisionContext *ctx) {
             if (!skip_nsq && ctx->avail_blk_flag[sqi + 1] && ctx->avail_blk_flag[sqi + 2]) {
                 const uint64_t h_cost = local_cu_unit[sqi + 1].default_cost +
                     local_cu_unit[sqi + 2].default_cost;
+#if OPT_SQ_WEIGHT
+                const uint32_t h_weight = ctx->nsq_ctrls.hv_weight;
+#else
                 const uint32_t h_weight = 110;
+#endif
 
                 //if the cost of V partition is bigger than the H partition by a certain percentage
                 skip_nsq = (v_cost > ((h_cost * h_weight) / 100));

@@ -2294,6 +2294,50 @@ extern int32_t svt_av1_get_pred_context_switchable_interp(
     NeighborArrayUnit32 *interpolation_type_na, uint32_t blk_org_x, uint32_t blk_org_y,
     int32_t dir);
 
+#if FIX_IFS_PATH
+#if CLN_IFS_PATH
+static int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf,
+                                           const FrameHeader *const     frm_hdr,
+                                           ModeDecisionContext *        ctx,
+                                           const bool                   enable_dual_filter) {
+    if (frm_hdr->interpolation_filter == SWITCHABLE) {
+#else
+static int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf,
+                                           const Av1Common *const cm, ModeDecisionContext *ctx,
+                                           const bool enable_dual_filter) {
+    if (cm->interp_filter == SWITCHABLE) {
+#endif
+        int32_t   inter_filter_cost = 0;
+        const int max_dir           = enable_dual_filter ? 2 : 1;
+        for (int dir = 0; dir < max_dir; ++dir) {
+            MvReferenceFrame rf[2];
+            av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
+#if CLN_IFS_PATH
+            const int32_t pred_ctx = svt_aom_get_pred_context_switchable_interp(
+                rf[0], rf[1], ctx->blk_ptr->av1xd, dir);
+#else
+            const int32_t pred_ctx = svt_av1_get_pred_context_switchable_interp_v2(
+                rf[0], rf[1], ctx->blk_ptr->av1xd, dir);
+#endif
+
+            const InterpFilter filter = av1_extract_interp_filter(
+                /*mbmi*/ cand_bf->cand->interp_filters, dir);
+            assert(pred_ctx < SWITCHABLE_FILTER_CONTEXTS);
+            assert(filter < SWITCHABLE_FILTERS);
+            inter_filter_cost +=
+                /*x->switchable_interp_costs*/ ctx->md_rate_est_ctx
+                    ->switchable_interp_fac_bitss[pred_ctx][filter];
+        }
+#if CLN_IFS_PATH
+        return inter_filter_cost;
+#else
+        return SWITCHABLE_INTERP_RATE_FACTOR * inter_filter_cost;
+#endif
+    }
+
+    return 0;
+}
+#else
 int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf, const Av1Common *const cm,
                                     ModeDecisionContext *ctx) {
     if (cm->interp_filter == SWITCHABLE) {
@@ -2319,6 +2363,7 @@ int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf, const 
     } else
         return 0;
 }
+#endif
 
 static void model_rd_norm(int32_t xsq_q10, int32_t *r_q10, int32_t *d_q10) {
     // NOTE: The tables below must be of the same size.
@@ -2621,7 +2666,11 @@ static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionCont
                     /*mbmi*/ cand_bf->cand->interp_filters = (InterpFilter)av1_make_interp_filters(
                         (InterpFilter)filter_sets[i][0], (InterpFilter)filter_sets[i][1]);
 
+#if FIX_IFS_PATH
+                    const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx, 1);
+#else
                     const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx);
+#endif
                     svt_aom_inter_prediction(
                         scs,
                         pcs,
@@ -2683,7 +2732,11 @@ static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionCont
                     /*mbmi*/ cand_bf->cand->interp_filters = av1_make_interp_filters(
                         (InterpFilter)filter_sets[i][0], (InterpFilter)filter_sets[i][1]);
 
+#if FIX_IFS_PATH
+                    const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx, 1);
+#else
                     const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx);
+#endif
                     svt_aom_inter_prediction(
                         scs,
                         pcs,
@@ -2748,10 +2801,19 @@ static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionCont
                     /*mbmi*/ cand_bf->cand->interp_filters = av1_make_interp_filters(
                         (InterpFilter)filter_sets[i][0], (InterpFilter)filter_sets[i][1]);
 
+#if FIX_IFS_PATH
+                    const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx, 0);
+#else
                     const int32_t tmp_rs = svt_av1_get_switchable_rate(cand_bf, cm, ctx);
+#endif
                     // Skip the prediction for regular if MDS1 or higher (since previously performed
                     // @ mds0), and EB_EIGHT_BIT (to do for EB_TEN_BIT)
-                    uint8_t is_pred_buffer_ready = (i == 0 && ctx->md_stage > MD_STAGE_0 &&
+#if FIX_IFS_PATH
+                    uint8_t is_pred_buffer_ready = (cand_bf->valid_pred && i == 0 &&
+                                                    ctx->md_stage > MD_STAGE_0 &&
+#else
+                    uint8_t       is_pred_buffer_ready = (i == 0 && ctx->md_stage > MD_STAGE_0 &&
+#endif
                                                     scs->static_config.encoder_bit_depth ==
                                                         EB_EIGHT_BIT);
 
@@ -2827,7 +2889,9 @@ static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionCont
             /*mbmi*/ cand_bf->cand->interp_filters = best_filters;
         } else {
             cand_bf->cand->interp_filters = 0;
+#if !FIX_IFS_PATH
             switchable_rate               = svt_av1_get_switchable_rate(cand_bf, cm, ctx);
+#endif
         }
         // If filters are non-zero, cannot use skip_mode. Opt to use IFS over skip_mode.
         if (cand_bf->cand->skip_mode_allowed && cand_bf->cand->interp_filters != 0)
@@ -4329,6 +4393,9 @@ static uint8_t inter_chroma_4xn_pred(PictureControlSet *pcs, MacroBlockD *xd,
     ModeInfo *mi_ptr                   = xd->mi[0];
     mi_ptr->mbmi.block_mi.use_intrabc  = use_intrabc;
     mi_ptr->mbmi.block_mi.ref_frame[0] = rf[0];
+#if FIX_IFS_PATH
+    mi_ptr->mbmi.block_mi.interp_filters = interp_filters;
+#endif
     if (mv_unit->pred_direction == UNI_PRED_LIST_0) {
         mi_ptr->mbmi.block_mi.mv[0].as_mv.col = mv_unit->mv[REF_LIST_0].x;
         mi_ptr->mbmi.block_mi.mv[0].as_mv.row = mv_unit->mv[REF_LIST_0].y;
@@ -4448,7 +4515,11 @@ static uint8_t inter_chroma_4xn_pred(PictureControlSet *pcs, MacroBlockD *xd,
                                                  this_mbmi->block_mi.mv[0].as_mv,
                                                  sf,
                                                  conv_params_cb,
+#if FIX_IFS_PATH
+                                                 this_mbmi->block_mi.interp_filters,
+#else
                                                  interp_filters,
+#endif
                                                  interinter_comp,
                                                  NULL,
                                                  ref_pic->width,
@@ -4493,7 +4564,11 @@ static uint8_t inter_chroma_4xn_pred(PictureControlSet *pcs, MacroBlockD *xd,
                                                  this_mbmi->block_mi.mv[0].as_mv,
                                                  sf,
                                                  conv_params_cr,
+#if FIX_IFS_PATH
+                                                 this_mbmi->block_mi.interp_filters,
+#else
                                                  interp_filters,
+#endif
                                                  interinter_comp,
                                                  NULL,
                                                  ref_pic->width,
@@ -5745,10 +5820,12 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
     uint32_t interp_filters_0 = cand_bf->cand->interp_filters;
     if (ctx->ifs_ctrls.level != IFS_OFF) {
         if (ctx->mds_skip_ifs == FALSE) {
+#if !FIX_IFS_PATH
             // ON for 8x8 and above
             uint16_t capped_size = 4;
 
             if (ctx->blk_geom->bwidth > capped_size && ctx->blk_geom->bheight > capped_size) {
+#endif
                 if (ctx->hbd_md == EB_DUAL_BIT_MD && hbd_md == EB_DUAL_BIT_MD) {
                     if (ref_idx_l0 >= 0)
                         ref_pic_list0 = svt_aom_get_ref_pic_buffer(pcs, 0, list_idx0, ref_idx_l0);
@@ -5814,7 +5891,9 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
                     if (ref_idx_l1 >= 0)
                         ref_pic_list1 = svt_aom_get_ref_pic_buffer(pcs, 1, list_idx1, ref_idx_l1);
                 }
+#if !FIX_IFS_PATH
             }
+#endif
         }
     }
     uint32_t           interp_filters_1 = cand_bf->cand->interp_filters;
@@ -5837,7 +5916,11 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
         : PICTURE_BUFFER_DESC_FULL_MASK;
 
     // Skip luma prediction if
+#if FIX_IFS_PATH
+    if (ctx->md_stage >= MD_STAGE_1 && cand_bf->valid_pred &&
+#else
     if (ctx->md_stage >= MD_STAGE_1 &&
+#endif
         interp_filters_0 == interp_filters_1) { // already performed and IFS did not change it
         if (component_mask == PICTURE_BUFFER_DESC_FULL_MASK && !ctx->need_hbd_comp_mds3) {
             if (cand_bf->cand->motion_mode == SIMPLE_TRANSLATION &&

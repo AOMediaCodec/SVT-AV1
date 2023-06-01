@@ -163,6 +163,12 @@ extern "C" {
 #define FIX_ME_HME_PRUNE_CTRLS                     1 // fix missing break in me_hme_prune_ctrls, re-adjust levels
 #define OPT_INTRA_LEVELS                           1 // Optimize intra levels used for M0-M3
 
+#define FIX_NSQ_COEFF_ACTION                      1 // fix onion ring for nsq coeff action
+#define FIX_IFS_PATH                              1 // Allow IFS for <8x8 blocks and fix IFS rate calc
+
+#define OPT_SQ_WEIGHT                             1 // Optimize sq-weight
+#define FIX_ISSUE_2070                            1 // Fix issue #2070
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
