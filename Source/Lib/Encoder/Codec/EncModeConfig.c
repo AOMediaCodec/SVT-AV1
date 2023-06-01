@@ -1845,21 +1845,65 @@ static void svt_aom_set_sg_filter_ctrls(Av1Common *cm, uint8_t sg_filter_lvl) {
         ctrls->enabled    = 1;
         ctrls->use_chroma = 1;
         ctrls->step_range = 16;
+#if OPT_SG
+        ctrls->start_ep[0] = 0;
+        ctrls->end_ep[0]   = 16;
+        ctrls->ep_inc[0]   = 1;
+        ctrls->start_ep[1] = 0;
+        ctrls->end_ep[1]   = 16;
+        ctrls->ep_inc[1]   = 1;
+        ctrls->refine[0]   = 1;
+        ctrls->refine[1]   = 1;
+#endif
         break;
     case 2:
         ctrls->enabled    = 1;
         ctrls->use_chroma = 1;
+#if OPT_SG
+        ctrls->step_range  = 16;
+        ctrls->start_ep[0] = 0;
+        ctrls->end_ep[0]   = 16;
+        ctrls->ep_inc[0]   = 1;
+        ctrls->start_ep[1] = 4;
+        ctrls->end_ep[1]   = 5;
+        ctrls->ep_inc[1]   = 1;
+        ctrls->refine[0]   = 1;
+        ctrls->refine[1]   = 0;
+#else
         ctrls->step_range = 4;
+#endif
         break;
     case 3:
         ctrls->enabled    = 1;
         ctrls->use_chroma = 1;
+#if OPT_SG
+        ctrls->step_range  = 16;
+        ctrls->start_ep[0] = 0;
+        ctrls->end_ep[0]   = 16;
+        ctrls->ep_inc[0]   = 8;
+        ctrls->start_ep[1] = 4;
+        ctrls->end_ep[1]   = 5;
+        ctrls->ep_inc[1]   = 1;
+        ctrls->refine[0]   = 1;
+        ctrls->refine[1]   = 0;
+#else
         ctrls->step_range = 1;
+#endif
         break;
     case 4:
         ctrls->enabled    = 1;
         ctrls->use_chroma = 1;
         ctrls->step_range = 0;
+#if OPT_SG
+        ctrls->start_ep[0] = 0;
+        ctrls->end_ep[0]   = 16;
+        ctrls->ep_inc[0]   = 1;
+        ctrls->start_ep[1] = 0;
+        ctrls->end_ep[1]   = 16;
+        ctrls->ep_inc[1]   = 1;
+        ctrls->refine[0]   = 1;
+        ctrls->refine[1]   = 1;
+#endif
         break;
     default: assert(0); break;
     }
@@ -1888,17 +1932,34 @@ static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, Bool fast_decode,
                                            uint8_t input_resolution, Bool is_base) {
     uint8_t sg_filter_lvl = 0;
     if (fast_decode == 0) {
+#if OPT_SG
+        if (enc_mode <= ENC_M0)
+            sg_filter_lvl = 1;
+#if !TUNE_M1_2
+        else if (enc_mode <= ENC_M1)
+            sg_filter_lvl = 2;
+#endif
+        else if (enc_mode <= ENC_M4)
+            sg_filter_lvl = 3;
+        else
+            sg_filter_lvl = 0;
+#else
         if (enc_mode <= ENC_M2)
             sg_filter_lvl = 1;
         else if (enc_mode <= ENC_M4)
             sg_filter_lvl = is_base ? 1 : 4;
         else
             sg_filter_lvl = 0;
+#endif
     } else {
         if (enc_mode <= ENC_M2)
             sg_filter_lvl = input_resolution <= INPUT_SIZE_360p_RANGE ? 1 : 0;
         else if (enc_mode <= ENC_M4)
+#if TUNE_M4_FD
+            sg_filter_lvl = input_resolution <= INPUT_SIZE_360p_RANGE ? (is_base ? 1 : 3) : 0;
+#else
             sg_filter_lvl = input_resolution <= INPUT_SIZE_360p_RANGE ? (is_base ? 1 : 4) : 0;
+#endif
         else if (enc_mode <= ENC_M5)
             sg_filter_lvl = input_resolution <= INPUT_SIZE_360p_RANGE ? (is_base ? 1 : 0) : 0;
         else
@@ -2242,7 +2303,9 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     //TODO: we can force all frames in GOP with the same detection status of leading I frame.
     uint8_t intrabc_level = 0;
     if (is_islice) {
+#if !FIX_SCT
         frm_hdr->allow_screen_content_tools = sc_class1;
+#endif
         if (scs->intrabc_mode == DEFAULT) {
             if (rtc_tune) {
                 intrabc_level = 0;
@@ -2263,13 +2326,19 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         }
     } else {
         //this will enable sc tools for P frames. hence change Bitstream even if palette mode is OFF
+#if !FIX_SCT
         frm_hdr->allow_screen_content_tools = sc_class1;
+#endif
         intrabc_level                       = 0;
     }
     set_intrabc_level(pcs, scs, intrabc_level);
     frm_hdr->allow_intrabc = pcs->intraBC_ctrls.enabled;
     // Set palette_level
+#if FIX_SCT
+    if (sc_class1) {
+#else
     if (frm_hdr->allow_screen_content_tools) {
+#endif
         if (scs->palette_level == DEFAULT) { //auto mode; if not set by cfg
             if (rtc_tune)
                 pcs->palette_level = is_islice && sc_class1 ? 3 : is_islice ? 2 : 0;
@@ -2295,6 +2364,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
                                   rtc_tune,
                                   sc_class1);
     }
+
+#if FIX_SCT
+    frm_hdr->allow_screen_content_tools = sc_class1 && pcs->palette_level > 0 ? 1 : 0;
+#endif
+
     svt_aom_set_dlf_controls(pcs, dlf_level, bit_depth);
 
     // Set CDEF controls
@@ -9711,7 +9785,31 @@ static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
             }
         }
         break;
+#if OPT_INTRA_LEVELS
     case 3:
+        ctrls->enable_intra       = 1;
+        ctrls->intra_mode_end     = PAETH_PRED;
+        ctrls->angular_pred_level = 2;
+
+        // Only use TPL info if all INTRA modes are tested
+        if (ppcs->tpl_ctrls.enable && ppcs->tpl_ctrls.intra_mode_end == PAETH_PRED) {
+            int            sb_ang_intra_count;
+            PredictionMode sb_max_intra;
+            if (get_sb_tpl_intra_stats(pcs, ctx, &sb_ang_intra_count, &sb_max_intra)) {
+                // if SB has angluar modes, use full search
+                if (sb_ang_intra_count) {
+                    ctrls->angular_pred_level = 1;
+                } else {
+                    ctrls->angular_pred_level = 3;
+                }
+                ctrls->intra_mode_end = sb_max_intra;
+            }
+        }
+        break;
+    case 4:
+#else
+    case 3:
+#endif
         ctrls->enable_intra       = 1;
         ctrls->intra_mode_end     = SMOOTH_H_PRED;
         ctrls->angular_pred_level = 3;
@@ -9742,12 +9840,20 @@ static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
             }
         }
         break;
+#if OPT_INTRA_LEVELS
+    case 5:
+#else
     case 4:
+#endif
         ctrls->enable_intra       = 1;
         ctrls->intra_mode_end     = SMOOTH_PRED;
         ctrls->angular_pred_level = 4;
         break;
+#if OPT_INTRA_LEVELS
+    case 6:
+#else
     case 5:
+#endif
         ctrls->enable_intra       = 1;
         ctrls->intra_mode_end     = DC_PRED;
         ctrls->angular_pred_level = 0;
@@ -10658,11 +10764,17 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet *pcs, ModeDecisionCon
     set_pf_controls(ctx, pf_level);
 
     uint8_t intra_level = 0;
+#if OPT_INTRA_LEVELS
+    if (lpd1_level <= LPD1_LVL_2)
+        intra_level = 5;
+    else
+        intra_level = 6;
+#else
     if (lpd1_level <= LPD1_LVL_2)
         intra_level = 4;
     else
         intra_level = 5;
-
+#endif
     set_intra_ctrls(pcs, ctx, intra_level);
 #if OPT_BIAS_PARENT
     ctx->d2_parent_bias = 995;
@@ -10955,6 +11067,40 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     else
         ctx->shut_fast_rate = FALSE;
 
+#if OPT_INTRA_LEVELS
+    // intra_level must be greater than 0 for I_SLICE
+    uint8_t intra_level = 0;
+    if (pd_pass == PD_PASS_0) {
+        intra_level = 6;
+    } else if (rtc_tune) {
+        if (enc_mode <= ENC_M9)
+            intra_level = (is_islice || ppcs->transition_present == 1) ? 1 : 5;
+        else
+            intra_level = (is_islice || ppcs->transition_present == 1) ? 4 : 5;
+    } else if (enc_mode <= ENC_MR)
+        intra_level = 1;
+    else if (enc_mode <= ENC_M0)
+        intra_level = is_base ? 1 : 2;
+#if TUNE_M2_FD
+    else if (enc_mode <= ENC_M1)
+#else
+    else if (enc_mode <= ENC_M2)
+#endif
+        intra_level = is_base ? 1 : 3;
+    else if (enc_mode <= ENC_M4)
+        intra_level = is_base ? 1 : 4;
+#if TUNE_M9_2
+    else if (enc_mode <= ENC_M9)
+#else
+    else if (enc_mode <= ENC_M8)
+#endif
+        intra_level = (is_islice || ppcs->transition_present == 1) ? 1 : is_base ? 2 : 5;
+    else
+        intra_level = (is_islice || ppcs->transition_present == 1) ? 4 : 5;
+    if (pcs->scs->low_latency_kf && is_islice)
+        intra_level = 5;
+    set_intra_ctrls(pcs, ctx, intra_level);
+#else
     // intra_level must be greater than 0 for I_SLICE
     uint8_t intra_level = 0;
     if (pd_pass == PD_PASS_0) {
@@ -10975,6 +11121,7 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
     if (pcs->scs->low_latency_kf && is_islice)
         intra_level = 4;
     set_intra_ctrls(pcs, ctx, intra_level);
+#endif
 
     set_mds0_controls(ctx, pd_pass == PD_PASS_0 ? 2 : pcs->mds0_level);
 
@@ -11763,8 +11910,16 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     pcs->cand_reduction_level = 0;
     if (is_islice)
         pcs->cand_reduction_level = 0;
+#if OPT_INTRA_LEVELS
+    else if (enc_mode <= ENC_MR)
+        pcs->cand_reduction_level = 0;
+    else if (enc_mode <= ENC_M3)
+        pcs->cand_reduction_level = is_base ? 0 : 1;
+#else
+    else
     else if (enc_mode <= ENC_M3)
         pcs->cand_reduction_level = 0;
+#endif
     else if (enc_mode <= ENC_M4)
         pcs->cand_reduction_level = 1;
     else if (enc_mode <= ENC_M7) {

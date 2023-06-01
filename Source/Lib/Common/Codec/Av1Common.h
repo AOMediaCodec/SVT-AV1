@@ -51,6 +51,14 @@ typedef struct SgFilterCtrls {
     // [0,16] - the range of epsilon to test for the self-guided filter selection; lower is more
     // aggressive
     int8_t step_range;
+#if OPT_SG
+    //active when step_range=16 (step based search is off)
+    //There are 16 possible combinations to test indexed from 0..15
+    int8_t start_ep[2 /*Y+UV*/]; //search start     index
+    int8_t end_ep[2 /*Y+UV*/]; //search end       index (search stops at end-1)
+    int8_t ep_inc[2 /*Y+UV*/]; //search increment index
+    int8_t refine[2 /*Y+UV*/]; //refinement for alpha/beta   1:do the refinment  0:no refinement
+#endif
     // if 1, enable Wiener filtering to be used for chroma planes, else use for luma plane only
     Bool use_chroma;
 } SgFilterCtrls;

@@ -157,6 +157,12 @@ extern "C" {
 #define FIX_IFS_RATE_UPDATE                        1 // Fix IFS rate updates at EncDec
 #endif
 
+#define OPT_SG                                     1 // optimize SG filter
+#define FIX_SKIP_MODE_RATE                         1 //Fix Skip mode rate estimation
+#define FIX_SCT                                    1 //Fix frame header allow-sc-tool flag to be off when palette level is off
+#define FIX_ME_HME_PRUNE_CTRLS                     1 // fix missing break in me_hme_prune_ctrls, re-adjust levels
+#define OPT_INTRA_LEVELS                           1 // Optimize intra levels used for M0-M3
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

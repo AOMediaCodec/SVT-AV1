@@ -763,10 +763,18 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
                 ? (uint64_t)ctx->md_rate_est_ctx
                   ->mb_mode_fac_bits[size_group_lookup[blk_geom->bsize]][intra_mode]
                 : ZERO_COST;
+
+#if FIX_SKIP_MODE_RATE
+        skip_mode_rate = pcs->slice_type != I_SLICE &&
+                pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
+                is_comp_ref_allowed(blk_geom->bsize)
+            ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
+            : ZERO_COST;
+#else
         skip_mode_rate          = pcs->slice_type != I_SLICE
                      ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
                      : ZERO_COST;
-
+#endif
         // Estimate luma nominal intra mode bits
         intra_luma_mode_bits_num = pcs->slice_type == I_SLICE
             ? (uint64_t)ctx->md_rate_est_ctx->y_mode_fac_bits[above_ctx][left_ctx][intra_mode]
@@ -1295,9 +1303,17 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     //    }
     uint32_t is_inter_rate = r->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
 
+#if FIX_SKIP_MODE_RATE
+    int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
+            is_comp_ref_allowed(ctx->blk_geom->bsize)
+        ? r->skip_mode_fac_bits[skip_mode_ctx][0]
+        : 0;
+    luma_rate = (uint32_t)(reference_picture_bits_num + skip_mode_rate + inter_mode_bits_num +
+                           mv_rate + is_inter_rate);
+#else
     luma_rate = (uint32_t)(reference_picture_bits_num + r->skip_mode_fac_bits[skip_mode_ctx][0] +
                            inter_mode_bits_num + mv_rate + is_inter_rate);
-
+#endif
     //chroma_rate = intra_chroma_mode_bits_num + intra_chroma_ang_mode_bits_num;
 
     // Keep the Fast Luma and Chroma rate for future use
@@ -1568,10 +1584,21 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     //        for (dir = 0; dir < 2; dir++)
     //            interp_filter[dir] = interpolation_filter
     //    }
+
     uint32_t is_inter_rate = ctx->md_rate_est_ctx->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
+
+#if FIX_SKIP_MODE_RATE
+    int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
+            is_comp_ref_allowed(blk_geom->bsize)
+        ? ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
+        : 0;
+    luma_rate = (uint32_t)(reference_picture_bits_num + skip_mode_rate + inter_mode_bits_num +
+                           mv_rate + is_inter_rate);
+#else
     luma_rate              = (uint32_t)(reference_picture_bits_num +
                            ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0] +
                            inter_mode_bits_num + mv_rate + is_inter_rate);
+#endif
 
     // chroma_rate = intra_chroma_mode_bits_num + intra_chroma_ang_mode_bits_num;
 
