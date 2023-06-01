@@ -906,6 +906,26 @@ typedef struct CandReductionCtrls {
     uint8_t                  reduce_unipred_candidates;
     uint8_t                  mds0_reduce_intra;
 } CandReductionCtrls;
+#if OPT_SUB_DEPTH_ALL_EXIT
+typedef struct SkipSubDepthCtrls {
+    uint8_t enabled;
+
+    // Cond0: use the nsq-to-sq cost deviation to skip sub-depth(s)
+    // Do not skip sub-depth(s) if the depth block size is higher than method1_max_size
+    uint8_t max_size_cond0;
+    // Do not skip sub-depth(s) if the depth block size is higher than method1_max_size
+    int nsq_to_sq_th;
+
+    // Cond1: use the 4 quad(s) src-to-recon cost deviation to skip sub-depth(s)
+    // Do not skip sub-depth(s) if the depth block size is higher than method0_max_size
+    uint8_t max_size_cond1;
+    // Do not skip sub-depth(s) if std_deviation of the src-to-rec quad(s) is higher than std_deviation_th
+    int quad_deviation_th;
+    // Do not skip sub-depth(s) if coeff_perc is higher than coeff_perc
+    uint8_t coeff_perc;
+
+} SkipSubDepthCtrls;
+#else
 typedef struct Skip4x4DepthCtrls {
     uint8_t enabled;
     // the distortion-to-cost ratio under wich the quad_deviation_th is zeroed out (feature is
@@ -917,6 +937,7 @@ typedef struct Skip4x4DepthCtrls {
     // whether to skip all or only next depth; 0: skip only next depth; 1: skip all lower depths
     uint8_t skip_all;
 } Skip4x4DepthCtrls;
+#endif
 typedef struct ModeDecisionContext {
     EbDctor dctor;
 
@@ -934,7 +955,9 @@ typedef struct ModeDecisionContext {
     uint8_t                      *avail_blk_flag;
     // tells whether this CU is tested in MD.
     uint8_t         *tested_blk_flag;
+#if !OPT_SUB_DEPTH_ALL_EXIT
     uint8_t         *do_not_process_blk;
+#endif
     MdcSbData       *mdc_sb_array;
     MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
     uint8_t          tot_ref_frame_types;
@@ -1167,7 +1190,11 @@ typedef struct ModeDecisionContext {
     // control which depths can be considered in PD1
     DepthCtrls           depth_ctrls;
     DepthRefinementCtrls depth_refinement_ctrls;
+#if OPT_SUB_DEPTH_ALL_EXIT
+    SkipSubDepthCtrls    skip_sub_depth_ctrls;
+#else
     Skip4x4DepthCtrls    skip_4x4_depth_ctrls;
+#endif
     int64_t              parent_to_current_deviation;
     int64_t              child_to_current_deviation;
     SubresCtrls          subres_ctrls;

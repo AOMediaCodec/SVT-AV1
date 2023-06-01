@@ -3195,6 +3195,9 @@ void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 #else
     set_inter_comp_controls(ctx, ctx->inter_compound_mode);
 #endif
+#if OPT_NIC_PER_BSIZE
+    svt_aom_set_nic_controls(ctx, ctx->pd_pass == PD_PASS_0 ? 17 : pcs->nic_level);
+#endif
     if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.inj_psq_glb &&
         ctx->blk_geom->shape != PART_N)
         if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds])
@@ -5809,6 +5812,16 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
             nic_level = 11;
     } else if (enc_mode <= ENC_M4)
         nic_level = 12;
+#if OPT_NIC_PER_BSIZE
+    else if (enc_mode <= ENC_M6)
+        nic_level = 13;
+#if TUNE_M8_FD
+    else if (enc_mode <= ENC_M8)
+#else
+    else if (enc_mode <= ENC_M7)
+#endif
+        nic_level = 14;
+#else
     else if (enc_mode <= ENC_M5) {
         if (hierarchical_levels <= 3)
             nic_level = 12;
@@ -5819,7 +5832,9 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
             nic_level = 15;
         else
             nic_level = 14;
-    } else if (enc_mode <= ENC_M10)
+    }
+#endif
+    else if (enc_mode <= ENC_M10)
         nic_level = 15;
     else if (enc_mode <= ENC_M11)
         if (rtc_tune)
@@ -5847,12 +5862,22 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 */
 uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
     NicPruningCtrls *nic_pruning_ctrls = ctx ? &ctx->nic_ctrls.pruning_ctrls : NULL;
-    uint8_t          nic_scaling_level = 0;
+#if OPT_NIC_PER_BSIZE
+    uint8_t nic_scaling_level_lte_8x8 = 0;
+    uint8_t nic_scaling_level_gt_8x8  = 0;
+#else
+    uint8_t nic_scaling_level = 0;
+#endif
     uint8_t          md_staging_mode   = MD_STAGING_MODE_0;
     switch (nic_level) {
     case 0: // MAX NIC scaling; no pruning
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 0;
+        nic_scaling_level_gt_8x8  = 0;
+#else
         nic_scaling_level = 0;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -5877,7 +5902,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 1:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 0;
+        nic_scaling_level_gt_8x8  = 0;
+#else
         nic_scaling_level = 0;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -5906,7 +5936,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 2:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 1;
+        nic_scaling_level_gt_8x8  = 1;
+#else
         nic_scaling_level = 1;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -5935,7 +5970,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 3:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 1;
+        nic_scaling_level_gt_8x8  = 1;
+#else
         nic_scaling_level = 1;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -5964,7 +6004,13 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 4:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 2;
+        nic_scaling_level_gt_8x8  = 2;
+#else
         nic_scaling_level = 2;
+#endif
+
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -5994,7 +6040,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 5:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 2;
+        nic_scaling_level_gt_8x8  = 2;
+#else
         nic_scaling_level = 2;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6024,7 +6075,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 6:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 3;
+        nic_scaling_level_gt_8x8  = 3;
+#else
         nic_scaling_level = 3;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6054,7 +6110,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 7:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 4;
+        nic_scaling_level_gt_8x8  = 4;
+#else
         nic_scaling_level = 4;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6083,7 +6144,13 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
     case 8:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 6;
+        nic_scaling_level_gt_8x8  = 6;
+#else
         nic_scaling_level = 6;
+#endif
+
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6112,7 +6179,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
     case 9:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 6;
+        nic_scaling_level_gt_8x8  = 6;
+#else
         nic_scaling_level = 6;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6141,7 +6213,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
     case 10:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 8;
+        nic_scaling_level_gt_8x8  = 8;
+#else
         nic_scaling_level = 8;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6170,7 +6247,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
     case 11:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 9;
+        nic_scaling_level_gt_8x8  = 10;
+#else
         nic_scaling_level = 9;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6201,7 +6283,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
     case 12:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 9;
+        nic_scaling_level_gt_8x8  = 10;
+#else
         nic_scaling_level = 9;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6228,10 +6315,15 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
-
+#if !OPT_NIC_PER_BSIZE
     case 13:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 9;
+        nic_scaling_level_gt_8x8  = 10;
+#else
         nic_scaling_level = 10;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6260,8 +6352,16 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         break;
 
     case 14:
+#else
+    case 13:
+#endif
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 9;
+        nic_scaling_level_gt_8x8  = 12;
+#else
         nic_scaling_level = 12;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6288,10 +6388,46 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
+#if OPT_NIC_PER_BSIZE
+    case 14:
+        // NIC scaling level
+        nic_scaling_level_lte_8x8 = 13;
+        nic_scaling_level_gt_8x8  = 14;
 
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 200;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 10;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 10;
+            nic_pruning_ctrls->mds3_band_cnt = 16;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 0;
+            nic_pruning_ctrls->force_1_cand_th      = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 300;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 300;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 5;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 5;
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+#endif
     case 15:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 14;
+        nic_scaling_level_gt_8x8  = 14;
+#else
         nic_scaling_level = 14;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6321,7 +6457,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 16:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 15;
+        nic_scaling_level_gt_8x8  = 15;
+#else
         nic_scaling_level = 15;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6351,7 +6492,12 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
 
     case 17:
         // NIC scaling level
+#if OPT_NIC_PER_BSIZE
+        nic_scaling_level_lte_8x8 = 15;
+        nic_scaling_level_gt_8x8  = 15;
+#else
         nic_scaling_level = 15;
+#endif
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
@@ -6382,6 +6528,10 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
     }
 
     if (ctx) {
+#if OPT_NIC_PER_BSIZE
+        uint8_t nic_scaling_level = ctx->blk_geom->sq_size <= 8 ? nic_scaling_level_lte_8x8
+                                                                : nic_scaling_level_gt_8x8;
+#endif
         NicScalingCtrls *nic_scaling_ctrls = &ctx->nic_ctrls.scaling_ctrls;
         nic_scaling_ctrls->stage1_scaling_num =
             MD_STAGE_NICS_SCAL_NUM[nic_scaling_level][MD_STAGE_1];
@@ -6391,7 +6541,10 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             MD_STAGE_NICS_SCAL_NUM[nic_scaling_level][MD_STAGE_3];
         ctx->nic_ctrls.md_staging_mode = md_staging_mode;
     }
-
+#if OPT_NIC_PER_BSIZE
+    // return the lowest level of NIC scaling that can be used for memory allocation
+    uint8_t nic_scaling_level = MIN(nic_scaling_level_lte_8x8, nic_scaling_level_gt_8x8);
+#endif
     return nic_scaling_level;
 }
 /*
@@ -8082,6 +8235,33 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
     SequenceControlSet *scs = pcs->scs;
     if (pcs->slice_type != I_SLICE && scs->seq_header.sb_size != BLOCK_128X128 &&
         me_cplx_modulation_th) {
+#if OPT_DEPTH_MODULATION_WIDE
+        if (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] <= pcs->avg_me_clpx) {
+            bool is_wide_lband = (((pcs->avg_me_clpx - pcs->min_me_clpx) * 100) /
+                                  (pcs->max_me_clpx - pcs->min_me_clpx)) > 5;
+
+            if (is_wide_lband) {
+                if ((100 * (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] - pcs->min_me_clpx)) <
+                    (me_cplx_modulation_th * (pcs->avg_me_clpx - pcs->min_me_clpx))) {
+                    ctx->depth_ctrls.s_depth = 0;
+                    ctx->depth_ctrls.e_depth = 0;
+                } else {
+                    ctx->depth_ctrls.e_depth = 0;
+                }
+            }
+        } else {
+            bool is_wide_rband = (((pcs->max_me_clpx - pcs->avg_me_clpx) * 100) /
+                                  (pcs->max_me_clpx - pcs->min_me_clpx)) > 5;
+
+            if (is_wide_rband) {
+                if ((100 * (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] - pcs->avg_me_clpx)) <
+                    (me_cplx_modulation_th * (pcs->max_me_clpx - pcs->avg_me_clpx))) {
+                    ctx->depth_ctrls.s_depth = 0;
+                } // else use default
+            }
+        }
+
+#else
         if (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] <= pcs->avg_me_clpx) {
             if ((100 * (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] - pcs->min_me_clpx)) <
                 (me_cplx_modulation_th * (pcs->avg_me_clpx - pcs->min_me_clpx))) {
@@ -8096,6 +8276,7 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 ctx->depth_ctrls.s_depth = 0;
             } // else use default
         }
+#endif
     }
 }
 #if OPT_DEPTH_REFIN
@@ -9332,6 +9513,79 @@ static void set_mds0_controls(ModeDecisionContext *ctx, uint8_t mds0_level) {
     default: assert(0); break;
     }
 }
+#if OPT_SUB_DEPTH_ALL_EXIT
+static void set_skip_sub_depth_ctrls(SkipSubDepthCtrls *skip_sub_depth_ctrls,
+                                     uint8_t            skip_sub_depth_lvl) {
+    switch (skip_sub_depth_lvl) {
+    case 0: skip_sub_depth_ctrls->enabled = 0; break;
+
+    case 1:
+        skip_sub_depth_ctrls->enabled = 1;
+        // Cond0 ctrls
+        skip_sub_depth_ctrls->max_size_cond0 = 8;
+        skip_sub_depth_ctrls->nsq_to_sq_th   = 5;
+        // Cond1 ctrls
+        skip_sub_depth_ctrls->max_size_cond1    = 0;
+        skip_sub_depth_ctrls->quad_deviation_th = 250;
+        skip_sub_depth_ctrls->coeff_perc        = 25;
+        break;
+
+    case 2:
+
+        skip_sub_depth_ctrls->enabled = 1;
+        // Cond0 ctrls
+        skip_sub_depth_ctrls->max_size_cond0 = 8;
+        skip_sub_depth_ctrls->nsq_to_sq_th   = 1;
+        // Cond1 ctrls
+        skip_sub_depth_ctrls->max_size_cond1    = 16;
+        skip_sub_depth_ctrls->quad_deviation_th = 250;
+        skip_sub_depth_ctrls->coeff_perc        = 15;
+
+        break;
+
+    case 3:
+
+        skip_sub_depth_ctrls->enabled = 1;
+        // Cond0 ctrls
+        skip_sub_depth_ctrls->max_size_cond0 = 8;
+        skip_sub_depth_ctrls->nsq_to_sq_th   = 1;
+        // Cond1 ctrls
+        skip_sub_depth_ctrls->max_size_cond1    = 16;
+        skip_sub_depth_ctrls->quad_deviation_th = 250;
+        skip_sub_depth_ctrls->coeff_perc        = 25;
+
+        break;
+
+    case 4:
+
+        skip_sub_depth_ctrls->enabled = 1;
+        // Cond0 ctrls
+        skip_sub_depth_ctrls->max_size_cond0 = 8;
+        skip_sub_depth_ctrls->nsq_to_sq_th   = 0;
+        // Cond1 ctrls
+        skip_sub_depth_ctrls->max_size_cond1    = 128;
+        skip_sub_depth_ctrls->quad_deviation_th = 250;
+        skip_sub_depth_ctrls->coeff_perc        = 25;
+
+        break;
+
+    case 5:
+
+        skip_sub_depth_ctrls->enabled = 1;
+        // Cond0 ctrls
+        skip_sub_depth_ctrls->max_size_cond0 = 8;
+        skip_sub_depth_ctrls->nsq_to_sq_th   = 0;
+        // Cond1 ctrls
+        skip_sub_depth_ctrls->max_size_cond1    = 128;
+        skip_sub_depth_ctrls->quad_deviation_th = 250;
+        skip_sub_depth_ctrls->coeff_perc        = 50;
+
+        break;
+
+    default: assert(0); break;
+    }
+}
+#else
 /*
 * Control 4x4-depth block skip
 */
@@ -9350,6 +9604,7 @@ static void set_skip_4x4_depth_ctrls(Skip4x4DepthCtrls *skip_4x4_depth_ctrls,
     default: assert(0); break;
     }
 }
+#endif
 /*
  * Generate per-SB MD settings (do not change per-PD)
  */
@@ -9402,7 +9657,11 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
         if (pcs->coeff_lvl == LOW_LVL) {
             depth_level = pcs->slice_type == I_SLICE ? 1 : 3;
         } else if (pcs->coeff_lvl == HIGH_LVL) {
+#if OPT_DEPTH_LVL_TUNING
+            depth_level = 5;
+#else
             depth_level = 4;
+#endif
         } else {
             depth_level = 3;
         }
@@ -10222,8 +10481,9 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
 #endif
     svt_aom_set_inter_intra_ctrls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->inter_intra_level);
     set_txs_controls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->txs_level);
-
+#if !OPT_NIC_PER_BSIZE
     svt_aom_set_nic_controls(ctx, pd_pass == PD_PASS_0 ? 17 : pcs->nic_level);
+#endif
     // Set md_filter_intra_mode @ MD
     // md_filter_intra_level specifies whether filter intra would be active
     // for a given prediction candidate in mode decision.

@@ -130,6 +130,17 @@ extern "C" {
 #define TUNE_M7                                    1 // Tune m7 for vmaf neg
 #define TUNE_M8                                    1 // Tune m8 for vmaf neg
 
+#define OPT_NIC_PER_BSIZE                          1 // Add NIC scaling settings for block size
+
+#define DEPTH_PACKAGE                              1
+#if DEPTH_PACKAGE
+#define OPT_DEPTH_MODULATION_WIDE                  1 // Shut depth-level modulation when the band is not wide enough
+#define OPT_DEPTH_LVL_TUNING                       1 // Use a more agressive depth-level
+
+#define OPT_SUB_DEPTH_ALL_EXIT                     1 // Cond0: use the nsq-to-sq cost deviation to skip sub-depth(s)
+                                                     // Cond1: use the 4 quad(s) src-to-recon cost deviation to skip sub-depth(s)
+#endif
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

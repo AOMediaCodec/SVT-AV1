@@ -2373,9 +2373,10 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                                    ModeDecisionContext *ctx, Bool is_complete_sb) {
     memset(ctx->tested_blk_flag, 0, sizeof(uint8_t) * scs->max_block_cnt);
     memset(ctx->avail_blk_flag, FALSE, sizeof(uint8_t) * scs->max_block_cnt);
+#if !OPT_SUB_DEPTH_ALL_EXIT
     if (!ctx->disallow_4x4)
         memset(ctx->do_not_process_blk, 0, sizeof(uint8_t) * scs->max_block_cnt);
-
+#endif
     MdcSbData *results_ptr       = ctx->mdc_sb_array;
     results_ptr->leaf_count      = 0;
     uint32_t       blk_index     = 0;
@@ -2802,8 +2803,10 @@ static EbErrorType build_starting_cand_block_array(SequenceControlSet *scs, Pict
                                                    ModeDecisionContext *ctx) {
     memset(ctx->tested_blk_flag, 0, sizeof(uint8_t) * scs->max_block_cnt);
     memset(ctx->avail_blk_flag, FALSE, sizeof(uint8_t) * scs->max_block_cnt);
+#if !OPT_SUB_DEPTH_ALL_EXIT
     if (!ctx->disallow_4x4)
         memset(ctx->do_not_process_blk, 0, sizeof(uint8_t) * scs->max_block_cnt);
+#endif
     MdcSbData *results_ptr       = ctx->mdc_sb_array;
     results_ptr->leaf_count      = 0;
     uint32_t       blk_index     = 0;

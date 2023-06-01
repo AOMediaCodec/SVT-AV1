@@ -11645,10 +11645,22 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     //perform inverse transform recon when needed
     if (perform_md_recon)
         av1_perform_inverse_transform_recon(pcs, ctx, cand_bf, ctx->blk_geom);
+#if OPT_SUB_DEPTH_ALL_EXIT
+    if (ctx->blk_geom->shape == PART_N &&
+        ((!ctx->md_disallow_nsq && ctx->nsq_ctrls.max_part0_to_part1_dev &&
+          ctx->blk_geom->bsize >= BLOCK_8X8 &&
+          ctx->blk_geom->sq_size > ctx->nsq_ctrls.min_nsq_block_size) ||
+         (ctx->skip_sub_depth_ctrls.enabled &&
+          ctx->blk_geom->sq_size <= ctx->skip_sub_depth_ctrls.max_size_cond1 &&
+          ctx->md_blk_arr_nsq[ctx->blk_geom->blkidx_mds].split_flag &&
+          (ctx->blk_geom->bsize >= BLOCK_16X16 ||
+           (!ctx->disallow_4x4 && ctx->blk_geom->bsize == BLOCK_8X8)))))
+#else
     if ((!ctx->md_disallow_nsq && ctx->nsq_ctrls.max_part0_to_part1_dev &&
          ctx->blk_geom->shape == PART_N && ctx->blk_geom->bsize >= BLOCK_8X8 &&
          ctx->blk_geom->sq_size > ctx->nsq_ctrls.min_nsq_block_size) ||
         (!ctx->disallow_4x4 && ctx->blk_geom->bsize == BLOCK_8X8))
+#endif
         calc_scr_to_recon_dist_per_quadrant(ctx,
                                             input_pic,
                                             loc.input_origin_index,
@@ -12782,6 +12794,151 @@ static void process_block_light_pd1(PictureControlSet *pcs, ModeDecisionContext 
         md_encode_block_light_pd1(pcs, ctx, sb_addr, in_pic);
     }
 }
+#if OPT_SUB_DEPTH_ALL_EXIT
+
+static bool eval_sub_depth_skip_cond0(SequenceControlSet *scs, ModeDecisionContext *ctx) {
+    MdBlkStruct *local_cu_unit = ctx->md_local_blk_unit;
+
+    uint64_t sq_cost = local_cu_unit[ctx->blk_geom->sqi_mds].default_cost;
+
+    uint64_t best_shape_cost = (uint64_t)~0;
+    uint64_t h_cost          = (uint64_t)~0;
+    uint64_t v_cost          = (uint64_t)~0;
+    uint64_t ha_cost         = (uint64_t)~0;
+    uint64_t hb_cost         = (uint64_t)~0;
+    uint64_t va_cost         = (uint64_t)~0;
+    uint64_t vb_cost         = (uint64_t)~0;
+    uint64_t h4_cost         = (uint64_t)~0;
+    uint64_t v4_cost         = (uint64_t)~0;
+
+    // H
+    if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 1] &&
+        ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 2]) {
+        h_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 1].default_cost +
+            local_cu_unit[ctx->blk_geom->sqi_mds + 2].default_cost;
+        best_shape_cost = MIN(h_cost, best_shape_cost);
+    }
+    // V
+    if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 3] &&
+        ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 4]) {
+        v_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 3].default_cost +
+            local_cu_unit[ctx->blk_geom->sqi_mds + 4].default_cost;
+        best_shape_cost = MIN(v_cost, best_shape_cost);
+    }
+    if (ctx->blk_geom->sq_size > 8) {
+        // HA
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 5] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 6] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 7]) {
+            ha_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 5].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 6].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 7].default_cost;
+
+            best_shape_cost = MIN(ha_cost, best_shape_cost);
+        }
+
+        // HB
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 8] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 9] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 10]) {
+            hb_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 8].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 9].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 10].default_cost;
+
+            best_shape_cost = MIN(hb_cost, best_shape_cost);
+        }
+
+        // VA
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 11] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 12] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 13]) {
+            va_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 11].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 12].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 13].default_cost;
+
+            best_shape_cost = MIN(va_cost, best_shape_cost);
+        }
+
+        // VB
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 14] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 15] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 16]) {
+            vb_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 14].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 15].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 16].default_cost;
+
+            best_shape_cost = MIN(vb_cost, best_shape_cost);
+        }
+
+        // H4
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 17] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 18] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 19] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 20]) {
+            h4_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 17].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 18].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 19].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 20].default_cost;
+
+            best_shape_cost = MIN(h4_cost, best_shape_cost);
+        }
+
+        // V4
+        if (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 21] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 22] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 23] &&
+            ctx->avail_blk_flag[ctx->blk_geom->sqi_mds + 24]) {
+            v4_cost = local_cu_unit[ctx->blk_geom->sqi_mds + 21].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 22].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 23].default_cost +
+                local_cu_unit[ctx->blk_geom->sqi_mds + 24].default_cost;
+
+            best_shape_cost = MIN(v4_cost, best_shape_cost);
+        }
+    }
+    if (best_shape_cost != (uint64_t)~0) {
+        if (((int)((int)best_shape_cost - (int)sq_cost) * 100) >
+            (ctx->skip_sub_depth_ctrls.nsq_to_sq_th * (int)sq_cost))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+static bool eval_sub_depth_skip_cond1(SequenceControlSet *scs, ModeDecisionContext *ctx) {
+    uint8_t n = 4;
+    float   average, variance, std_deviation, sum = 0, sum1 = 0;
+
+    // Compute the sum of all dist
+    for (uint8_t q_idx = 0; q_idx < n; q_idx++) {
+        sum = sum + ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].rec_dist_per_quadrant[q_idx];
+    }
+    average = sum / (float)n;
+
+    // Compute variance and standard deviation
+    for (uint8_t q_idx = 0; q_idx < n; q_idx++) {
+        sum1 = sum1 +
+            (float)pow(
+                   (ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].rec_dist_per_quadrant[q_idx] -
+                    average),
+                   2);
+    }
+    variance      = sum1 / n;
+    std_deviation = sqrtf(variance);
+
+    uint32_t count_non_zero_coeffs = ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].cnt_nz_coeff;
+
+    uint32_t total_samples = (ctx->blk_geom->sq_size * ctx->blk_geom->sq_size);
+    uint32_t coeff_perc    = (count_non_zero_coeffs * 100) / total_samples;
+
+    if (std_deviation < ctx->skip_sub_depth_ctrls.quad_deviation_th &&
+        coeff_perc < ctx->skip_sub_depth_ctrls.coeff_perc)
+        return TRUE;
+
+    return FALSE;
+}
+
+#endif
 #if TAG_SUB_PRED_NSQ
 static void faster_md_settings(ModeDecisionContext *ctx) {
     ctx->nsq_ctrls.sq_weight            = MIN(85, ctx->nsq_ctrls.sq_weight);
@@ -12810,7 +12967,11 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
                           EbPictureBufferDesc *in_pic, uint32_t sb_addr, uint16_t sb_org_x,
                           uint16_t sb_org_y, uint32_t blk_idx_mds,
                           uint32_t *next_non_skip_blk_idx_mds, Bool *md_early_exit_sq,
-                          Bool *md_early_exit_nsq, uint8_t first_d1_blk, uint8_t d1_blk_count) {
+                          Bool *md_early_exit_nsq,
+#if OPT_SUB_DEPTH_ALL_EXIT
+                          Bool md_skip_sub_depths,
+#endif
+                          uint8_t first_d1_blk, uint8_t d1_blk_count) {
     const BlockGeom *blk_geom = ctx->blk_geom = get_blk_geom_mds(blk_idx_mds);
     BlkStruct       *blk_ptr = ctx->blk_ptr = &ctx->md_blk_arr_nsq[blk_idx_mds];
 #if !OPT_SKIP_NSQ_PATH
@@ -12981,6 +13142,7 @@ void update_d2_decision_light_pd0(SequenceControlSet *scs, PictureControlSet *pc
         }
     }
 }
+#if !OPT_SUB_DEPTH_ALL_EXIT
 /*
 * Get the number of total block in a branch
 */
@@ -13076,6 +13238,7 @@ static void eval_sub_depth_skip(SequenceControlSet *scs, ModeDecisionContext *ct
                                 ctx->skip_4x4_depth_ctrls.skip_all ? 6 : 1);
     }
 }
+#endif
 /*
  * Update d2 data (including d2 decision) after processing the last d1 block of a given square.
  */
@@ -13096,6 +13259,7 @@ static void update_d2_decision(SequenceControlSet *scs, PictureControlSet *pcs,
         md_update_all_neighbour_arrays_multiple(
             pcs, ctx, ctx->md_blk_arr_nsq[last_blk_index_mds].best_d1_blk, sb_org_x, sb_org_y);
     }
+#if !OPT_SUB_DEPTH_ALL_EXIT
     // Here d1 is already performed but not d2
     if (ctx->skip_4x4_depth_ctrls.enabled && ctx->blk_geom->bsize == BLOCK_8X8 &&
         ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].split_flag && // could be further splitted
@@ -13103,6 +13267,7 @@ static void update_d2_decision(SequenceControlSet *scs, PictureControlSet *pcs,
 
         eval_sub_depth_skip(scs, ctx);
     }
+#endif
 }
 
 EB_EXTERN EbErrorType svt_aom_mode_decision_sb_light_pd0(SequenceControlSet    *scs,
@@ -13308,6 +13473,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
 
     Bool     md_early_exit_sq          = 0;
     Bool     md_early_exit_nsq         = 0;
+#if OPT_SUB_DEPTH_ALL_EXIT
+    Bool     md_skip_sub_depths = 0;
+#endif
     uint32_t next_non_skip_blk_idx_mds = 0;
 
     uint8_t  first_d1_blk         = 1;
@@ -13416,7 +13584,21 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
         if (d1_blocks_accumlated == leaf_data_ptr->tot_d1_blocks) {
             // Perform d2 inter-depth decision after final d1 block
             update_d2_decision(scs, pcs, ctx, sb_addr, sb_org_x, sb_org_y);
+#if OPT_SUB_DEPTH_ALL_EXIT
+            if (ctx->skip_sub_depth_ctrls.enabled &&
+                ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds]
+                    .split_flag && // could be further splitted
+                ctx->avail_blk_flag[ctx->blk_geom->sqi_mds]) { // valid block
 
+                if ((ctx->blk_geom->sq_size <= ctx->skip_sub_depth_ctrls.max_size_cond0 &&
+                     eval_sub_depth_skip_cond0(scs, ctx) && !ctx->md_disallow_nsq) ||
+                    (ctx->blk_geom->sq_size <= ctx->skip_sub_depth_ctrls.max_size_cond1 &&
+                     eval_sub_depth_skip_cond1(scs, ctx))) {
+                    md_skip_sub_depths = 1;
+                    next_blkidx_mds    = ctx->blk_geom->sqi_mds + ctx->blk_geom->ns_depth_offset;
+                }
+            }
+#endif
             first_d1_blk = 1;
             d1_blk_count = 0;
         } else if (first_d1_blk) {
