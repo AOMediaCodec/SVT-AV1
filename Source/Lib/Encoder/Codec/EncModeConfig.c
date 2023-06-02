@@ -11855,7 +11855,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                     : 0;
             }
         } else {
+#if TUNE_M10_FD
+            if (enc_mode <= ENC_M10) {
+#else
             if (enc_mode <= ENC_M9) {
+#endif
                 uint64_t avg_me_dist = 0;
                 for (uint16_t b64_idx = 0; b64_idx < ppcs->b64_total_count; b64_idx++) {
                     avg_me_dist += ppcs->me_64x64_distortion[b64_idx];
@@ -11963,7 +11967,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         } else {
             if (enc_mode <= ENC_M7) {
                 pcs->wm_level = is_base ? 1 : 0;
+#if TUNE_M10_FD
+            } else if (enc_mode <= ENC_M9) {
+#else
             } else if (enc_mode <= ENC_M10) {
+#endif
                 if (input_resolution <= INPUT_SIZE_720p_RANGE)
                     pcs->wm_level = is_base ? 1 : 0;
                 else
@@ -12645,7 +12653,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                         pcs->pic_depth_removal_level = 1;
                     else
                         pcs->pic_depth_removal_level = 2;
+#if TUNE_M7_FD
+                } else if (enc_mode <= ENC_M6) {
+#else
                 } else if (enc_mode <= ENC_M7) {
+#endif
                     if (input_resolution <= INPUT_SIZE_1080p_RANGE)
                         pcs->pic_depth_removal_level = 1;
                     else

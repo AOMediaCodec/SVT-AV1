@@ -200,6 +200,22 @@ extern "C" {
 #define TUNE_4K_8K                                1 // Tune memory sensitive settings for 4K+ resolutions . Note we can remove the debug macro: REMOVE_LP1_LPN_DIFF
 #define CLN_TF                                    0 // Cleanup tf
 
+
+
+
+
+
+
+#define TUNE_M1_FD                                1 // Tune m1 fast decode
+#define TUNE_M2_FD                                1 // Tune m2 fast decode
+#define TUNE_M3_FD                                1 // Tune m3 fast decode
+#define TUNE_M4_FD                                1 // Tune m4 fast decode
+#define TUNE_M10_FD                               1 // Tune m10 fast decode
+#define TUNE_M5_FD                                1 // Tune m5 fast decode
+#define TUNE_M6_FD                                1 // Tune m6 fast decode
+#define TUNE_M8_FD                                1 // Tune m8 fast decode
+#define TUNE_M7_FD                                1 // Tune m7 fast decode
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
