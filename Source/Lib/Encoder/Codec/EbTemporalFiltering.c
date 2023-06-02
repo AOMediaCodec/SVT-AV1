@@ -6196,6 +6196,12 @@ EbErrorType svt_av1_init_temporal_filtering(
     uint8_t              index_center;
     EbPictureBufferDesc *central_picture_ptr;
 #if OPT_LD_TF
+#if CLN_TF
+    bool high_chroma_noise_lvl = (centre_pcs->noise_levels_log1p_fp16[0] < centre_pcs->noise_levels_log1p_fp16[1] ||
+            centre_pcs->noise_levels_log1p_fp16[0] < centre_pcs->noise_levels_log1p_fp16[2]) ? true : false;
+    me_context_ptr->me_ctx->tf_chroma = centre_pcs->tf_ctrls.chroma_lvl == 1 ? 1 :
+        centre_pcs->tf_ctrls.chroma_lvl == 2 && high_chroma_noise_lvl ? 1 : 0;
+#else
     bool high_chroma_noise_lvl;
     if (me_context_ptr->me_ctx->tf_ctrls.use_fixed_point || me_context_ptr->me_ctx->tf_ctrls.use_medium_filter)
         high_chroma_noise_lvl = (centre_pcs->noise_levels_log1p_fp16[0] < centre_pcs->noise_levels_log1p_fp16[1] ||
@@ -6205,6 +6211,7 @@ EbErrorType svt_av1_init_temporal_filtering(
         centre_pcs->noise_levels[0] < centre_pcs->noise_levels[2]) ? true : false;
     me_context_ptr->me_ctx->tf_chroma = centre_pcs->tf_ctrls.chroma_lvl == 1 ? 1 :
         centre_pcs->tf_ctrls.chroma_lvl == 2 && high_chroma_noise_lvl ? 1 : 0;
+#endif
 #else
     me_context_ptr->me_ctx->tf_chroma = centre_pcs->tf_ctrls.do_chroma;
 #endif
