@@ -8904,7 +8904,7 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
 #if OPT_DEPTH_MODULATION_WIDE
         if (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] <= pcs->avg_me_clpx) {
             bool is_wide_lband = (((pcs->avg_me_clpx - pcs->min_me_clpx) * 100) /
-                                  (pcs->max_me_clpx - pcs->min_me_clpx)) > 5;
+                                  MAX(pcs->max_me_clpx - pcs->min_me_clpx, 1)) > 5;
 
             if (is_wide_lband) {
                 if ((100 * (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] - pcs->min_me_clpx)) <
@@ -8917,7 +8917,7 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
             }
         } else {
             bool is_wide_rband = (((pcs->max_me_clpx - pcs->avg_me_clpx) * 100) /
-                                  (pcs->max_me_clpx - pcs->min_me_clpx)) > 5;
+                                  MAX(pcs->max_me_clpx - pcs->min_me_clpx, 1)) > 5;
 
             if (is_wide_rband) {
                 if ((100 * (pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] - pcs->avg_me_clpx)) <
