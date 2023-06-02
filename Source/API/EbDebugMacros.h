@@ -198,7 +198,7 @@ extern "C" {
                                                     //        rename "int32_t bsize[3];" to "int32_t plane_bsize[3];" to avoid conflicts
 
 #define TUNE_4K_8K                                1 // Tune memory sensitive settings for 4K+ resolutions . Note we can remove the debug macro: REMOVE_LP1_LPN_DIFF
-#define CLN_TF                                    0 // Cleanup tf
+#define CLN_TF                                    1 // Cleanup tf
 
 #define OPT_OBMC_UV_ONLY                          1 // Allow OBMC prediction to be done for chroma only
 #define OPT_WEDGE_UV_ONLY                         1 // Allow wedge compound prediction to be done for chroma only
@@ -247,7 +247,7 @@ extern "C" {
 #define FIX_ISSUE_2078                            1 // Fix issue #2078
 #define FIX_GM_PP                                 1 // fix non-lp R2R
 
-#define CLN_SKIP_HV4                             1 // Clean up unused skip hv4 signal
+#define CLN_SKIP_HV4                              1 // Clean up unused skip hv4 signal
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
