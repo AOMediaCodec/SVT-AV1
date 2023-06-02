@@ -1041,7 +1041,9 @@ typedef struct PictureParentControlSet {
     struct PictureParentControlSet *overlay_ppcs_ptr;
     struct PictureParentControlSet *alt_ref_ppcs_ptr;
     int32_t                         noise_levels_log1p_fp16[MAX_MB_PLANE];
+#if !CLN_TF
     double                          noise_levels[MAX_MB_PLANE];
+#endif
     int32_t                         pic_decision_reorder_queue_idx;
     struct PictureParentControlSet *temp_filt_pcs_list[ALTREF_MAX_NFRAMES];
     EbByte                          save_source_picture_ptr[3];

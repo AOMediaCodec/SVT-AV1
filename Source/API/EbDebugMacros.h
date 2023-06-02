@@ -197,6 +197,8 @@ extern "C" {
                                                     // *TODO: Renames sb_type --> bsize without a macro. Before renaming, in cdef_seg_search()
                                                     //        rename "int32_t bsize[3];" to "int32_t plane_bsize[3];" to avoid conflicts
 
+#define CLN_TF                                    0 // Cleanup tf
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

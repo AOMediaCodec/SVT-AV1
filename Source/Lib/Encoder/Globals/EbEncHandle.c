@@ -2605,6 +2605,7 @@ static void update_look_ahead(SequenceControlSet *scs) {
 
     }
 }
+#if !CLN_TF
 /*
  * Set tf-64x64 path params
  */
@@ -2616,7 +2617,7 @@ void set_tf_64x64_params(
     *use_pred_64x64_only_th = use_fast_filter ? use_pred_64x64_only_th_value : 0;
     *me_exit_th = use_fast_filter ? me_exit_th_value : 0;
 }
-
+#endif
 /*
  * Control TF
  */
@@ -4365,9 +4366,11 @@ static void derive_tf_params(SequenceControlSet *scs) {
     else if (enc_mode <= ENC_M5) {
         tf_level = 2;
     }
+#if !TUNE_M6_FD
     else if (enc_mode <= ENC_M6) {
         tf_level = 3;
     }
+#endif
     else if (enc_mode <= ENC_M7) {
         tf_level = 4;
     }
@@ -4377,11 +4380,23 @@ static void derive_tf_params(SequenceControlSet *scs) {
         else
             tf_level = 5;
     }
+#if CLN_TF
+    else if (enc_mode <= ENC_M10) {
+        tf_level = 6;
+    }
+    else if (enc_mode <= ENC_M12) {
+        tf_level = 7;
+    }
+    else {
+        tf_level = 8;
+    }
+#else
     else if (enc_mode <= ENC_M10) {
         tf_level = 5;
     }
     else
         tf_level = 6;
+#endif
     tf_controls(scs, tf_level);
 }
 /*

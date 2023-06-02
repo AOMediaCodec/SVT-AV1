@@ -141,21 +141,25 @@ typedef struct TfControls {
     // plane only)
     uint8_t do_chroma;
 #endif
+#if !CLN_TF
     // Specifies whether the weights generation will use approximations or not (0: do not use
     // approximations, 1: per-block weights derivation, use an approximated exponential & log, use
     // an approximated noise level)
     uint8_t use_medium_filter;
+#endif
 #if OPT_LD_TF
     // Specifies whether the motion esimation is used or (0, 0) MVs are used (0: use motion estimation
     // 1: skip motion estimation search and use (0, 0) MVs
     uint8_t use_zz_based_filter;
 #endif
+#if !CLN_TF
     // Specifies whether the weights derivation will use the distance factor(MV - based correction)
     // and the 5x5 window error or not (0: OFF, 1 : ON)
     uint8_t use_fast_filter;
     // Specifies noise-level-estimation and filtering precision (0: use float/double precision, 1:
     // use fixed point precision)
     uint8_t use_fixed_point;
+#endif
     // Number of reference frame(s) set
     uint8_t num_past_pics; // Specifies the default number of frame(s) from past
     uint8_t num_future_pics; // Specifies the default number of frame(s) from future
@@ -212,6 +216,18 @@ typedef struct TfControls {
     // Specifies the 32x32 prediction error(after subpel) under which the subpel for the 16x16
     // block(s) is bypassed
     uint64_t pred_error_32x32_th;
+
+#if CLN_TF
+    // Specifies whether to exit ME after HME or not (0: perform both HME and Full-Pel search, else
+    // if the HME distortion is less than me_exit_th then exit after HME(i.e. do not perform the
+    // Full-Pel search)
+    uint32_t me_exit_th;
+    // Specifies whether to perform Sub-Pel search for only the 64x64 block or to use default
+    // size(s) (32x32 or/ and 16x16) (∞: perform Sub-Pel search for default size(s), else if the
+    // deviation between the 64x64 ME distortion and the sum of the 4 32x32 ME distortions is less
+    // than use_pred_64x64_only_th then perform Sub - Pel search for only the 64x64 block
+    uint8_t use_pred_64x64_only_th;
+#else
     // Specifies whether to exit ME after HME or not (0: perform both HME and Full-Pel search, else
     // if the HME distortion is less than me_exit_th then exit after HME(i.e. do not perform the
     // Full-Pel search), NA if use_fast_filter is set 0)
@@ -222,6 +238,7 @@ typedef struct TfControls {
     // than use_pred_64x64_only_th then perform Sub - Pel search for only the 64x64 block, NA if
     // use_fast_filter is set 0)
     uint8_t use_pred_64x64_only_th;
+#endif
     // Specifies whether to early exit the Sub-Pel search based on a pred-error-th or not
     uint8_t subpel_early_exit;
 #if ENHANCE_KEY_FRAME

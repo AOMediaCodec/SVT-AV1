@@ -348,25 +348,16 @@ typedef struct BlkStruct {
     // equivalent of leaf_index in the nscu context. we will keep both for now and use the right one
     // on a case by case basis.
     uint16_t mds_idx;
-#if !CLN_MBMI_7
     // txb
     uint8_t tx_depth; // ec
-#endif
-#if !CLN_MBMI_6
     uint8_t compound_idx; // ec
     uint8_t comp_group_idx; // ec
-#endif
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
     unsigned skip_flag_context : 2; // to do
 #endif
-#if !CLN_MBMI_3
     unsigned prediction_mode_flag : 2; // ec
-#endif
-
-#if !CLN_MBMI
     // ec; skip coeff only. as defined in section 6.10.11 of the av1 text
     unsigned block_has_coeff : 1;
-#endif
 #if !CLN_MISC_CLEANUPS
     unsigned split_flag_context : 2; // to do
 #endif
@@ -406,6 +397,110 @@ typedef struct BlkStruct {
     uint8_t        use_intrabc;
     uint64_t       total_rate;
 } BlkStruct;
+
+#if OPT_CHILD_PCS
+typedef struct EcBlkStruct {
+    EcTransformUnit          txb_array[TRANSFORM_UNIT_MAX_COUNT]; // ec
+    EcPredictionUnit         prediction_unit_array[MAX_NUM_OF_PU_PER_CU]; // ec
+    EcPaletteInfo *          palette_info; // ec
+    uint8_t                  palette_mem; // status of palette info alloc
+    uint8_t                  palette_size[2];
+    IntMv                    predmv[2]; // ec
+    MacroBlockD *            av1xd;
+    EcInterInterCompoundData interinter_comp; // ec
+#if !CLN_MBMI_5
+    uint32_t interp_filters; // ec
+#endif
+    uint8_t interintra_wedge_index; // ec
+
+#if CLN_MBMI_12
+    int16_t inter_mode_ctx;
+#else
+    // uint8_t ref_mv_count[MODE_CTX_REF_FRAMES];
+    int16_t inter_mode_ctx[MODE_CTX_REF_FRAMES]; // ec
+#endif
+    // equivalent of leaf_index in the nscu context. we will keep both for now and use the right one
+    // on a case by case basis.
+    uint16_t mds_idx;
+
+#if !CLN_MBMI_7
+    // txb
+    uint8_t tx_depth; // ec
+#endif
+#if !CLN_MBMI_6
+    uint8_t compound_idx; // ec
+    uint8_t comp_group_idx; // ec
+#endif
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
+    unsigned skip_flag_context : 2; // to do
+#endif
+#if !CLN_MBMI_3
+    unsigned prediction_mode_flag : 2; // ec
+#endif
+
+#if !CLN_MBMI
+    // ec; skip coeff only. as defined in section 6.10.11 of the av1 text
+    unsigned block_has_coeff : 1;
+#endif
+#if !CLN_MISC_CLEANUPS
+    unsigned split_flag_context : 2; // to do
+#endif
+
+    uint8_t qindex; // ec
+
+#if !CLN_MBMI_10
+    uint8_t split_flag;
+#endif
+
+#if !CLN_MBMI_2
+    uint8_t skip_mode; // ec; skips mode_info + coeff. as defined in section 6.10.10 of the av1 text
+#endif
+
+#if !SHUT_TEMP_BUFF
+    // buffer to store quantized coeffs from MD for the final mode of each block
+    EbPictureBufferDesc *coeff_tmp;
+    // buffer to store recon from MD for the final mode of each block
+    EbPictureBufferDesc *recon_tmp;
+#endif
+    uint8_t drl_index; // ec
+    // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
+    int8_t drl_ctx[2];
+    // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
+    int8_t drl_ctx_near[2];
+
+#if !CLN_MBMI_4
+    PredictionMode pred_mode; // ec
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
+    uint8_t skip_coeff_context;
+#endif
+#if !CLN_MISC_CLEANUPS
+    uint8_t reference_mode_context;
+    uint8_t compoud_reference_type_context;
+#endif
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
+    uint32_t is_inter_ctx;
+#endif
+
+    uint8_t segment_id; // ec
+#if !SHUT_PART
+    PartitionType part;
+#endif
+#if !SHUT_BEST_D1_BLK
+    uint32_t best_d1_blk;
+#endif
+    InterIntraMode interintra_mode; // ec
+    uint8_t        is_interintra_used; // ec
+    uint8_t        use_wedge_interintra; // ec
+    uint8_t        filter_intra_mode; // ec
+#if !CLN_MBMI_8
+    uint8_t use_intrabc;
+#endif
+#if !SHUT_TOTAL_RATE
+    uint64_t total_rate;
+#endif
+} EcBlkStruct;
+#endif
 
 typedef struct TplStats {
     int64_t  srcrf_dist;

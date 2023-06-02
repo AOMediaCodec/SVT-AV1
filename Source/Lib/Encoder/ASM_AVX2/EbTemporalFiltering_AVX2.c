@@ -216,7 +216,7 @@ static AOM_FORCE_INLINE __m256 exp_256_ps(__m256 _x) {
 
     return r;
 }
-
+#if !CLN_TF
 static void apply_temporal_filter_planewise(struct MeContext *me_ctx, const uint8_t *frame1,
                                             const unsigned int stride, const uint8_t *frame2,
                                             const unsigned int stride2, const int block_width,
@@ -632,7 +632,7 @@ void svt_av1_apply_temporal_filter_planewise_avx2(
                                         ss_y_shift);
     }
 }
-
+#endif
 static AOM_FORCE_INLINE void get_squared_error_16x16_hbd_avx2(
     const uint16_t *frame1, const unsigned int stride, const uint16_t *frame2,
     const unsigned int stride2, const int block_width, const int block_height, uint32_t *frame_sse,
@@ -734,7 +734,7 @@ static AOM_FORCE_INLINE __m256i xx_load_and_pad_hbd(uint32_t *src, int col, int 
     }
     return v256tmp;
 }
-
+#if !CLN_TF
 static void apply_temporal_filter_planewise_hbd(struct MeContext *me_ctx, const uint16_t *frame1,
                                                 const unsigned int stride, const uint16_t *frame2,
                                                 const unsigned int stride2, const int block_width,
@@ -1158,6 +1158,7 @@ void svt_av1_apply_temporal_filter_planewise_hbd_avx2(
                                             encoder_bit_depth);
     }
 }
+#endif
 static uint32_t calculate_squared_errors_sum_avx2(const uint8_t *s, int s_stride, const uint8_t *p,
                                                   int p_stride, unsigned int w, unsigned int h) {
     assert(w % 16 == 0 && "block width must be multiple of 16");
@@ -1225,7 +1226,7 @@ static double svt_aom_expf_tab[] = {
     0.000335
 
 };
-
+#if !CLN_TF
 void svt_av1_apply_temporal_filter_planewise_fast_avx2(struct MeContext *me_ctx,
                                                        const uint8_t *y_src, int y_src_stride,
                                                        const uint8_t *y_pre, int y_pre_stride,
@@ -1321,7 +1322,7 @@ void svt_av1_apply_temporal_filter_planewise_fast_hbd_avx2(
         }
     }
 }
-
+#endif
 static uint32_t calculate_squared_errors_sum_no_div_avx2(const uint8_t *s, int s_stride,
                                                          const uint8_t *p, int p_stride,
                                                          unsigned int w, unsigned int h) {

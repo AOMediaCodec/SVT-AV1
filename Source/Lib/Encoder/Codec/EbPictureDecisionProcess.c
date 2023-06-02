@@ -2948,7 +2948,9 @@ static EbErrorType derive_tf_window_params(
     uint32_t ss_y = centre_pcs->scs->subsampling_y;
     int32_t *noise_levels_log1p_fp16 = &(centre_pcs->noise_levels_log1p_fp16[0]);
     int32_t noise_level_fp16;
+#if !CLN_TF
     double *noise_levels = &(centre_pcs->noise_levels[0]);
+#endif
 
 
     uint8_t do_noise_est = pcs->tf_ctrls.use_intra_for_noise_est ? 0 : 1;
@@ -3001,7 +3003,9 @@ static EbErrorType derive_tf_window_params(
             altref_buffer_highbd_start[C_V] = NOT_USED_VALUE;
         }
 
+#if !CLN_TF
         if (pcs->tf_ctrls.use_fixed_point || pcs->tf_ctrls.use_medium_filter) {
+#endif
             if (do_noise_est)
             {
                 noise_level_fp16 = svt_estimate_noise_highbd_fp16(altref_buffer_highbd_start[C_Y], // Y only
@@ -3011,6 +3015,7 @@ static EbErrorType derive_tf_window_params(
                     encoder_bit_depth);
                 noise_levels_log1p_fp16[C_Y] = svt_aom_noise_log1p_fp16(noise_level_fp16);
             }
+#if !CLN_TF
         }
         else
             if (do_noise_est)
@@ -3019,12 +3024,15 @@ static EbErrorType derive_tf_window_params(
                     central_picture_ptr->height,
                     central_picture_ptr->stride_y,
                     encoder_bit_depth);
+#endif
 #if OPT_LD_TF
         if (pcs->tf_ctrls.chroma_lvl) {
 #else
         if (pcs->tf_ctrls.do_chroma) {
 #endif
+#if !CLN_TF
             if (pcs->tf_ctrls.use_fixed_point || pcs->tf_ctrls.use_medium_filter) {
+#endif
                 noise_level_fp16 = svt_estimate_noise_highbd_fp16(altref_buffer_highbd_start[C_U], // U only
                     (central_picture_ptr->width >> 1),
                     (central_picture_ptr->height >> 1),
@@ -3038,6 +3046,7 @@ static EbErrorType derive_tf_window_params(
                     central_picture_ptr->stride_cb,
                     encoder_bit_depth);
                 noise_levels_log1p_fp16[C_V] = svt_aom_noise_log1p_fp16(noise_level_fp16);
+#if !CLN_TF
             }
             else {
                 noise_levels[1] = svt_estimate_noise_highbd(altref_buffer_highbd_start[C_U], // U only
@@ -3052,6 +3061,7 @@ static EbErrorType derive_tf_window_params(
                     central_picture_ptr->stride_cb,
                     encoder_bit_depth);
             }
+#endif
         }
     }
     else {
@@ -3067,7 +3077,9 @@ static EbErrorType derive_tf_window_params(
             (central_picture_ptr->org_y >> ss_x) * central_picture_ptr->stride_cr +
             (central_picture_ptr->org_x >> ss_x);
 
+#if !CLN_TF
         if (pcs->tf_ctrls.use_fixed_point || pcs->tf_ctrls.use_medium_filter) {
+#endif
             if (do_noise_est)
             {
                 noise_level_fp16 = svt_estimate_noise_fp16(buffer_y, // Y
@@ -3076,6 +3088,7 @@ static EbErrorType derive_tf_window_params(
                     central_picture_ptr->stride_y);
                 noise_levels_log1p_fp16[C_Y] = svt_aom_noise_log1p_fp16(noise_level_fp16);
             }
+#if !CLN_TF
         }
         else
             if (do_noise_est)
@@ -3083,12 +3096,15 @@ static EbErrorType derive_tf_window_params(
                     central_picture_ptr->width,
                     central_picture_ptr->height,
                     central_picture_ptr->stride_y);
+#endif
 #if OPT_LD_TF
         if (pcs->tf_ctrls.chroma_lvl) {
 #else
         if (pcs->tf_ctrls.do_chroma) {
 #endif
+#if !CLN_TF
             if (pcs->tf_ctrls.use_fixed_point || pcs->tf_ctrls.use_medium_filter) {
+#endif
                 noise_level_fp16 = svt_estimate_noise_fp16(buffer_u, // U
                     (central_picture_ptr->width >> ss_x),
                     (central_picture_ptr->height >> ss_y),
@@ -3100,6 +3116,7 @@ static EbErrorType derive_tf_window_params(
                     (central_picture_ptr->height >> ss_y),
                     central_picture_ptr->stride_cr);
                 noise_levels_log1p_fp16[C_V] = svt_aom_noise_log1p_fp16(noise_level_fp16);
+#if !CLN_TF
             }
             else {
                 noise_levels[1] = svt_estimate_noise(buffer_u, // U
@@ -3112,22 +3129,26 @@ static EbErrorType derive_tf_window_params(
                     (central_picture_ptr->height >> ss_y),
                     central_picture_ptr->stride_cr);
             }
+#endif
         }
     }
+#if !CLN_TF
     if (pcs->tf_ctrls.use_fixed_point || pcs->tf_ctrls.use_medium_filter) {
+#endif
         if (do_noise_est) {
             pd_ctx->last_i_noise_levels_log1p_fp16[0] = noise_levels_log1p_fp16[0];
         }
         else {
             noise_levels_log1p_fp16[0] = pd_ctx->last_i_noise_levels_log1p_fp16[0];
         }
+#if !CLN_TF
     }
     else
         if (do_noise_est)
             pd_ctx->last_i_noise_levels[0] = noise_levels[0];
         else
             noise_levels[0] = pd_ctx->last_i_noise_levels[0];
-
+#endif
     // Set is_noise_level for the tf off case
     pcs->is_noise_level = (pd_ctx->last_i_noise_levels_log1p_fp16[0] >= VQ_NOISE_LVL_TH);
 #if OPT_TF_REF_PICS
