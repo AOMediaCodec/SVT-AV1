@@ -1569,9 +1569,19 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         MotionMode motion_mode_rd                      = cand->motion_mode;
         BlockSize  bsize                               = blk_geom->bsize;
         blk_ptr->prediction_unit_array[0].num_proj_ref = cand->num_proj_ref;
+#if OPT_CHILD_PCS
+        MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
+            pcs,
+            blk_ptr->prediction_unit_array[0].num_proj_ref,
+            blk_ptr->prediction_unit_array[0].overlappable_neighbors,
+            bsize,
+            rf[0],
+            rf[1],
+            inter_mode);
+#else
         MotionMode last_motion_mode_allowed            = svt_aom_motion_mode_allowed(
             pcs, blk_ptr, bsize, rf[0], rf[1], inter_mode);
-
+#endif
         switch (last_motion_mode_allowed) {
         case SIMPLE_TRANSLATION: break;
         case OBMC_CAUSAL:

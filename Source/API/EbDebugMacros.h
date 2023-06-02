@@ -204,8 +204,6 @@ extern "C" {
 
 
 
-
-
 #define TUNE_M1_FD                                1 // Tune m1 fast decode
 #define TUNE_M2_FD                                1 // Tune m2 fast decode
 #define TUNE_M3_FD                                1 // Tune m3 fast decode
@@ -215,6 +213,29 @@ extern "C" {
 #define TUNE_M6_FD                                1 // Tune m6 fast decode
 #define TUNE_M8_FD                                1 // Tune m8 fast decode
 #define TUNE_M7_FD                                1 // Tune m7 fast decode
+
+#define OPT_CHILD_PCS                             1 //memory optimization to child pcs final block data
+#if OPT_CHILD_PCS
+#define SHUT_TEMP_BUFF                            1
+#define SHUT_TOTAL_RATE                           1
+#define SHUT_PART                                 1
+#define SHUT_BEST_D1_BLK                          1
+#define SHUT_SEG_MASK                             1
+#define CLN_MBMI                                  0
+#define CLN_MBMI_2                                0 //skip_mode
+#define CLN_MBMI_3                                0 //prediction mode flag
+#define CLN_MBMI_4                                0 //pred mode
+#define CLN_MBMI_5                                0 //interp filters
+#define CLN_MBMI_6                                0 //compound_idx + compound group idx
+#define CLN_MBMI_7                                0 //tx depth
+#define CLN_MBMI_8                                0 //use intra bc
+#define CLN_MBMI_9                                0 //intra chroma mode
+#define CLN_MBMI_10                               0 //split flag
+#define CLN_MBMI_11                               0 //mvs
+#define CLN_MBMI_12                               0 //inter mode ctx
+#define CLN_MBMI_13                               0 //ref frame
+
+#endif
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

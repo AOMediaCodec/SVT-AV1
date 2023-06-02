@@ -1048,7 +1048,18 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
                     update_cdf(fc->interintra_cdf[bsize_group], 0, 2);
                 }
             }
-
+#if OPT_CHILD_PCS
+            const MotionMode motion_allowed = pcs->ppcs->frm_hdr.is_motion_mode_switchable
+                ? svt_aom_motion_mode_allowed(
+                      pcs,
+                      blk_ptr->prediction_unit_array[0].num_proj_ref,
+                      blk_ptr->prediction_unit_array[0].overlappable_neighbors,
+                      bsize,
+                      mbmi->block_mi.ref_frame[0],
+                      mbmi->block_mi.ref_frame[1],
+                      mbmi->block_mi.mode)
+                : SIMPLE_TRANSLATION;
+#else
             const MotionMode motion_allowed = pcs->ppcs->frm_hdr.is_motion_mode_switchable
                 ? svt_aom_motion_mode_allowed(pcs,
                                               blk_ptr,
@@ -1057,6 +1068,7 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
                                               mbmi->block_mi.ref_frame[1],
                                               mbmi->block_mi.mode)
                 : SIMPLE_TRANSLATION;
+#endif
             if (mbmi->block_mi.ref_frame[1] != INTRA_FRAME) {
                 if (motion_allowed == WARPED_CAUSAL) {
                     update_cdf(fc->motion_mode_cdf[bsize],
@@ -1112,8 +1124,16 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
     if (inter_block && pcs->ppcs->av1_cm->interp_filter == SWITCHABLE &&
 #endif
         blk_ptr->prediction_unit_array[0].motion_mode != WARPED_CAUSAL &&
+#if OPT_CHILD_PCS
+        !svt_aom_is_nontrans_global_motion_ec(mbmi->block_mi.ref_frame[0],
+                                              mbmi->block_mi.ref_frame[1],
+                                              blk_ptr->pred_mode,
+                                              bsize,
+                                              pcs->ppcs)) {
+#else
         !svt_aom_is_nontrans_global_motion_ec(
             mbmi->block_mi.ref_frame[0], mbmi->block_mi.ref_frame[1], blk_ptr, bsize, pcs->ppcs)) {
+#endif
 #if FIX_IFS_RATE_UPDATE
         update_filter_type_cdf(xd, mbmi, pcs->scs->seq_header.enable_dual_filter);
 #else

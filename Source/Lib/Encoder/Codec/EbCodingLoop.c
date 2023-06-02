@@ -36,8 +36,16 @@ int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
 #endif
 uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t sq_size,
                                  const uint8_t disallow_nsq);
+#if OPT_CHILD_PCS
+static EbErrorType ec_rtime_alloc_palette_info(EcBlkStruct *md_blk_arr_nsq) {
+    EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info, 1);
+    EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info->color_idx_map, MAX_PALETTE_SQUARE);
 
+    return EB_ErrorNone;
+}
+#else
 void svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq);
+#endif
 /*******************************************
 * set Penalize Skip Flag
 *
@@ -1283,8 +1291,13 @@ void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx,
 #else
 void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx);
 #endif
+#if OPT_CHILD_PCS
+void move_blk_data(PictureControlSet *pcs, EncDecContext *ed_ctx, BlkStruct *src_cu,
+                   EcBlkStruct *dst_cu);
+#else
 void        move_blk_data(PictureControlSet *pcs, EncDecContext *ed_ctx, BlkStruct *src_cu,
                           BlkStruct *dst_cu);
+#endif
 static void perform_intra_coding_loop(PictureControlSet *pcs, SuperBlock *sb_ptr, uint32_t sb_addr,
                                       BlkStruct *blk_ptr, PredictionUnit *pu_ptr,
                                       EncDecContext *ed_ctx) {
@@ -3002,13 +3015,20 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
             // ENCDEC palette info buffer
             {
                 if (svt_av1_allow_palette(pcs->ppcs->palette_level, blk_geom->bsize))
-
+#if OPT_CHILD_PCS
+                    ec_rtime_alloc_palette_info(&sb_ptr->final_blk_arr[final_blk_itr]);
+#else
                     svt_aom_rtime_alloc_palette_info(&sb_ptr->final_blk_arr[final_blk_itr]);
+#endif
                 else
                     sb_ptr->final_blk_arr[final_blk_itr].palette_info = NULL;
             }
             BlkStruct *src_cu = &md_ctx->md_blk_arr_nsq[d1_itr];
+#if OPT_CHILD_PCS
+            EcBlkStruct *dst_cu = &sb_ptr->final_blk_arr[final_blk_itr];
+#else
             BlkStruct *dst_cu = &sb_ptr->final_blk_arr[final_blk_itr];
+#endif
             move_blk_data(pcs, ctx, src_cu, dst_cu);
             sb_ptr->final_blk_arr[final_blk_itr++].av1xd = sb_ptr->av1xd;
             // MFMV Update

@@ -454,11 +454,25 @@ void svt_aom_get_txb_ctx(PictureControlSet *pcs, const int32_t plane,
 }
 
 static void av1_write_tx_type(PictureParentControlSet *pcs, FRAME_CONTEXT *frame_context,
+#if CLN_MBMI_3
+                              MbModeInfo *mbmi,
+#endif
+#if OPT_CHILD_PCS
+                              AomWriter *ec_writer, EcBlkStruct *blk_ptr, uint32_t intraDir,
+#else
                               AomWriter *ec_writer, BlkStruct *blk_ptr, uint32_t intraDir,
+#endif
                               TxType tx_type, TxSize tx_size) {
     FrameHeader  *frm_hdr  = &pcs->frm_hdr;
+#if CLN_MBMI_3
+#if CLN_MBMI_8
+    const int32_t is_inter = mbmi->block_mi.use_intrabc || is_inter_mode(mbmi->block_mi.mode);
+#else
+    const int32_t is_inter = blk_ptr->use_intrabc || is_inter_mode(mbmi->block_mi.mode);
+#endif
+#else
     const int32_t is_inter = blk_ptr->use_intrabc || (blk_ptr->prediction_mode_flag == INTER_MODE);
-
+#endif
     if (get_ext_tx_types(tx_size, is_inter, frm_hdr->reduced_tx_set) > 1 &&
         (frm_hdr->quantization_params.base_q_idx > 0)) {
         const TxSize square_tx_size = txsize_sqr_map[tx_size];
@@ -501,7 +515,14 @@ static INLINE void set_dc_sign(int32_t *cul_level, int32_t dc_val) {
 }
 
 static int32_t av1_write_coeffs_txb_1d(PictureParentControlSet *ppcs, FRAME_CONTEXT *frame_context,
+#if CLN_MBMI_3
+                                       MbModeInfo *mbmi,
+#endif
+#if OPT_CHILD_PCS
+                                       AomWriter *ec_writer, EcBlkStruct *blk_ptr, TxSize tx_size,
+#else
                                        AomWriter *ec_writer, BlkStruct *blk_ptr, TxSize tx_size,
+#endif
                                        uint32_t pu_index, uint32_t txb_index, uint32_t intraLumaDir,
                                        int32_t *coeff_buffer_ptr, const uint16_t coeff_stride,
                                        COMPONENT_TYPE component_type, int16_t txb_skip_ctx,
@@ -666,16 +687,36 @@ static int32_t av1_write_coeffs_txb_1d(PictureParentControlSet *ppcs, FRAME_CONT
 
 static EbErrorType av1_encode_tx_coef_y(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                         FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if CLN_MBMI_3
+                                        MbModeInfo *mbmi,
+#endif
+#if OPT_CHILD_PCS
+                                        EcBlkStruct *blk_ptr, uint32_t blk_org_x,
+                                        uint32_t blk_org_y,
+#else
                                         BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
+#endif
                                         uint32_t intraLumaDir, BlockSize plane_bsize,
                                         EbPictureBufferDesc *coeff_ptr,
                                         NeighborArrayUnit   *luma_dc_sign_level_coeff_na) {
     EbErrorType      return_error = EB_ErrorNone;
+#if CLN_MBMI_3
+#if CLN_MBMI_8
+    bool is_inter = is_inter_mode(mbmi->block_mi.mode) || mbmi->block_mi.use_intrabc;
+#else
+    bool          is_inter = is_inter_mode(mbmi->block_mi.mode) || blk_ptr->use_intrabc;
+#endif
+#else
     bool             is_inter = blk_ptr->prediction_mode_flag == INTER_MODE || blk_ptr->use_intrabc;
+#endif
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
-
+#if CLN_MBMI_7
+    const uint8_t  tx_depth  = mbmi->block_mi.tx_depth;
+    const uint16_t txb_count = blk_geom->txb_count[mbmi->block_mi.tx_depth];
+#else
     const uint8_t  tx_depth  = blk_ptr->tx_depth;
     const uint16_t txb_count = blk_geom->txb_count[blk_ptr->tx_depth];
+#endif
 
     for (uint16_t tx_index = 0; tx_index < txb_count; tx_index++) {
         uint16_t txb_itr = tx_index;
@@ -735,7 +776,12 @@ static EbErrorType av1_encode_tx_coef_y(PictureControlSet *pcs, EntropyCodingCon
 }
 static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                          FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if OPT_CHILD_PCS
+                                         EcBlkStruct *blk_ptr, uint32_t blk_org_x,
+                                         uint32_t blk_org_y,
+#else
                                          BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
+#endif
                                          uint32_t intraLumaDir, EbPictureBufferDesc *coeff_ptr,
                                          NeighborArrayUnit *cr_dc_sign_level_coeff_na,
                                          NeighborArrayUnit *cb_dc_sign_level_coeff_na) {
@@ -865,6 +911,16 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
 /************************************
 ******* Av1EncodeTuCoeff
 **************************************/
+#if OPT_CHILD_PCS
+static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
+                                       FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+                                       EcBlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
+                                       uint32_t intraLumaDir, BlockSize plane_bsize,
+                                       EbPictureBufferDesc *coeff_ptr,
+                                       NeighborArrayUnit *  luma_dc_sign_level_coeff_na,
+                                       NeighborArrayUnit *  cr_dc_sign_level_coeff_na,
+                                       NeighborArrayUnit *  cb_dc_sign_level_coeff_na) {
+#else
 static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                        FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                        BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
@@ -873,15 +929,32 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                                        NeighborArrayUnit   *luma_dc_sign_level_coeff_na,
                                        NeighborArrayUnit   *cr_dc_sign_level_coeff_na,
                                        NeighborArrayUnit   *cb_dc_sign_level_coeff_na) {
+#endif
     EbErrorType return_error = EB_ErrorNone;
+#if CLN_MBMI_3
+#if CLN_MBMI_8
+    int32_t is_inter = is_inter_mode(ec_ctx->mbmi->block_mi.mode) ||
+        ec_ctx->mbmi->block_mi.use_intrabc;
+#else
+    int32_t       is_inter = is_inter_mode(ec_ctx->mbmi->block_mi.mode) || blk_ptr->use_intrabc;
+#endif
+#else
     int32_t     is_inter     = (blk_ptr->prediction_mode_flag == INTER_MODE || blk_ptr->use_intrabc)
                 ? TRUE
                 : FALSE;
+#endif
+#if CLN_MBMI_7
+    if (ec_ctx->mbmi->block_mi.tx_depth) {
+#else
     if (blk_ptr->tx_depth) {
+#endif
         av1_encode_tx_coef_y(pcs,
                              ec_ctx,
                              frame_context,
                              ec_writer,
+#if CLN_MBMI_3
+                             ec_ctx->mbmi,
+#endif
                              blk_ptr,
                              blk_org_x,
                              blk_org_y,
@@ -1338,16 +1411,29 @@ static void encode_intra_luma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *
 * encode_intra_luma_mode_nonkey_av1
 *   Encodes the Intra Luma Mode for non Key frames
 *********************************************************************/
+#if OPT_CHILD_PCS
+static void encode_intra_luma_mode_nonkey_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if CLN_MBMI_4
+                                              MbModeInfo *mbmi,
+#endif
+                                              EcBlkStruct *blk_ptr, BlockSize bsize,
+                                              uint32_t luma_mode) {
+#else
 static void encode_intra_luma_mode_nonkey_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                               BlkStruct *blk_ptr, BlockSize bsize,
                                               uint32_t luma_mode) {
+#endif
     aom_write_symbol(
         ec_writer, luma_mode, frame_context->y_mode_cdf[size_group_lookup[bsize]], INTRA_MODES);
 
 #if !CLN_MISC_CLEANUPS
     if (blk_ptr->pred_mode != INTRA_MODE_4x4)
 #endif
+#if CLN_MBMI_4
+        if (bsize >= BLOCK_8X8 && av1_is_directional_mode(mbmi->block_mi.mode)) {
+#else
         if (bsize >= BLOCK_8X8 && av1_is_directional_mode(blk_ptr->pred_mode)) {
+#endif
             aom_write_symbol(
                 ec_writer,
                 blk_ptr->prediction_unit_array[0].angle_delta[PLANE_TYPE_Y] + MAX_ANGLE_DELTA,
@@ -1376,9 +1462,18 @@ static void write_cfl_alphas(FRAME_CONTEXT *const ec_ctx, int32_t idx, int32_t j
 * encode_intra_chroma_mode_av1
 *   Encodes the Intra Chroma Mode
 *********************************************************************/
+#if OPT_CHILD_PCS
+static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if CLN_MBMI_9
+                                         MbModeInfo *mbmi,
+#endif
+                                         EcBlkStruct *blk_ptr, BlockSize bsize, uint32_t luma_mode,
+                                         uint32_t chroma_mode, uint8_t cflAllowed) {
+#else
 static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                          BlkStruct *blk_ptr, BlockSize bsize, uint32_t luma_mode,
                                          uint32_t chroma_mode, uint8_t cflAllowed) {
+#endif
     aom_write_symbol(ec_writer,
                      chroma_mode,
                      frame_context->uv_mode_cdf[cflAllowed][luma_mode],
@@ -1395,7 +1490,11 @@ static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter
 #endif
         if (bsize >= BLOCK_8X8 &&
             av1_is_directional_mode(
-                get_uv_mode(blk_ptr->prediction_unit_array[0].intra_chroma_mode))) {
+#if CLN_MBMI_9
+                get_uv_mode(mbmi->block_mi.uv_mode))) {
+#else
+            get_uv_mode(blk_ptr->prediction_unit_array[0].intra_chroma_mode))) {
+#endif
             aom_write_symbol(
                 ec_writer,
                 blk_ptr->prediction_unit_array[0].angle_delta[PLANE_TYPE_UV] + MAX_ANGLE_DELTA,
@@ -1573,9 +1672,16 @@ static void encode_pred_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_wri
 * svt_aom_motion_mode_allowed
 *   checks the motion modes that are allowed for the current block
 *********************************************************************/
+#if OPT_CHILD_PCS
+MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, uint16_t num_proj_ref,
+                                       uint32_t *overlappable_neighbors, const BlockSize bsize,
+                                       MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                       PredictionMode mode) {
+#else
 MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, const BlkStruct *blk_ptr,
                                        const BlockSize bsize, MvReferenceFrame rf0,
                                        MvReferenceFrame rf1, PredictionMode mode) {
+#endif
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
     if (!frm_hdr->is_motion_mode_switchable)
         return SIMPLE_TRANSLATION;
@@ -1588,12 +1694,20 @@ MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, const BlkSt
     if (is_motion_variation_allowed_bsize(bsize) && is_inter_singleref_mode(mode) &&
         rf1 != INTRA_FRAME && !(rf1 > INTRA_FRAME)) // is_motion_variation_allowed_compound
     {
+#if OPT_CHILD_PCS
+        if (overlappable_neighbors[0] == 0 && overlappable_neighbors[1] == 0)
+#else
         if (!has_overlappable_candidates(blk_ptr)) // check_num_overlappable_neighbors
+#endif
             return SIMPLE_TRANSLATION;
 
         if (frm_hdr->allow_warped_motion &&
             /* TODO(JS): when scale is added, put: !av1_is_scaled(&(xd->block_refs[0]->sf)) && */
+#if OPT_CHILD_PCS
+            num_proj_ref >= 1) {
+#else
             blk_ptr->prediction_unit_array[0].num_proj_ref >= 1) {
+#endif
             if (frm_hdr->force_integer_mv)
                 return OBMC_CAUSAL;
             return WARPED_CAUSAL;
@@ -1607,13 +1721,44 @@ MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, const BlkSt
 * write_motion_mode
 *   Encodes the Motion Mode (obmc or warped)
 *********************************************************************/
+#if OPT_CHILD_PCS
+static void write_motion_mode(FRAME_CONTEXT *frame_context, AomWriter *ec_writer, BlockSize bsize,
+#if CLN_MBMI_4
+                              MbModeInfo *mbmi,
+#endif
+                              MotionMode motion_mode, MvReferenceFrame rf0, MvReferenceFrame rf1,
+                              EcBlkStruct *blk_ptr, PictureControlSet *pcs) {
+#else
 static void write_motion_mode(FRAME_CONTEXT *frame_context, AomWriter *ec_writer, BlockSize bsize,
                               MotionMode motion_mode, MvReferenceFrame rf0, MvReferenceFrame rf1,
                               BlkStruct *blk_ptr, PictureControlSet *pcs) {
+#endif
+#if OPT_CHILD_PCS
+
+#if CLN_MBMI_4
+    MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
+        pcs,
+        blk_ptr->prediction_unit_array[0].num_proj_ref,
+        blk_ptr->prediction_unit_array[0].overlappable_neighbors,
+        bsize,
+        rf0,
+        rf1,
+        mbmi->block_mi.mode);
+#else
+    MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
+        pcs,
+        blk_ptr->prediction_unit_array[0].num_proj_ref,
+        blk_ptr->prediction_unit_array[0].overlappable_neighbors,
+        bsize,
+        rf0,
+        rf1,
+        blk_ptr->pred_mode);
+#endif
+#else
     const PredictionMode mode                     = blk_ptr->pred_mode;
     MotionMode           last_motion_mode_allowed = svt_aom_motion_mode_allowed(
         pcs, blk_ptr, bsize, rf0, rf1, mode);
-
+#endif
     switch (last_motion_mode_allowed) {
     case SIMPLE_TRANSLATION: break;
     case OBMC_CAUSAL:
@@ -1797,8 +1942,22 @@ static void write_inter_mode(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
 }
 
 //extern INLINE int8_t av1_ref_frame_type(const MvReferenceFrame *const rf);
+#if OPT_CHILD_PCS
+static void write_drl_idx(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if CLN_MBMI_4
+                          MbModeInfo *mbmi,
+#endif
+
+                          EcBlkStruct *blk_ptr) {
+#else
 static void write_drl_idx(FRAME_CONTEXT *frame_context, AomWriter *ec_writer, BlkStruct *blk_ptr) {
+#endif
+
+#if CLN_MBMI_4
+    const int32_t new_mv = mbmi->block_mi.mode == NEWMV || mbmi->block_mi.mode == NEW_NEWMV;
+#else
     const int32_t new_mv = blk_ptr->pred_mode == NEWMV || blk_ptr->pred_mode == NEW_NEWMV;
+#endif
     if (new_mv) {
         int32_t idx;
         for (idx = 0; idx < 2; ++idx) {
@@ -1815,7 +1974,11 @@ static void write_drl_idx(FRAME_CONTEXT *frame_context, AomWriter *ec_writer, Bl
         return;
     }
 
+#if CLN_MBMI_4
+    if (have_nearmv_in_inter_mode(mbmi->block_mi.mode)) {
+#else
     if (have_nearmv_in_inter_mode(blk_ptr->pred_mode)) {
+#endif
         int32_t idx;
         // TODO(jingning): Temporary solution to compensate the NEARESTMV offset.
         for (idx = 1; idx < 3; ++idx) {
@@ -4897,11 +5060,17 @@ static void loop_restoration_write_sb_coeffs(PictureControlSet     *piCSetPtr, F
         //    SVT_LOG("POC:%i plane:%i OFF\n", piCSetPtr->picture_number, plane);
     }
 }
-
+#if OPT_CHILD_PCS
+static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
+                                       uint32_t blk_org_x, uint32_t blk_org_y, EcBlkStruct *blk_ptr,
+                                       uint16_t tile_idx, BlockSize bsize,
+                                       EbPictureBufferDesc *coeff_ptr) {
+#else
 static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                        uint32_t blk_org_x, uint32_t blk_org_y, BlkStruct *blk_ptr,
                                        uint16_t tile_idx, BlockSize bsize,
                                        EbPictureBufferDesc *coeff_ptr) {
+#endif
     UNUSED(coeff_ptr);
     EbErrorType          return_error                = EB_ErrorNone;
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
@@ -5042,7 +5211,11 @@ int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize sb_type) {
 int svt_aom_get_palette_bsize_ctx(BlockSize bsize) {
     return num_pels_log2_lookup[bsize] - num_pels_log2_lookup[BLOCK_8X8];
 }
+#if OPT_CHILD_PCS
+void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, EcBlkStruct *blk_ptr, int plane,
+#else
 void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr, int plane,
+#endif
                                 TOKENEXTRA **t, BlockSize bsize, TxSize tx_size,
                                 COLOR_MAP_TYPE type, int allow_update_cdf);
 void svt_aom_get_block_dimensions(BlockSize bsize, int plane, const MacroBlockD *xd, int *width,
@@ -5155,10 +5328,25 @@ static inline void pack_map_tokens(AomWriter *w, const TOKENEXTRA **tp, int n, i
 }
 
 static void write_palette_mode_info(PictureParentControlSet *ppcs, FRAME_CONTEXT *ec_ctx,
+#if CLN_MBMI_4
+                                    MbModeInfo *mbmi,
+#endif
+#if OPT_CHILD_PCS
+                                    EcBlkStruct *blk_ptr, BlockSize bsize, int mi_row, int mi_col,
+#else
                                     BlkStruct *blk_ptr, BlockSize bsize, int mi_row, int mi_col,
+#endif
                                     AomWriter *w) {
+#if CLN_MBMI_4
+    const uint32_t intra_luma_mode = mbmi->block_mi.mode;
+#else
     const uint32_t intra_luma_mode   = blk_ptr->pred_mode;
+#endif
+#if CLN_MBMI_9
+    uint32_t       intra_chroma_mode = mbmi->block_mi.uv_mode;
+#else
     uint32_t       intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
+#endif
 
     const PaletteModeInfo *const pmi       = &blk_ptr->palette_info->pmi;
     const int                    bsize_ctx = svt_aom_get_palette_bsize_ctx(bsize);
@@ -5203,9 +5391,21 @@ void svt_av1_encode_dv(AomWriter *w, const MV *mv, const MV *ref, NmvContext *mv
 int svt_aom_allow_intrabc(const FrameHeader *frm_hdr, SliceType slice_type) {
     return (slice_type == I_SLICE && frm_hdr->allow_screen_content_tools && frm_hdr->allow_intrabc);
 }
-
+#if OPT_CHILD_PCS
+#if CLN_MBMI_8
+static void write_intrabc_info(FRAME_CONTEXT *ec_ctx, MbModeInfo *mbmi, EcBlkStruct *blk_ptr,
+                               AomWriter *w) {
+#else
+static void write_intrabc_info(FRAME_CONTEXT *ec_ctx, EcBlkStruct *blk_ptr, AomWriter *w) {
+#endif
+#else
 static void write_intrabc_info(FRAME_CONTEXT *ec_ctx, BlkStruct *blk_ptr, AomWriter *w) {
+#endif
+#if CLN_MBMI_8
+    int use_intrabc = mbmi->block_mi.use_intrabc;
+#else
     int use_intrabc = blk_ptr->use_intrabc;
+#endif
     aom_write_symbol(w, use_intrabc, ec_ctx->intrabc_cdf, 2);
     if (use_intrabc) {
         //assert(mbmi->mode == DC_PRED);
@@ -5213,9 +5413,12 @@ static void write_intrabc_info(FRAME_CONTEXT *ec_ctx, BlkStruct *blk_ptr, AomWri
         //assert(mbmi->motion_mode == SIMPLE_TRANSLATION);
         IntMv dv_ref = blk_ptr->predmv[0]; // mbmi_ext->ref_mv_stack[INTRA_FRAME][0].this_mv;
         MV    mv;
+#if CLN_MBMI_11
+        mv = mbmi->block_mi.mv[INTRA_FRAME].as_mv;
+#else
         mv.row = blk_ptr->prediction_unit_array[0].mv[INTRA_FRAME].y;
         mv.col = blk_ptr->prediction_unit_array[0].mv[INTRA_FRAME].x;
-
+#endif
         svt_av1_encode_dv(w, &mv, &dv_ref.as_mv, &ec_ctx->ndvc);
     }
 }
@@ -5499,11 +5702,17 @@ void set_mi_row_col(PictureControlSet *pcs, MacroBlockD *xd, TileInfo *tile, int
         if (mi_row & (xd->n8_w - 1))
             xd->is_sec_rect = 1;
 }
-
+#if OPT_CHILD_PCS
+static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t blk_org_y,
+                         EcBlkStruct *blk_ptr, const BlockGeom *blk_geom,
+                         NeighborArrayUnit *txfm_context_array, FRAME_CONTEXT *ec_ctx, AomWriter *w,
+                         uint8_t skip) {
+#else
 static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t blk_org_y,
                          BlkStruct *blk_ptr, const BlockGeom *blk_geom,
                          NeighborArrayUnit *txfm_context_array, FRAME_CONTEXT *ec_ctx, AomWriter *w,
                          uint8_t skip) {
+#endif
     uint32_t      txfm_context_left_index  = get_neighbor_array_unit_left_index(txfm_context_array,
                                                                           blk_org_y);
     uint32_t      txfm_context_above_index = get_neighbor_array_unit_top_index(txfm_context_array,
@@ -5655,10 +5864,15 @@ static INLINE void update_segmentation_map(PictureControlSet *pcs, BlockSize bsi
     for (y = 0; y < ymis; ++y)
         for (x = 0; x < xmis; ++x) segment_ids[mi_offset + y * cm->mi_cols + x] = segment_id;
 }
-
+#if OPT_CHILD_PCS
+void write_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context, AomWriter *ecWriter,
+                      BlockSize bsize, uint32_t blk_org_x, uint32_t blk_org_y, EcBlkStruct *blk_ptr,
+                      Bool skip_coeff) {
+#else
 void write_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context, AomWriter *ecWriter,
                       BlockSize bsize, uint32_t blk_org_x, uint32_t blk_org_y, BlkStruct *blk_ptr,
                       Bool skip_coeff) {
+#endif
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     if (!segmentation_params->segmentation_enabled)
         return;
@@ -5692,11 +5906,17 @@ void write_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context, AomW
 #endif
     //    SVT_LOG("BlockY = %d, BlockX = %d, Segmentation  spatial_pred = %d, skip_coeff = %d, coded_id = %d, pred_cdf = %d \n", blk_org_y>>2, blk_org_x>>2, spatial_pred, skip_coeff, coded_id, *pred_cdf);
 }
-
+#if OPT_CHILD_PCS
+static void write_inter_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context,
+                                   AomWriter *ecWriter, const BlockGeom *blockGeom,
+                                   uint32_t blk_org_x, uint32_t blk_org_y, EcBlkStruct *blk_ptr,
+                                   Bool skip, int pre_skip) {
+#else
 static void write_inter_segment_id(PictureControlSet *pcs, FRAME_CONTEXT *frame_context,
                                    AomWriter *ecWriter, const BlockGeom *blockGeom,
                                    uint32_t blk_org_x, uint32_t blk_org_y, BlkStruct *blk_ptr,
                                    Bool skip, int pre_skip) {
+#endif
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     if (!segmentation_params->segmentation_enabled)
         return;
@@ -5756,10 +5976,15 @@ int svt_aom_is_interintra_allowed(const MbModeInfo *mbmi) {
 }
 
 int svt_aom_is_interintra_wedge_used(BlockSize sb_type);
-
+#if OPT_CHILD_PCS
+static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
+                                 EntropyCoder *ec, SuperBlock *tb_ptr, EcBlkStruct *blk_ptr,
+                                 uint16_t tile_idx, EbPictureBufferDesc *coeff_ptr) {
+#else
 static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                  EntropyCoder *ec, SuperBlock *tb_ptr, BlkStruct *blk_ptr,
                                  uint16_t tile_idx, EbPictureBufferDesc *coeff_ptr) {
+#endif
     UNUSED(tb_ptr);
     EbErrorType         return_error  = EB_ErrorNone;
     FRAME_CONTEXT      *frame_context = ec->fc;
@@ -5787,7 +6012,17 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
     uint32_t             blk_org_x                   = ec_ctx->sb_origin_x + blk_geom->org_x;
     uint32_t             blk_org_y                   = ec_ctx->sb_origin_y + blk_geom->org_y;
     BlockSize            bsize                       = blk_geom->bsize;
+#if CLN_MBMI
+    MbModeInfo           *mbmi = get_mbmi(pcs, blk_org_x, blk_org_y);
+    Bool            skip_coeff = mbmi->block_mi.skip;
+    ec_ctx->mbmi               = mbmi;
+#else
     Bool                 skip_coeff                  = !blk_ptr->block_has_coeff;
+#endif
+
+#if CLN_MBMI_2
+    const uint8_t skip_mode = mbmi->block_mi.skip_mode;
+#endif
 
     assert(bsize < BlockSizeS_ALL);
     int32_t       mi_row    = blk_org_y >> MI_SIZE_LOG2;
@@ -5890,11 +6125,22 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
         }
 
         {
-            const uint32_t intra_luma_mode   = blk_ptr->pred_mode;
+#if CLN_MBMI_4
+            const uint32_t intra_luma_mode = mbmi->block_mi.mode;
+#else
+            const uint32_t intra_luma_mode = blk_ptr->pred_mode;
+#endif
+#if CLN_MBMI_9
+            uint32_t       intra_chroma_mode = mbmi->block_mi.uv_mode;
+#else
             uint32_t       intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
-
+#endif
             if (svt_aom_allow_intrabc(&pcs->ppcs->frm_hdr, pcs->ppcs->slice_type))
+#if CLN_MBMI_8
+                write_intrabc_info(frame_context, mbmi, blk_ptr, ec_writer);
+#else
                 write_intrabc_info(frame_context, blk_ptr, ec_writer);
+#endif
 #if CLN_REMOVE_NEIGH_ARRAYS_2
 #if CLN_MBMI_8
             if (mbmi->block_mi.use_intrabc == 0) {
@@ -5930,27 +6176,45 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                                    blk_geom->bheight,
                                                    NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 #endif
+#if CLN_MBMI_8
+            if (mbmi->block_mi.use_intrabc == 0)
+#else
             if (blk_ptr->use_intrabc == 0)
+#endif
                 if (blk_geom->has_uv)
                     encode_intra_chroma_mode_av1(frame_context,
                                                  ec_writer,
+#if CLN_MBMI_9
+                                                 mbmi,
+#endif
                                                  blk_ptr,
                                                  bsize,
                                                  intra_luma_mode,
                                                  intra_chroma_mode,
                                                  blk_geom->bwidth <= 32 && blk_geom->bheight <= 32);
+#if CLN_MBMI_8
+            if (mbmi->block_mi.use_intrabc == 0 &&
+#else
             if (blk_ptr->use_intrabc == 0 &&
+#endif
                 svt_aom_allow_palette(frm_hdr->allow_screen_content_tools, blk_geom->bsize))
                 write_palette_mode_info(
 
                     pcs->ppcs,
                     frame_context,
+#if CLN_MBMI_4
+                    mbmi,
+#endif
                     blk_ptr,
                     blk_geom->bsize,
                     blk_org_y >> MI_SIZE_LOG2,
                     blk_org_x >> MI_SIZE_LOG2,
                     ec_writer);
+#if CLN_MBMI_8
+            if (mbmi->block_mi.use_intrabc == 0 &&
+#else
             if (blk_ptr->use_intrabc == 0 &&
+#endif
                 svt_aom_filter_intra_allowed(scs->seq_header.filter_intra_level,
                                              bsize,
                                              blk_ptr->palette_size[0],
@@ -5966,7 +6230,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                      FILTER_INTRA_MODES);
                 }
             }
+#if CLN_MBMI_8
+            if (mbmi->block_mi.use_intrabc == 0) {
+#else
             if (blk_ptr->use_intrabc == 0) {
+#endif
                 assert(blk_ptr->palette_size[1] == 0);
                 TOKENEXTRA *tok = ec_ctx->tok;
                 for (int plane = 0; plane < 2; ++plane) {
@@ -5998,7 +6266,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                             tx_size,
                             PALETTE_MAP,
                             0); //NO CDF update in entropy, the update will take place in arithmetic encode
+#if CLN_MBMI_8
+                        assert(mbmi->block_mi.use_intrabc == 0);
+#else
                         assert(blk_ptr->use_intrabc == 0);
+#endif
                         assert(svt_aom_allow_palette(pcs->ppcs->frm_hdr.allow_screen_content_tools,
                                                      blk_geom->bsize));
                         int rows, cols;
@@ -6055,9 +6327,18 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                 frame_context, ec_writer, blk_ptr->skip_mode, blk_org_x, blk_org_y, skip_flag_na);
 #endif
         }
+#if CLN_MBMI_2
+        if (!frm_hdr->skip_mode_params.skip_mode_flag && skip_mode)
+            SVT_ERROR("SKIP not supported\n");
+#else
         if (!frm_hdr->skip_mode_params.skip_mode_flag && blk_ptr->skip_mode)
             SVT_ERROR("SKIP not supported\n");
+#endif
+#if CLN_MBMI_2
+        if (!skip_mode) {
+#else
         if (!blk_ptr->skip_mode) {
+#endif
             // const int32_t skip = write_skip(cm, xd, mbmi->segment_id, mi, w);
 #if FIX_SKIP_NEIGH_ARRAY
             encode_skip_coeff_av1(blk_ptr, frame_context, ec_writer, skip_coeff);
@@ -6074,7 +6355,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                    tile_idx,
                    blk_ptr->av1xd,
                    ec_writer,
+#if CLN_MBMI_2
+                   skip_mode ? 1 : skip_coeff,
+#else
                    blk_ptr->skip_mode ? 1 : skip_coeff,
+#endif
                    blk_org_x >> MI_SIZE_LOG2,
                    blk_org_y >> MI_SIZE_LOG2);
         if (pcs->ppcs->frm_hdr.delta_q_params.delta_q_present) {
@@ -6092,7 +6377,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
             }
         }
         if (frm_hdr->tx_mode == TX_MODE_SELECT) {
+#if CLN_MBMI_2
+            if (skip_mode) {
+#else
             if (blk_ptr->skip_mode) {
+#endif
                 code_tx_size(pcs,
                              blk_org_x,
                              blk_org_y,
@@ -6101,7 +6390,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                              txfm_context_array,
                              frame_context,
                              ec_writer,
+#if CLN_MBMI_2
+                             skip_mode);
+#else
                              blk_ptr->skip_mode);
+#endif
             }
         }
 #if CLN_MBMI_2
@@ -6127,12 +6420,31 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                  blk_org_y,
                                  mode_type_na);
 #endif
+#if CLN_MBMI_3
+            if (is_intra_mode(ec_ctx->mbmi->block_mi.mode)) {
+#else
             if (blk_ptr->prediction_mode_flag == INTRA_MODE) {
-                uint32_t intra_luma_mode   = blk_ptr->pred_mode;
-                uint32_t intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
+#endif
 
+#if CLN_MBMI_4
+                uint32_t intra_luma_mode = mbmi->block_mi.mode;
+#else
+                uint32_t intra_luma_mode = blk_ptr->pred_mode;
+#endif
+
+#if CLN_MBMI_9
+                uint32_t intra_chroma_mode = mbmi->block_mi.uv_mode;
+#else
+                uint32_t intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
+#endif
+
+#if CLN_MBMI_4
+                encode_intra_luma_mode_nonkey_av1(
+                    frame_context, ec_writer, mbmi, blk_ptr, bsize, intra_luma_mode);
+#else
                 encode_intra_luma_mode_nonkey_av1(
                     frame_context, ec_writer, blk_ptr, bsize, intra_luma_mode);
+#endif
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
                 svt_aom_neighbor_array_unit_mode_write(intra_luma_mode_na,
                                                        (uint8_t *)&intra_luma_mode,
@@ -6145,6 +6457,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                 if (blk_geom->has_uv)
                     encode_intra_chroma_mode_av1(frame_context,
                                                  ec_writer,
+#if CLN_MBMI_9
+                                                 mbmi,
+#endif
                                                  blk_ptr,
                                                  bsize,
                                                  intra_luma_mode,
@@ -6154,6 +6469,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                           blk_geom->bsize))
                     write_palette_mode_info(pcs->ppcs,
                                             frame_context,
+#if CLN_MBMI_4
+                                            mbmi,
+#endif
                                             blk_ptr,
                                             blk_geom->bsize,
                                             blk_org_y >> MI_SIZE_LOG2,
@@ -6180,10 +6498,24 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 
                 write_ref_frames(frame_context, pcs->ppcs, blk_ptr->av1xd, ec_writer);
 
+#if CLN_MBMI_13
+                MvReferenceFrame *rf = mbmi->block_mi.ref_frame;
+#else
+
                 MvReferenceFrame rf[2];
                 av1_set_ref_frame(rf, blk_ptr->prediction_unit_array[0].ref_frame_type);
+#endif
+#if CLN_MBMI_12
                 int16_t mode_ctx = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+#else
+                int16_t mode_ctx = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+#endif
+#if CLN_MBMI_4
+                PredictionMode inter_mode = mbmi->block_mi.mode;
+#else
+
                 PredictionMode inter_mode = (PredictionMode)blk_ptr->pred_mode;
+#endif
                 const int32_t  is_compound =
                     (blk_ptr->prediction_unit_array[0].inter_pred_direction_index == BI_PRED);
 
@@ -6196,7 +6528,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 
                 if (inter_mode == NEWMV || inter_mode == NEW_NEWMV ||
                     have_nearmv_in_inter_mode(inter_mode)) {
+#if CLN_MBMI_4
+                    write_drl_idx(frame_context, ec_writer, mbmi, blk_ptr);
+#else
                     write_drl_idx(frame_context, ec_writer, blk_ptr);
+#endif
                 }
 
                 if (inter_mode == NEWMV || inter_mode == NEW_NEWMV) {
@@ -6207,6 +6543,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                         ref_mv           = blk_ptr->predmv[ref];
 
                         MV mv;
+#if CLN_MBMI_11
+                        mv = mbmi->block_mi.mv[ref].as_mv;
+#else
                         mv.row = blk_ptr->prediction_unit_array[0].mv[ref].y;
                         mv.col = blk_ptr->prediction_unit_array[0].mv[ref].x;
                         if (blk_ptr->prediction_unit_array[0].inter_pred_direction_index ==
@@ -6214,6 +6553,7 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                             mv.row = blk_ptr->prediction_unit_array[0].mv[1].y;
                             mv.col = blk_ptr->prediction_unit_array[0].mv[1].x;
                         }
+#endif
 
                         svt_av1_encode_mv(pcs->ppcs,
                                           ec_writer,
@@ -6227,8 +6567,12 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                     IntMv       ref_mv = blk_ptr->predmv[1];
 
                     MV mv;
+#if CLN_MBMI_11
+                    mv = mbmi->block_mi.mv[1].as_mv;
+#else
                     mv.row = blk_ptr->prediction_unit_array[0].mv[1].y;
                     mv.col = blk_ptr->prediction_unit_array[0].mv[1].x;
+#endif
 
                     svt_av1_encode_mv(pcs->ppcs,
                                       ec_writer,
@@ -6241,8 +6585,12 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                     IntMv       ref_mv = blk_ptr->predmv[0];
 
                     MV mv;
+#if CLN_MBMI_11
+                    mv = mbmi->block_mi.mv[0].as_mv;
+#else
                     mv.row = blk_ptr->prediction_unit_array[0].mv[0].y;
                     mv.col = blk_ptr->prediction_unit_array[0].mv[0].x;
+#endif
 
                     svt_av1_encode_mv(pcs->ppcs,
                                       ec_writer,
@@ -6291,6 +6639,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                     write_motion_mode(frame_context,
                                       ec_writer,
                                       bsize,
+#if CLN_MBMI_4
+                                      mbmi,
+#endif
                                       blk_ptr->prediction_unit_array[0].motion_mode,
                                       rf[0],
                                       rf[1],
@@ -6308,15 +6659,28 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                         const int ctx_comp_group_idx = svt_aom_get_comp_group_idx_context_enc(
                             blk_ptr->av1xd);
                         aom_write_symbol(ec_writer,
+#if CLN_MBMI_6
+                                         mbmi->block_mi.comp_group_idx,
+#else
                                          blk_ptr->comp_group_idx,
+#endif
                                          frame_context->comp_group_idx_cdf[ctx_comp_group_idx],
                                          2);
                     } else {
+#if CLN_MBMI_6
+                        assert(mbmi->block_mi.comp_group_idx == 0);
+#else
                         assert(blk_ptr->comp_group_idx == 0);
+#endif
                     }
 
+#if CLN_MBMI_6
+                    if (mbmi->block_mi.comp_group_idx == 0) {
+                        if (mbmi->block_mi.compound_idx)
+#else
                     if (blk_ptr->comp_group_idx == 0) {
                         if (blk_ptr->compound_idx)
+#endif
                             assert(blk_ptr->interinter_comp.type == COMPOUND_AVERAGE);
 
                         if (scs->seq_header.order_hint_info.enable_jnt_comp) {
@@ -6327,11 +6691,19 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                 pcs->ppcs->ref_order_hint[rf[1] - 1], // fwd_frame_index,
                                 blk_ptr->av1xd);
                             aom_write_symbol(ec_writer,
+#if CLN_MBMI_6
+                                             mbmi->block_mi.compound_idx,
+#else
                                              blk_ptr->compound_idx,
+#endif
                                              frame_context->compound_index_cdf[comp_index_ctx],
                                              2);
                         } else {
+#if CLN_MBMI_6
+                            assert(mbmi->block_mi.compound_idx == 1);
+#else
                             assert(blk_ptr->compound_idx == 1);
+#endif
                         }
                     } else {
                         assert(pcs->ppcs->frm_hdr.reference_mode != SINGLE_REFERENCE &&
@@ -6421,7 +6793,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                             tx_size,
                             PALETTE_MAP,
                             0); //NO CDF update in entropy, the update will take place in arithmetic encode
+#if CLN_MBMI_8
+                        assert(mbmi->block_mi.use_intrabc == 0);
+#else
                         assert(blk_ptr->use_intrabc == 0);
+#endif
                         assert(svt_aom_allow_palette(pcs->ppcs->frm_hdr.allow_screen_content_tools,
                                                      blk_geom->bsize));
                         int rows, cols;
@@ -6450,8 +6826,17 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
             }
             if (!skip_coeff) {
                 uint32_t intra_luma_mode = DC_PRED;
+#if CLN_MBMI_3
+                if (is_intra_mode(ec_ctx->mbmi->block_mi.mode))
+#else
                 if (blk_ptr->prediction_mode_flag == INTRA_MODE)
+#endif
+
+#if CLN_MBMI_4
+                    intra_luma_mode = mbmi->block_mi.mode;
+#else
                     intra_luma_mode = (uint32_t)blk_ptr->pred_mode;
+#endif
 
                 {
                     av1_encode_coeff_1d(pcs,
@@ -6510,9 +6895,11 @@ EB_EXTERN EbErrorType svt_aom_write_sb(EntropyCodingContext *ec_ctx, SuperBlock 
         check_blk_out_of_bound = TRUE;
     do {
         Bool code_blk_cond = TRUE; // Code cu only if it is inside the picture
-
+#if OPT_CHILD_PCS
+        EcBlkStruct *blk_ptr = &tb_ptr->final_blk_arr[final_blk_index];
+#else
         BlkStruct *blk_ptr = &tb_ptr->final_blk_arr[final_blk_index];
-
+#endif
         const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
 
         BlockSize bsize = blk_geom->bsize;

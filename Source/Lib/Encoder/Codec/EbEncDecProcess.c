@@ -2466,8 +2466,11 @@ uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t 
 
     return tot_d1_blocks;
 }
-
+#if OPT_CHILD_PCS
+static EbErrorType md_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq) {
+#else
 EbErrorType svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq) {
+#endif
     EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info, 1);
     EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info->color_idx_map, MAX_PALETTE_SQUARE);
 
@@ -2552,7 +2555,11 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                 //  MD palette info buffer
                 if (pcs->ppcs->palette_level) {
                     if (ctx->md_blk_arr_nsq[idx].palette_mem == 0) {
+#if OPT_CHILD_PCS
+                        md_rtime_alloc_palette_info(&ctx->md_blk_arr_nsq[idx]);
+#else
                         svt_aom_rtime_alloc_palette_info(&ctx->md_blk_arr_nsq[idx]);
+#endif
                         ctx->md_blk_arr_nsq[idx].palette_mem = 1;
                     }
                 }
@@ -2969,7 +2976,11 @@ static EbErrorType build_starting_cand_block_array(SequenceControlSet *scs, Pict
                 //  MD palette info buffer
                 if (pcs->ppcs->palette_level) {
                     if (ctx->md_blk_arr_nsq[idx].palette_mem == 0) {
+#if OPT_CHILD_PCS
+                        md_rtime_alloc_palette_info(&ctx->md_blk_arr_nsq[idx]);
+#else
                         svt_aom_rtime_alloc_palette_info(&ctx->md_blk_arr_nsq[idx]);
+#endif
                         ctx->md_blk_arr_nsq[idx].palette_mem = 1;
                     }
                 }
@@ -3960,7 +3971,11 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                     for (sb_index = 0; sb_index < pcs->enc_dec_coded_sb_count; ++sb_index) {
                         sb_ptr = pcs->sb_ptr_array[sb_index];
                         for (uint16_t blk_cnt = 0; blk_cnt < sb_ptr->final_blk_cnt; blk_cnt++) {
+#if OPT_CHILD_PCS
+                            EcBlkStruct *final_blk_arr = &(sb_ptr->final_blk_arr[blk_cnt]);
+#else
                             BlkStruct *final_blk_arr = &(sb_ptr->final_blk_arr[blk_cnt]);
+#endif
                             if (final_blk_arr->palette_info != NULL) {
                                 assert(final_blk_arr->palette_info->color_idx_map != NULL &&
                                        "free palette:Null");

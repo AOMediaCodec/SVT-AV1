@@ -1343,7 +1343,25 @@ typedef enum ATTRIBUTE_PACKED {
     FILTER_PAETH_PRED,
     FILTER_INTRA_MODES,
 } FilterIntraMode;
+#if OPT_CHILD_PCS
+typedef struct {
+    /*!< Specifies how the two predictions should be blended together. */
+    CompoundType type;
 
+    /*!< Used to derive the direction and offset of the wedge mask used during blending. */
+    uint8_t wedge_index;
+
+    /*!< Specifies the sign of the wedge blend. */
+    uint8_t wedge_sign;
+
+    /*!< Specifies the type of mask to be used during blending. */
+    DIFFWTD_MASK_TYPE mask_type;
+#if !SHUT_SEG_MASK
+    // Temp buffer used for inter prediction
+    uint8_t *seg_mask;
+#endif
+} EcInterInterCompoundData;
+#endif
 static const PredictionMode fimode_to_intramode[FILTER_INTRA_MODES] = {
     DC_PRED, V_PRED, H_PRED, D157_PRED, PAETH_PRED};
 #define DIRECTIONAL_MODES 8
@@ -2263,7 +2281,12 @@ typedef struct {
     PaletteModeInfo pmi;
     uint8_t  *color_idx_map;
 } PaletteInfo;
-
+#if OPT_CHILD_PCS
+typedef struct {
+    PaletteModeInfo pmi;
+    uint8_t* color_idx_map;
+} EcPaletteInfo;
+#endif
 /** The EbHandle type is used to define OS object handles for threads,
 semaphores, mutexs, etc.
 */

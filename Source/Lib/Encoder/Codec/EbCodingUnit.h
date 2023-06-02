@@ -525,8 +525,11 @@ typedef struct TplSrcStats {
 typedef struct SuperBlock {
     EbDctor                   dctor;
     struct PictureControlSet *pcs;
-
+#if OPT_CHILD_PCS
+    EcBlkStruct *final_blk_arr;
+#else
     BlkStruct *final_blk_arr;
+#endif
     //for memory free only
     MacroBlockD   *av1xd;
     PartitionType *cu_partition_array;

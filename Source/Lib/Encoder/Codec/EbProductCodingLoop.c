@@ -8948,9 +8948,13 @@ static void md_stage_3(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionC
                        blk_chroma_origin_index);
     }
 }
-
+#if OPT_CHILD_PCS
+void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu,
+                   EcBlkStruct *dst_cu) {
+#else
 void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu,
                    BlkStruct *dst_cu) {
+#endif
     dst_cu->palette_size[0] = src_cu->palette_size[0];
     dst_cu->palette_size[1] = src_cu->palette_size[1];
     if (svt_av1_allow_palette(pcs->ppcs->palette_level, ctx->blk_geom->bsize)) {
@@ -8963,18 +8967,59 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
         else
             SVT_ERROR("palette: Not-Enough-Memory\n");
     }
+#if !CLN_MBMI_5
     dst_cu->interp_filters              = src_cu->interp_filters;
+#endif
     dst_cu->interinter_comp.type        = src_cu->interinter_comp.type;
     dst_cu->interinter_comp.mask_type   = src_cu->interinter_comp.mask_type;
     dst_cu->interinter_comp.wedge_index = src_cu->interinter_comp.wedge_index;
     dst_cu->interinter_comp.wedge_sign  = src_cu->interinter_comp.wedge_sign;
+#if !CLN_MBMI_6
     dst_cu->compound_idx                = src_cu->compound_idx;
     dst_cu->comp_group_idx              = src_cu->comp_group_idx;
+#endif
 
     dst_cu->is_interintra_used     = src_cu->is_interintra_used;
     dst_cu->interintra_mode        = src_cu->interintra_mode;
     dst_cu->use_wedge_interintra   = src_cu->use_wedge_interintra;
     dst_cu->interintra_wedge_index = src_cu->interintra_wedge_index; //inter_intra wedge index
+
+#if OPT_CHILD_PCS
+    for (uint8_t tx_cnt = 0; tx_cnt < TRANSFORM_UNIT_MAX_COUNT; tx_cnt++) {
+        dst_cu->txb_array[tx_cnt].nz_coef_count[0]  = src_cu->txb_array[tx_cnt].nz_coef_count[0];
+        dst_cu->txb_array[tx_cnt].nz_coef_count[1]  = src_cu->txb_array[tx_cnt].nz_coef_count[1];
+        dst_cu->txb_array[tx_cnt].nz_coef_count[2]  = src_cu->txb_array[tx_cnt].nz_coef_count[2];
+        dst_cu->txb_array[tx_cnt].transform_type[0] = src_cu->txb_array[tx_cnt].transform_type[0];
+        dst_cu->txb_array[tx_cnt].transform_type[1] = src_cu->txb_array[tx_cnt].transform_type[1];
+    }
+
+#if !CLN_MBMI_11
+    svt_memcpy(dst_cu->prediction_unit_array->mv,
+               src_cu->prediction_unit_array->mv,
+               MAX_NUM_OF_REF_PIC_LIST * sizeof(Mv));
+#endif
+    dst_cu->prediction_unit_array->inter_pred_direction_index =
+        src_cu->prediction_unit_array->inter_pred_direction_index;
+    // Intra Mode
+    dst_cu->prediction_unit_array->angle_delta[0] = src_cu->prediction_unit_array->angle_delta[0];
+    dst_cu->prediction_unit_array->angle_delta[1] = src_cu->prediction_unit_array->angle_delta[1];
+#if !CLN_MBMI_9
+    dst_cu->prediction_unit_array->intra_chroma_mode =
+        src_cu->prediction_unit_array->intra_chroma_mode;
+#endif
+    // Inter Mode
+#if !CLN_MBMI_13
+    dst_cu->prediction_unit_array->ref_frame_type = src_cu->prediction_unit_array->ref_frame_type;
+#endif
+    dst_cu->prediction_unit_array->motion_mode  = src_cu->prediction_unit_array->motion_mode;
+    dst_cu->prediction_unit_array->num_proj_ref = src_cu->prediction_unit_array->num_proj_ref;
+    dst_cu->prediction_unit_array->overlappable_neighbors[0] =
+        src_cu->prediction_unit_array->overlappable_neighbors[0];
+    dst_cu->prediction_unit_array->overlappable_neighbors[1] =
+        src_cu->prediction_unit_array->overlappable_neighbors[1];
+    dst_cu->prediction_unit_array->cfl_alpha_idx   = src_cu->prediction_unit_array->cfl_alpha_idx;
+    dst_cu->prediction_unit_array->cfl_alpha_signs = src_cu->prediction_unit_array->cfl_alpha_signs;
+#else
     //CHKN TransformUnit             txb_array[TRANSFORM_UNIT_MAX_COUNT]; // 2-bytes * 21 = 42-bytes
     svt_memcpy(
         dst_cu->txb_array, src_cu->txb_array, TRANSFORM_UNIT_MAX_COUNT * sizeof(TransformUnit));
@@ -8983,7 +9028,7 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
     svt_memcpy(dst_cu->prediction_unit_array,
                src_cu->prediction_unit_array,
                MAX_NUM_OF_PU_PER_CU * sizeof(PredictionUnit));
-
+#endif
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
     dst_cu->skip_flag_context    = src_cu->skip_flag_context;
 #endif
@@ -9015,15 +9060,19 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
         svt_memcpy(dst_cu->av1xd, src_cu->av1xd, sizeof(MacroBlockD));
 
     // uint8_t ref_mv_count[MODE_CTX_REF_FRAMES];
-
+#if CLN_MBMI_12
+    dst_cu->inter_mode_ctx = src_cu->inter_mode_ctx[src_cu->prediction_unit_array->ref_frame_type];
+#else
     //CHKN int16_t inter_mode_ctx[MODE_CTX_REF_FRAMES];
     svt_memcpy(
         dst_cu->inter_mode_ctx, src_cu->inter_mode_ctx, MODE_CTX_REF_FRAMES * sizeof(int16_t));
-
+#endif
     //CHKN uint8_t  drl_index;
     //CHKN PredictionMode               pred_mode;
     dst_cu->drl_index = src_cu->drl_index;
+#if !CLN_MBMI_4
     dst_cu->pred_mode = src_cu->pred_mode;
+#endif
 
     //CHKN IntMv  predmv[2];
 
@@ -9048,12 +9097,18 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
 
     dst_cu->is_inter_ctx   = src_cu->is_inter_ctx;
 #endif
+#if !CLN_MBMI_5
     dst_cu->interp_filters = src_cu->interp_filters;
+#endif
 
-    dst_cu->part              = src_cu->part;
+#if !SHUT_PART
+    dst_cu->part = src_cu->part;
+#endif
     dst_cu->mds_idx           = src_cu->mds_idx;
     dst_cu->filter_intra_mode = src_cu->filter_intra_mode;
-    dst_cu->use_intrabc       = src_cu->use_intrabc;
+#if !CLN_MBMI_8
+    dst_cu->use_intrabc = src_cu->use_intrabc;
+#endif
     dst_cu->drl_ctx[0]        = src_cu->drl_ctx[0];
     dst_cu->drl_ctx[1]        = src_cu->drl_ctx[1];
     dst_cu->drl_ctx_near[0]   = src_cu->drl_ctx_near[0];
