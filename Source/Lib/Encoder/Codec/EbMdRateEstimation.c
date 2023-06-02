@@ -1144,7 +1144,12 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
         const PredictionMode mode = mbmi->block_mi.mode;
         MvReferenceFrame     rf[2];
         av1_set_ref_frame(rf, blk_ptr->prediction_unit_array[0].ref_frame_type);
+#if CLN_MBMI_12
+        const int16_t mode_ctx = svt_aom_mode_context_analyzer(
+            blk_ptr->inter_mode_ctx[blk_ptr->prediction_unit_array[0].ref_frame_type], rf);
+#else
         const int16_t mode_ctx = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+#endif
         if (svt_aom_has_second_ref(mbmi)) {
             update_cdf(fc->inter_compound_mode_cdf[mode_ctx],
                        INTER_COMPOUND_OFFSET(mode),

@@ -1189,7 +1189,12 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     MvReferenceFrame     rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t  is_compound  = is_inter_compound_mode(cand->pred_mode);
+#if CLN_MBMI_12
+    const uint32_t mode_context = svt_aom_mode_context_analyzer(
+        blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
+#else
     const uint32_t mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+#endif
     uint64_t       reference_picture_bits_num = 0;
     reference_picture_bits_num = ctx->svt_aom_estimate_ref_frames_num_bits[cand->ref_frame_type];
     if (is_compound) {
@@ -1393,7 +1398,12 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t is_compound  = is_inter_compound_mode(cand->pred_mode);
+#if CLN_MBMI_12
+    uint32_t mode_context = svt_aom_mode_context_analyzer(
+        blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
+#else
     uint32_t      mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+#endif
     uint64_t      reference_picture_bits_num = 0;
 
     //Reference Type and Mode Bit estimation

@@ -2097,7 +2097,11 @@ void svt_aom_inter_block_mode_info(EbDecHandle *dec_handle, ParseCtxt *parse_ctx
     }
 #endif
 
-    int mode_ctx     = svt_aom_mode_context_analyzer(inter_mode_ctx, mbmi->ref_frame);
+#if CLN_MBMI_12
+    int mode_ctx = svt_aom_mode_context_analyzer(inter_mode_ctx[ref_frame], mbmi->ref_frame);
+#else
+    int mode_ctx = svt_aom_mode_context_analyzer(inter_mode_ctx, mbmi->ref_frame);
+#endif
     mbmi->ref_mv_idx = 0;
 
     if (mbmi->skip_mode) {

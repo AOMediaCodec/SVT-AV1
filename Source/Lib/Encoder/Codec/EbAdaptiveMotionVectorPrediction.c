@@ -1383,7 +1383,28 @@ void svt_copy_mi_map_grid_c(ModeInfo **mi_grid_ptr, uint32_t mi_stride, uint8_t 
         }
     }
 }
+#if CLN_MBMI
+MbModeInfo *get_mbmi(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t blk_org_y) {
+    uint32_t mi_stride = pcs->mi_stride;
+    int32_t  mi_row    = blk_org_y >> MI_SIZE_LOG2;
+    int32_t  mi_col    = blk_org_x >> MI_SIZE_LOG2;
 
+    const int32_t offset = mi_row * mi_stride + mi_col;
+
+    // Reset the mi_grid (needs to be done here in case it was changed for NSQ blocks during MD - svt_aom_init_xd())
+    // mip offset may be different from grid offset when 4x4 blocks are disallowed
+    const int32_t mip_offset = (mi_row >> pcs->disallow_4x4_all_frames) *
+            (mi_stride >> pcs->disallow_4x4_all_frames) +
+        (mi_col >> pcs->disallow_4x4_all_frames);
+    pcs->mi_grid_base[offset] = pcs->mip + mip_offset;
+
+    ModeInfo *mi_ptr = *(pcs->mi_grid_base + offset);
+    // use idx 0 as that's the first mbmmi in the block
+    MbModeInfo *mbmi = &mi_ptr[0].mbmi;
+
+    return mbmi;
+}
+#endif
 #if FTR_ROI
 void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
                            const BlockGeom *blk_geom, PictureControlSet *pcs,

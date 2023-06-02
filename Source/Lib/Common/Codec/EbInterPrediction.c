@@ -2725,7 +2725,26 @@ const uint8_t *svt_av1_get_obmc_mask(int length) {
     default: assert(0); return NULL;
     }
 }
+#if CLN_MBMI_12
+int16_t svt_aom_mode_context_analyzer(int16_t mode_context, const MvReferenceFrame *const rf) {
+    static unsigned svt_aom_compound_mode_ctx_map[3][COMP_NEWMV_CTXS] = {
+        {0, 1, 1, 1, 1},
+        {1, 2, 3, 4, 4},
+        {4, 4, 5, 6, 7},
+    };
+    const int ref_frame = av1_ref_frame_type(rf);
 
+    if (rf[1] <= INTRA_FRAME)
+        return mode_context;
+
+    const unsigned newmv_ctx = mode_context & NEWMV_CTX_MASK;
+    const unsigned refmv_ctx = (mode_context >> REFMV_OFFSET) & REFMV_CTX_MASK;
+    assert((refmv_ctx >> 1) < 3);
+    const unsigned comp_ctx =
+        svt_aom_compound_mode_ctx_map[refmv_ctx >> 1][AOMMIN(newmv_ctx, COMP_NEWMV_CTXS - 1)];
+    return comp_ctx;
+}
+#else
 int16_t svt_aom_mode_context_analyzer(const int16_t *const          mode_context,
                                       const MvReferenceFrame *const rf) {
     static unsigned svt_aom_compound_mode_ctx_map[3][COMP_NEWMV_CTXS] = {
@@ -2745,3 +2764,4 @@ int16_t svt_aom_mode_context_analyzer(const int16_t *const          mode_context
         svt_aom_compound_mode_ctx_map[refmv_ctx >> 1][AOMMIN(newmv_ctx, COMP_NEWMV_CTXS - 1)];
     return comp_ctx;
 }
+#endif

@@ -549,7 +549,11 @@ static int32_t av1_write_coeffs_txb_1d(PictureParentControlSet *ppcs, FRAME_CONT
 
     if (component_type == 0 && eob == 0) {
         // INTER. Chroma follows Luma in transform type
+#if CLN_MBMI_3
+        if (is_inter_mode(mbmi->block_mi.mode)) {
+#else
         if (blk_ptr->prediction_mode_flag == INTER_MODE) {
+#endif
             tx_type = blk_ptr->txb_array[txb_index].transform_type[PLANE_TYPE_Y] = DCT_DCT;
             blk_ptr->txb_array[txb_index].transform_type[PLANE_TYPE_UV]          = DCT_DCT;
         } else { // INTRA
@@ -561,7 +565,11 @@ static int32_t av1_write_coeffs_txb_1d(PictureParentControlSet *ppcs, FRAME_CONT
         return 0;
     svt_av1_txb_init_levels(coeff_buffer_ptr, width, height, levels);
     if (component_type == COMPONENT_LUMA) {
+#if CLN_MBMI_3
+        av1_write_tx_type(ppcs, frame_context, mbmi, ec_writer, blk_ptr, intraLumaDir, tx_type, tx_size);
+#else
         av1_write_tx_type(ppcs, frame_context, ec_writer, blk_ptr, intraLumaDir, tx_type, tx_size);
+#endif
     }
 
     int16_t       eob_extra;
@@ -743,6 +751,9 @@ static EbErrorType av1_encode_tx_coef_y(PictureControlSet *pcs, EntropyCodingCon
 
         int32_t cul_level_y = av1_write_coeffs_txb_1d(pcs->ppcs,
                                                       frame_context,
+#if CLN_MBMI_3
+                                                      mbmi,
+#endif
                                                       ec_writer,
                                                       blk_ptr,
                                                       tx_size,
@@ -786,15 +797,27 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
                                          NeighborArrayUnit *cr_dc_sign_level_coeff_na,
                                          NeighborArrayUnit *cb_dc_sign_level_coeff_na) {
     EbErrorType return_error = EB_ErrorNone;
+#if CLN_MBMI_3
+#if CLN_MBMI_8
+    int32_t is_inter = is_inter_mode(ec_ctx->mbmi->block_mi.mode) ||
+        ec_ctx->mbmi->block_mi.use_intrabc;
+#else
+    int32_t       is_inter = is_inter_mode(ec_ctx->mbmi->block_mi.mode) || blk_ptr->use_intrabc;
+#endif
+#else
     int32_t     is_inter     = (blk_ptr->prediction_mode_flag == INTER_MODE || blk_ptr->use_intrabc)
                 ? TRUE
                 : FALSE;
+#endif
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
 
     if (!blk_geom->has_uv)
         return return_error;
-
+#if CLN_MBMI_7
+    const uint8_t tx_depth = ec_ctx->mbmi->block_mi.tx_depth;
+#else
     const uint8_t tx_depth  = blk_ptr->tx_depth;
+#endif
     unsigned      txb_count = 1;
 
     for (unsigned tx_index = 0; tx_index < txb_count; ++tx_index) {
@@ -824,6 +847,9 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
             int32_t cul_level_cb = av1_write_coeffs_txb_1d(
                 pcs->ppcs,
                 frame_context,
+#if CLN_MBMI_3
+                ec_ctx->mbmi,
+#endif
                 ec_writer,
                 blk_ptr,
                 chroma_tx_size,
@@ -860,6 +886,9 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
             int32_t cul_level_cr = av1_write_coeffs_txb_1d(
                 pcs->ppcs,
                 frame_context,
+#if CLN_MBMI_3
+                ec_ctx->mbmi,
+#endif
                 ec_writer,
                 blk_ptr,
                 chroma_tx_size,
@@ -979,12 +1008,22 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
         const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
         int32_t          cul_level_y, cul_level_cb = 0, cul_level_cr = 0;
 
+#if CLN_MBMI_7
+        const uint8_t tx_depth  = ec_ctx->mbmi->block_mi.tx_depth;
+        uint16_t      txb_count = blk_geom->txb_count[tx_depth];
+#else
         uint16_t txb_count = blk_geom->txb_count[blk_ptr->tx_depth];
+#endif
         uint8_t  txb_itr   = 0;
 
         for (txb_itr = 0; txb_itr < txb_count; txb_itr++) {
+#if CLN_MBMI_7
+            const TxSize tx_size        = blk_geom->txsize[tx_depth][txb_itr];
+            const TxSize chroma_tx_size = blk_geom->txsize_uv[tx_depth][txb_itr];
+#else
             const TxSize tx_size        = blk_geom->txsize[blk_ptr->tx_depth][txb_itr];
             const TxSize chroma_tx_size = blk_geom->txsize_uv[blk_ptr->tx_depth][txb_itr];
+#endif
             int32_t     *coeff_buffer;
 
             const uint32_t coeff1d_offset = ec_ctx->coded_area_sb;
@@ -999,10 +1038,15 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                     pcs,
                     COMPONENT_LUMA,
                     luma_dc_sign_level_coeff_na,
+#if CLN_MBMI_7
+                    blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x,
+                    blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y,
+#else
                     blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_x,
                     blk_org_y + blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_y,
+#endif
                     plane_bsize,
                     tx_size,
                     &txb_skip_ctx,
@@ -1010,6 +1054,9 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
 
                 cul_level_y = av1_write_coeffs_txb_1d(pcs->ppcs,
                                                       frame_context,
+#if CLN_MBMI_3
+                                                      ec_ctx->mbmi,
+#endif
                                                       ec_writer,
                                                       blk_ptr,
                                                       tx_size,
@@ -1035,6 +1082,10 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                         pcs,
                         COMPONENT_CHROMA,
                         cb_dc_sign_level_coeff_na,
+#if CLN_MBMI_7
+                        ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
+                        ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
+#else
                         ROUND_UV(blk_org_x +
                                  blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                                  blk_geom->org_x) >>
@@ -1043,6 +1094,7 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                                  blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                                  blk_geom->org_y) >>
                             1,
+#endif
                         blk_geom->bsize_uv,
                         chroma_tx_size,
                         &txb_skip_ctx,
@@ -1051,6 +1103,9 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                     cul_level_cb = av1_write_coeffs_txb_1d(
                         pcs->ppcs,
                         frame_context,
+#if CLN_MBMI_3
+                        ec_ctx->mbmi,
+#endif
                         ec_writer,
                         blk_ptr,
                         chroma_tx_size,
@@ -1075,6 +1130,10 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                         pcs,
                         COMPONENT_CHROMA,
                         cr_dc_sign_level_coeff_na,
+#if CLN_MBMI_7
+                        ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
+                        ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
+#else
                         ROUND_UV(blk_org_x +
                                  blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                                  blk_geom->org_x) >>
@@ -1083,6 +1142,7 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                                  blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                                  blk_geom->org_y) >>
                             1,
+#endif
                         blk_geom->bsize_uv,
                         chroma_tx_size,
                         &txb_skip_ctx,
@@ -1091,6 +1151,9 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                     cul_level_cr = av1_write_coeffs_txb_1d(
                         pcs->ppcs,
                         frame_context,
+#if CLN_MBMI_3
+                        ec_ctx->mbmi,
+#endif
                         ec_writer,
                         blk_ptr,
                         chroma_tx_size,
@@ -1114,12 +1177,19 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                 svt_aom_neighbor_array_unit_mode_write(
                     luma_dc_sign_level_coeff_na,
                     (uint8_t *)&dc_sign_level_coeff,
+#if CLN_MBMI_7
+                    blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x,
+                    blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y,
+                    blk_geom->tx_width[tx_depth][txb_itr],
+                    blk_geom->tx_height[tx_depth][txb_itr],
+#else
                     blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_x,
                     blk_org_y + blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_y,
                     blk_geom->tx_width[blk_ptr->tx_depth][txb_itr],
                     blk_geom->tx_height[blk_ptr->tx_depth][txb_itr],
+#endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
             }
 
@@ -1130,6 +1200,12 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                 svt_aom_neighbor_array_unit_mode_write(
                     cb_dc_sign_level_coeff_na,
                     &dc_sign_level_coeff,
+#if CLN_MBMI_7
+                    ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
+                    ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
+                    blk_geom->tx_width_uv[tx_depth][txb_itr],
+                    blk_geom->tx_height_uv[tx_depth][txb_itr],
+#else
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_x) >>
                         1,
@@ -1138,12 +1214,19 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                         1,
                     blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr],
                     blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr],
+#endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
                 // Update the cr DC Sign Level Coeff Neighbor Array
                 dc_sign_level_coeff = (uint8_t)cul_level_cr;
                 svt_aom_neighbor_array_unit_mode_write(
                     cr_dc_sign_level_coeff_na,
                     &dc_sign_level_coeff,
+#if CLN_MBMI_7
+                    ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
+                    ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
+                    blk_geom->tx_width_uv[tx_depth][txb_itr],
+                    blk_geom->tx_height_uv[tx_depth][txb_itr],
+#else
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_x) >>
                         1,
@@ -1152,13 +1235,23 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                         1,
                     blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr],
                     blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr],
+#endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
+#if CLN_MBMI_7
+                ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[tx_depth][txb_itr] *
+                    blk_geom->tx_height_uv[tx_depth][txb_itr];
+#else
                 ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr] *
                     blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr];
+#endif
             }
-
+#if CLN_MBMI_7
+            ec_ctx->coded_area_sb += blk_geom->tx_width[tx_depth][txb_itr] *
+                blk_geom->tx_height[tx_depth][txb_itr];
+#else
             ec_ctx->coded_area_sb += blk_geom->tx_width[blk_ptr->tx_depth][txb_itr] *
                 blk_geom->tx_height[blk_ptr->tx_depth][txb_itr];
+#endif
         }
     }
     return return_error;

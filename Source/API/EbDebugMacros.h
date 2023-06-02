@@ -225,19 +225,19 @@ extern "C" {
 #define SHUT_PART                                 1
 #define SHUT_BEST_D1_BLK                          1
 #define SHUT_SEG_MASK                             1
-#define CLN_MBMI                                  0
-#define CLN_MBMI_2                                0 //skip_mode
-#define CLN_MBMI_3                                0 //prediction mode flag
-#define CLN_MBMI_4                                0 //pred mode
-#define CLN_MBMI_5                                0 //interp filters
-#define CLN_MBMI_6                                0 //compound_idx + compound group idx
-#define CLN_MBMI_7                                0 //tx depth
-#define CLN_MBMI_8                                0 //use intra bc
-#define CLN_MBMI_9                                0 //intra chroma mode
-#define CLN_MBMI_10                               0 //split flag
-#define CLN_MBMI_11                               0 //mvs
-#define CLN_MBMI_12                               0 //inter mode ctx
-#define CLN_MBMI_13                               0 //ref frame
+#define CLN_MBMI                                  1
+#define CLN_MBMI_2                                1 //skip_mode
+#define CLN_MBMI_3                                1 //prediction mode flag
+#define CLN_MBMI_4                                1 //pred mode
+#define CLN_MBMI_5                                1 //interp filters
+#define CLN_MBMI_6                                1 //compound_idx + compound group idx
+#define CLN_MBMI_7                                1 //tx depth
+#define CLN_MBMI_8                                1 //use intra bc
+#define CLN_MBMI_9                                1 //intra chroma mode
+#define CLN_MBMI_10                               1 //split flag
+#define CLN_MBMI_11                               1 //mvs
+#define CLN_MBMI_12                               1 //inter mode ctx
+#define CLN_MBMI_13                               1 //ref frame
 
 #endif
 

@@ -66,6 +66,9 @@ typedef struct EntropyCodingContext {
     int32_t     coded_area_sb;
     int32_t     coded_area_sb_uv;
     TOKENEXTRA *tok;
+#if CLN_MBMI
+    MbModeInfo *mbmi;
+#endif
 } EntropyCodingContext;
 
 /**************************************
