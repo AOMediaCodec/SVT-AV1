@@ -197,6 +197,7 @@ extern "C" {
                                                     // *TODO: Renames sb_type --> bsize without a macro. Before renaming, in cdef_seg_search()
                                                     //        rename "int32_t bsize[3];" to "int32_t plane_bsize[3];" to avoid conflicts
 
+#define TUNE_4K_8K                                1 // Tune memory sensitive settings for 4K+ resolutions . Note we can remove the debug macro: REMOVE_LP1_LPN_DIFF
 #define CLN_TF                                    0 // Cleanup tf
 
 //FOR DEBUGGING - Do not remove

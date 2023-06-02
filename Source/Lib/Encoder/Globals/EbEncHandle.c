@@ -5219,6 +5219,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             tpl_lad_mg = 0;
 
         // special conditions for higher resolutions in order to decrease memory usage for tpl_lad_mg
+#if TUNE_4K_8K
+    if (scs->input_resolution >= INPUT_SIZE_8K_RANGE) {
+            tpl_lad_mg = 0;
+    }
+#else
 #if !REMOVE_LP1_LPN_DIFF
         if (scs->static_config.logical_processors == 1 && scs->input_resolution >= INPUT_SIZE_4K_RANGE && scs->static_config.hierarchical_levels >= 4) {
             tpl_lad_mg = 0;
@@ -5228,6 +5233,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         if (scs->input_resolution >= INPUT_SIZE_8K_RANGE && scs->static_config.hierarchical_levels >= 4) {
             tpl_lad_mg = 0;
         }
+#endif
         scs->tpl_lad_mg = MIN(2, tpl_lad_mg);// lad_mg is capped to 2 because tpl was optimised only for 1,2 and 3 mini-gops
         if (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF)
             scs->lad_mg = scs->tpl_lad_mg;
@@ -5443,6 +5449,12 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         scs->mfmv_enabled = scs->static_config.enable_mfmv;
 
     if (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR || scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR ||
+#if TUNE_4K_8K
+        scs->input_resolution >= INPUT_SIZE_4K_RANGE ||
+#endif
+#if TUNE_FAST_DEC_5L
+        scs->static_config.fast_decode == 1 ||
+#endif
         scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B || scs->static_config.pass != ENC_SINGLE_PASS || scs->static_config.enc_mode >= ENC_M10)
         scs->enable_dg = 0;
     else
@@ -5725,6 +5737,13 @@ static void copy_api_from_app(
         scs->static_config.enc_mode = ENC_M12;
         SVT_WARN("Setting preset to M12 as it is the highest supported preset for 360p and lower resolutions in Random Access mode\n");
     }
+#if TUNE_4K_8K
+    if (scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS && scs->static_config.enc_mode > ENC_M11 && input_resolution >= INPUT_SIZE_4K_RANGE) {
+        scs->static_config.enc_mode = ENC_M11;
+        SVT_WARN("Setting preset to M11 as it is the highest supported preset for 4k and higher resolutions in Random Access mode\n");
+    }
+#endif
+
     scs->static_config.use_qp_file = ((EbSvtAv1EncConfiguration*)config_struct)->use_qp_file;
     scs->static_config.use_fixed_qindex_offsets = ((EbSvtAv1EncConfiguration*)config_struct)->use_fixed_qindex_offsets;
     scs->static_config.key_frame_chroma_qindex_offset = ((EbSvtAv1EncConfiguration*)config_struct)->key_frame_chroma_qindex_offset;
@@ -5849,7 +5868,15 @@ static void copy_api_from_app(
     if (scs->static_config.hierarchical_levels == 0) {
         scs->static_config.hierarchical_levels = scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B ?
             2 :
+#if TUNE_FAST_DEC_5L
+            scs->static_config.fast_decode == 1 ||
+#endif
+#if TUNE_4K_8K
+            scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR || scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR ||
+            !(scs->static_config.enc_mode <= ENC_M12) || input_resolution >= INPUT_SIZE_4K_RANGE
+#else
             scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_VBR || scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR || !(scs->static_config.enc_mode <= ENC_M12)
+#endif
                 ? 4
                 : 5;
     }
