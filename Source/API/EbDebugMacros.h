@@ -191,7 +191,7 @@ extern "C" {
 #define FIX_FILTER_INTRA                          1 // Fix filter intra to not send side information when filter intra is off.
 #define CLN_REMOVE_NEIGH_ARRAYS                   1 // Remove unused neighbor arrays
 #define CLN_REMOVE_NEIGH_ARRAYS_2                 1 // Remove unused neighbor arrays
-#define FIX_SKIP_NEIGH_ARRAY                      0 // Fix how skip_coeff context is derived; remove neighbour array
+#define FIX_SKIP_NEIGH_ARRAY                      1 // Fix how skip_coeff context is derived; remove neighbour array
 #define CLN_MISC_CLEANUPS                         0 // Miscellaneous cleanups*
                                                     // *TODO: Involves removing a file: EbSyntaxElements.h
                                                     // *TODO: Renames sb_type --> bsize without a macro. Before renaming, in cdef_seg_search()

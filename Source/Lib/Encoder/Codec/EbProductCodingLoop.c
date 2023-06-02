@@ -236,6 +236,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                                                    bheight,
                                                    NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
         }
+#if !FIX_SKIP_NEIGH_ARRAY
         if (ctx->rate_est_ctrls.update_skip_coeff_ctx) {
             uint8_t is_skip_coeff = !ctx->blk_ptr->block_has_coeff;
 
@@ -247,6 +248,7 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                                                    bheight,
                                                    NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
         }
+#endif
         if (ctx->rate_est_ctrls.update_skip_ctx_dc_sign_ctx) {
             uint16_t txb_count = ctx->blk_geom->txb_count[ctx->blk_ptr->tx_depth];
             for (uint8_t txb_itr = 0; txb_itr < txb_count; txb_itr++) {
@@ -724,6 +726,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
+#if !FIX_SKIP_NEIGH_ARRAY
     if (ctx->rate_est_ctrls.update_skip_coeff_ctx) {
         svt_aom_copy_neigh_arr(pcs->md_skip_coeff_na[src_idx][tile_idx],
                                pcs->md_skip_coeff_na[dst_idx][tile_idx],
@@ -733,6 +736,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                                blk_geom->bheight,
                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
+#endif
 #if !CLN_IFS_PATH
     //svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_na[depth]);
     svt_aom_copy_neigh_arr(pcs->md_ref_frame_type_na[src_idx][tile_idx],
@@ -765,8 +769,15 @@ static void md_update_all_neighbour_arrays(PictureControlSet *pcs, ModeDecisionC
     uint8_t avail_blk_flag = ctx->avail_blk_flag[last_blk_index_mds];
     if (avail_blk_flag) {
         mode_decision_update_neighbor_arrays(pcs, ctx, last_blk_index_mds);
+#if FIX_SKIP_NEIGH_ARRAY
+        if (ctx->pd_pass == PD_PASS_1 || !ctx->shut_fast_rate ||
+            ctx->rate_est_ctrls.update_skip_ctx_dc_sign_ctx ||
+            ctx->rate_est_ctrls.update_skip_coeff_ctx ||
+            ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled)
+#else
         if (!ctx->shut_fast_rate || ctx->rate_est_ctrls.update_skip_ctx_dc_sign_ctx ||
             ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled)
+#endif
 #if FTR_ROI
             svt_aom_update_mi_map(
                 ctx->blk_ptr, ctx->blk_org_x, ctx->blk_org_y, ctx->blk_geom, pcs, ctx);
@@ -1097,16 +1108,28 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
 /*******************************************
  * Coding Loop - Fast Loop Initialization
  *******************************************/
+#if FIX_SKIP_NEIGH_ARRAY
+    static void product_coding_loop_init_fast_loop(PictureControlSet * pcs,
+                                                   ModeDecisionContext * ctx) {
+        ctx->tx_depth = ctx->blk_ptr->tx_depth = 0;
+        // Generate Split, Skip and intra mode contexts for the rate estimation
+        svt_aom_coding_loop_context_generation(pcs, ctx);
+
+        return;
+    }
+#else
 static void product_coding_loop_init_fast_loop(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                                NeighborArrayUnit *skip_coeff_na,
                                                NeighborArrayUnit *leaf_partition_na) {
     ctx->tx_depth = ctx->blk_ptr->tx_depth = 0;
     // Generate Split, Skip and intra mode contexts for the rate estimation
+
     svt_aom_coding_loop_context_generation(
         pcs, ctx, ctx->blk_ptr, ctx->blk_org_x, ctx->blk_org_y, skip_coeff_na, leaf_partition_na);
 
     return;
 }
+#endif
 #if OPT_LPD0_8BIT_ONLY
 static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
                                      ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
@@ -9005,8 +9028,10 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
     //CHKN IntMv  predmv[2];
 
     svt_memcpy(dst_cu->predmv, src_cu->predmv, 2 * sizeof(IntMv));
+#if !FIX_SKIP_NEIGH_ARRAY
     dst_cu->skip_coeff_context = src_cu->skip_coeff_context;
     //CHKN uint8_t                         skip_coeff_context;
+#endif
     //CHKN int16_t                        luma_txb_skip_context;
     //CHKN int16_t                        luma_dc_sign_context;
     //CHKN int16_t                        cb_txb_skip_context;
@@ -9092,8 +9117,10 @@ static void move_blk_data_redund(PictureControlSet *pcs, ModeDecisionContext *ct
     //CHKN IntMv  predmv[2];
 
     svt_memcpy(dst_cu->predmv, src_cu->predmv, 2 * sizeof(IntMv));
+#if !FIX_SKIP_NEIGH_ARRAY
     dst_cu->skip_coeff_context = src_cu->skip_coeff_context;
     //CHKN uint8_t                         skip_coeff_context;
+#endif
     //CHKN int16_t                        luma_txb_skip_context;
     //CHKN int16_t                        luma_dc_sign_context;
     //CHKN int16_t                        cb_txb_skip_context;
@@ -11152,8 +11179,11 @@ static void md_encode_block_light_pd1(PictureControlSet *pcs, ModeDecisionContex
                                        ctx->tot_ref_frame_types,
                                        pcs);
     }
-
+#if FIX_SKIP_NEIGH_ARRAY
+    product_coding_loop_init_fast_loop(pcs, ctx);
+#else
     product_coding_loop_init_fast_loop(pcs, ctx, ctx->skip_coeff_na, ctx->leaf_partition_na);
+#endif
     ctx->is_intra_bordered = ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled
         ? is_intra_bordered(ctx)
         : 0;
@@ -11615,7 +11645,12 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                                            pcs);
         }
     }
+#if FIX_SKIP_NEIGH_ARRAY
+    product_coding_loop_init_fast_loop(pcs, ctx);
+#else
     product_coding_loop_init_fast_loop(pcs, ctx, ctx->skip_coeff_na, ctx->leaf_partition_na);
+#endif 
+
 #if CLN_IND_UV_SEARCH
     ctx->ind_uv_avail = 0;
     // Search for the best independent intra chroma mode if search is enabled to be done before MDS0
@@ -12807,7 +12842,9 @@ static void update_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext 
         ctx->cb_recon_na_16bit   = pcs->md_cb_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
         ctx->cr_recon_na_16bit   = pcs->md_cr_recon_na_16bit[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     }
+#if !FIX_SKIP_NEIGH_ARRAY
     ctx->skip_coeff_na               = pcs->md_skip_coeff_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
+#endif
     ctx->luma_dc_sign_level_coeff_na = pcs->md_y_dcs_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
     ctx->cb_dc_sign_level_coeff_na =
         pcs->md_cb_dc_sign_level_coeff_na[MD_NEIGHBOR_ARRAY_INDEX][tile_idx];
@@ -13762,8 +13799,10 @@ EB_EXTERN void svt_aom_mode_decision_sb_light_pd1(SequenceControlSet *scs, Pictu
                                                        ctx->blk_geom->bheight,
                                                        NEIGHBOR_ARRAY_UNIT_LEFT_MASK);
             }
+#if !FIX_SKIP_NEIGH_ARRAY
             if (!ctx->shut_fast_rate ||
                 ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled)
+#endif
 #if FTR_ROI
                 svt_aom_update_mi_map(
                     ctx->blk_ptr, ctx->blk_org_x, ctx->blk_org_y, ctx->blk_geom, pcs, ctx);

@@ -220,7 +220,9 @@ static void picture_control_set_dctor(EbPtr p) {
         EB_DELETE_PTR_ARRAY(obj->md_cr_dc_sign_level_coeff_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_cb_dc_sign_level_coeff_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_txfm_context_array[depth], tile_cnt);
+#if !FIX_SKIP_NEIGH_ARRAY
         EB_DELETE_PTR_ARRAY(obj->md_skip_coeff_na[depth], tile_cnt);
+#endif 
 #if !CLN_IFS_PATH
         EB_DELETE_PTR_ARRAY(obj->md_ref_frame_type_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_interpolation_type_na[depth], tile_cnt);
@@ -571,7 +573,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
         EB_ALLOC_PTR_ARRAY(object_ptr->md_cr_dc_sign_level_coeff_na[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_cb_dc_sign_level_coeff_na[depth], total_tile_cnt);
         EB_ALLOC_PTR_ARRAY(object_ptr->md_txfm_context_array[depth], total_tile_cnt);
+#if !FIX_SKIP_NEIGH_ARRAY
         EB_ALLOC_PTR_ARRAY(object_ptr->md_skip_coeff_na[depth], total_tile_cnt);
+#endif
 #if !CLN_IFS_PATH
         EB_ALLOC_PTR_ARRAY(object_ptr->md_ref_frame_type_na[depth], total_tile_cnt);
 #endif
@@ -687,6 +691,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
                     PU_NEIGHBOR_ARRAY_GRANULARITY,
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK,
                 },
+#if !FIX_SKIP_NEIGH_ARRAY
                 {
                     &object_ptr->md_skip_coeff_na[depth][tile_idx],
                     na_max_pic_w,
@@ -696,6 +701,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
                     PU_NEIGHBOR_ARRAY_GRANULARITY,
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK,
                 },
+#endif
 #if !CLN_IFS_PATH
                 {
                     &object_ptr->md_ref_frame_type_na[depth][tile_idx],

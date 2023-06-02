@@ -381,9 +381,7 @@ typedef struct BlkStruct {
     int8_t drl_ctx[2];
     // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
     int8_t         drl_ctx_near[2];
-#if !CLN_MBMI_4
     PredictionMode pred_mode; // ec
-#endif
 #if !FIX_SKIP_NEIGH_ARRAY
     uint8_t skip_coeff_context;
 #endif

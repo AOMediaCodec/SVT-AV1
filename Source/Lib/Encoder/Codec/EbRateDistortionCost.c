@@ -2320,10 +2320,18 @@ EbErrorType svt_aom_inter_full_cost(PictureControlSet *pcs, ModeDecisionContext 
 /************************************************************
  * Coding Loop Context Generation
  ************************************************************/
+#if FIX_SKIP_NEIGH_ARRAY
+void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+    BlkStruct *        blk_ptr           = ctx->blk_ptr;
+    uint32_t           blk_org_x         = ctx->blk_org_x;
+    uint32_t           blk_org_y         = ctx->blk_org_y;
+    NeighborArrayUnit *leaf_partition_na = ctx->leaf_partition_na;
+#else
 void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                             BlkStruct *blk_ptr, uint32_t blk_org_x,
                                             uint32_t blk_org_y, NeighborArrayUnit *skip_coeff_na,
                                             NeighborArrayUnit *leaf_partition_na) {
+#endif
     uint32_t partition_left_neighbor_index  = get_neighbor_array_unit_left_index(leaf_partition_na,
                                                                                 blk_org_y);
     uint32_t partition_above_neighbor_index = get_neighbor_array_unit_top_index(leaf_partition_na,
@@ -2390,6 +2398,9 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
         svt_aom_collect_neighbors_ref_counts_new(blk_ptr->av1xd);
 
     // Skip Coeff Context
+#if FIX_SKIP_NEIGH_ARRAY
+    ctx->skip_coeff_ctx = ctx->rate_est_ctrls.update_skip_coeff_ctx ? av1_get_skip_context(xd) : 0;
+#else
     if (ctx->rate_est_ctrls.update_skip_coeff_ctx) {
         uint32_t skip_coeff_left_neighbor_index = get_neighbor_array_unit_left_index(skip_coeff_na,
                                                                                      blk_org_y);
@@ -2411,6 +2422,7 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
         blk_ptr->skip_coeff_context = 0;
     }
     return;
+#endif
 }
 
 #if FIX_TXS_RATE_UPDATE

@@ -343,7 +343,9 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **md_cb_dc_sign_level_coeff_na[NA_TOT_CNT];
     NeighborArrayUnit **md_cr_dc_sign_level_coeff_na[NA_TOT_CNT];
     NeighborArrayUnit **md_txfm_context_array[NA_TOT_CNT];
+#if !FIX_SKIP_NEIGH_ARRAY
     NeighborArrayUnit **md_skip_coeff_na[NA_TOT_CNT];
+#endif
 #if !CLN_IFS_PATH
     NeighborArrayUnit **  md_ref_frame_type_na[NA_TOT_CNT];
     NeighborArrayUnit32 **md_interpolation_type_na[NA_TOT_CNT];

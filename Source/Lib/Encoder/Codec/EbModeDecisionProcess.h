@@ -1006,7 +1006,9 @@ typedef struct ModeDecisionContext {
     NeighborArrayUnit    *cb_dc_sign_level_coeff_na;
     NeighborArrayUnit    *txfm_context_array;
     NeighborArrayUnit    *leaf_partition_na;
-    NeighborArrayUnit    *skip_coeff_na;
+#if !FIX_SKIP_NEIGH_ARRAY
+    NeighborArrayUnit *skip_coeff_na;
+#endif
     struct EncDecContext *ed_ctx;
 
     uint64_t *fast_cost_array;

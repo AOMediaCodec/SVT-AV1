@@ -33,12 +33,15 @@ extern uint64_t svt_av1_cost_coeffs_txb(struct ModeDecisionContext *ctx, uint8_t
                                         PlaneType plane_type, TxSize transform_size,
                                         TxType transform_type, int16_t txb_skip_ctx,
                                         int16_t dc_sign_ctx, Bool reduced_transform_set_flag);
-
+#if FIX_SKIP_NEIGH_ARRAY
+void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx);
+#else
 extern void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                                    BlkStruct *blk_ptr, uint32_t blk_org_x,
                                                    uint32_t           blk_org_y,
                                                    NeighborArrayUnit *skip_coeff_na,
                                                    NeighborArrayUnit *leaf_partition_na);
+#endif
 #if !FIX_SKIP_COST
 extern EbErrorType intra_luma_mode_context(BlkStruct *blk_ptr, uint32_t luma_mode,
                                            int32_t *prediction_index);

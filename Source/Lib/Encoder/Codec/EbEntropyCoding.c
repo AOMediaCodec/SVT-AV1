@@ -1172,6 +1172,32 @@ static void encode_partition_av1(PictureControlSet *pcs, FRAME_CONTEXT *frame_co
     return;
 }
 
+#if FIX_SKIP_NEIGH_ARRAY
+uint8_t av1_get_skip_context(const MacroBlockD *xd) {
+    const MbModeInfo *const above_mi   = xd->above_mbmi;
+    const MbModeInfo *const left_mi    = xd->left_mbmi;
+    const uint8_t           above_skip = above_mi ? above_mi->block_mi.skip : 0;
+    const uint8_t           left_skip  = left_mi ? left_mi->block_mi.skip : 0;
+    return above_skip + left_skip;
+}
+
+/*********************************************************************
+ * encode_skip_coeff_av1
+ *   Encodes the skip coefficient flag
+ *********************************************************************/
+#if OPT_CHILD_PCS
+static void encode_skip_coeff_av1(EcBlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                                  AomWriter *ec_writer,
+#else
+static void encode_skip_coeff_av1(BlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                                  AomWriter *        ec_writer,
+#endif
+                                  Bool skip_coeff_flag) {
+    // TODO: need to code in syntax for segmentation map + skip
+    uint8_t ctx = av1_get_skip_context(blk_ptr->av1xd);
+    aom_write_symbol(ec_writer, skip_coeff_flag ? 1 : 0, frame_context->skip_cdfs[ctx], 2);
+}
+#else
 /*********************************************************************
  * encode_skip_coeff_av1
  *   Encodes the skip coefficient flag
@@ -1203,6 +1229,7 @@ static void encode_skip_coeff_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_wr
 
     return;
 }
+#endif
 #if !CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs) {
     if (!enable_filter_intra)
@@ -5798,8 +5825,12 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                              blk_ptr,
                              skip_coeff);
 
+#if FIX_SKIP_NEIGH_ARRAY
+        encode_skip_coeff_av1(blk_ptr, frame_context, ec_writer, skip_coeff);
+#else
         encode_skip_coeff_av1(
             frame_context, ec_writer, skip_coeff, blk_org_x, blk_org_y, skip_coeff_na);
+#endif
 
         if (pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled &&
             !pcs->ppcs->frm_hdr.segmentation_params.seg_id_pre_skip)
@@ -6002,8 +6033,12 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
             SVT_ERROR("SKIP not supported\n");
         if (!blk_ptr->skip_mode) {
             // const int32_t skip = write_skip(cm, xd, mbmi->segment_id, mi, w);
+#if FIX_SKIP_NEIGH_ARRAY
+            encode_skip_coeff_av1(blk_ptr, frame_context, ec_writer, skip_coeff);
+#else
             encode_skip_coeff_av1(
                 frame_context, ec_writer, skip_coeff, blk_org_x, blk_org_y, skip_coeff_na);
+#endif
         }
 
         write_inter_segment_id(
