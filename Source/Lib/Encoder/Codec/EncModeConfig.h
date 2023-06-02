@@ -70,7 +70,18 @@ bool svt_aom_get_disallow_4x4(EncMode enc_mode, SliceType slice_type);
 
 uint8_t svt_aom_get_nsq_level(EncMode enc_mode, uint8_t is_islice, uint8_t is_base,
                               InputCoeffLvl coeff_lvl);
-
+#if FIX_INTER_CMP
+uint8_t get_inter_compound_level(EncMode enc_mode);
+#endif
+#if FIX_FILTER_INTRA
+uint8_t get_filter_intra_level(EncMode enc_mode);
+#endif
+#if CLN_MISC_CLEANUPS
+uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base,
+                                      uint8_t transition_present);
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t is_ref, uint8_t fast_decode,
+                               EbInputResolution input_resolution);
+#endif
 void    svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t *allow_HVA_HVB,
                               uint8_t *allow_HV4, uint8_t *min_nsq_bsize);
 uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width,

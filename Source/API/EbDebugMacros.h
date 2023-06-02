@@ -187,6 +187,16 @@ extern "C" {
 #define CLN_IFS_PATH                              1 // Cleanup the IFS path and unused signals
 #define CLN_OBMC_WARP                             1 // Cleanup OBMC/Warp
 
+#define FIX_INTER_CMP                             1 // Fix inter compound to not send side information when compound is off.
+#define FIX_FILTER_INTRA                          1 // Fix filter intra to not send side information when filter intra is off.
+#define CLN_REMOVE_NEIGH_ARRAYS                   1 // Remove unused neighbor arrays
+#define CLN_REMOVE_NEIGH_ARRAYS_2                 1 // Remove unused neighbor arrays
+#define FIX_SKIP_NEIGH_ARRAY                      0 // Fix how skip_coeff context is derived; remove neighbour array
+#define CLN_MISC_CLEANUPS                         0 // Miscellaneous cleanups*
+                                                    // *TODO: Involves removing a file: EbSyntaxElements.h
+                                                    // *TODO: Renames sb_type --> bsize without a macro. Before renaming, in cdef_seg_search()
+                                                    //        rename "int32_t bsize[3];" to "int32_t plane_bsize[3];" to avoid conflicts
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

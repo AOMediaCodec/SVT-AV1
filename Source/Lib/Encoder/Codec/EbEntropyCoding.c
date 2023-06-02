@@ -1215,6 +1215,45 @@ int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, u
         svt_aom_filter_intra_allowed_bsize(enable_filter_intra, bsize);
 }
 #endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+/* Get the contexts (left and top) for writing the intra luma mode for key frames. Intended to
+ * be used for key frame only. */
+void svt_aom_get_kf_y_mode_ctx(const MacroBlockD *xd, uint8_t *above_ctx, uint8_t *left_ctx) {
+    PredictionMode intra_luma_left_mode = DC_PRED;
+    PredictionMode intra_luma_top_mode  = DC_PRED;
+    if (xd->left_available) {
+        // When called for key frame, neighbouring mode should be intra
+        //assert(!is_inter_block(&xd->mi[-1]->mbmi.block_mi) ||
+        //    is_intrabc_block(&xd->mi[-1]->mbmi.block_mi));
+        intra_luma_left_mode = xd->mi[-1]->mbmi.block_mi.mode;
+    }
+    if (xd->up_available) {
+        // When called for key frame, neighbouring mode should be intra
+        //assert(!is_inter_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi) ||
+        //    is_intrabc_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi));
+        intra_luma_top_mode = xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
+    }
+
+    *above_ctx = intra_mode_context[intra_luma_top_mode];
+    *left_ctx  = intra_mode_context[intra_luma_left_mode];
+}
+/*********************************************************************
+*   Encodes the Intra Luma Mode for a key frame
+*********************************************************************/
+static void encode_intra_luma_mode_kf_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
+#if CLN_MBMI_4
+                                          MbModeInfo *mbmi,
+#endif
+#if OPT_CHILD_PCS
+                                          EcBlkStruct *blk_ptr, BlockSize bsize,
+                                          uint32_t luma_mode) {
+#else
+                                          BlkStruct *blk_ptr, BlockSize bsize, uint32_t luma_mode) {
+#endif
+
+    uint8_t top_context, left_context;
+    svt_aom_get_kf_y_mode_ctx(blk_ptr->av1xd, &top_context, &left_context);
+#else
 /*********************************************************************
 * encode_intra_luma_mode_av1
 *   Encodes the Intra Luma Mode
@@ -1247,12 +1286,18 @@ static void encode_intra_luma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *
 
     top_context  = intra_mode_context[top_neighbor_mode];
     left_context = intra_mode_context[left_neighbor_mode];
-
+#endif
     aom_write_symbol(
         ec_writer, luma_mode, frame_context->kf_y_cdf[top_context][left_context], INTRA_MODES);
 
+#if !CLN_MISC_CLEANUPS
     if (blk_ptr->pred_mode != INTRA_MODE_4x4)
+#endif
+#if CLN_MBMI_4
+        if (bsize >= BLOCK_8X8 && av1_is_directional_mode(mbmi->block_mi.mode)) {
+#else
         if (bsize >= BLOCK_8X8 && av1_is_directional_mode(blk_ptr->pred_mode)) {
+#endif
             aom_write_symbol(
                 ec_writer,
                 blk_ptr->prediction_unit_array[0].angle_delta[PLANE_TYPE_Y] + MAX_ANGLE_DELTA,
@@ -1330,6 +1375,34 @@ static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter
     return;
 }
 
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+uint8_t av1_get_skip_mode_context(const MacroBlockD *xd) {
+    const MbModeInfo *const above_mi        = xd->above_mbmi;
+    const MbModeInfo *const left_mi         = xd->left_mbmi;
+    const int               above_skip_mode = above_mi ? above_mi->block_mi.skip_mode : 0;
+    const int               left_skip_mode  = left_mi ? left_mi->block_mi.skip_mode : 0;
+    return above_skip_mode + left_skip_mode;
+}
+
+/*********************************************************************
+ * encode_skip_mode_av1
+ *   Encodes the skip Mode flag
+ *********************************************************************/
+#if OPT_CHILD_PCS
+static void encode_skip_mode_av1(const EcBlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                                 AomWriter *ec_writer,
+#else
+static void encode_skip_mode_av1(const BlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                                 AomWriter *ec_writer,
+#endif
+                                 Bool skip_mode_flag) {
+    // TODO: not coded in syntax for skip mode/ref-frame/global-mv in segmentation map
+    const uint8_t context_index = av1_get_skip_mode_context(blk_ptr->av1xd);
+
+    aom_write_symbol(
+        ec_writer, skip_mode_flag ? 1 : 0, frame_context->skip_mode_cdfs[context_index], 2);
+}
+#else
 /*********************************************************************
  * encode_skip_mode_av1
  *   Encodes the skip Mode flag
@@ -1362,6 +1435,62 @@ static void encode_skip_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_wri
 
     return;
 }
+#endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+/*******************************************************************************
+* The mode info data structure has a one element border above and to the
+* left of the entries corresponding to real macroblocks.
+* The prediction flags in these dummy entries are initialized to 0.
+* 0 - inter/inter, inter/--, --/inter, --/--
+* 1 - intra/inter, inter/intra
+* 2 - intra/--, --/intra
+* 3 - intra/intra
+ ******************************************************************************/
+uint8_t svt_av1_get_intra_inter_context(const MacroBlockD *xd) {
+    const MbModeInfo *const above_mbmi = xd->above_mbmi;
+    const MbModeInfo *const left_mbmi  = xd->left_mbmi;
+    const int               has_above  = xd->up_available;
+    const int               has_left   = xd->left_available;
+
+    if (has_above && has_left) { // both edges available
+        const int above_intra = !is_inter_block(&above_mbmi->block_mi);
+        const int left_intra  = !is_inter_block(&left_mbmi->block_mi);
+        return left_intra && above_intra ? 3 : left_intra || above_intra;
+    } else if (has_above || has_left) { // one edge available
+        return 2 * !is_inter_block(has_above ? &above_mbmi->block_mi : &left_mbmi->block_mi);
+    } else {
+        return 0;
+    }
+}
+
+/*********************************************************************
+ * encode_pred_mode_av1
+ *   Encodes the Prediction Mode
+ *********************************************************************/
+#if OPT_CHILD_PCS
+static void write_is_inter(const EcBlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                           AomWriter *ec_writer,
+#else
+static void write_is_inter(const BlkStruct *blk_ptr, FRAME_CONTEXT *frame_context,
+                           AomWriter *ec_writer,
+#endif
+#if CLN_MBMI_3
+                           int32_t is_inter) {
+#else
+                           unsigned pred_mode_flag) {
+#endif
+
+    const uint8_t ctx = svt_av1_get_intra_inter_context(blk_ptr->av1xd);
+    aom_write_symbol(ec_writer,
+#if CLN_MBMI_3
+                     is_inter,
+#else
+                     pred_mode_flag == INTER_MODE ? 1 : 0,
+#endif
+                     frame_context->intra_inter_cdf[ctx],
+                     2);
+}
+#else
 /*********************************************************************
  * encode_pred_mode_av1
  *   Encodes the Prediction Mode
@@ -1406,7 +1535,7 @@ static void encode_pred_mode_av1(FRAME_CONTEXT *frame_context, AomWriter *ec_wri
 
     return;
 }
-
+#endif
 //****************************************************************************************************//
 
 /*********************************************************************
@@ -2188,7 +2317,9 @@ static void write_inter_compound_mode(FRAME_CONTEXT *frame_context, AomWriter *e
                      frame_context->inter_compound_mode_cdf[mode_ctx],
                      INTER_COMPOUND_MODES);
 }
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
 int         svt_av1_get_intra_inter_context(const MacroBlockD *xd);
+#endif
 int         svt_aom_get_reference_mode_context_new(const MacroBlockD *xd);
 AomCdfProb *svt_aom_get_reference_mode_cdf(const MacroBlockD *xd) {
     return xd->tile_ctx->comp_inter_cdf[svt_aom_get_reference_mode_context_new(xd)];
@@ -4742,10 +4873,16 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                        EbPictureBufferDesc *coeff_ptr) {
     UNUSED(coeff_ptr);
     EbErrorType          return_error                = EB_ErrorNone;
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit   *mode_type_na                = pcs->mode_type_na[tile_idx];
+#endif
     NeighborArrayUnit   *partition_context_na        = pcs->partition_context_na[tile_idx];
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit   *skip_flag_na                = pcs->skip_flag_na[tile_idx];
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
     NeighborArrayUnit   *skip_coeff_na               = pcs->skip_coeff_na[tile_idx];
+#endif
     NeighborArrayUnit   *luma_dc_sign_level_coeff_na = pcs->luma_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
@@ -4754,7 +4891,12 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
     NeighborArrayUnit32 *interpolation_type_na = pcs->interpolation_type_na[tile_idx];
 #endif
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
+#if CLN_MBMI
+    MbModeInfo * mbmi  = get_mbmi(pcs, blk_org_x, blk_org_y);
+    uint8_t skip_coeff = mbmi->block_mi.skip;
+#else
     uint8_t              skip_coeff                  = !blk_ptr->block_has_coeff;
+#endif
     PartitionContext     partition;
 
     // Update the Leaf Depth Neighbor Array
@@ -4768,7 +4910,7 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                            blk_geom->bwidth,
                                            blk_geom->bheight,
                                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     // Update the Mode Type Neighbor Array
     {
         uint8_t prediction_mode_flag = (uint8_t)blk_ptr->prediction_mode_flag;
@@ -4792,7 +4934,8 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                                blk_geom->bheight,
                                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
-
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
     // Update the Skip Coeff Neighbor Array
     {
         //
@@ -4804,7 +4947,7 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                                blk_geom->bheight,
                                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
-
+#endif
     if (skip_coeff) {
         uint8_t dc_sign_level_coeff = 0;
 
@@ -5583,10 +5726,14 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
     SequenceControlSet *scs           = pcs->scs;
     FrameHeader        *frm_hdr       = &pcs->ppcs->frm_hdr;
 
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit   *mode_type_na                = pcs->mode_type_na[tile_idx];
     NeighborArrayUnit   *intra_luma_mode_na          = pcs->intra_luma_mode_na[tile_idx];
     NeighborArrayUnit   *skip_flag_na                = pcs->skip_flag_na[tile_idx];
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
     NeighborArrayUnit   *skip_coeff_na               = pcs->skip_coeff_na[tile_idx];
+#endif
     NeighborArrayUnit   *luma_dc_sign_level_coeff_na = pcs->luma_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
@@ -5703,6 +5850,22 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 
             if (svt_aom_allow_intrabc(&pcs->ppcs->frm_hdr, pcs->ppcs->slice_type))
                 write_intrabc_info(frame_context, blk_ptr, ec_writer);
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+#if CLN_MBMI_8
+            if (mbmi->block_mi.use_intrabc == 0) {
+#else
+            if (blk_ptr->use_intrabc == 0) {
+#endif
+                encode_intra_luma_mode_kf_av1(frame_context,
+                                              ec_writer,
+#if CLN_MBMI_4
+                                              mbmi,
+#endif
+                                              blk_ptr,
+                                              bsize,
+                                              intra_luma_mode);
+            }
+#else
             if (blk_ptr->use_intrabc == 0)
                 encode_intra_luma_mode_av1(frame_context,
                                            ec_writer,
@@ -5721,6 +5884,7 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                                    blk_geom->bwidth,
                                                    blk_geom->bheight,
                                                    NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
+#endif
             if (blk_ptr->use_intrabc == 0)
                 if (blk_geom->has_uv)
                     encode_intra_chroma_mode_av1(frame_context,
@@ -5823,8 +5987,16 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
         write_inter_segment_id(
             pcs, frame_context, ec_writer, blk_geom, blk_org_x, blk_org_y, blk_ptr, 0, 1);
         if (frm_hdr->skip_mode_params.skip_mode_flag && is_comp_ref_allowed(bsize)) {
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+#if CLN_MBMI_2
+            encode_skip_mode_av1(blk_ptr, frame_context, ec_writer, skip_mode);
+#else
+            encode_skip_mode_av1(blk_ptr, frame_context, ec_writer, blk_ptr->skip_mode);
+#endif
+#else
             encode_skip_mode_av1(
                 frame_context, ec_writer, blk_ptr->skip_mode, blk_org_x, blk_org_y, skip_flag_na);
+#endif
         }
         if (!frm_hdr->skip_mode_params.skip_mode_flag && blk_ptr->skip_mode)
             SVT_ERROR("SKIP not supported\n");
@@ -5871,7 +6043,21 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                              blk_ptr->skip_mode);
             }
         }
+#if CLN_MBMI_2
+        if (!skip_mode) {
+#else
         if (!blk_ptr->skip_mode) {
+#endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+#if CLN_MBMI_3
+            write_is_inter(blk_ptr,
+                           frame_context,
+                           ec_writer,
+                           (int32_t)is_inter_mode(ec_ctx->mbmi->block_mi.mode));
+#else
+            write_is_inter(blk_ptr, frame_context, ec_writer, blk_ptr->prediction_mode_flag);
+#endif
+#else
             //write_is_inter(cm, xd, mbmi->segment_id, w, is_inter)
             encode_pred_mode_av1(frame_context,
                                  ec_writer,
@@ -5879,14 +6065,14 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                  blk_org_x,
                                  blk_org_y,
                                  mode_type_na);
-
+#endif
             if (blk_ptr->prediction_mode_flag == INTRA_MODE) {
                 uint32_t intra_luma_mode   = blk_ptr->pred_mode;
                 uint32_t intra_chroma_mode = blk_ptr->prediction_unit_array->intra_chroma_mode;
 
                 encode_intra_luma_mode_nonkey_av1(
                     frame_context, ec_writer, blk_ptr, bsize, intra_luma_mode);
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
                 svt_aom_neighbor_array_unit_mode_write(intra_luma_mode_na,
                                                        (uint8_t *)&intra_luma_mode,
                                                        blk_org_x,
@@ -5894,7 +6080,7 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                                        blk_geom->bwidth,
                                                        blk_geom->bheight,
                                                        NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-
+#endif
                 if (blk_geom->has_uv)
                     encode_intra_chroma_mode_av1(frame_context,
                                                  ec_writer,

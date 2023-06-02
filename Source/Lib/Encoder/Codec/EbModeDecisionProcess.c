@@ -465,9 +465,11 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
 void svt_aom_reset_mode_decision_neighbor_arrays(PictureControlSet *pcs, uint16_t tile_idx) {
     uint8_t depth;
     for (depth = 0; depth < NA_TOT_CNT; depth++) {
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
         svt_aom_neighbor_array_unit_reset(pcs->md_intra_luma_mode_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(pcs->md_skip_flag_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(pcs->md_mode_type_na[depth][tile_idx]);
+#endif
         svt_aom_neighbor_array_unit_reset(pcs->mdleaf_partition_na[depth][tile_idx]);
         if (pcs->hbd_md != EB_10_BIT_MD) {
             svt_aom_neighbor_array_unit_reset(pcs->md_luma_recon_na[depth][tile_idx]);

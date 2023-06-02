@@ -562,7 +562,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
     uint32_t blk_org_y_uv = (blk_org_y >> 3 << 3) >> 1;
     uint32_t bwidth_uv    = blk_geom->bwidth_uv;
     uint32_t bheight_uv   = blk_geom->bheight_uv;
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     svt_aom_copy_neigh_arr(pcs->md_intra_luma_mode_na[src_idx][tile_idx],
                            pcs->md_intra_luma_mode_na[dst_idx][tile_idx],
                            blk_org_x,
@@ -587,7 +587,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_FULL_MASK);
-
+#endif
     //svt_aom_neighbor_array_unit_reset(pcs->md_leaf_depth_neighbor_array[depth]);
     svt_aom_copy_neigh_arr(pcs->mdleaf_partition_na[src_idx][tile_idx],
                            pcs->mdleaf_partition_na[dst_idx][tile_idx],
@@ -1400,8 +1400,13 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
             ctx->blk_org_y >> MI_SIZE_LOG2,
             ctx->blk_org_x >> MI_SIZE_LOG2,
             0, // inter-intra enabled
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+            NOT_USED_VALUE,
+            NOT_USED_VALUE);
+#else
             ctx->intra_luma_left_mode,
             ctx->intra_luma_top_mode);
+#endif
     }
 }
 static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs,
@@ -1586,9 +1591,13 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
                     ctx->blk_org_y >> MI_SIZE_LOG2,
                     ctx->blk_org_x >> MI_SIZE_LOG2,
                     ctx->inter_intra_comp_ctrls.enabled,
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+                    NOT_USED_VALUE,
+                    NOT_USED_VALUE);
+#else
                     ctx->intra_luma_left_mode,
                     ctx->intra_luma_top_mode);
-
+#endif
             if (simple_translation_cost < *(cand_bf->fast_cost)) {
                 // Restore the simple-translation results
                 cand->motion_mode         = SIMPLE_TRANSLATION;
@@ -1790,8 +1799,13 @@ void fast_loop_core(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs
             ctx->blk_org_y >> MI_SIZE_LOG2,
             ctx->blk_org_x >> MI_SIZE_LOG2,
             ctx->inter_intra_comp_ctrls.enabled,
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+            NOT_USED_VALUE,
+            NOT_USED_VALUE);
+#else
             ctx->intra_luma_left_mode,
             ctx->intra_luma_top_mode);
+#endif
     }
     cand_bf->valid_pred = 1;
     if (ctx->obmc_ctrls.enabled && ctx->obmc_ctrls.trans_face_off == 1 &&
@@ -5152,6 +5166,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
     uint8_t tx_height = ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr];
 
     MacroBlockD *xd           = ctx->blk_ptr->av1xd;
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     ctx->intra_luma_left_mode = DC_PRED;
     ctx->intra_luma_top_mode  = DC_PRED;
     if (xd->left_available)
@@ -5162,6 +5177,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
         ctx->intra_luma_top_mode = xd->mi[-xd->mi_stride]->mbmi.block_mi.mode >= NEARESTMV
             ? DC_PRED
             : xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
+#endif
     TxSize   tx_size      = ctx->blk_geom->txsize[ctx->tx_depth][ctx->txb_itr];
     uint32_t sb_size_luma = pcs->ppcs->scs->sb_size;
 
@@ -8945,14 +8961,30 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
                src_cu->prediction_unit_array,
                MAX_NUM_OF_PU_PER_CU * sizeof(PredictionUnit));
 
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     dst_cu->skip_flag_context    = src_cu->skip_flag_context;
+#endif
+
+#if !CLN_MBMI_3
     dst_cu->prediction_mode_flag = src_cu->prediction_mode_flag;
+#endif
+
+#if! CLN_MBMI
     dst_cu->block_has_coeff      = src_cu->block_has_coeff;
+#endif
+#if !CLN_MISC_CLEANUPS
     dst_cu->split_flag_context   = src_cu->split_flag_context;
+#endif
     dst_cu->qindex               = src_cu->qindex;
+#if !CLN_MBMI_7
     dst_cu->tx_depth             = src_cu->tx_depth;
+#endif
+#if !CLN_MBMI_10
     dst_cu->split_flag           = src_cu->split_flag;
+#endif
+#if !CLN_MBMI_2
     dst_cu->skip_mode            = src_cu->skip_mode;
+#endif
 
     //CHKN    MacroBlockD*  av1xd;
     // Don't copy if dest. is NULL
@@ -8985,11 +9017,12 @@ void move_blk_data(PictureControlSet *pcs, EncDecContext *ctx, BlkStruct *src_cu
     //CHKN uint8_t                         compoud_reference_type_context;
     //CHKN uint32_t                        partitionContext;
     dst_cu->segment_id = src_cu->segment_id;
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     //CHKN uint32_t   is_inter_ctx;
     //CHKN uint32_t                     interp_filters;
 
     dst_cu->is_inter_ctx   = src_cu->is_inter_ctx;
+#endif
     dst_cu->interp_filters = src_cu->interp_filters;
 
     dst_cu->part              = src_cu->part;
@@ -9031,10 +9064,14 @@ static void move_blk_data_redund(PictureControlSet *pcs, ModeDecisionContext *ct
     svt_memcpy(dst_cu->prediction_unit_array,
                src_cu->prediction_unit_array,
                MAX_NUM_OF_PU_PER_CU * sizeof(PredictionUnit));
-    dst_cu->skip_flag_context    = src_cu->skip_flag_context;
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
+    dst_cu->skip_flag_context = src_cu->skip_flag_context;
+#endif
     dst_cu->prediction_mode_flag = src_cu->prediction_mode_flag;
     dst_cu->block_has_coeff      = src_cu->block_has_coeff;
-    dst_cu->split_flag_context   = src_cu->split_flag_context;
+#if !CLN_MISC_CLEANUPS
+    dst_cu->split_flag_context = src_cu->split_flag_context;
+#endif
     dst_cu->qindex               = src_cu->qindex;
     dst_cu->skip_mode            = src_cu->skip_mode;
     dst_cu->tx_depth             = src_cu->tx_depth;
@@ -9066,11 +9103,12 @@ static void move_blk_data_redund(PictureControlSet *pcs, ModeDecisionContext *ct
     //CHKN uint8_t                         reference_mode_context;
     //CHKN uint8_t                         compoud_reference_type_context;
     //CHKN uint32_t                        partitionContext;
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     //CHKN uint32_t   is_inter_ctx;
     //CHKN uint32_t                     interp_filters;
 
     dst_cu->is_inter_ctx   = src_cu->is_inter_ctx;
+#endif
     dst_cu->interp_filters = src_cu->interp_filters;
 
     dst_cu->part            = src_cu->part;

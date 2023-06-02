@@ -1567,9 +1567,15 @@ typedef enum AomCodecErr
 
 //**********************************************************************************************************************//
 // Common_data.h
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+static const uint8_t intra_mode_context[INTRA_MODES] = {
+    0, 1, 2, 3, 4, 4, 4, 4, 3, 0, 1, 2, 0,
+};
+#else
 static const int32_t intra_mode_context[INTRA_MODES] = {
     0, 1, 2, 3, 4, 4, 4, 4, 3, 0, 1, 2, 0,
 };
+#endif
 
 static const TxSize txsize_sqr_map[TX_SIZES_ALL] = {
     TX_4X4,    // TX_4X4

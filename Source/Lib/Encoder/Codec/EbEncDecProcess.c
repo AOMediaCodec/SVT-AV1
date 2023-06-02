@@ -193,11 +193,13 @@ static void reset_segmentation_map(SegmentationNeighborMap *segmentation_map) {
  * Reset Mode Decision Neighbor Arrays
  *************************************************/
 static void reset_encode_pass_neighbor_arrays(PictureControlSet *pcs, uint16_t tile_idx) {
+#if !CLN_REMOVE_NEIGH_ARRAYS
     svt_aom_neighbor_array_unit_reset(pcs->ep_intra_luma_mode_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_intra_chroma_mode_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_mv_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_skip_flag_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_mode_type_na[tile_idx]);
+#endif
     svt_aom_neighbor_array_unit_reset(pcs->ep_luma_recon_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_cb_recon_na[tile_idx]);
     svt_aom_neighbor_array_unit_reset(pcs->ep_cr_recon_na[tile_idx]);

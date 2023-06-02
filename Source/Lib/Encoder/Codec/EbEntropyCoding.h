@@ -221,6 +221,14 @@ int svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame 
                                          PictureParentControlSet *pcs);
 #endif
 #endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+uint8_t svt_av1_get_intra_inter_context(const MacroBlockD *xd);
+void    svt_aom_get_kf_y_mode_ctx(const MacroBlockD *xd, uint8_t *above_ctx, uint8_t *left_ctx);
+uint8_t av1_get_skip_mode_context(const MacroBlockD *xd);
+#endif
+#if FIX_SKIP_NEIGH_ARRAY
+uint8_t av1_get_skip_context(const MacroBlockD *xd);
+#endif
 
 #ifdef __cplusplus
 }

@@ -346,16 +346,28 @@ typedef struct BlkStruct {
     // equivalent of leaf_index in the nscu context. we will keep both for now and use the right one
     // on a case by case basis.
     uint16_t mds_idx;
+#if !CLN_MBMI_7
     // txb
     uint8_t tx_depth; // ec
+#endif
+#if !CLN_MBMI_6
     uint8_t compound_idx; // ec
     uint8_t comp_group_idx; // ec
-
+#endif
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     unsigned skip_flag_context : 2; // to do
+#endif
+#if !CLN_MBMI_3
     unsigned prediction_mode_flag : 2; // ec
+#endif
+
+#if !CLN_MBMI
     // ec; skip coeff only. as defined in section 6.10.11 of the av1 text
     unsigned block_has_coeff : 1;
+#endif
+#if !CLN_MISC_CLEANUPS
     unsigned split_flag_context : 2; // to do
+#endif
 
     uint8_t qindex; // ec
     uint8_t split_flag;
@@ -369,11 +381,19 @@ typedef struct BlkStruct {
     int8_t drl_ctx[2];
     // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
     int8_t         drl_ctx_near[2];
+#if !CLN_MBMI_4
     PredictionMode pred_mode; // ec
-    uint8_t        skip_coeff_context;
-    uint8_t        reference_mode_context;
-    uint8_t        compoud_reference_type_context;
-    uint32_t       is_inter_ctx;
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
+    uint8_t skip_coeff_context;
+#endif
+#if !CLN_MISC_CLEANUPS
+    uint8_t reference_mode_context;
+    uint8_t compoud_reference_type_context;
+#endif
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
+    uint32_t is_inter_ctx;
+#endif
 
     uint8_t segment_id; // ec
 

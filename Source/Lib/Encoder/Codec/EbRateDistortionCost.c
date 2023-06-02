@@ -746,8 +746,12 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         uint64_t intra_chroma_ang_mode_bits_num = 0;
 #endif
         uint64_t skip_mode_rate                 = 0;
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+        const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
+#else
         uint8_t  skip_mode_ctx =
             blk_ptr->skip_flag_context; // NM - Harcoded to 1 until the skip_mode context is added.
+#endif
         PredictionMode intra_mode = (PredictionMode)cand->pred_mode;
         // Luma and chroma rate
         uint32_t rate;
@@ -757,8 +761,13 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         assert(intra_mode < INTRA_MODES);
         // Luma and chroma distortion
         uint64_t      total_distortion;
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+        const uint8_t above_ctx = ctx->intra_luma_top_ctx;
+        const uint8_t left_ctx  = ctx->intra_luma_left_ctx;
+#else
         const int32_t above_ctx = intra_mode_context[top_neighbor_mode];
         const int32_t left_ctx  = intra_mode_context[left_neighbor_mode];
+#endif
         intra_mode_bits_num     = pcs->slice_type != I_SLICE
                 ? (uint64_t)ctx->md_rate_est_ctx
                   ->mb_mode_fac_bits[size_group_lookup[blk_geom->bsize]][intra_mode]
@@ -1172,7 +1181,11 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     const PredictionMode inter_mode          = (PredictionMode)cand->pred_mode;
     const uint8_t        have_nearmv         = have_nearmv_in_inter_mode(inter_mode);
     uint64_t             inter_mode_bits_num = 0;
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+    const uint8_t  skip_mode_ctx = ctx->skip_mode_ctx;
+#else
     const uint8_t        skip_mode_ctx       = blk_ptr->skip_flag_context;
+#endif
     MvReferenceFrame     rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t  is_compound  = is_inter_compound_mode(cand->pred_mode);
@@ -1301,7 +1314,11 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     //        for (dir = 0; dir < 2; dir++)
     //            interp_filter[dir] = interpolation_filter
     //    }
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+    uint32_t is_inter_rate = r->intra_inter_fac_bits[ctx->is_inter_ctx][1];
+#else
     uint32_t is_inter_rate = r->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
+#endif
 
 #if FIX_SKIP_MODE_RATE
     int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
@@ -1368,7 +1385,11 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
 
     uint64_t inter_mode_bits_num = 0;
 
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+    const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
+#else
     uint8_t          skip_mode_ctx = blk_ptr->skip_flag_context;
+#endif
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t is_compound  = is_inter_compound_mode(cand->pred_mode);
@@ -1584,9 +1605,11 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     //        for (dir = 0; dir < 2; dir++)
     //            interp_filter[dir] = interpolation_filter
     //    }
-
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+    uint32_t is_inter_rate = ctx->md_rate_est_ctx->intra_inter_fac_bits[ctx->is_inter_ctx][1];
+#else
     uint32_t is_inter_rate = ctx->md_rate_est_ctx->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
-
+#endif
 #if FIX_SKIP_MODE_RATE
     int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
             is_comp_ref_allowed(blk_geom->bsize)
@@ -2305,7 +2328,19 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
                                                                                 blk_org_y);
     uint32_t partition_above_neighbor_index = get_neighbor_array_unit_top_index(leaf_partition_na,
                                                                                 blk_org_x);
-
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+#if FIX_SKIP_NEIGH_ARRAY
+    MacroBlockD *xd = blk_ptr->av1xd;
+#endif
+    if (!ctx->shut_fast_rate) {
+#if !FIX_SKIP_NEIGH_ARRAY
+        MacroBlockD *xd = blk_ptr->av1xd;
+#endif
+        svt_aom_get_kf_y_mode_ctx(xd, &ctx->intra_luma_top_ctx, &ctx->intra_luma_left_ctx);
+        ctx->is_inter_ctx  = svt_av1_get_intra_inter_context(xd);
+        ctx->skip_mode_ctx = av1_get_skip_mode_context(xd);
+    }
+#else
     // Intra Luma Neighbor Modes
     if (!ctx->shut_fast_rate) {
         int32_t context_index;
@@ -2336,6 +2371,7 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
             blk_ptr->skip_flag_context +=
                 blk_ptr->av1xd->mi[-blk_ptr->av1xd->mi_stride]->mbmi.block_mi.skip_mode ? 1 : 0;
     }
+#endif
     // Generate Partition context
     ctx->md_local_blk_unit[blk_ptr->mds_idx].above_neighbor_partition =
         (((PartitionContext *)leaf_partition_na->top_array)[partition_above_neighbor_index].above ==

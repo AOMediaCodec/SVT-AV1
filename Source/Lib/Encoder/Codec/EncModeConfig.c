@@ -3396,6 +3396,10 @@ Input   : encoder mode and tune
 Output  : Pre-Analysis signal(s)
 ******************************************************/
 void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
+
+#if FIX_INTER_CMP
+    const int8_t enc_mode = scs->static_config.enc_mode;
+#endif
     // Set the SCD Mode
     scs->scd_mode = scs->static_config.scene_change_detection == 0 ? SCD_MODE_0 : SCD_MODE_1;
 
@@ -3405,6 +3409,12 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         scs->seq_header.enable_interintra_compound = 1;
     else
         scs->seq_header.enable_interintra_compound = scs->inter_intra_compound;
+#if FIX_FILTER_INTRA
+    if (get_filter_intra_level(enc_mode))
+        scs->seq_header.filter_intra_level = 1;
+    else
+        scs->seq_header.filter_intra_level = 0;
+#else
     // Enable/Disable Filter Intra
     // seq_header.filter_intra_level | Settings
     // 0                             | Disable
@@ -3413,6 +3423,16 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         scs->seq_header.filter_intra_level = 1;
     else
         scs->seq_header.filter_intra_level = scs->filter_intra_level;
+#endif
+#if FIX_INTER_CMP
+    if (get_inter_compound_level(enc_mode)) {
+        scs->seq_header.order_hint_info.enable_jnt_comp = 1; //DISTANCE
+        scs->seq_header.enable_masked_compound          = 1; //DIFF+WEDGE
+    } else {
+        scs->seq_header.order_hint_info.enable_jnt_comp = 0;
+        scs->seq_header.enable_masked_compound          = 0;
+    }
+#else
     // Set compound mode      Settings
     // 0                 OFF: No compond mode search : AVG only
     // 1                 ON: full
@@ -3427,7 +3447,7 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         scs->seq_header.order_hint_info.enable_jnt_comp = 0;
         scs->seq_header.enable_masked_compound          = 0;
     }
-
+#endif
     if (scs->enable_intra_edge_filter == DEFAULT)
         scs->seq_header.enable_intra_edge_filter = 1;
     else
@@ -11835,7 +11855,9 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     //Filter Intra Mode : 0: OFF  1: ON
     // pic_filter_intra_level specifies whether filter intra would be active
     // for a given picture.
-
+#if FIX_FILTER_INTRA
+    pcs->pic_filter_intra_level = get_filter_intra_level(enc_mode);
+#else
     // pic_filter_intra_level | Settings
     // 0                      | OFF
     // 1                      | ON
@@ -11849,7 +11871,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->pic_filter_intra_level = 0;
     } else
         pcs->pic_filter_intra_level = scs->filter_intra_level;
-
+#endif
     if (fast_decode == 0 || input_resolution <= INPUT_SIZE_360p_RANGE) {
         if (pcs->enc_mode <= ENC_M6)
             pcs->ppcs->use_accurate_part_ctx = TRUE;

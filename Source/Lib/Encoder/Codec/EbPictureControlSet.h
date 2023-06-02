@@ -321,9 +321,11 @@ typedef struct PictureControlSet {
     // qindex per 64x64 using ME distortions (to be used for lambda modulation only; not at Q/Q-1)
     // Mode Decision Neighbor Arrays
     uint8_t            *b64_me_qindex;
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit **md_intra_luma_mode_na[NA_TOT_CNT];
     NeighborArrayUnit **md_skip_flag_na[NA_TOT_CNT];
     NeighborArrayUnit **md_mode_type_na[NA_TOT_CNT];
+#endif
     NeighborArrayUnit **md_luma_recon_na[NA_TOT_CNT];
     NeighborArrayUnit **md_tx_depth_1_luma_recon_na[NA_TOT_CNT];
     NeighborArrayUnit **md_tx_depth_2_luma_recon_na[NA_TOT_CNT];
@@ -349,11 +351,13 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **mdleaf_partition_na[NA_TOT_CNT];
 
     // Encode Pass Neighbor Arrays
+#if !CLN_REMOVE_NEIGH_ARRAYS
     NeighborArrayUnit **ep_intra_luma_mode_na;
     NeighborArrayUnit **ep_intra_chroma_mode_na;
     NeighborArrayUnit **ep_mv_na;
     NeighborArrayUnit **ep_skip_flag_na;
     NeighborArrayUnit **ep_mode_type_na;
+#endif
     NeighborArrayUnit **ep_luma_recon_na;
     NeighborArrayUnit **ep_cb_recon_na;
     NeighborArrayUnit **ep_cr_recon_na;
@@ -372,11 +376,17 @@ typedef struct PictureControlSet {
 #endif
 
     // Entropy Coding Neighbor Arrays
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit **mode_type_na;
+#endif
     NeighborArrayUnit **partition_context_na;
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit **intra_luma_mode_na;
     NeighborArrayUnit **skip_flag_na;
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
     NeighborArrayUnit **skip_coeff_na;
+#endif
     // Stored per 4x4. 8 bit: lower 6 bits (COEFF_CONTEXT_BITS), shows if there is at least one
     // Coef. Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
     NeighborArrayUnit **luma_dc_sign_level_coeff_na;

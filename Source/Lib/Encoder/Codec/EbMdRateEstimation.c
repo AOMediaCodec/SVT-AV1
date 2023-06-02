@@ -555,6 +555,7 @@ void svt_aom_estimate_coefficients_rate(MdRateEstimationContext *md_rate_est_ctx
         }
     }
 }
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
 static INLINE int av1_get_skip_mode_context(const MacroBlockD *xd) {
     const MbModeInfo *const above_mi        = xd->above_mbmi;
     const MbModeInfo *const left_mi         = xd->left_mbmi;
@@ -562,6 +563,8 @@ static INLINE int av1_get_skip_mode_context(const MacroBlockD *xd) {
     const int               left_skip_mode  = left_mi ? left_mi->block_mi.skip_mode : 0;
     return above_skip_mode + left_skip_mode;
 }
+#endif
+#if !FIX_SKIP_NEIGH_ARRAY
 static INLINE int av1_get_skip_context(const MacroBlockD *xd) {
     const MbModeInfo *const above_mi   = xd->above_mbmi;
     const MbModeInfo *const left_mi    = xd->left_mbmi;
@@ -569,7 +572,12 @@ static INLINE int av1_get_skip_context(const MacroBlockD *xd) {
     const int               left_skip  = left_mi ? left_mi->block_mi.skip : 0;
     return above_skip + left_skip;
 }
-
+#endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MacroBlockD *xd) {
+    uint8_t above_ctx, left_ctx;
+    svt_aom_get_kf_y_mode_ctx(xd, &above_ctx, &left_ctx);
+#else
 static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MbModeInfo *above_mi,
                                          const MbModeInfo *left_mi) {
     const PredictionMode above = above_mi ? above_mi->block_mi.mode : DC_PRED;
@@ -578,6 +586,7 @@ static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MbModeIn
     assert(left < 13);
     const int above_ctx = intra_mode_context[above];
     const int left_ctx  = intra_mode_context[left];
+#endif
     return tile_ctx->kf_y_cdf[above_ctx][left_ctx];
 }
 int         svt_aom_has_second_ref(const MbModeInfo *mbmi);
@@ -638,7 +647,7 @@ int svt_aom_get_palette_bsize_ctx(BlockSize bsize);
 int svt_aom_get_palette_mode_ctx(const MacroBlockD *xd);
 
 static INLINE InterpFilter av1_extract_interp_filter(InterpFilters filters, int32_t x_filter);
-
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
 /*******************************************************************************
 * The mode info data structure has a one element border above and to the
 * left of the entries corresponding to real macroblocks.
@@ -664,7 +673,7 @@ int svt_av1_get_intra_inter_context(const MacroBlockD *xd) {
         return 0;
     }
 }
-
+#endif
 int32_t    svt_aom_partition_cdf_length(BlockSize bsize);
 #if !CLN_IFS_PATH
 static int av1_get_pred_context_switchable_interp(const MacroBlockD *xd, int dir) {
@@ -852,7 +861,11 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
     assert(y_mode < 13);
 
     if (intraonly) {
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+        update_cdf(get_y_mode_cdf(fc, xd), y_mode, INTRA_MODES);
+#else
         update_cdf(get_y_mode_cdf(fc, above_mi, left_mi), y_mode, INTRA_MODES);
+#endif
     } else {
         update_cdf(fc->y_mode_cdf[size_group_lookup[bsize]], y_mode, INTRA_MODES);
     }

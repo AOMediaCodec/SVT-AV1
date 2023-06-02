@@ -976,8 +976,10 @@ typedef struct ModeDecisionContext {
     MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
     uint8_t          tot_ref_frame_types;
 
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit *intra_luma_mode_na;
     NeighborArrayUnit *mode_type_na;
+#endif
 
     NeighborArrayUnit *recon_neigh_y;
     NeighborArrayUnit *recon_neigh_cb;
