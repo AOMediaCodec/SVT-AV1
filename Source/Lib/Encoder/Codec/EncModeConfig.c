@@ -3340,6 +3340,18 @@ void svt_aom_sig_deriv_block(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 #endif
 }
 
+#if MEM_SG
+uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution, Bool fast_decode) {
+    uint8_t sg = 0;
+    for (int is_base = 0; is_base < 2; is_base++) {
+        sg = svt_aom_get_sg_filter_level(enc_mode, fast_decode, input_resolution, is_base);
+        if (sg)
+            break;
+    }
+    return (sg > 0);
+}
+#endif
+
 /*
 * return true if restoration filtering is enabled; false otherwise
   Used by signal_derivation_pre_analysis_oq and memory allocation
@@ -3356,12 +3368,16 @@ uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_re
             break;
     }
 
+#if MEM_SG
+    uint8_t sg = svt_aom_get_enable_sg(enc_mode, input_resolution, fast_decode);
+#else
     uint8_t sg = 0;
     for (int is_base = 0; is_base < 2; is_base++) {
         sg = svt_aom_get_sg_filter_level(enc_mode, fast_decode, input_resolution, is_base);
         if (sg)
             break;
     }
+#endif
 
     return (sg > 0 || wn > 0);
 }

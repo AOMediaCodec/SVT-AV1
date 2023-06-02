@@ -143,7 +143,9 @@ static void picture_control_set_dctor(EbPtr p) {
     uint8_t            depth;
     svt_av1_hash_table_destroy(&obj->hash_table);
     EB_FREE_ALIGNED_ARRAY(obj->tpl_mvs);
+#if !MEM_SG
     EB_FREE_ALIGNED(obj->rst_tmpbuf);
+#endif
     EB_DELETE_PTR_ARRAY(obj->enc_dec_segment_ctrl, tile_cnt);
 #if !CLN_REMOVE_NEIGH_ARRAYS
     EB_DELETE_PTR_ARRAY(obj->ep_intra_luma_mode_na, tile_cnt);
@@ -1300,11 +1302,13 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
         EB_CALLOC_ALIGNED_ARRAY(object_ptr->tpl_mvs, mem_size);
     }
 
+#if !MEM_SG
     if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
                                        init_data_ptr->static_config.enable_restoration_filtering,
                                        init_data_ptr->input_resolution,
                                        init_data_ptr->static_config.fast_decode))
         EB_MALLOC_ALIGNED(object_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
+#endif
 
     return EB_ErrorNone;
 }

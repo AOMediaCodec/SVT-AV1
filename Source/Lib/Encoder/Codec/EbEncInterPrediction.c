@@ -1519,7 +1519,11 @@ struct obmc_inter_pred_ctxt {
     uint16_t  final_dst_stride_u;
     uint8_t  *final_dst_ptr_v;
     uint16_t  final_dst_stride_v;
-    Bool      perform_chroma;
+#if OPT_OBMC_UV_ONLY
+    uint32_t component_mask;
+#else
+    Bool perform_chroma;
+#endif
 };
 
 static INLINE void build_obmc_inter_pred_above(uint8_t is16bit, MacroBlockD *xd, int rel_mi_col,
@@ -1531,10 +1535,15 @@ static INLINE void build_obmc_inter_pred_above(uint8_t is16bit, MacroBlockD *xd,
     const BlockSize              bsize = xd->sb_type;
 
     const int overlap = AOMMIN(block_size_high[bsize], block_size_high[BLOCK_64X64]) >> 1;
-
+#if OPT_OBMC_UV_ONLY
+    int start_plane = (ctxt->component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) ? 0 : 1;
+    int end_plane   = (ctxt->component_mask & PICTURE_BUFFER_DESC_CHROMA_MASK) ? 3 : 1;
+    for (int plane = start_plane; plane < end_plane; ++plane) {
+#else
     int32_t tot_planes = (ctxt->perform_chroma ? 3 : 1);
 
     for (int plane = 0; plane < tot_planes; ++plane) {
+#endif
         int subsampling_x = plane > 0 ? 1 : 0;
         int subsampling_y = plane > 0 ? 1 : 0;
 
@@ -1581,10 +1590,15 @@ static INLINE void build_obmc_inter_pred_left(uint8_t is16bit, MacroBlockD *xd, 
     struct obmc_inter_pred_ctxt *ctxt  = (struct obmc_inter_pred_ctxt *)fun_ctxt;
     const BlockSize              bsize = xd->sb_type;
     const int overlap = AOMMIN(block_size_wide[bsize], block_size_wide[BLOCK_64X64]) >> 1;
-
+#if OPT_OBMC_UV_ONLY
+    int start_plane = (ctxt->component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) ? 0 : 1;
+    int end_plane   = (ctxt->component_mask & PICTURE_BUFFER_DESC_CHROMA_MASK) ? 3 : 1;
+    for (int plane = start_plane; plane < end_plane; ++plane) {
+#else
     int32_t tot_planes = (ctxt->perform_chroma ? 3 : 1);
 
     for (int plane = 0; plane < tot_planes; ++plane) {
+#endif
         int subsampling_x = plane > 0 ? 1 : 0;
         int subsampling_y = plane > 0 ? 1 : 0;
 
@@ -1630,7 +1644,11 @@ static INLINE void build_obmc_inter_pred_left(uint8_t is16bit, MacroBlockD *xd, 
 static void av1_build_obmc_inter_prediction(
     uint8_t *final_dst_ptr_y, uint16_t final_dst_stride_y, uint8_t *final_dst_ptr_u,
     uint16_t final_dst_stride_u, uint8_t *final_dst_ptr_v, uint16_t final_dst_stride_v,
+#if OPT_OBMC_UV_ONLY
+    uint32_t component_mask, BlockSize bsize, PictureControlSet* pcs, MacroBlockD* xd, int mi_row,
+#else
     Bool perform_chroma, BlockSize bsize, PictureControlSet *pcs, MacroBlockD *xd, int mi_row,
+#endif
     int mi_col, uint8_t *above[MAX_MB_PLANE], int above_stride[MAX_MB_PLANE],
     uint8_t *left[MAX_MB_PLANE], int left_stride[MAX_MB_PLANE], uint8_t is16bit) {
     // handle above row
@@ -1645,7 +1663,11 @@ static void av1_build_obmc_inter_prediction(
     ctxt_above.final_dst_stride_u = final_dst_stride_u;
     ctxt_above.final_dst_ptr_v    = final_dst_ptr_v;
     ctxt_above.final_dst_stride_v = final_dst_stride_v;
-    ctxt_above.perform_chroma     = perform_chroma;
+#if OPT_OBMC_UV_ONLY
+    ctxt_above.component_mask = component_mask;
+#else
+    ctxt_above.perform_chroma = perform_chroma;
+#endif
 
     foreach_overlappable_nb_above(is16bit,
                                   pcs->ppcs->av1_cm,
@@ -1667,7 +1689,11 @@ static void av1_build_obmc_inter_prediction(
     ctxt_left.final_dst_stride_u = final_dst_stride_u;
     ctxt_left.final_dst_ptr_v    = final_dst_ptr_v;
     ctxt_left.final_dst_stride_v = final_dst_stride_v;
-    ctxt_left.perform_chroma     = perform_chroma;
+#if OPT_OBMC_UV_ONLY
+    ctxt_left.component_mask = component_mask;
+#else
+    ctxt_left.perform_chroma = perform_chroma;
+#endif
 
     foreach_overlappable_nb_left(is16bit,
                                  pcs->ppcs->av1_cm,
@@ -3516,8 +3542,12 @@ EbErrorType svt_aom_warped_motion_prediction(
     NeighborArrayUnit *recon_neigh_cr, ModeDecisionCandidate *cand,
 
     EbWarpedMotionParams *wm_params_l0, EbWarpedMotionParams *wm_params_l1, uint8_t bit_depth,
+#if OPT_WM_UV_ONLY
+    uint32_t component_mask, Bool is_encode_pass) {
+#else
     Bool perform_chroma, Bool is_encode_pass) {
-    EbErrorType         return_error      = EB_ErrorNone;
+#endif
+    EbErrorType return_error = EB_ErrorNone;
     uint8_t             is_compound       = (mv_unit->pred_direction == BI_PRED) ? 1 : 0;
     SequenceControlSet *scs               = pcs->scs;
     Bool                is_16bit_pipeline = scs->is_16bit_pipeline;
@@ -3535,6 +3565,9 @@ EbErrorType svt_aom_warped_motion_prediction(
     uint8_t *src_ptr_2b_l0 = NULL;
     uint8_t *src_ptr_2b_l1 = NULL;
     uint8_t *dst_ptr;
+#if OPT_WM_UV_ONLY
+    if (component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) {
+#endif
     if (mv_unit->pred_direction == UNI_PRED_LIST_0 || mv_unit->pred_direction == BI_PRED) {
         assert(ref_pic_list0 != NULL);
         if (is_compound)
@@ -3605,10 +3638,16 @@ EbErrorType svt_aom_warped_motion_prediction(
                                    rf,
                                    is16bit);
 
+#if OPT_WM_UV_ONLY
+    }
+
+    if (blk_geom->has_uv && (component_mask & PICTURE_BUFFER_DESC_CHROMA_MASK)) {
+#else
     if (!blk_geom->has_uv)
         return return_error;
 
     if (perform_chroma) {
+#endif
         if (blk_geom->bwidth >= 16 && blk_geom->bheight >= 16) {
             const uint8_t ss_x = 1; // subsamplings
             const uint8_t ss_y = 1;
@@ -3631,6 +3670,10 @@ EbErrorType svt_aom_warped_motion_prediction(
                                             : NULL;
 
                 src_stride = ref_pic_list0->stride_cb;
+#if OPT_WM_UV_ONLY
+                buf_width  = ref_pic_list0->width;
+                buf_height = ref_pic_list0->height;
+#endif
             } else { //UNI_PRED_LIST_1
 
                 src_ptr_l0 = ref_pic_list1->buffer_cb +
@@ -3643,6 +3686,10 @@ EbErrorType svt_aom_warped_motion_prediction(
 
                 src_ptr_l1 = NULL;
                 src_stride = ref_pic_list1->stride_cb;
+#if OPT_WM_UV_ONLY
+                buf_width  = ref_pic_list1->width;
+                buf_height = ref_pic_list1->height;
+#endif
             }
             dst_ptr = prediction_ptr->buffer_cb +
                 (is16bit ? 2 : 1) *
@@ -3697,6 +3744,10 @@ EbErrorType svt_aom_warped_motion_prediction(
                                             : NULL;
 
                 src_stride = ref_pic_list0->stride_cr;
+#if OPT_WM_UV_ONLY
+                buf_width  = ref_pic_list0->width;
+                buf_height = ref_pic_list0->height;
+#endif
             } else { //UNI_PRED_LIST_1
                 src_ptr_l0 = ref_pic_list1->buffer_cr +
                     (ref_pic_list1->org_x / 2 +
@@ -3707,6 +3758,10 @@ EbErrorType svt_aom_warped_motion_prediction(
                 src_ptr_2b_l1 = NULL;
                 src_ptr_l1    = NULL;
                 src_stride    = ref_pic_list1->stride_cr;
+#if OPT_WM_UV_ONLY
+                buf_width  = ref_pic_list1->width;
+                buf_height = ref_pic_list1->height;
+#endif
             }
             dst_ptr = prediction_ptr->buffer_cr +
                 (is16bit ? 2 : 1) *
@@ -6355,6 +6410,21 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
         bit_depth = scs->static_config.encoder_bit_depth;
 
     if (cand->motion_mode == WARPED_CAUSAL) {
+#if OPT_WM_UV_ONLY
+        uint32_t component_mask = (ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 &&
+                                   ctx->mds_skip_uv_pred == FALSE)
+            ? PICTURE_BUFFER_DESC_FULL_MASK
+            : PICTURE_BUFFER_DESC_LUMA_MASK;
+
+        if (ctx->md_stage >= MD_STAGE_1 && cand_bf->valid_pred &&
+            component_mask == PICTURE_BUFFER_DESC_FULL_MASK && !ctx->need_hbd_comp_mds3) {
+            // The mask generation for DIFFWTD compound mode is done for luma, using luma samples, so must always
+            // perform luma prediction if DIFFWTD is used.
+            if (is_compound == 0 || cand_bf->cand->interinter_comp.type != COMPOUND_DIFFWTD) {
+                component_mask = PICTURE_BUFFER_DESC_CHROMA_MASK;
+            }
+        }
+#endif
         NeighborArrayUnit *recon_neigh_y;
         NeighborArrayUnit *recon_neigh_cb;
         NeighborArrayUnit *recon_neigh_cr;
@@ -6391,7 +6461,11 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
             &cand->wm_params_l0,
             &cand->wm_params_l1,
             bit_depth,
+#if OPT_WM_UV_ONLY
+            component_mask,
+#else
             ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 && ctx->mds_skip_uv_pred == FALSE,
+#endif
             FALSE);
 
         return return_error;
@@ -6533,10 +6607,22 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
 #endif
         interp_filters_0 == interp_filters_1) { // already performed and IFS did not change it
         if (component_mask == PICTURE_BUFFER_DESC_FULL_MASK && !ctx->need_hbd_comp_mds3) {
+#if OPT_OBMC_UV_ONLY
+#if OPT_WEDGE_UV_ONLY
+            // The mask generation for DIFFWTD compound mode is done for luma, using luma samples, so must always
+            // perform luma prediction if DIFFWTD is used.
+            if (is_compound == 0 || cand_bf->cand->interinter_comp.type != COMPOUND_DIFFWTD) {
+#else
+            if (is_compound == 0 ||
+                svt_aom_is_masked_compound_type(cand_bf->cand->interinter_comp.type) ==
+                    0) { // not masked compound
+#endif
+#else
             if (cand_bf->cand->motion_mode == SIMPLE_TRANSLATION &&
                 (is_compound == 0 ||
                  (svt_aom_is_masked_compound_type(cand_bf->cand->interinter_comp.type)) ==
                      0)) { // simple translation and not masked compound
+#endif
                 component_mask = PICTURE_BUFFER_DESC_CHROMA_MASK;
             }
         }

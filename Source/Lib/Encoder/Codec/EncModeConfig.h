@@ -60,6 +60,10 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs);
 
 void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level);
 
+#if MEM_SG
+uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution, Bool fast_decode);
+#endif
+
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration,
                                        uint8_t input_resolution, Bool fast_decode);
 

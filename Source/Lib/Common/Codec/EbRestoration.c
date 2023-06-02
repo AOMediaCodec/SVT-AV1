@@ -1273,8 +1273,13 @@ static void filter_frame_on_unit(const RestorationTileLimits *limits, const Av1P
                                          rsi->optimized_lr);
 }
 
+#if MEM_SG
+void svt_av1_loop_restoration_filter_frame(int32_t *rst_tmpbuf, Yv12BufferConfig *frame,
+                                           Av1Common *cm, int32_t optimized_lr) {
+#else
 void svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
                                            int32_t optimized_lr) {
+#endif
     // assert(!cm->all_lossless);
     const int32_t num_planes = 3; // av1_num_planes(cm);
     typedef void (*CopyFun)(const Yv12BufferConfig *src, Yv12BufferConfig *dst);
@@ -1333,8 +1338,11 @@ void svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *c
         ctxt.dst8        = dst->buffers[plane];
         ctxt.data_stride = frame->strides[is_uv];
         ctxt.dst_stride  = dst->strides[is_uv];
-        ctxt.tmpbuf      = cm->rst_tmpbuf;
-
+#if MEM_SG
+        ctxt.tmpbuf = rst_tmpbuf;
+#else
+        ctxt.tmpbuf = cm->rst_tmpbuf;
+#endif
         svt_aom_foreach_rest_unit_in_frame(
             cm, plane, filter_frame_on_tile, filter_frame_on_unit, &ctxt);
 

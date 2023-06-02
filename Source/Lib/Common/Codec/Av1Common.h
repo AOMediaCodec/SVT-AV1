@@ -82,8 +82,10 @@ typedef struct Av1Common {
     struct PictureControlSet* child_pcs;
     // Output of loop restoration
     Yv12BufferConfig rst_frame;
+#if !MEM_SG
     // pointer to a scratch buffer used by self-guided restoration
-    int32_t*          rst_tmpbuf;
+    int32_t* rst_tmpbuf;
+#endif
     Yv12BufferConfig* frame_to_show;
     int32_t           byte_alignment;
     int32_t           last_tile_cols, last_tile_rows;

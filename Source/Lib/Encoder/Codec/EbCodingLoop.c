@@ -2050,7 +2050,11 @@ static void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet
             &md_ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].wm_params_l0,
             &md_ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].wm_params_l1,
             (uint8_t)scs->static_config.encoder_bit_depth,
+#if OPT_WM_UV_ONLY
+            PICTURE_BUFFER_DESC_FULL_MASK,
+#else
             TRUE,
+#endif
             TRUE);
     } else {
         svt_aom_inter_prediction(scs,

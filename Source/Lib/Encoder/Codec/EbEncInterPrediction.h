@@ -97,7 +97,11 @@ EbErrorType svt_aom_warped_motion_prediction(
     uint16_t dst_origin_y, NeighborArrayUnit *recon_neigh_y, NeighborArrayUnit *recon_neigh_cb,
     NeighborArrayUnit *recon_neigh_cr, ModeDecisionCandidate *cand,
     EbWarpedMotionParams *wm_params_l0, EbWarpedMotionParams *wm_params_l1, uint8_t bit_depth,
+#if OPT_WM_UV_ONLY
+    uint32_t component_mask, Bool is_encode_pass);
+#else
     Bool perform_chroma, Bool is_encode_pass);
+#endif
 
 #if CLN_FUNC_DECL
 void svt_aom_precompute_obmc_data(PictureControlSet *pcs, struct ModeDecisionContext *ctx);

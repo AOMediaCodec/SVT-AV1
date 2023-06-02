@@ -785,7 +785,11 @@ static EbErrorType load_default_buffer_configuration_settings(
         scs->total_process_init_count += (scs->entropy_coding_process_init_count              = clamp(max_ec_proc, 1, max_ec_proc));
         scs->total_process_init_count += (scs->dlf_process_init_count                         = clamp(max_dlf_proc, 1, max_dlf_proc));
         scs->total_process_init_count += (scs->cdef_process_init_count                        = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+        scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(4, 1, max_rest_proc));
+#else
         scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
     }
     else if (core_count < PARALLEL_LEVEL_4_RANGE) {
         scs->total_process_init_count += (scs->source_based_operations_process_init_count     = 1);
@@ -797,7 +801,11 @@ static EbErrorType load_default_buffer_configuration_settings(
         scs->total_process_init_count += (scs->entropy_coding_process_init_count              = clamp(max_ec_proc, 1, max_ec_proc));
         scs->total_process_init_count += (scs->dlf_process_init_count                         = clamp(max_dlf_proc, 1, max_dlf_proc));
         scs->total_process_init_count += (scs->cdef_process_init_count                        = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+        scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(4, 1, max_rest_proc));
+#else
         scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
     }
     else if (core_count < PARALLEL_LEVEL_8_RANGE) {
         scs->total_process_init_count += (scs->source_based_operations_process_init_count     = 1);
@@ -809,7 +817,11 @@ static EbErrorType load_default_buffer_configuration_settings(
         scs->total_process_init_count += (scs->entropy_coding_process_init_count              = clamp(max_ec_proc, 1, max_ec_proc));
         scs->total_process_init_count += (scs->dlf_process_init_count                         = clamp(max_dlf_proc, 1, max_dlf_proc));
         scs->total_process_init_count += (scs->cdef_process_init_count                        = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+        scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(4, 1, max_rest_proc));
+#else
         scs->total_process_init_count += (scs->rest_process_init_count                        = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
     }
     else {
         if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF)
@@ -823,7 +835,11 @@ static EbErrorType load_default_buffer_configuration_settings(
             scs->total_process_init_count += (scs->entropy_coding_process_init_count = clamp(max_ec_proc, 1, max_ec_proc));
             scs->total_process_init_count += (scs->dlf_process_init_count = clamp(max_dlf_proc, 1, max_dlf_proc));
             scs->total_process_init_count += (scs->cdef_process_init_count = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+            scs->total_process_init_count += (scs->rest_process_init_count = clamp(4, 1, max_rest_proc));
+#else
             scs->total_process_init_count += (scs->rest_process_init_count = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
         }
         else
         {
@@ -837,7 +853,11 @@ static EbErrorType load_default_buffer_configuration_settings(
                 scs->total_process_init_count += (scs->entropy_coding_process_init_count = clamp(max_ec_proc, 1, max_ec_proc));
                 scs->total_process_init_count += (scs->dlf_process_init_count = clamp(max_dlf_proc, 1, max_dlf_proc));
                 scs->total_process_init_count += (scs->cdef_process_init_count = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+                scs->total_process_init_count += (scs->rest_process_init_count = clamp(4, 1, max_rest_proc));
+#else
                 scs->total_process_init_count += (scs->rest_process_init_count = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
             }
             else {
                 scs->total_process_init_count += (scs->source_based_operations_process_init_count = 1);
@@ -850,7 +870,11 @@ static EbErrorType load_default_buffer_configuration_settings(
                 scs->total_process_init_count += (scs->entropy_coding_process_init_count = clamp(max_ec_proc, 1, max_ec_proc));
                 scs->total_process_init_count += (scs->dlf_process_init_count = clamp(max_dlf_proc, 1, max_dlf_proc));
                 scs->total_process_init_count += (scs->cdef_process_init_count = clamp(max_cdef_proc, 1, max_cdef_proc));
+#if TUNE_REST_PROCESS
+                scs->total_process_init_count += (scs->rest_process_init_count = clamp(10, 1, max_rest_proc));
+#else
                 scs->total_process_init_count += (scs->rest_process_init_count = clamp(max_rest_proc, 1, max_rest_proc));
+#endif
             }
         }
     }

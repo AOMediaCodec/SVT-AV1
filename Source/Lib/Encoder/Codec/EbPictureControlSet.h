@@ -485,8 +485,10 @@ typedef struct PictureControlSet {
     uint16_t sb_total_count;
     // Total SB count of unscaled picture (used for memory alloc/dealloc when superres is used)
     uint16_t sb_total_count_unscaled;
+#if !MEM_SG
     // pointer to a scratch buffer used by self-guided restoration
     int32_t *rst_tmpbuf;
+#endif
 
     EbPictureBufferDesc *temp_lf_recon_pic;
     EbPictureBufferDesc *temp_lf_recon_pic_16bit;

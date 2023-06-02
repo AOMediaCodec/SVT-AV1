@@ -200,9 +200,13 @@ extern "C" {
 #define TUNE_4K_8K                                1 // Tune memory sensitive settings for 4K+ resolutions . Note we can remove the debug macro: REMOVE_LP1_LPN_DIFF
 #define CLN_TF                                    0 // Cleanup tf
 
+#define OPT_OBMC_UV_ONLY                          1 // Allow OBMC prediction to be done for chroma only
+#define OPT_WEDGE_UV_ONLY                         1 // Allow wedge compound prediction to be done for chroma only
+#define OPT_WM_UV_ONLY                            1 // Allow WM prediction to be done for chroma only
 
-
-
+#define TUNE_FAST_DEC_5L                          1 // Make fast decode use fixed 5L
+#define TUNE_REST_PROCESS                         1 // Tune number of restoration processes for nlp
+#define MEM_SG                                    1 // Memory optimization for self-guided
 
 #define TUNE_M1_FD                                1 // Tune m1 fast decode
 #define TUNE_M2_FD                                1 // Tune m2 fast decode
