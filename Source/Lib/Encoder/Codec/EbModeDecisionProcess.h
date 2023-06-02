@@ -743,12 +743,14 @@ typedef struct InterpolationSearchCtrls {
     // IFS_MDS1, IFS_MDS2, or IFS_MDS3 for respectively MD Stage 0, MD Stage 1, MD Stage 2, and MD
     // Stage 3)
     IfsLevel level;
+#if !CLN_IFS_PATH
     // Specifies whether the interpolation filter search will use 1/8-Pel precision or 1/4-Pel
     // precision (0: 1/8-Pel precision, 1: 1/4-Pel precision)
     uint8_t quarter_pel_only;
     // Specifies whether an early interpolation filter search exit could take place based on the
     // cost of signaling a switchable filter type (0: OFF, 1: ON)
     uint8_t early_skip;
+#endif
     // Specifies whether sub-sampled input/prediction will be used at the distortion computation (0:
     // OFF, 1: ON, NA for block height 16 and lower)
     uint8_t subsampled_distortion;

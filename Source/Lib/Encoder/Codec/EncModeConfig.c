@@ -5728,46 +5728,59 @@ static void set_interpolation_search_level_ctrls(ModeDecisionContext *ctx,
     switch (interpolation_search_level) {
     case 0:
         ifs_ctrls->level                 = IFS_OFF;
-        ifs_ctrls->quarter_pel_only      = 0;
-        ifs_ctrls->early_skip            = 0;
+#if !CLN_IFS_PATH
+        ifs_ctrls->quarter_pel_only = 0;
+        ifs_ctrls->early_skip       = 0;
+#endif 
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
     case 1:
         ifs_ctrls->level                 = IFS_MDS0;
+#if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only      = 0;
         ifs_ctrls->early_skip            = 0;
+#endif
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
     case 2:
         ifs_ctrls->level                 = IFS_MDS1;
+#if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only      = 0;
         ifs_ctrls->early_skip            = 0;
+#endif
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
     case 3:
         ifs_ctrls->level                 = IFS_MDS2;
+#if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only      = 0;
         ifs_ctrls->early_skip            = 0;
+#endif
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
     case 4:
         ifs_ctrls->level                 = IFS_MDS3;
+#if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only      = 0;
         ifs_ctrls->early_skip            = 0;
+#endif
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
     case 5:
         ifs_ctrls->level                 = IFS_MDS3;
+#if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only      = 0;
         ifs_ctrls->early_skip            = 1;
+#endif
         ifs_ctrls->subsampled_distortion = 1;
         ifs_ctrls->skip_sse_rd_model     = 1;
         break;
+#if !CLN_IFS_PATH
     case 6:
         ifs_ctrls->level                 = IFS_MDS3;
         ifs_ctrls->quarter_pel_only      = 1;
@@ -5775,6 +5788,7 @@ static void set_interpolation_search_level_ctrls(ModeDecisionContext *ctx,
         ifs_ctrls->subsampled_distortion = 1;
         ifs_ctrls->skip_sse_rd_model     = 1;
         break;
+#endif
     default: assert(0); break;
     }
 }
@@ -12181,6 +12195,9 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->interpolation_search_level = 0;
         }
     }
+#if CLN_IFS_PATH
+    frm_hdr->interpolation_filter = SWITCHABLE;
+#endif
 
     pcs->chroma_level = svt_aom_get_chroma_level(enc_mode);
     // Set the level for cfl

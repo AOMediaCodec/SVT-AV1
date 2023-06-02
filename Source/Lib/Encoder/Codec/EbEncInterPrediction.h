@@ -41,7 +41,12 @@ EbErrorType svt_aom_simple_luma_unipred(SequenceControlSet *scs, ScaleFactors sf
                                         EbPictureBufferDesc *prediction_ptr, uint16_t dst_origin_x,
                                         uint16_t dst_origin_y, uint8_t bit_depth,
                                         uint8_t subsampling_shift);
+#if CLN_IFS_PATH
+void av1_inter_prediction_light_pd1(SequenceControlSet* scs, MvUnit* mv_unit,
+                                    uint32_t interp_filter,
+#else
 EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_unit,
+#endif
                                            struct ModeDecisionContext *ctx, uint16_t pu_origin_x,
                                            uint16_t pu_origin_y, uint8_t bwidth, uint8_t bheight,
                                            EbPictureBufferDesc *ref_pic_list0,

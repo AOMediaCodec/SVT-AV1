@@ -342,10 +342,10 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **md_cr_dc_sign_level_coeff_na[NA_TOT_CNT];
     NeighborArrayUnit **md_txfm_context_array[NA_TOT_CNT];
     NeighborArrayUnit **md_skip_coeff_na[NA_TOT_CNT];
-    NeighborArrayUnit **md_ref_frame_type_na[NA_TOT_CNT];
-
+#if !CLN_IFS_PATH
+    NeighborArrayUnit **  md_ref_frame_type_na[NA_TOT_CNT];
     NeighborArrayUnit32 **md_interpolation_type_na[NA_TOT_CNT];
-
+#endif
     NeighborArrayUnit **mdleaf_partition_na[NA_TOT_CNT];
 
     // Encode Pass Neighbor Arrays
@@ -387,8 +387,10 @@ typedef struct PictureControlSet {
     // Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
     NeighborArrayUnit   **cb_dc_sign_level_coeff_na;
     NeighborArrayUnit   **txfm_context_array;
-    NeighborArrayUnit   **ref_frame_type_na;
+#if !CLN_IFS_PATH
+    NeighborArrayUnit **  ref_frame_type_na;
     NeighborArrayUnit32 **interpolation_type_na;
+#endif
 
     NeighborArrayUnit      **segmentation_id_pred_array;
     SegmentationNeighborMap *segmentation_neighbor_map;

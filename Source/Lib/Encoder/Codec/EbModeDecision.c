@@ -5701,7 +5701,11 @@ void svt_aom_product_full_mode_decision_light_pd1(
             blk_ptr->comp_group_idx = cand->comp_group_idx;
             assert(IMPLIES(blk_ptr->interinter_comp.type == COMPOUND_AVERAGE, (blk_ptr->comp_group_idx == 0 && blk_ptr->compound_idx == 1)));
         }
+#if CLN_IFS_PATH
+        blk_ptr->interp_filters = cand->interp_filters;
+#else
         blk_ptr->interp_filters = 0;
+#endif
 
         // Set MVs
         if (pu_ptr->inter_pred_direction_index == UNI_PRED_LIST_0)
@@ -6013,7 +6017,11 @@ uint32_t svt_aom_product_full_mode_decision(
         blk_ptr->skip_mode |= !blk_ptr->block_has_coeff;
     }
 
+#if CLN_IFS_PATH
+    assert(IMPLIES(pcs->ppcs->frm_hdr.interpolation_filter == SWITCHABLE && blk_ptr->skip_mode, cand->interp_filters == 0));
+#else
     assert(IMPLIES(blk_ptr->skip_mode, cand->interp_filters == 0));
+#endif
     if (blk_ptr->skip_mode) {
         blk_ptr->block_has_coeff = 0;
         cand_bf->y_has_coeff = 0;

@@ -733,6 +733,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                                blk_geom->bheight,
                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
+#if !CLN_IFS_PATH
     //svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_na[depth]);
     svt_aom_copy_neigh_arr(pcs->md_ref_frame_type_na[src_idx][tile_idx],
                            pcs->md_ref_frame_type_na[dst_idx][tile_idx],
@@ -741,7 +742,6 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                            blk_geom->bwidth,
                            blk_geom->bheight,
                            NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-
     svt_aom_copy_neigh_arr_32(pcs->md_interpolation_type_na[src_idx][tile_idx],
                               pcs->md_interpolation_type_na[dst_idx][tile_idx],
                               blk_org_x,
@@ -749,6 +749,7 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
                               blk_geom->bwidth,
                               blk_geom->bheight,
                               NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
+#endif
 }
 
 static void md_update_all_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
@@ -2173,6 +2174,15 @@ static void md_stage_0(PictureControlSet *pcs, ModeDecisionContext *ctx,
         pcs->ppcs->is_noise_level;
     // Set MD Staging fast_loop_core settings
     ctx->mds_skip_ifs     = (ctx->ifs_ctrls.level == IFS_MDS0) ? FALSE : TRUE;
+#if CLN_IFS_PATH
+    /* If the interpolation filter type is known, assign it, OW will be assigned in IFS search.
+     * NB intra_bc always uses BILINEAR, but the IBC filters are updated automatically during prediction, so
+     * no need for a special check here. */
+    const InterpFilter default_interp_filter = (pcs->ppcs->frm_hdr.interpolation_filter ==
+                                                SWITCHABLE)
+        ? 0
+        : av1_broadcast_interp_filter(pcs->ppcs->frm_hdr.interpolation_filter);
+#endif
     ctx->mds_skip_uv_pred = TRUE;
     // 2nd fast loop: src-to-recon
     uint32_t highest_cost_index = cand_bf_start_index;
@@ -2211,9 +2221,13 @@ static void md_stage_0(PictureControlSet *pcs, ModeDecisionContext *ctx,
 
             ModeDecisionCandidateBuffer *cand_bf = cand_bf_ptr_array_base[highest_cost_index];
             ModeDecisionCandidate       *cand = cand_bf->cand = &fast_candidate_array[cand_idx];
-            cand_bf->cand->tx_depth                           = 0;
-            cand_bf->cand->interp_filters                     = 0;
-
+#if CLN_IFS_PATH
+            cand->tx_depth       = 0;
+            cand->interp_filters = default_interp_filter;
+#else
+            cand_bf->cand->tx_depth = 0;
+            cand_bf->cand->interp_filters = 0;
+#endif
             // Check whether a candidate should be considered in the current iteration
             if (tot_itr > 1) {
                 if (!process_cand_itr(

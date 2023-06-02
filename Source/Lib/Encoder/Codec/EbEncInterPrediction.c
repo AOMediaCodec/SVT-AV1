@@ -2020,7 +2020,15 @@ static void chroma_plane_warped_motion_prediction_sub8x8(
     uint8_t *src_ptr_2b_l1, uint8_t *dst_ptr, MvReferenceFrame rf[2], MvUnit *mv_unit,
     Bool is16bit) {
     DECLARE_ALIGNED(32, uint16_t, tmp_dst[64 * 64]);
-    const uint32_t     interp_filters = 0;
+#if CLN_IFS_PATH
+    // If interpoltion filter is specified at the block level, WM will always use regular. If
+    // the interpolation is specified at the frame level, WM blocks will use the specified filter.
+    const uint32_t interp_filters = (pcs->ppcs->frm_hdr.interpolation_filter == SWITCHABLE)
+        ? 0
+        : av1_broadcast_interp_filter(pcs->ppcs->frm_hdr.interpolation_filter);
+#else
+    const uint32_t interp_filters = 0;
+#endif
     InterpFilterParams filter_params_x, filter_params_y;
 
     MV mv_q4 = clamp_mv_to_umv_border_sb(
@@ -2283,7 +2291,7 @@ static void plane_warped_motion_prediction(
         }
     }
 }
-
+#if !CLN_IFS_PATH
 extern int32_t svt_av1_get_pred_context_switchable_interp_v2(MvReferenceFrame rf0,
                                                              MvReferenceFrame rf1, MacroBlockD *xd,
                                                              int32_t dir);
@@ -2293,7 +2301,7 @@ extern int32_t svt_av1_get_pred_context_switchable_interp(
     NeighborArrayUnit *ref_frame_type_na, MvReferenceFrame rf0, MvReferenceFrame rf1,
     NeighborArrayUnit32 *interpolation_type_na, uint32_t blk_org_x, uint32_t blk_org_y,
     int32_t dir);
-
+#endif
 #if FIX_IFS_PATH
 #if CLN_IFS_PATH
 static int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf,
@@ -2611,7 +2619,145 @@ static const int32_t filter_sets[DUAL_FILTER_SET_SIZE][2] = {
     {2, 1},
     {2, 2},
 };
+#if CLN_IFS_PATH
+static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                        ModeDecisionCandidateBuffer *cand_bf, MvUnit mv_unit,
+                                        EbPictureBufferDesc *ref_pic_list0,
+                                        EbPictureBufferDesc *ref_pic_list1, uint8_t hbd_md,
+                                        uint8_t bit_depth) {
+    SequenceControlSet *scs                = pcs->scs;
+    const FrameHeader * frm_hdr            = &pcs->ppcs->frm_hdr;
+    const uint8_t       enable_dual_filter = scs->seq_header.enable_dual_filter;
+    const uint32_t      encoder_bit_depth  = scs->static_config.encoder_bit_depth;
 
+    /* Save the orignal interp filter because the compensation is likely available
+     * for that filter, and can be skipped in IFS. Also, we shouldn't overwrite
+     * the pred buffer with a filter that is different from the input, because
+     * the luma compensation may be skipped after the search if the best selected
+     * interp filter matches in the input interp filter. */
+    const uint32_t org_interp_filters = cand_bf->cand->interp_filters;
+
+    uint32_t full_lambda_divided = hbd_md
+        ? ctx->full_lambda_md[EB_10_BIT_MD] >> (2 * (bit_depth - 8))
+        : ctx->full_lambda_md[EB_8_BIT_MD];
+
+    NeighborArrayUnit *recon_neigh_y;
+    NeighborArrayUnit *recon_neigh_cb;
+    NeighborArrayUnit *recon_neigh_cr;
+
+    static const uint64_t ifs_smooth_bias[] = {
+        130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130,
+        120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120,
+        110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110,
+        100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+    if (!hbd_md) {
+        recon_neigh_y  = ctx->recon_neigh_y;
+        recon_neigh_cb = ctx->recon_neigh_cb;
+        recon_neigh_cr = ctx->recon_neigh_cr;
+    } else {
+        recon_neigh_y  = ctx->luma_recon_na_16bit;
+        recon_neigh_cb = ctx->cb_recon_na_16bit;
+        recon_neigh_cr = ctx->cr_recon_na_16bit;
+    }
+
+    assert(frm_hdr->interpolation_filter == SWITCHABLE);
+    assert(av1_is_interp_needed(cand_bf, pcs, ctx->blk_geom->bsize));
+
+    int32_t  switchable_rate = 0;
+    uint64_t rd              = (uint64_t)~0;
+    uint32_t best_filters    = 0;
+
+    // Loop over allowable filter combinations and select the best one
+    for (unsigned int i = 0; i < DUAL_FILTER_SET_SIZE; i++) {
+        // If dual filter is disabled, only test combos that use the same horizontal and vertical filter
+        if (enable_dual_filter == 0 && (filter_sets[i][0] != filter_sets[i][1]))
+            continue;
+
+        cand_bf->cand->interp_filters = av1_make_interp_filters((InterpFilter)filter_sets[i][0],
+                                                                (InterpFilter)filter_sets[i][1]);
+
+        const int32_t tmp_rs = svt_av1_get_switchable_rate(
+            cand_bf, frm_hdr, ctx, enable_dual_filter);
+
+        /*
+         * Skip the prediction if the interp_filter matches the current interp_filter
+         * for MDS1 or higher (since previously performed @ mds0), and EB_EIGHT_BIT (to do for EB_TEN_BIT).
+         */
+        const uint8_t is_pred_buffer_ready = (cand_bf->valid_pred &&
+                                              cand_bf->cand->interp_filters == org_interp_filters &&
+                                              ctx->md_stage > MD_STAGE_0 &&
+                                              encoder_bit_depth == EB_EIGHT_BIT);
+
+        if (is_pred_buffer_ready == 0) {
+            svt_aom_inter_prediction(
+                scs,
+                pcs,
+                cand_bf->cand->interp_filters,
+                ctx->blk_ptr,
+                cand_bf->cand->ref_frame_type,
+                &mv_unit,
+                cand_bf->cand->use_intrabc,
+                (encoder_bit_depth > EB_EIGHT_BIT) ? 0 : cand_bf->cand->motion_mode,
+                1,
+                ctx,
+                cand_bf->cand->compound_idx,
+                &cand_bf->cand->interinter_comp,
+                recon_neigh_y,
+                recon_neigh_cb,
+                recon_neigh_cr,
+                (encoder_bit_depth > EB_EIGHT_BIT) ? 0 : cand_bf->cand->is_interintra_used,
+                cand_bf->cand->interintra_mode,
+                cand_bf->cand->use_wedge_interintra,
+                cand_bf->cand->interintra_wedge_index,
+                ctx->blk_org_x,
+                ctx->blk_org_y,
+                ctx->blk_geom->bwidth,
+                ctx->blk_geom->bheight,
+                ref_pic_list0,
+                ref_pic_list1,
+                ctx->scratch_prediction_ptr,
+                ctx->blk_geom->org_x,
+                ctx->blk_geom->org_y,
+                PICTURE_BUFFER_DESC_LUMA_MASK,
+                hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT,
+                0); // is_16bit_pipeline
+        }
+
+        int32_t tmp_rate;
+        int64_t tmp_dist;
+        model_rd_for_sb(pcs,
+                        is_pred_buffer_ready ? cand_bf->pred : ctx->scratch_prediction_ptr,
+                        ctx,
+                        0,
+                        0,
+                        &tmp_rate,
+                        &tmp_dist,
+                        hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT);
+        uint64_t tmp_rd = RDCOST(full_lambda_divided, tmp_rs + tmp_rate, tmp_dist);
+
+        if (scs->vq_ctrls.sharpness_ctrls.ifs && pcs->ppcs->is_noise_level) {
+            if (filter_sets[i][0] == 1 || filter_sets[i][1] == 1)
+                tmp_rd = (tmp_rd * ifs_smooth_bias[pcs->picture_qp]) / 100;
+        }
+
+        // Update best interpoaltion filter
+        if (tmp_rd < rd) {
+            rd              = tmp_rd;
+            switchable_rate = tmp_rs;
+            best_filters    = cand_bf->cand->interp_filters;
+        }
+    }
+
+    cand_bf->cand->interp_filters = best_filters;
+
+    // If filters are non-zero, cannot use skip_mode. Opt to use IFS over skip_mode.
+    if (cand_bf->cand->skip_mode_allowed && cand_bf->cand->interp_filters != 0)
+        cand_bf->cand->skip_mode_allowed = FALSE;
+
+    // Update fast_luma_rate to take into account switchable_rate
+    cand_bf->fast_luma_rate += switchable_rate;
+}
+#else
 static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                         ModeDecisionCandidateBuffer *cand_bf, MvUnit mv_unit,
                                         EbPictureBufferDesc *ref_pic_list0,
@@ -2900,7 +3046,7 @@ static void interpolation_filter_search(PictureControlSet *pcs, ModeDecisionCont
         cand_bf->fast_luma_rate += switchable_rate;
     }
 }
-
+#endif
 /*
     compound inter-intra:
     perform intra prediction and inter-intra blending
@@ -4082,7 +4228,12 @@ void av1_inter_prediction_light_pd0(
 /*
   inter prediction for light PD1
 */
+#if CLN_IFS_PATH
+void av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_unit,
+                                    uint32_t interp_filter,
+#else
 EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_unit,
+#endif
                                            struct ModeDecisionContext *ctx, uint16_t pu_origin_x,
                                            uint16_t pu_origin_y, uint8_t bwidth, uint8_t bheight,
                                            EbPictureBufferDesc *ref_pic_list0,
@@ -4104,8 +4255,15 @@ EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_u
     if (component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) {
         ConvolveParams conv_params_y = get_conv_params_no_round(
             0, 0, 0, tmp_dst_y, 128, is_compound, bit_depth);
+#if CLN_IFS_PATH
+        // 4xN/Nx4 blocks have a different filter params list, but that is not relevant for LPD1 path, which
+        // assumes there are no 4xN/Nx4 blocks. Assume dual_filter is disabled for LPD1.
+        InterpFilterParams filter_params =
+            av1_interp_filter_params_list[av1_extract_interp_filter(interp_filter, 0)];
+#else
         InterpFilterParams filter_params = av1_interp_filter_params_list[EIGHTTAP_REGULAR];
-        uint8_t           *dst_ptr_y     = pred_pic->buffer_y +
+#endif
+        uint8_t *dst_ptr_y = pred_pic->buffer_y +
             ((pred_pic->org_x + dst_origin_x +
               (pred_pic->org_y + dst_origin_y) * pred_pic->stride_y)
              << is_16bit);
@@ -4223,12 +4381,19 @@ EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_u
         const int16_t      pu_origin_y_chroma = pu_origin_y / 2;
         const int16_t      pu_origin_x_chroma = pu_origin_x / 2;
         InterpFilterParams filter_params_x, filter_params_y;
+#if CLN_IFS_PATH
+        av1_get_convolve_filter_params(interp_filter,
+                                       &filter_params_x,
+                                       &filter_params_y,
+                                       blk_geom->bwidth_uv,
+                                       blk_geom->bheight_uv);
+#else
         av1_get_convolve_filter_params(EIGHTTAP_REGULAR | (EIGHTTAP_REGULAR << 16),
                                        &filter_params_x,
                                        &filter_params_y,
                                        blk_geom->bwidth_uv,
                                        blk_geom->bheight_uv);
-
+#endif
         if (mv_unit->pred_direction == UNI_PRED_LIST_0 || mv_unit->pred_direction == BI_PRED) {
             assert(ref_pic_list0 != NULL);
             mv.col = mv_unit->mv[REF_LIST_0].x;
@@ -4367,8 +4532,9 @@ EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_u
             }
         }
     }
-
+#if !CLN_IFS_PATH
     return return_error;
+#endif
 }
 // special treatment for chroma in 4XN/NX4 blocks if one of the neighbour blocks of the parent square is
 // intra the chroma prediction will follow the normal path using the luma MV of the current nsq block which
@@ -5668,6 +5834,9 @@ EbErrorType svt_aom_inter_pu_prediction_av1_light_pd1(uint8_t hbd_md, ModeDecisi
 
     av1_inter_prediction_light_pd1(scs,
                                    &mv_unit,
+#if CLN_IFS_PATH
+                                   cand->interp_filters,
+#endif
                                    ctx,
                                    ctx->blk_org_x,
                                    ctx->blk_org_y,
@@ -5818,6 +5987,36 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
         return return_error;
     }
     uint32_t interp_filters_0 = cand_bf->cand->interp_filters;
+#if CLN_IFS_PATH
+    if (ctx->mds_skip_ifs == FALSE && pcs->ppcs->frm_hdr.interpolation_filter == SWITCHABLE &&
+        av1_is_interp_needed(cand_bf, pcs, ctx->blk_geom->bsize)) {
+        // If using hybrid MD for HBD content, use 8bit pic for the IFS search
+        if (ctx->hbd_md == EB_DUAL_BIT_MD && hbd_md == EB_DUAL_BIT_MD) {
+            if (ref_idx_l0 >= 0)
+                ref_pic_list0 = svt_aom_get_ref_pic_buffer(pcs, 0, list_idx0, ref_idx_l0);
+            if (ref_idx_l1 >= 0)
+                ref_pic_list1 = svt_aom_get_ref_pic_buffer(pcs, 0, list_idx1, ref_idx_l1);
+        }
+        assert(ref_pic_list0 != NULL);
+        assert(ref_pic_list1 != NULL);
+
+        interpolation_filter_search(pcs,
+                                    ctx,
+                                    cand_bf,
+                                    mv_unit,
+                                    ref_pic_list0,
+                                    ref_pic_list1,
+                                    ctx->hbd_md == EB_DUAL_BIT_MD ? EB_8_BIT_MD : ctx->hbd_md,
+                                    bit_depth);
+
+        if (ctx->hbd_md == EB_DUAL_BIT_MD && hbd_md == EB_DUAL_BIT_MD) {
+            if (ref_idx_l0 >= 0)
+                ref_pic_list0 = svt_aom_get_ref_pic_buffer(pcs, 1, list_idx0, ref_idx_l0);
+            if (ref_idx_l1 >= 0)
+                ref_pic_list1 = svt_aom_get_ref_pic_buffer(pcs, 1, list_idx1, ref_idx_l1);
+        }
+    }
+#else
     if (ctx->ifs_ctrls.level != IFS_OFF) {
         if (ctx->mds_skip_ifs == FALSE) {
 #if !FIX_IFS_PATH
@@ -5896,6 +6095,7 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
 #endif
         }
     }
+#endif
     uint32_t           interp_filters_1 = cand_bf->cand->interp_filters;
     NeighborArrayUnit *recon_neigh_y;
     NeighborArrayUnit *recon_neigh_cb;

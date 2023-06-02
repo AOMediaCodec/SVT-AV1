@@ -1811,8 +1811,262 @@ int32_t svt_av1_get_pred_context_switchable_interp(NeighborArrayUnit *ref_frame_
     return filter_type_ctx;
 }
 
+#if CLN_IFS_PATH
+//Returns a context number for the given MB prediction signal
+static InterpFilter svt_aom_get_ref_filter_type(const BlockModeInfoEnc *ref_mbmi, int dir,
+                                                MvReferenceFrame ref_frame) {
+    return ((ref_mbmi->ref_frame[0] == ref_frame || ref_mbmi->ref_frame[1] == ref_frame)
+                ? av1_extract_interp_filter(ref_mbmi->interp_filters, dir & 0x01)
+                : SWITCHABLE_FILTERS);
+}
+
+/* Get the context for the interpolation filter when SWITCHABLE filter is specified
+at the frame level.  Used for computing rate and for entropy coding. */
+int svt_aom_get_pred_context_switchable_interp(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                               const MacroBlockD *xd, int dir) {
+    /* When calling the function from MD, the current MBMI may not be updated yet, so pass
+       the ref frames instead of getting them from the current mbmi (as you could below):
+
+            const MbModeInfo* const mbmi = &xd->mi[0]->mbmi;
+            const int ctx_offset = (mbmi->block_mi.ref_frame[1] > INTRA_FRAME) * INTER_FILTER_COMP_OFFSET;
+            assert(dir == 0 || dir == 1);
+            const MvReferenceFrame ref_frame = mbmi->block_mi.ref_frame[0];
+    */
+
+    const int32_t ctx_offset = (rf1 > INTRA_FRAME) * INTER_FILTER_COMP_OFFSET;
+    assert(dir == 0 || dir == 1);
+    MvReferenceFrame ref_frame = rf0;
+
+    // Note:
+    // The mode info data structure has a one element border above and to the
+    // left of the entries corresponding to real macroblocks.
+    // The prediction flags in these dummy entries are initialized to 0.
+    int filter_type_ctx = ctx_offset + (dir & 0x01) * INTER_FILTER_DIR_OFFSET;
+    int left_type       = SWITCHABLE_FILTERS;
+    int above_type      = SWITCHABLE_FILTERS;
+
+    if (xd->left_available)
+        left_type = svt_aom_get_ref_filter_type(&xd->mi[-1]->mbmi.block_mi, dir, ref_frame);
+
+    if (xd->up_available)
+        above_type = svt_aom_get_ref_filter_type(
+            &xd->mi[-xd->mi_stride]->mbmi.block_mi, dir, ref_frame);
+
+    if (left_type == above_type) {
+        filter_type_ctx += left_type;
+    } else if (left_type == SWITCHABLE_FILTERS) {
+        assert(above_type != SWITCHABLE_FILTERS);
+        filter_type_ctx += above_type;
+    } else if (above_type == SWITCHABLE_FILTERS) {
+        assert(left_type != SWITCHABLE_FILTERS);
+        filter_type_ctx += left_type;
+    } else {
+        filter_type_ctx += SWITCHABLE_FILTERS;
+    }
+    return filter_type_ctx;
+}
+#if OPT_CHILD_PCS
+int svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                         PredictionMode pred_mode, BlockSize bsize,
+                                         PictureParentControlSet *pcs) {
+    int32_t ref;
+
+    // First check if all modes are GLOBALMV
+    if (pred_mode != GLOBALMV && pred_mode != GLOBAL_GLOBALMV)
+        return 0;
+
+    if (MIN(mi_size_wide[bsize], mi_size_high[bsize]) < 2)
+        return 0;
+    const uint8_t is_compound = is_inter_compound_mode(pred_mode);
+    // Now check if all global motion is non translational
+    for (ref = 0; ref < 1 + is_compound; ++ref) {
+        if (pcs->global_motion[ref ? rf1 : rf0].wmtype == TRANSLATION)
+            return 0;
+    }
+    return 1;
+}
+#else
+int svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                         BlkStruct *blk_ptr, BlockSize bsize,
+                                         PictureParentControlSet *pcs) {
+    int32_t ref;
+
+    // First check if all modes are GLOBALMV
+    if (blk_ptr->pred_mode != GLOBALMV && blk_ptr->pred_mode != GLOBAL_GLOBALMV)
+        return 0;
+
+    if (MIN(mi_size_wide[bsize], mi_size_high[bsize]) < 2)
+        return 0;
+    const uint8_t is_compound = is_inter_compound_mode(blk_ptr->pred_mode);
+    // Now check if all global motion is non translational
+    for (ref = 0; ref < 1 + is_compound; ++ref) {
+        if (pcs->global_motion[ref ? rf1 : rf0].wmtype == TRANSLATION)
+            return 0;
+    }
+    return 1;
+}
+#endif
+#if OPT_CHILD_PCS
+static int av1_is_interp_needed(MvReferenceFrame rf0, MvReferenceFrame rf1, uint8_t skip_mode,
+                                MotionMode motion_mode, PredictionMode pred_mode, BlockSize bsize,
+                                PictureParentControlSet *pcs) {
+    if (skip_mode)
+        return 0;
+
+    if (motion_mode == WARPED_CAUSAL)
+        return 0;
+
+    if (svt_aom_is_nontrans_global_motion_ec(rf0, rf1, pred_mode, bsize, pcs))
+        return 0;
+
+    return 1;
+}
+#else
+static int av1_is_interp_needed(MvReferenceFrame rf0, MvReferenceFrame rf1, BlkStruct *blk_ptr,
+                                BlockSize bsize, PictureParentControlSet *pcs) {
+    if (blk_ptr->skip_mode)
+        return 0;
+
+    if (blk_ptr->prediction_unit_array[0].motion_mode == WARPED_CAUSAL)
+        return 0;
+
+    if (svt_aom_is_nontrans_global_motion_ec(rf0, rf1, blk_ptr, bsize, pcs))
+        return 0;
+
+    return 1;
+}
+#endif
+#if OPT_CHILD_PCS
+static void write_mb_interp_filter(BlockSize bsize, MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                   PictureParentControlSet *pcs, AomWriter *ec_writer,
+#if CLN_MBMI_2
+                                   MbModeInfo *mbmi,
+#endif
+                                   EcBlkStruct *blk_ptr, EntropyCoder *ec) {
+    FrameHeader *const frm_hdr = &pcs->frm_hdr;
+
+#if CLN_MBMI_2
+    if (frm_hdr->interpolation_filter != SWITCHABLE ||
+        !av1_is_interp_needed(rf0,
+                              rf1,
+#if CLN_MBMI_4
+                              mbmi->block_mi.skip_mode,
+                              blk_ptr->prediction_unit_array[0].motion_mode,
+                              mbmi->block_mi.mode,
+#else
+                              mbmi->block_mi.skip_mode,
+                              blk_ptr->prediction_unit_array[0].motion_mode,
+                              blk_ptr->pred_mode,
+#endif
+                              bsize,
+                              pcs)) {
+        return;
+    }
+#else
+    if (frm_hdr->interpolation_filter != SWITCHABLE ||
+        !av1_is_interp_needed(rf0,
+                              rf1,
+                              blk_ptr->skip_mode,
+                              blk_ptr->prediction_unit_array[0].motion_mode,
+                              blk_ptr->pred_mode,
+                              bsize,
+                              pcs)) {
+        return;
+    }
+#endif
+
+#else
+static void write_mb_interp_filter(BlockSize bsize, MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                   PictureParentControlSet *pcs, AomWriter *ec_writer,
+                                   BlkStruct *blk_ptr, EntropyCoder *ec) {
+    FrameHeader *const frm_hdr = &pcs->frm_hdr;
+
+    if (frm_hdr->interpolation_filter != SWITCHABLE ||
+        !av1_is_interp_needed(rf0, rf1, blk_ptr, bsize, pcs)) {
+        return;
+    }
+#endif
+    const int max_dir = pcs->scs->seq_header.enable_dual_filter ? 2 : 1;
+    for (int dir = 0; dir < max_dir; ++dir) {
+        const int ctx = svt_aom_get_pred_context_switchable_interp(rf0, rf1, blk_ptr->av1xd, dir);
+#if CLN_MBMI_5
+        InterpFilter filter = av1_extract_interp_filter(mbmi->block_mi.interp_filters, dir);
+#else
+        InterpFilter filter = av1_extract_interp_filter(blk_ptr->interp_filters, dir);
+#endif
+        assert(ctx < SWITCHABLE_FILTER_CONTEXTS);
+        assert(filter < CDF_SIZE(SWITCHABLE_FILTERS));
+        aom_write_symbol(ec_writer, filter, ec->fc->switchable_interp_cdf[ctx], SWITCHABLE_FILTERS);
+    }
+}
+#else
+int32_t svt_av1_get_pred_context_switchable_interp(NeighborArrayUnit *ref_frame_type_na,
+                                                   MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                                   NeighborArrayUnit32 *interpolation_type_na,
+                                                   uint32_t blk_org_x, uint32_t blk_org_y,
+                                                   // const MacroBlockD *xd,
+                                                   int32_t dir) {
+    uint32_t interp_type_left_neigh_idx = get_neighbor_array_unit_left_index32(
+        interpolation_type_na, blk_org_y);
+    uint32_t interp_type_top_neigh_idx = get_neighbor_array_unit_top_index32(interpolation_type_na,
+                                                                             blk_org_x);
+
+    uint32_t rf_left_neighbor_index = get_neighbor_array_unit_left_index(ref_frame_type_na,
+                                                                         blk_org_y);
+    uint32_t rf_top_neighbor_index  = get_neighbor_array_unit_top_index(ref_frame_type_na,
+                                                                       blk_org_x);
+
+    // const MbModeInfo *const mbmi = xd->mi[0];
+    const int32_t    ctx_offset = (rf1 > INTRA_FRAME) * INTER_FILTER_COMP_OFFSET;
+    MvReferenceFrame ref_frame  = (dir < 2) ? rf0 : rf1;
+    // Note:
+    // The mode info data structure has a one element border above and to the
+    // left of the entries corresponding to real macroblocks.
+    // The prediction flags in these dummy entries are initialized to 0.
+    int32_t filter_type_ctx = ctx_offset + (dir & 0x01) * INTER_FILTER_DIR_OFFSET;
+    int32_t left_type       = SWITCHABLE_FILTERS;
+    int32_t above_type      = SWITCHABLE_FILTERS;
+
+    if (blk_org_x != 0) {
+        MvReferenceFrame rf_left[2];
+        av1_set_ref_frame(rf_left, ref_frame_type_na->left_array[rf_left_neighbor_index]);
+        uint32_t left_neigh = (uint32_t)
+                                  interpolation_type_na->left_array[interp_type_left_neigh_idx];
+        left_type = (rf_left[0] == ref_frame || rf_left[1] == ref_frame)
+            ? av1_extract_interp_filter(left_neigh, dir & 0x01)
+            : SWITCHABLE_FILTERS;
+    }
+    //svt_aom_get_ref_filter_type(xd->mi[-1], xd, dir, ref_frame);
+
+    if (blk_org_y != 0) {
+        MvReferenceFrame rf_above[2];
+        av1_set_ref_frame(rf_above, ref_frame_type_na->top_array[rf_top_neighbor_index]);
+        uint32_t above_neigh = (uint32_t)
+                                   interpolation_type_na->top_array[interp_type_top_neigh_idx];
+
+        above_type = (rf_above[0] == ref_frame || rf_above[1] == ref_frame)
+            ? av1_extract_interp_filter(above_neigh, dir & 0x01)
+            : SWITCHABLE_FILTERS;
+        //svt_aom_get_ref_filter_type(xd->mi[-xd->mi_stride], xd, dir, ref_frame);
+    }
+
+    if (left_type == above_type)
+        filter_type_ctx += left_type;
+    else if (left_type == SWITCHABLE_FILTERS) {
+        assert(above_type != SWITCHABLE_FILTERS);
+        filter_type_ctx += above_type;
+    } else if (above_type == SWITCHABLE_FILTERS) {
+        assert(left_type != SWITCHABLE_FILTERS);
+        filter_type_ctx += left_type;
+    } else
+        filter_type_ctx += SWITCHABLE_FILTERS;
+    //  SVT_LOG("\t %d\t %d\t %d",filter_type_ctx,left_type ,above_type);
+
+    return filter_type_ctx;
+}
+
 /*INLINE*/ int32_t svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
-                                                        BlkStruct *blk_ptr, BlockSize sb_type,
+                                                        BlkStruct *blk_ptr, BlockSize bsize,
                                                         PictureParentControlSet *pcs) {
     int32_t ref;
 
@@ -1820,7 +2074,7 @@ int32_t svt_av1_get_pred_context_switchable_interp(NeighborArrayUnit *ref_frame_
     if (blk_ptr->pred_mode != GLOBALMV && blk_ptr->pred_mode != GLOBAL_GLOBALMV)
         return 0;
 
-    if (MIN(mi_size_wide[sb_type], mi_size_high[sb_type]) < 2)
+    if (MIN(mi_size_wide[bsize], mi_size_high[bsize]) < 2)
         return 0;
     const uint8_t is_compound = is_inter_compound_mode(blk_ptr->pred_mode);
     // Now check if all global motion is non translational
@@ -1880,6 +2134,7 @@ int32_t svt_av1_get_pred_context_switchable_interp_v2(MvReferenceFrame rf0, MvRe
 
     return filter_type_ctx;
 }
+
 static void write_mb_interp_filter(NeighborArrayUnit *ref_frame_type_na, BlockSize bsize,
                                    MvReferenceFrame rf0, MvReferenceFrame rf1,
                                    PictureParentControlSet *pcs, AomWriter *ec_writer,
@@ -1923,6 +2178,7 @@ static void write_mb_interp_filter(NeighborArrayUnit *ref_frame_type_na, BlockSi
         }
     }
 }
+#endif
 
 static void write_inter_compound_mode(FRAME_CONTEXT *frame_context, AomWriter *ec_writer,
                                       PredictionMode mode, const int16_t mode_ctx) {
@@ -3833,11 +4089,18 @@ static void write_uncompressed_header_obu(SequenceControlSet      *scs /*Av1Comp
                 svt_aom_wb_write_bit(wb, frm_hdr->allow_high_precision_mv);
 #define LOG_SWITCHABLE_FILTERS 2
 
+#if CLN_IFS_PATH
+            svt_aom_wb_write_bit(wb, pcs->frm_hdr.interpolation_filter == SWITCHABLE);
+            if (pcs->frm_hdr.interpolation_filter != SWITCHABLE)
+                svt_aom_wb_write_literal(
+                    wb, pcs->frm_hdr.interpolation_filter, LOG_SWITCHABLE_FILTERS);
+#else
             // OPT fix_interp_filter(cm, cpi->td.counts);
             // write_frame_interp_filter(cm->interp_filter, wb);
             svt_aom_wb_write_bit(wb, pcs->av1_cm->interp_filter == SWITCHABLE);
             if (pcs->av1_cm->interp_filter != SWITCHABLE)
                 svt_aom_wb_write_literal(wb, pcs->av1_cm->interp_filter, LOG_SWITCHABLE_FILTERS);
+#endif
 
             svt_aom_wb_write_bit(wb, frm_hdr->is_motion_mode_switchable);
             if (frame_might_allow_ref_frame_mvs(pcs, scs))
@@ -4486,9 +4749,11 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
     NeighborArrayUnit   *luma_dc_sign_level_coeff_na = pcs->luma_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
-    NeighborArrayUnit   *ref_frame_type_na           = pcs->ref_frame_type_na[tile_idx];
-    NeighborArrayUnit32 *interpolation_type_na       = pcs->interpolation_type_na[tile_idx];
-    const BlockGeom     *blk_geom                    = get_blk_geom_mds(blk_ptr->mds_idx);
+#if !CLN_IFS_PATH
+    NeighborArrayUnit *  ref_frame_type_na     = pcs->ref_frame_type_na[tile_idx];
+    NeighborArrayUnit32 *interpolation_type_na = pcs->interpolation_type_na[tile_idx];
+#endif
+    const BlockGeom *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
     uint8_t              skip_coeff                  = !blk_ptr->block_has_coeff;
     PartitionContext     partition;
 
@@ -4570,6 +4835,7 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
         }
         ec_ctx->coded_area_sb += blk_geom->bwidth * blk_geom->bheight;
     }
+#if !CLN_IFS_PATH
     // Update the refFrame Type Neighbor Array
     {
         uint8_t ref_frame_type = (uint8_t)blk_ptr->prediction_unit_array[0].ref_frame_type;
@@ -4581,7 +4847,6 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                                blk_geom->bheight,
                                                NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
-
     // Update the interpolation Type Neighbor Array
     {
         uint32_t interpolation_type = blk_ptr->interp_filters;
@@ -4593,6 +4858,7 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
                                                  blk_geom->bheight,
                                                  NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
+#endif
     return return_error;
 }
 int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize sb_type) {
@@ -5324,9 +5590,11 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
     NeighborArrayUnit   *luma_dc_sign_level_coeff_na = pcs->luma_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cr_dc_sign_level_coeff_na   = pcs->cr_dc_sign_level_coeff_na[tile_idx];
     NeighborArrayUnit   *cb_dc_sign_level_coeff_na   = pcs->cb_dc_sign_level_coeff_na[tile_idx];
-    NeighborArrayUnit   *ref_frame_type_na           = pcs->ref_frame_type_na[tile_idx];
-    NeighborArrayUnit32 *interpolation_type_na       = pcs->interpolation_type_na[tile_idx];
-    NeighborArrayUnit   *txfm_context_array          = pcs->txfm_context_array[tile_idx];
+#if !CLN_IFS_PATH
+    NeighborArrayUnit *  ref_frame_type_na     = pcs->ref_frame_type_na[tile_idx];
+    NeighborArrayUnit32 *interpolation_type_na = pcs->interpolation_type_na[tile_idx];
+#endif
+    NeighborArrayUnit *txfm_context_array = pcs->txfm_context_array[tile_idx];
     const BlockGeom     *blk_geom                    = get_blk_geom_mds(blk_ptr->mds_idx);
     uint32_t             blk_org_x                   = ec_ctx->sb_origin_x + blk_geom->org_x;
     uint32_t             blk_org_y                   = ec_ctx->sb_origin_y + blk_geom->org_y;
@@ -5848,6 +6116,18 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                         }
                     }
                 }
+#if CLN_IFS_PATH
+                write_mb_interp_filter(bsize,
+                                       rf[0],
+                                       rf[1],
+                                       pcs->ppcs,
+                                       ec_writer,
+#if CLN_MBMI_2
+                                       mbmi,
+#endif
+                                       blk_ptr,
+                                       ec);
+#else
                 // No filter for Global MV
                 write_mb_interp_filter(ref_frame_type_na,
                                        bsize,
@@ -5860,6 +6140,7 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                        interpolation_type_na,
                                        blk_org_x,
                                        blk_org_y);
+#endif
             }
             {
                 assert(blk_ptr->palette_size[1] == 0);

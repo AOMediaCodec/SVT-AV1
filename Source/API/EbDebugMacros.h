@@ -184,6 +184,7 @@ extern "C" {
 #define TUNE_M9_2                                 1 // Tune m9 for vmaf neg
 #define TUNE_M8_2                                 1 // Tune m8 for vmaf neg
 
+#define CLN_IFS_PATH                              1 // Cleanup the IFS path and unused signals
 #define CLN_OBMC_WARP                             1 // Cleanup OBMC/Warp
 
 //FOR DEBUGGING - Do not remove

@@ -208,6 +208,19 @@ int32_t svt_aom_count_primitive_refsubexpfin(uint16_t n, uint16_t k, uint16_t re
 int     svt_aom_get_comp_index_context_enc(PictureParentControlSet *pcs, int cur_frame_index,
                                            int bck_frame_index, int fwd_frame_index,
                                            const MacroBlockD *xd);
+#if CLN_IFS_PATH
+int svt_aom_get_pred_context_switchable_interp(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                               const MacroBlockD *xd, int dir);
+#if OPT_CHILD_PCS
+int svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                         PredictionMode pred_mode, BlockSize bsize,
+                                         PictureParentControlSet *pcs);
+#else
+int svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
+                                         BlkStruct *blk_ptr, BlockSize bsize,
+                                         PictureParentControlSet *pcs);
+#endif
+#endif
 
 #ifdef __cplusplus
 }

@@ -493,9 +493,10 @@ void svt_aom_reset_mode_decision_neighbor_arrays(PictureControlSet *pcs, uint16_
         svt_aom_neighbor_array_unit_reset(pcs->md_cr_dc_sign_level_coeff_na[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(pcs->md_txfm_context_array[depth][tile_idx]);
         svt_aom_neighbor_array_unit_reset(pcs->md_skip_coeff_na[depth][tile_idx]);
+#if !CLN_IFS_PATH
         svt_aom_neighbor_array_unit_reset(pcs->md_ref_frame_type_na[depth][tile_idx]);
-
         svt_aom_neighbor_array_unit_reset32(pcs->md_interpolation_type_na[depth][tile_idx]);
+#endif 
     }
 
     return;
