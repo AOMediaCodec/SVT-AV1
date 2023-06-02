@@ -400,7 +400,7 @@ static void release_frames(EncodeContext *enc_ctx, int frames) {
 }
 #if OPT_LD_LATENCY2
 // Release the pd_dpb and ref_pic_list at the end of the sequence
-static void release_references_eos(SequenceControlSet *scs) {
+void release_references_eos(SequenceControlSet *scs) {
     EncodeContext *enc_ctx = scs->enc_ctx;
     // At the end of the sequence release all the refs (needed for MacOS CI tests)
     svt_block_on_mutex(enc_ctx->pd_dpb_mutex);

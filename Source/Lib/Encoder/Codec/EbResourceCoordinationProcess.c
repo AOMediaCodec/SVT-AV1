@@ -664,6 +664,19 @@ static void set_eos_terminating_signals(PictureParentControlSet *pcs) {
     svt_block_on_mutex(enc_ctx->total_number_of_shown_frames_mutex);
     enc_ctx->terminating_sequence_flag_received = TRUE;
     enc_ctx->terminating_picture_number         = pcs->picture_number - 1;
+    // if all the pictures are already processed, send the EOS signal to the app
+    if (enc_ctx->total_number_of_shown_frames == enc_ctx->terminating_picture_number + 1) {
+        EbObjectWrapper *tmp_out_str_wrp;
+        svt_get_empty_object(scs->enc_ctx->stream_output_fifo_ptr, &tmp_out_str_wrp);
+        EbBufferHeaderType *tmp_out_str = (EbBufferHeaderType *)tmp_out_str_wrp->object_ptr;
+
+        tmp_out_str->flags = EB_BUFFERFLAG_EOS;
+        tmp_out_str->n_filled_len = 0;
+
+        svt_post_full_object(tmp_out_str_wrp);
+        release_references_eos(scs);
+    }
+
     svt_release_mutex(enc_ctx->total_number_of_shown_frames_mutex);
 }
 #endif
