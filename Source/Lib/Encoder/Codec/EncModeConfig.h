@@ -56,7 +56,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
 void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
                                ModeDecisionContext *ctx);
 
+#if FIX_GM_PP
+uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off);
+#else
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs);
+#endif
 
 void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level);
 

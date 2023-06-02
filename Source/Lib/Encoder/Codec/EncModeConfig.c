@@ -33,7 +33,54 @@ uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
 
     return enable_me_16x16;
 }
-
+#if FIX_GM_PP
+uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off) {
+    SequenceControlSet *scs      = pcs->scs;
+    uint8_t             gm_level = 0;
+    const EncMode       enc_mode = pcs->enc_mode;
+    const uint8_t       is_ref   = pcs->is_ref;
+    const uint8_t       is_base  = pcs->temporal_layer_index == 0;
+    // disable global motion when reference scaling enabled,
+    // even if current pic is not scaled, because its reference
+    // pics might be scaled in different size
+    // super-res is ok for its reference pics are always upscaled
+    // to original size
+    if (scs->enable_global_motion == TRUE && super_res_off) {
+#if TUNE_GM_LEVELS
+        if (pcs->enc_mode <= ENC_M1)
+            gm_level = 2;
+        else if (pcs->enc_mode <= ENC_M2)
+            gm_level = 3;
+        else if (enc_mode <= ENC_M3)
+            gm_level = 4;
+#if TUNE_M5
+        else if (enc_mode <= ENC_M5)
+            gm_level = 5;
+#else
+        else if (enc_mode <= ENC_M4)
+            gm_level = 5;
+        else if (pcs->enc_mode <= ENC_M5)
+            gm_level = is_ref ? 6 : 0;
+#endif
+        else if (pcs->enc_mode <= ENC_M6)
+            gm_level = is_base ? 7 : 0;
+        else
+            gm_level = 0;
+    }
+#else
+        if (pcs->enc_mode <= ENC_M2)
+            gm_level = 3;
+        else if (enc_mode <= ENC_M4)
+            gm_level = 4;
+        else if (pcs->enc_mode <= ENC_M5)
+            gm_level = is_ref ? 6 : 0;
+        else
+            gm_level = 0;
+    }
+#endif
+    return gm_level;
+}
+#else
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs) {
     SequenceControlSet *scs      = pcs->scs;
     uint8_t             gm_level = 0;
@@ -83,7 +130,7 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs) {
 #endif
     return gm_level;
 }
-
+#endif
 /************************************************
  * Set ME/HME Params from Config
  ************************************************/
@@ -997,9 +1044,11 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     me_ctx->reduce_hme_l0_sr_th_max     = 0;
     me_ctx->skip_frame                  = 0;
     me_ctx->prev_me_stage_based_exit_th = 0;
+#if !FIX_GM_PP
 #if GM_PP
     // Set GME ctrls
     svt_aom_set_gm_controls(pcs, svt_aom_derive_gm_level(pcs));
+#endif
 #endif
 };
 
@@ -2286,6 +2335,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     const bool    rtc_tune  = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true
                                                                                               : false;
     const uint8_t sc_class1 = pcs->sc_class1;
+#if FIX_GM_PP
+    // Set GM ctrls assuming super-res is off for gm-pp need
+    svt_aom_set_gm_controls(pcs, svt_aom_derive_gm_level(pcs, true));
+#endif
+
     // If enabled here, the hme enable flags should also be enabled in ResourceCoordinationProcess
     // to ensure that resources are allocated for the downsampled pictures used in HME
     pcs->enable_hme_flag        = 1;
@@ -12385,10 +12439,15 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     // Set the level for the distance-based red pruning
     if (pcs->ppcs->ref_list0_count_try > 1 || pcs->ppcs->ref_list1_count_try > 1) {
+#if TUNE_MR
+        if (enc_mode <= ENC_M4)
+            pcs->dist_based_ref_pruning = is_base ? 2 : 5;
+#else
         if (enc_mode <= ENC_MR)
             pcs->dist_based_ref_pruning = is_base ? 1 : 2;
         else if (enc_mode <= ENC_M4)
             pcs->dist_based_ref_pruning = is_base ? 2 : 5;
+#endif 
 #if TUNE_M11_2
         else if (!rtc_tune && enc_mode <= ENC_M11)
 #else

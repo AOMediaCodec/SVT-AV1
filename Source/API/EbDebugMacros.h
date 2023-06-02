@@ -241,6 +241,12 @@ extern "C" {
 
 #endif
 
+#define TUNE_MR                                   1 // Tune MR
+#define OPT_STARTUP_MG                            1 // Optimize performance when a shorter MG is used at the start of a GOP
+
+#define FIX_ISSUE_2078                            1 // Fix issue #2078
+#define FIX_GM_PP                                 1 // fix non-lp R2R
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

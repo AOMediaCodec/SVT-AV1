@@ -46,6 +46,10 @@ void gm_pre_processor(PictureParentControlSet *pcs, PictureParentControlSet **pc
     pcs->gm_ctrls.chess_rfn                    = 1;
     pcs->gm_ctrls.match_sz                     = 7;
     pcs->gm_ctrls.inj_psq_glb                  = TRUE;
+#if FIX_GM_PP
+    pcs->gm_ctrls.use_ref_info = 0;
+    pcs->gm_ctrls.layer_offset = 0;
+#endif
 
     //printf(" pic:%i  past:%i future:%i \n", pcs->picture_number, pcs->past_altref_nframes, pcs->future_altref_nframes);
 

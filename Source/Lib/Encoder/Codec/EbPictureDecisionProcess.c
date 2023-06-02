@@ -867,8 +867,11 @@ static void get_pred_struct_for_all_frames(
             }
 #endif
             pcs->pred_structure = scs->static_config.pred_structure;
+#if FIX_ISSUE_2078
+            pcs->hierarchical_levels = pcs->idr_flag ? scs->static_config.hierarchical_levels : (uint8_t)ctx->mini_gop_hierarchical_levels[mini_gop_index];
+#else
             pcs->hierarchical_levels = (pcs->idr_flag || pcs->cra_flag) ? scs->static_config.hierarchical_levels : (uint8_t)ctx->mini_gop_hierarchical_levels[mini_gop_index];
-
+#endif
             pcs->pred_struct_ptr = svt_aom_get_prediction_structure(
                 enc_ctx->prediction_structure_group_ptr,
                 pcs->pred_structure,
@@ -3275,12 +3278,15 @@ static EbErrorType derive_tf_window_params(
 
             if (centre_pcs->hierarchical_levels != pcs->temp_filt_pcs_list[0]->hierarchical_levels ||
                 centre_pcs->hierarchical_levels != pd_ctx->mg_pictures_array[idx]->hierarchical_levels) {
+#if OPT_STARTUP_MG
+                centre_pcs->hierarchical_levels = pcs->temp_filt_pcs_list[0]->hierarchical_levels = pd_ctx->mg_pictures_array[idx]->hierarchical_levels;
+#else
                 if (scs->static_config.startup_mg_size == 0 || scs->static_config.startup_mg_size == 4) {
                     centre_pcs->hierarchical_levels = pcs->temp_filt_pcs_list[0]->hierarchical_levels = pd_ctx->mg_pictures_array[idx]->hierarchical_levels;
                 } else {
                     pcs->temp_filt_pcs_list[0]->hierarchical_levels = pd_ctx->mg_pictures_array[idx]->hierarchical_levels = centre_pcs->hierarchical_levels;
                 }
-
+#endif
                 // tpl setting are updated if hierarchical level has changed
                 svt_aom_set_tpl_extended_controls(centre_pcs, scs->tpl_level);
                 centre_pcs->r0_based_qps_qpm = centre_pcs->tpl_ctrls.enable &&
@@ -3611,9 +3617,14 @@ static void send_picture_out(
             svt_aom_init_resize_picture(scs, pcs);
         }
     }
-
+#if FIX_GM_PP
+    bool super_res_off = pcs->frame_superres_enabled == FALSE &&
+        scs->static_config.resize_mode == RESIZE_NONE;
+    svt_aom_set_gm_controls(pcs, svt_aom_derive_gm_level(pcs, super_res_off));
+#else
     uint8_t gm_level = svt_aom_derive_gm_level(pcs);
     svt_aom_set_gm_controls(pcs, gm_level);
+#endif
     pcs->me_processed_b64_count = 0;
 
 #if FIX_ISSUE_2064_ALT
