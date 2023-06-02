@@ -5852,7 +5852,7 @@ static void set_interpolation_search_level_ctrls(ModeDecisionContext *ctx,
 #if !CLN_IFS_PATH
         ifs_ctrls->quarter_pel_only = 0;
         ifs_ctrls->early_skip       = 0;
-#endif 
+#endif
         ifs_ctrls->subsampled_distortion = 0;
         ifs_ctrls->skip_sse_rd_model     = 0;
         break;
@@ -12518,7 +12518,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->dist_based_ref_pruning = is_base ? 1 : 2;
         else if (enc_mode <= ENC_M4)
             pcs->dist_based_ref_pruning = is_base ? 2 : 5;
-#endif 
+#endif
 #if TUNE_M11_2
         else if (!rtc_tune && enc_mode <= ENC_M11)
 #else

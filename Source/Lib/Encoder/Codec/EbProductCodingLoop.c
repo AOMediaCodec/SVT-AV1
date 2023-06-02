@@ -8508,7 +8508,7 @@ static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecis
 #endif
 #if !FIX_UV_INTRA_MODE_RATE
     if (ctx->blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1) {
-#endif {
+#endif
             svt_aom_full_loop_uv(pcs,
                                  ctx,
                                  cand_bf,
@@ -11704,7 +11704,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     product_coding_loop_init_fast_loop(pcs, ctx);
 #else
     product_coding_loop_init_fast_loop(pcs, ctx, ctx->skip_coeff_na, ctx->leaf_partition_na);
-#endif 
+#endif
 
 #if CLN_IND_UV_SEARCH
     ctx->ind_uv_avail = 0;

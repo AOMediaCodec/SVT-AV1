@@ -617,7 +617,7 @@ int         svt_aom_get_comp_group_idx_context_enc(const MacroBlockD *xd);
 int32_t svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
                                              BlkStruct *blk_ptr, BlockSize bsize,
                                              PictureParentControlSet *pcs);
-#endif 
+#endif
 #if !CLN_FUNC_DECL
 int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
 #endif

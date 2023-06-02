@@ -224,7 +224,7 @@ static void picture_control_set_dctor(EbPtr p) {
         EB_DELETE_PTR_ARRAY(obj->md_txfm_context_array[depth], tile_cnt);
 #if !FIX_SKIP_NEIGH_ARRAY
         EB_DELETE_PTR_ARRAY(obj->md_skip_coeff_na[depth], tile_cnt);
-#endif 
+#endif
 #if !CLN_IFS_PATH
         EB_DELETE_PTR_ARRAY(obj->md_ref_frame_type_na[depth], tile_cnt);
         EB_DELETE_PTR_ARRAY(obj->md_interpolation_type_na[depth], tile_cnt);
