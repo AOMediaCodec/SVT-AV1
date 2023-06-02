@@ -247,6 +247,8 @@ extern "C" {
 #define FIX_ISSUE_2078                            1 // Fix issue #2078
 #define FIX_GM_PP                                 1 // fix non-lp R2R
 
+#define CLN_SKIP_HV4                             1 // Clean up unused skip hv4 signal
+
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

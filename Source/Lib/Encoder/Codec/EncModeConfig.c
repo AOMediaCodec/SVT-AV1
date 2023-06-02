@@ -7179,8 +7179,10 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight                 = (uint32_t)~0;
         nsq_ctrls->psq_cplx_lvl              = 0;
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
-        nsq_ctrls->nsq_split_cost_th         = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
+        nsq_ctrls->nsq_split_cost_th = 0;
         nsq_ctrls->lower_depth_split_cost_th = 0;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
         nsq_ctrls->non_HV_split_rate_th      = 0;
@@ -7217,7 +7219,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight                 = 105;
         nsq_ctrls->psq_cplx_lvl              = 0;
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 150;
         nsq_ctrls->lower_depth_split_cost_th = 5;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
@@ -7256,7 +7260,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight                 = 105;
         nsq_ctrls->psq_cplx_lvl              = 1;
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 150;
         nsq_ctrls->lower_depth_split_cost_th = 5;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
@@ -7294,8 +7300,10 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight                 = 105;
         nsq_ctrls->psq_cplx_lvl              = 2;
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
-        nsq_ctrls->nsq_split_cost_th         = 150;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
+        nsq_ctrls->nsq_split_cost_th = 150;
         nsq_ctrls->lower_depth_split_cost_th = 5;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
         nsq_ctrls->non_HV_split_rate_th      = 0;
@@ -7332,7 +7340,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight                 = 100;
         nsq_ctrls->psq_cplx_lvl              = 2;
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 100;
         nsq_ctrls->lower_depth_split_cost_th = 5;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
@@ -7374,7 +7384,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 4;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 100;
         nsq_ctrls->lower_depth_split_cost_th = 5;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
@@ -7413,7 +7425,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl           = 2;
         nsq_ctrls->max_part0_to_part1_dev = 0;
 #if TUNE_NSQ
+#if !CLN_SKIP_HV4
         nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
 #else
         nsq_ctrls->skip_hv4_on_best_part = 1;
 #endif
@@ -7459,7 +7473,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 0;
 #if TUNE_NSQ
+#if !CLN_SKIP_HV4
         nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
 #else
         nsq_ctrls->skip_hv4_on_best_part = 1;
 #endif
@@ -7499,7 +7515,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->sq_weight              = 95;
         nsq_ctrls->psq_cplx_lvl           = 2;
         nsq_ctrls->max_part0_to_part1_dev = 0;
+#if !CLN_SKIP_HV4
         nsq_ctrls->skip_hv4_on_best_part  = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th      = 80;
 #if TUNE_NSQ
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7545,7 +7563,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 4;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 0;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th      = 80;
 #if TUNE_NSQ
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7595,7 +7615,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 0;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7646,7 +7668,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 40;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7697,7 +7721,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 60;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7752,7 +7778,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 0;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7807,7 +7835,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 40;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7862,7 +7892,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev = 60;
-        nsq_ctrls->skip_hv4_on_best_part  = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
 #if TUNE_NSQ
         nsq_ctrls->nsq_split_cost_th         = 80;
         nsq_ctrls->lower_depth_split_cost_th = 10;
@@ -7912,7 +7944,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -7957,7 +7991,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8002,7 +8038,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8047,7 +8085,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8092,7 +8132,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8137,7 +8179,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8180,7 +8224,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8224,7 +8270,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8268,7 +8316,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 5;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8312,7 +8362,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8356,7 +8408,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8400,7 +8454,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8447,7 +8503,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8494,7 +8552,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8541,7 +8601,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8588,7 +8650,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8635,7 +8699,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8682,7 +8748,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl       = 7;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->skip_hv4_on_best_part     = 1;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 1;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 60;
         nsq_ctrls->lower_depth_split_cost_th = 10;
         nsq_ctrls->H_vs_V_split_rate_th      = 60;
@@ -8719,7 +8787,9 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->psq_cplx_lvl = 0;
 #endif
         nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->skip_hv4_on_best_part     = 0;
+#if !CLN_SKIP_HV4
+        nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
         nsq_ctrls->nsq_split_cost_th         = 150;
         nsq_ctrls->lower_depth_split_cost_th = 0;
         nsq_ctrls->H_vs_V_split_rate_th      = 0;
@@ -8736,8 +8806,10 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->component_multiple_th = 0;
 #endif
     }
+#if !CLN_SKIP_HV4
 #if SHUT_SKIP_HV4_ON_BEST_PART
     nsq_ctrls->skip_hv4_on_best_part = 0;
+#endif
 #endif
     // Bypassing EncDec doesn't work if HVA_HVB_HV4 are enabled (for all bit depths; causes non-conformant bitstreams)
     if (ctx && (nsq_ctrls->allow_HV4 || nsq_ctrls->allow_HVA_HVB))

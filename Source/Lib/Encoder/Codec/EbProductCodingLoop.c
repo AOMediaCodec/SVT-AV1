@@ -12347,6 +12347,7 @@ static uint8_t update_skip_nsq_shapes(ModeDecisionContext *ctx) {
     const BlockGeom *blk_geom = ctx->blk_geom;
     const uint16_t   sqi      = blk_geom->sqi_mds;
     const Part       shape    = blk_geom->shape;
+#if !CLN_SKIP_HV4
     if (ctx->nsq_ctrls.skip_hv4_on_best_part) {
         // Skip H4/V4 shapes when best partition so far is not H/V
         if (shape == PART_H4) {
@@ -12357,7 +12358,7 @@ static uint8_t update_skip_nsq_shapes(ModeDecisionContext *ctx) {
                 return 1;
         }
     }
-
+#endif
     uint8_t  skip_nsq  = 0;
     uint32_t sq_weight = ctx->nsq_ctrls.sq_weight;
 

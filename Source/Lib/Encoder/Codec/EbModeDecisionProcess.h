@@ -608,7 +608,9 @@ typedef struct NsqCtrls {
     // (1) skip the H_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 2nd quadrant) and the Parent-SQ src-to-recon distortion of (3rd quadrant + 4th quadrant) is less than TH,
     // (2) skip the V_Path if the deviation between the Parent-SQ src-to-recon distortion of (1st quadrant + 3rd quadrant) and the Parent-SQ src-to-recon distortion of (2nd quadrant + 4th quadrant) is less than TH.
     uint32_t max_part0_to_part1_dev;
+#if !CLN_SKIP_HV4
     uint32_t skip_hv4_on_best_part;
+#endif
     // If the rate cost of splitting into NSQ shapes is greater than the percentage threshold of the cost of the SQ block, skip testing the NSQ shape.
     // split_cost_th is specified as a perentage * 10 (i.e. a value of 70 corresponds to skipping the NSQ shape if the split rate cost is > 7% of the SQ cost).
     // 0 is off.  Lower values are more aggressive.
@@ -1214,9 +1216,11 @@ typedef struct ModeDecisionContext {
     uint32_t hv_weight;
 #endif
     uint32_t max_part0_to_part1_dev;
+#if !CLN_SKIP_HV4
     // if true, skip H4/V4 shapes when best partition so far is not H/V
-    uint32_t       skip_hv4_on_best_part;
-    IntraCtrls     intra_ctrls;
+    uint32_t skip_hv4_on_best_part;
+#endif
+    IntraCtrls intra_ctrls;
     MdRateEstCtrls rate_est_ctrls;
     // use coeff rate and slipt flag rate only (no MVP derivation)
     uint8_t shut_fast_rate;

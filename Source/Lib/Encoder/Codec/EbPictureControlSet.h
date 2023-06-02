@@ -436,8 +436,10 @@ typedef struct PictureControlSet {
 #endif
     uint32_t max_part0_to_part1_dev;
     // if true, skip H4/V4 shapes when best partition so far is not H/V
+#if !CLN_SKIP_HV4
     uint32_t skip_hv4_on_best_part;
-    uint8_t  inter_intra_level;
+#endif
+    uint8_t inter_intra_level;
     uint8_t  txs_level;
     uint8_t  nic_level;
     uint8_t  md_sq_mv_search_level;
