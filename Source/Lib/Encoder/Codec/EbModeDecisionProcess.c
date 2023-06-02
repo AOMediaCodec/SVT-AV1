@@ -82,6 +82,28 @@ static void mode_decision_context_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj->md_blk_arr_nsq);
     if (obj->rate_est_table)
         EB_FREE_ARRAY(obj->rate_est_table);
+#if CLN_MISC_CLEANUPS
+    if (obj->pred0)
+        EB_FREE(obj->pred0);
+    if (obj->pred1)
+        EB_FREE(obj->pred1);
+    if (obj->residual1)
+        EB_FREE(obj->residual1);
+    if (obj->diff10)
+        EB_FREE(obj->diff10);
+
+    if (obj->intrapred_buf)
+        EB_FREE_2D(obj->intrapred_buf);
+
+    if (obj->obmc_buff_0)
+        EB_FREE(obj->obmc_buff_0);
+    if (obj->obmc_buff_1)
+        EB_FREE(obj->obmc_buff_1);
+    if (obj->wsrc_buf)
+        EB_FREE(obj->wsrc_buf);
+    if (obj->mask_buf)
+        EB_FREE(obj->mask_buf);
+#endif
     EB_FREE_ARRAY(obj->mdc_sb_array);
     for (uint32_t txt_itr = 0; txt_itr < TX_TYPES; ++txt_itr) {
         EB_DELETE(obj->recon_coeff_ptr[txt_itr]);
@@ -196,6 +218,56 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
         EB_CALLOC_ARRAY(ctx->rate_est_table, 1);
     else
         ctx->rate_est_table = NULL;
+#if CLN_MISC_CLEANUPS
+    // Allocate buffer for inter-inter compound prediction
+    if (get_inter_compound_level(enc_mode)) {
+        const uint8_t bits = ctx->hbd_md > EB_8_BIT_MD ? 2 : 1;
+        EB_MALLOC(ctx->pred0, sb_size * sb_size * bits * sizeof(ctx->pred0[0]));
+        EB_MALLOC(ctx->pred1, sb_size * sb_size * bits * sizeof(ctx->pred1[0]));
+        EB_MALLOC(ctx->residual1, sb_size * sb_size * sizeof(ctx->residual1[0]));
+        EB_MALLOC(ctx->diff10, sb_size * sb_size * sizeof(ctx->diff10[0]));
+    }
+
+    // Allocate buffer for inter-intra prediction
+    uint8_t ii_allowed = 0;
+    for (uint8_t is_base = 0; is_base < 2; is_base++) {
+        for (uint8_t transition_present = 0; transition_present < 2; transition_present++) {
+            if (ii_allowed)
+                break;
+            ii_allowed |= svt_aom_get_inter_intra_level(enc_mode, is_base, transition_present);
+        }
+    }
+    if (ii_allowed) {
+        const uint8_t bits = ctx->hbd_md > EB_8_BIT_MD ? 2 : 1;
+        // MAX block size for inter intra is 32x32
+        EB_MALLOC_2D(ctx->intrapred_buf,
+                     INTERINTRA_MODES,
+                     32 * 32 * bits * sizeof(ctx->intrapred_buf[0][0]));
+    }
+
+    // Allocate buffers for obmc prediction
+    uint8_t obmc_allowed = 0;
+    for (uint8_t is_ref = 0; is_ref < 2; is_ref++) {
+        for (uint8_t fast_decode = 0; fast_decode < 2; fast_decode++) {
+            for (EbInputResolution input_resolution = 0; input_resolution < INPUT_SIZE_COUNT;
+                 input_resolution++) {
+                if (obmc_allowed)
+                    break;
+                obmc_allowed |= svt_aom_get_obmc_level(
+                    enc_mode, is_ref, fast_decode, input_resolution);
+            }
+        }
+    }
+    if (obmc_allowed) {
+        const uint8_t bits = ctx->hbd_md > EB_8_BIT_MD ? 2 : 1;
+        EB_MALLOC(ctx->obmc_buff_0,
+                  sb_size * sb_size * bits * MAX_MB_PLANE * sizeof(ctx->obmc_buff_0[0]));
+        EB_MALLOC(ctx->obmc_buff_1,
+                  sb_size * sb_size * bits * MAX_MB_PLANE * sizeof(ctx->obmc_buff_1[0]));
+        EB_MALLOC(ctx->wsrc_buf, sb_size * sb_size * sizeof(ctx->wsrc_buf[0]));
+        EB_MALLOC(ctx->mask_buf, sb_size * sb_size * sizeof(ctx->mask_buf[0]));
+    }
+#endif
     EB_MALLOC_ARRAY(ctx->md_local_blk_unit, block_max_count_sb);
     EB_MALLOC_ARRAY(ctx->md_blk_arr_nsq, block_max_count_sb);
     // Fast Candidate Array

@@ -192,7 +192,7 @@ extern "C" {
 #define CLN_REMOVE_NEIGH_ARRAYS                   1 // Remove unused neighbor arrays
 #define CLN_REMOVE_NEIGH_ARRAYS_2                 1 // Remove unused neighbor arrays
 #define FIX_SKIP_NEIGH_ARRAY                      1 // Fix how skip_coeff context is derived; remove neighbour array
-#define CLN_MISC_CLEANUPS                         0 // Miscellaneous cleanups*
+#define CLN_MISC_CLEANUPS                         1 // Miscellaneous cleanups*
                                                     // *TODO: Involves removing a file: EbSyntaxElements.h
                                                     // *TODO: Renames sb_type --> bsize without a macro. Before renaming, in cdef_seg_search()
                                                     //        rename "int32_t bsize[3];" to "int32_t plane_bsize[3];" to avoid conflicts

@@ -292,12 +292,12 @@ typedef struct SequenceControlSet {
     *
     * Default is 1. */
     Bool enable_global_motion;
-
+#if !CLN_MISC_CLEANUPS
     /* inter intra compound
     *
     * Default is -1. */
     int inter_intra_compound;
-
+#endif
     /* enable paeth
     *
     * Default is -1. */

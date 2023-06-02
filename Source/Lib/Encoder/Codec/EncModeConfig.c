@@ -3405,10 +3405,23 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
 
     // initialize sequence level enable_superres
     scs->seq_header.enable_superres = scs->static_config.superres_mode > SUPERRES_NONE ? 1 : 0;
+#if CLN_MISC_CLEANUPS
+    uint8_t ii_allowed = 0;
+    for (uint8_t is_base = 0; is_base < 2; is_base++) {
+        for (uint8_t transition_present = 0; transition_present < 2; transition_present++) {
+            if (ii_allowed)
+                break;
+            ii_allowed |= svt_aom_get_inter_intra_level(enc_mode, is_base, transition_present);
+        }
+    }
+    scs->seq_header.enable_interintra_compound = ii_allowed ? 1 : 0;
+#else
     if (scs->inter_intra_compound == DEFAULT)
         scs->seq_header.enable_interintra_compound = 1;
     else
         scs->seq_header.enable_interintra_compound = scs->inter_intra_compound;
+#endif
+
 #if FIX_FILTER_INTRA
     if (get_filter_intra_level(enc_mode))
         scs->seq_header.filter_intra_level = 1;
@@ -3582,9 +3595,16 @@ static EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *s
 #endif
     uint32_t              sum_b32_satd                   = 0;
     uint8_t               is_high_satd = 0; // the b64 is detected if at least one b32 is detected
+#if CLN_MISC_CLEANUPS
+    uint32_t b32_satd[4];
+#endif
 
     for (uint32_t blk_idx = 0; blk_idx < 4; blk_idx++) {
+#if CLN_MISC_CLEANUPS
+        b32_satd[blk_idx] = (uint32_t)~0;
+#else
         ctx->b32_satd[blk_idx] = (uint32_t)~0;
+#endif
 
         uint32_t blk_idx_mds = blk32_idx_tab[scs->svt_aom_geom_idx][blk_idx];
 
@@ -3716,14 +3736,25 @@ static EbErrorType svt_aom_check_high_freq(PictureControlSet *pcs, SuperBlock *s
                                           ref_origin_index,
                                           ref_pic->stride_y);
 
+#if CLN_MISC_CLEANUPS
+            b32_satd[blk_idx] = MIN(b32_satd[blk_idx], satd);
+#else
             ctx->b32_satd[blk_idx] = MIN(ctx->b32_satd[blk_idx], satd);
+#endif
         }
 
+#if CLN_MISC_CLEANUPS
+        if (b32_satd[blk_idx] >= ctx->detect_high_freq_ctrls.high_satd_th) {
+#else
         if (ctx->b32_satd[blk_idx] >= ctx->detect_high_freq_ctrls.high_satd_th) {
+#endif
             is_high_satd = 1;
         }
-
+#if CLN_MISC_CLEANUPS
+        sum_b32_satd += b32_satd[blk_idx];
+#else
         sum_b32_satd += ctx->b32_satd[blk_idx];
+#endif
 
         if (is_high_satd && sum_b32_satd > pcs->ppcs->me_32x32_distortion[ctx->sb_index]) {
             int dev = ((sum_b32_satd - pcs->ppcs->me_32x32_distortion[ctx->sb_index]) * 100) /
@@ -12371,6 +12402,10 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     // Set the level for inter-intra level
     if (!is_islice && scs->seq_header.enable_interintra_compound) {
+#if CLN_MISC_CLEANUPS
+        pcs->inter_intra_level = svt_aom_get_inter_intra_level(
+            enc_mode, is_base, transition_present);
+#else
         if (enc_mode <= ENC_MR)
             pcs->inter_intra_level = 1;
 #if TUNE_M1_2
@@ -12385,6 +12420,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->inter_intra_level = transition_present ? 2 : 0;
         else
             pcs->inter_intra_level = 0;
+#endif
     } else
         pcs->inter_intra_level = 0;
     if (enc_mode <= ENC_M1)

@@ -995,9 +995,11 @@ typedef struct ModeDecisionContext {
     // Stored per 4x4. 8 bit: lower 6 bits (COEFF_CONTEXT_BITS), shows if there is at least one
     // Coef. Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
     NeighborArrayUnit *full_loop_luma_dc_sign_level_coeff_na;
+#if !CLN_MISC_CLEANUPS
     // Stored per 4x4. 8 bit: lower 6 bits (COEFF_CONTEXT_BITS), shows if there is at least one
     // Coef. Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
     NeighborArrayUnit *tx_search_luma_dc_sign_level_coeff_na;
+#endif
     // Stored per 4x4. 8 bit: lower 6 bits(COEFF_CONTEXT_BITS), shows if there is at least one Coef.
     // Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
     NeighborArrayUnit *cr_dc_sign_level_coeff_na;
@@ -1024,7 +1026,9 @@ typedef struct ModeDecisionContext {
     SuperBlock      *sb_ptr;
     BlkStruct       *blk_ptr;
     const BlockGeom *blk_geom;
+#if !CLN_MISC_CLEANUPS
     PredictionUnit  *pu_ptr;
+#endif
     PALETTE_BUFFER   palette_buffer;
     PaletteInfo      palette_cand_array[MAX_PAL_CAND];
     // MD palette search
@@ -1139,10 +1143,18 @@ typedef struct ModeDecisionContext {
     // set to 1 once the packing of 10bit source is done for each SB
     uint8_t  hbd_pack_done;
     uint16_t tile_index;
+#if CLN_MISC_CLEANUPS
+    // Store buffers for inter-inter compound search
+    uint8_t *pred0;
+    uint8_t *pred1;
+    int16_t *residual1;
+    int16_t *diff10;
+#else
     DECLARE_ALIGNED(16, uint8_t, pred0[2 * MAX_SB_SQUARE]);
     DECLARE_ALIGNED(16, uint8_t, pred1[2 * MAX_SB_SQUARE]);
     DECLARE_ALIGNED(32, int16_t, residual1[MAX_SB_SQUARE]);
     DECLARE_ALIGNED(32, int16_t, diff10[MAX_SB_SQUARE]);
+#endif
     MdStage   md_stage;
     uint32_t *cand_buff_indices[CAND_CLASS_TOTAL];
     uint8_t   bypass_md_stage_1;
@@ -1177,6 +1189,15 @@ typedef struct ModeDecisionContext {
     Bool mds_skip_rdoq;
     Bool mds_spatial_sse;
     Bool mds_do_intra_uv_pred;
+#if CLN_MISC_CLEANUPS
+    // Store intra prediction for inter-intra
+    uint8_t **intrapred_buf;
+    // Store OBMC pre-computed data
+    uint8_t *obmc_buff_0;
+    uint8_t *obmc_buff_1;
+    int32_t *wsrc_buf;
+    int32_t *mask_buf;
+#else
     // MAX block size for inter intra is 32x32
     DECLARE_ALIGNED(16, uint8_t, intrapred_buf[INTERINTRA_MODES][2 * 32 * 32]);
     DECLARE_ALIGNED(16, uint8_t, obmc_buff_0[2 * 2 * MAX_MB_PLANE * MAX_SB_SQUARE]);
@@ -1184,6 +1205,7 @@ typedef struct ModeDecisionContext {
     DECLARE_ALIGNED(16, int32_t, wsrc_buf[MAX_SB_SQUARE]);
     DECLARE_ALIGNED(16, int32_t, mask_buf[MAX_SB_SQUARE]);
     unsigned int pred_sse[REF_FRAMES];
+#endif
     uint8_t     *above_txfm_context;
     uint8_t     *left_txfm_context;
     // square cost weighting for deciding if a/b shapes could be skipped
@@ -1361,7 +1383,9 @@ typedef struct ModeDecisionContext {
     uint8_t        skip_pd0;
     // when MD is done on 8bit, scale palette colors to 10bit (valid when bypass is 1)
     uint8_t  scale_palette;
+#if !CLN_MISC_CLEANUPS
     uint32_t b32_satd[4];
+#endif
     uint8_t  high_freq_present;
     // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
     uint8_t rtc_use_N4_dct_dct_shortcut;

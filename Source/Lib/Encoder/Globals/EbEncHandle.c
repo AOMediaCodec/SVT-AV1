@@ -5667,7 +5667,9 @@ static void copy_api_from_app(
 
     scs->enable_warped_motion        = DEFAULT;
     scs->enable_global_motion        = TRUE;
+#if !CLN_MISC_CLEANUPS
     scs->inter_intra_compound        = DEFAULT;
+#endif
     scs->enable_paeth                = DEFAULT;
     scs->enable_smooth               = DEFAULT;
     scs->spatial_sse_full_loop_level = DEFAULT;

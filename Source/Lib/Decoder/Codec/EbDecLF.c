@@ -157,7 +157,11 @@ static AOM_FORCE_INLINE TxSize dec_set_lpf_parameters(
         /*prepare outer edge parameters. deblock the edge if it's an edge of a TU*/
         {
             uint32_t       curr_level; // Added to address 4x4 problem
+#if CLN_MISC_CLEANUPS
+            PredictionMode mode = mi_cur->mode;
+#else
             PredictionMode mode = (mi_cur->mode == INTRA_MODE_4x4) ? DC_PRED : mi_cur->mode;
+#endif
             if (frm_hdr->delta_lf_params.delta_lf_present)
                 curr_level = svt_aom_get_filter_level_delta_lf(frm_hdr,
                                                                edge_dir,
@@ -199,7 +203,11 @@ static AOM_FORCE_INLINE TxSize dec_set_lpf_parameters(
                 *min_tx_dim         = AOMMIN(*min_tx_dim, prev_ts_dim);
 
                 uint32_t pv_lvl;
+#if CLN_MISC_CLEANUPS
+                mode = mi_near->mode;
+#else
                 mode = (mi_near->mode == INTRA_MODE_4x4) ? DC_PRED : mi_near->mode;
+#endif
                 if (frm_hdr->delta_lf_params.delta_lf_present)
                     pv_lvl = svt_aom_get_filter_level_delta_lf(frm_hdr,
                                                                edge_dir,

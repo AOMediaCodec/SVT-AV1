@@ -47,6 +47,7 @@ extern "C" {
 #define INVALID_FAST_CANDIDATE_INDEX ~0
 #define MAX_OIS_CANDIDATES 61 //18//18
 
+#if !CLN_MISC_CLEANUPS
 static const uint32_t intra_hev_cmode_to_intra_av1_mode[35] = {
     /*SMOOTH_PRED   */ SMOOTH_PRED, // EB_INTRA_PLANAR
     /*DC_PRED       */ DC_PRED, // EB_INTRA_DC
@@ -121,6 +122,7 @@ static const int8_t hevc_mode_to_angle_delta_map[35] = {
     0,
     -2, // EB_INTRA_MODE_31 -> EB_INTRA_MODE_34
 };
+#endif
 static const uint32_t intra_luma_to_chroma[INTRA_MODES] = // EB_INTRA_PLANAR
     {
         UV_DC_PRED, // Average of above and left pixels

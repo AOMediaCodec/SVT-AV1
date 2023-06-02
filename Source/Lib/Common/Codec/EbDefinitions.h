@@ -1214,7 +1214,9 @@ typedef enum ATTRIBUTE_PACKED {
     COMP_INTER_MODE_NUM     = COMP_INTER_MODE_END - COMP_INTER_MODE_START,
     INTRA_MODES             = PAETH_PRED + 1, // PAETH_PRED has to be the last intra mode.
     INTRA_INVALID           = MB_MODE_COUNT, // For uv_mode in inter blocks
+#if !CLN_MISC_CLEANUPS
     INTRA_MODE_4x4
+#endif
 } PredictionMode;
 
 #define MAX_UPSAMPLE_SZ 16

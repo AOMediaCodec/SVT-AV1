@@ -1344,7 +1344,9 @@ static void encode_intra_luma_mode_nonkey_av1(FRAME_CONTEXT *frame_context, AomW
     aom_write_symbol(
         ec_writer, luma_mode, frame_context->y_mode_cdf[size_group_lookup[bsize]], INTRA_MODES);
 
+#if !CLN_MISC_CLEANUPS
     if (blk_ptr->pred_mode != INTRA_MODE_4x4)
+#endif
         if (bsize >= BLOCK_8X8 && av1_is_directional_mode(blk_ptr->pred_mode)) {
             aom_write_symbol(
                 ec_writer,
@@ -1388,7 +1390,9 @@ static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter
                          blk_ptr->prediction_unit_array->cfl_alpha_signs,
                          ec_writer);
 
+#if !CLN_MISC_CLEANUPS
     if (blk_ptr->pred_mode != INTRA_MODE_4x4)
+#endif
         if (bsize >= BLOCK_8X8 &&
             av1_is_directional_mode(
                 get_uv_mode(blk_ptr->prediction_unit_array[0].intra_chroma_mode))) {
@@ -5519,10 +5523,20 @@ static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t bl
     const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;
     xd->above_txfm_context       = &txfm_context_array->top_array[txfm_context_above_index];
     xd->left_txfm_context        = &txfm_context_array->left_array[txfm_context_left_index];
-    TxSize tx_size               = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
+#if CLN_MISC_CLEANUPS
+#if CLN_MBMI_7
+    TxSize tx_size =
+        blk_geom->txsize[mbmi->block_mi.tx_depth][0]; // inherit tx_size from 1st transform block;
+#else
+    TxSize tx_size =
+        blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
+#endif
+#else
+    TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                       blk_ptr->pred_mode == INTRA_MODE_4x4)
                       ? 0
                       : blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
+#endif
     av1_code_tx_size(ec_ctx, w, xd, mbmi, tx_size, tx_mode, bsize, skip);
 }
 
@@ -5958,11 +5972,23 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                 for (int plane = 0; plane < 2; ++plane) {
                     const uint8_t palette_size_plane = blk_ptr->palette_size[plane];
                     if (palette_size_plane > 0) {
+#if CLN_MISC_CLEANUPS
+#if CLN_MBMI_7
+                        TxSize tx_size =
+                            blk_geom->txsize[mbmi->block_mi.tx_depth]
+                                            [0]; // inherit tx_size from 1st transform block;
+#else
+                        TxSize tx_size =
+                            blk_geom->txsize[blk_ptr->tx_depth]
+                                            [0]; // inherit tx_size from 1st transform block;
+#endif
+#else
                         TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                                           blk_ptr->pred_mode == INTRA_MODE_4x4)
                             ? 0
                             : blk_geom->txsize[blk_ptr->tx_depth]
                                               [0]; // inherit tx_size from 1st transform block;
+#endif
                         svt_av1_tokenize_color_map(
                             frame_context,
                             blk_ptr,
@@ -6369,11 +6395,23 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                 for (int plane = 0; plane < 2; ++plane) {
                     const uint8_t palette_size_plane = blk_ptr->palette_size[plane];
                     if (palette_size_plane > 0) {
+#if CLN_MISC_CLEANUPS
+#if CLN_MBMI_7
+                        TxSize tx_size =
+                            blk_geom->txsize[mbmi->block_mi.tx_depth]
+                                            [0]; // inherit tx_size from 1st transform block;
+#else
+                        TxSize tx_size =
+                            blk_geom->txsize[blk_ptr->tx_depth]
+                                            [0]; // inherit tx_size from 1st transform block;
+#endif
+#else
                         TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                                           blk_ptr->pred_mode == INTRA_MODE_4x4)
                             ? 0
                             : blk_geom->txsize[blk_ptr->tx_depth]
                                               [0]; // inherit tx_size from 1st transform block;
+#endif
                         svt_av1_tokenize_color_map(
                             frame_context,
                             blk_ptr,

@@ -249,8 +249,13 @@ static int64_t pick_interintra_wedge(PictureControlSet *pcs, ModeDecisionContext
 
     const int bw = block_size_wide[bsize];
     const int bh = block_size_high[bsize];
+#if CLN_MISC_CLEANUPS // Max interintra bsize is 32x32
+    DECLARE_ALIGNED(32, int16_t, residual1[MAX_INTERINTRA_SB_SQUARE]); // src - pred1
+    DECLARE_ALIGNED(32, int16_t, diff10[MAX_INTERINTRA_SB_SQUARE]); // pred1 - pred0
+#else
     DECLARE_ALIGNED(32, int16_t, residual1[MAX_SB_SQUARE]); // src - pred1
     DECLARE_ALIGNED(32, int16_t, diff10[MAX_SB_SQUARE]); // pred1 - pred0
+#endif
     if (ctx->hbd_md) {
         svt_aom_highbd_subtract_block(
             bh, bw, residual1, bw, src_buf, src_stride, p1, bw, EB_TEN_BIT);
@@ -2921,6 +2926,9 @@ void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     }
     if (do_frac_refine) {
         int dis; /* TODO: use dis in distortion calculation later. */
+#if CLN_MISC_CLEANUPS
+        unsigned int sse1; //unused
+#endif
         switch (cand->motion_mode) {
         case OBMC_CAUSAL:
             svt_av1_find_best_obmc_sub_pixel_tree_up(ctx,
@@ -2938,7 +2946,11 @@ void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                                      x->nmv_vec_cost,
                                                      x->mv_cost_stack,
                                                      &dis,
+#if CLN_MISC_CLEANUPS
+                                                     &sse1,
+#else
                                                      &ctx->pred_sse[rf[0]],
+#endif
                                                      0,
                                                      USE_8_TAPS);
             break;

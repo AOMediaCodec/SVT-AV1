@@ -230,8 +230,12 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
         // prepare outer edge parameters. deblock the edge if it's an edge of a TU
         {
             uint32_t       curr_level; // Added to address 4x4 problem
+#if CLN_MISC_CLEANUPS
+            PredictionMode mode = mbmi->block_mi.mode;
+#else
             PredictionMode mode = (mbmi->block_mi.mode == INTRA_MODE_4x4) ? DC_PRED
                                                                           : mbmi->block_mi.mode;
+#endif
             if (frm_hdr->delta_lf_params.delta_lf_present) {
                 curr_level = svt_aom_get_filter_level_delta_lf(frm_hdr,
                                                                edge_dir,
@@ -259,8 +263,12 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
                 const TxSize pv_ts = get_transform_size(
                     mi_prev, edge_dir, plane, plane_ptr, pv_skip);
                 uint32_t pv_lvl;
+#if CLN_MISC_CLEANUPS
+                mode = mi_prev->block_mi.mode;
+#else
                 mode = (mi_prev->block_mi.mode == INTRA_MODE_4x4) ? DC_PRED
                                                                   : mi_prev->block_mi.mode;
+#endif
                 if (frm_hdr->delta_lf_params.delta_lf_present) {
 #if FTR_ROI
                     pv_lvl = svt_aom_get_filter_level_delta_lf(frm_hdr,
