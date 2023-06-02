@@ -248,6 +248,7 @@ extern "C" {
 #define FIX_GM_PP                                 1 // fix non-lp R2R
 
 #define CLN_SKIP_HV4                              1 // Clean up unused skip hv4 signal
+#define ENABLE_LD_DLF_RA                          1 // Enable LD DLF changes in RA
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one
