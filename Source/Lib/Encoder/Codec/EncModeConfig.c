@@ -12219,7 +12219,6 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     else if (enc_mode <= ENC_M3)
         pcs->cand_reduction_level = is_base ? 0 : 1;
 #else
-    else
     else if (enc_mode <= ENC_M3)
         pcs->cand_reduction_level = 0;
 #endif
