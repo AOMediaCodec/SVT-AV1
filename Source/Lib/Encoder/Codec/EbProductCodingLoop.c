@@ -1166,7 +1166,16 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
         svt_aom_use_scaled_rec_refs_if_needed(pcs, input_pic, ref_obj, &ref_pic, 0);
         ref_origin_index = ref_pic->org_x + (ctx->blk_org_x + mv_x) +
             (ctx->blk_org_y + mv_y + ref_pic->org_y) * ref_pic->stride_y;
-
+#if OPT_LD_MDS0
+        if (pcs->rtc_tune && ctx->mds0_ctrls.mds0_dist_type == MDS0_VAR) {
+                const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[ctx->blk_geom->bsize];
+                unsigned int            sse;
+                uint8_t *               pred_y = ref_pic->buffer_y + ref_origin_index;
+                uint8_t *               src_y  = input_pic->buffer_y + input_origin_index;
+                *(cand_bf->fast_cost)          = fn_ptr->vf(
+                    pred_y, ref_pic->stride_y, src_y, input_pic->stride_y, &sse);
+        } else
+#endif
         *(cand_bf->fast_cost) = (uint32_t)(svt_spatial_full_distortion_kernel(
                                     input_pic->buffer_y,
                                     input_origin_index,
@@ -1186,10 +1195,18 @@ static void fast_loop_core_light_pd0(ModeDecisionCandidateBuffer *cand_bf, Pictu
             unsigned int            sse;
             uint8_t *               pred_y = pred->buffer_y + cu_origin_index;
             uint8_t *               src_y  = input_pic->buffer_y + input_origin_index;
-            *(cand_bf->fast_cost)          = fn_ptr->vf(
+#if OPT_LD_MDS0
+            if (pcs->rtc_tune)
+                *(cand_bf->fast_cost) =
+                    fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) / 3;
+            else
+                *(cand_bf->fast_cost) =
+                    fn_ptr->vf(pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >> 2;
+#else
+            *(cand_bf->fast_cost) = fn_ptr->vf(
                                         pred_y, pred->stride_y, src_y, input_pic->stride_y, &sse) >>
                 2;
-
+#endif
         } else {
             assert(ctx->mds0_ctrls.mds0_dist_type == MDS0_SAD);
             assert((ctx->blk_geom->bwidth >> 3) < 17);
