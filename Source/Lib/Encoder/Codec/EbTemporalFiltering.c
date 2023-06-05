@@ -6101,8 +6101,7 @@ static EbErrorType save_src_pic_buffers(PictureParentControlSet *centre_pcs,
     return EB_ErrorNone;
 }
 #if OPT_TF_REF_PICS
-static EbErrorType save_y_src_pic_buffers(PictureParentControlSet* centre_pcs,
-    uint32_t ss_y, Bool is_highbd) {
+static EbErrorType save_y_src_pic_buffers(PictureParentControlSet* centre_pcs, Bool is_highbd) {
     // save buffer from full size frame enhanced_unscaled_pic
     EbPictureBufferDesc* src_pic_ptr =
         centre_pcs->enhanced_unscaled_pic;

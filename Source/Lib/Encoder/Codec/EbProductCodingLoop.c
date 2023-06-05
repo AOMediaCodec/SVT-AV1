@@ -7932,7 +7932,10 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs,
 /*
    full loop core for light PD1 path
 */
-static void full_loop_core_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
+static void full_loop_core_light_pd1(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                                     BlkStruct *blk_ptr,
+#endif
                                      ModeDecisionContext *ctx, ModeDecisionCandidateBuffer *cand_bf,
                                      ModeDecisionCandidate *cand, EbPictureBufferDesc *input_pic,
                                      BlockLocation *loc) {
@@ -8262,7 +8265,11 @@ static INLINE void opt_non_translation_motion_mode(PictureControlSet *pcs, ModeD
 #endif
     }
 }
-static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
+static void full_loop_core(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                           BlkStruct *blk_ptr,
+#endif
+                           ModeDecisionContext *ctx,
                            ModeDecisionCandidateBuffer *cand_bf, ModeDecisionCandidate *cand,
                            EbPictureBufferDesc *input_pic, uint32_t input_origin_index,
                            uint32_t input_cb_origin_in_index, uint32_t blk_origin_index,
@@ -8612,7 +8619,11 @@ static void full_loop_core(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecis
                                                                          ctx->blk_geom->bsize);
 #endif
 }
-static void md_stage_1(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
+static void md_stage_1(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                       BlkStruct *blk_ptr,
+#endif
+                       ModeDecisionContext *ctx,
                        EbPictureBufferDesc *input_pic, uint32_t input_origin_index,
                        uint32_t input_cb_origin_in_index, uint32_t blk_origin_index,
                        uint32_t blk_chroma_origin_index) {
@@ -8647,7 +8658,9 @@ static void md_stage_1(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionC
         ctx->mds_skip_rdoq = (ctx->bypass_md_stage_2 && is_intra_mode(cand->pred_mode)) ? FALSE
                                                                                         : TRUE;
         full_loop_core(pcs,
+#if !FIX_SKIP_COST
                        blk_ptr,
+#endif
                        ctx,
                        cand_bf,
                        cand,
@@ -8658,7 +8671,11 @@ static void md_stage_1(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionC
                        blk_chroma_origin_index);
     }
 }
-static void md_stage_2(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
+static void md_stage_2(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                       BlkStruct *blk_ptr,
+#endif
+                       ModeDecisionContext *ctx,
                        EbPictureBufferDesc *input_pic, uint32_t input_origin_index,
                        uint32_t input_cb_origin_in_index, uint32_t blk_origin_index,
                        uint32_t blk_chroma_origin_index) {
@@ -8692,7 +8709,9 @@ static void md_stage_2(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionC
         ctx->mds_subres_step          = (ctx->pd_pass == PD_PASS_1) ? 0 : ctx->subres_ctrls.step;
 
         full_loop_core(pcs,
+#if !FIX_SKIP_COST
                        blk_ptr,
+#endif
                        ctx,
                        cand_bf,
                        cand,
@@ -8882,7 +8901,10 @@ static void md_stage_3_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
 /*
    md stage 3 for light PD1 path
 */
-static void md_stage_3_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
+static void md_stage_3_light_pd1(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                                 BlkStruct *blk_ptr,
+#endif
                                  ModeDecisionContext *ctx, EbPictureBufferDesc *input_pic,
                                  BlockLocation *loc) {
     ModeDecisionCandidateBuffer *cand_bf = ctx->cand_bf_ptr_array[ctx->mds0_best_idx];
@@ -8898,10 +8920,17 @@ static void md_stage_3_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
     ctx->mds_skip_rdoq            = FALSE;
     ctx->mds_fast_coeff_est_level = 1;
     ctx->mds_subres_step          = 0;
-
+#if FIX_SKIP_COST
+    full_loop_core_light_pd1(pcs, ctx, cand_bf, cand, input_pic, loc);
+#else
     full_loop_core_light_pd1(pcs, blk_ptr, ctx, cand_bf, cand, input_pic, loc);
+#endif
 }
-static void md_stage_3(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionContext *ctx,
+static void md_stage_3(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                       BlkStruct *blk_ptr,
+#endif
+                       ModeDecisionContext *ctx,
                        EbPictureBufferDesc *input_pic, uint32_t input_origin_index,
                        uint32_t input_cb_origin_in_index, uint32_t blk_origin_index,
                        uint32_t blk_chroma_origin_index, uint32_t fullCandidateTotalCount) {
@@ -8960,7 +8989,9 @@ static void md_stage_3(PictureControlSet *pcs, BlkStruct *blk_ptr, ModeDecisionC
             update_intra_chroma_mode(ctx, cand_bf, pcs);
 #endif
         full_loop_core(pcs,
+#if !FIX_SKIP_COST
                        blk_ptr,
+#endif
                        ctx,
                        cand_bf,
                        cand,
@@ -11346,7 +11377,11 @@ static void md_encode_block_light_pd1(PictureControlSet *pcs, ModeDecisionContex
             (blk_geom->org_y >> 1) * (ctx->sb_size >> 1);
     }
     ctx->md_stage = MD_STAGE_3;
+#if FIX_SKIP_COST
+    md_stage_3_light_pd1(pcs, ctx, input_pic, &loc);
+#else
     md_stage_3_light_pd1(pcs, blk_ptr, ctx, input_pic, &loc);
+#endif
     cand_bf = cand_bf_ptr_array[ctx->mds0_best_idx];
 
     // Full Mode Decision (choose the best mode)
@@ -11899,7 +11934,9 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
                 ctx->md_stage_2_count[cand_class_it] > 0) {
                 ctx->target_class = cand_class_it;
                 md_stage_1(pcs,
+#if !FIX_SKIP_COST
                            blk_ptr,
+#endif
                            ctx,
                            input_pic,
                            loc.input_origin_index,
@@ -11941,7 +11978,9 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
             ctx->target_class = cand_class_it;
 
             md_stage_2(pcs,
+#if !FIX_SKIP_COST
                        blk_ptr,
+#endif
                        ctx,
                        input_pic,
                        loc.input_origin_index,
@@ -12050,7 +12089,9 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     // 3rd Full-Loop
     ctx->md_stage = MD_STAGE_3;
     md_stage_3(pcs,
+#if !FIX_SKIP_COST
                blk_ptr,
+#endif
                ctx,
                input_pic,
                loc.input_origin_index,
@@ -12935,9 +12976,17 @@ static void update_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext 
  * is the first d1 block.  Called before process each block.
  */
 static void init_block_data(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                            const EbMdcLeafData *const leaf_data_ptr, const uint8_t blk_split_flag,
-                            uint16_t sb_org_x, uint16_t sb_org_y, uint32_t blk_idx_mds,
+#if !OPT_SKIP_NSQ_PATH
+                            const EbMdcLeafData *const leaf_data_ptr,
+#endif
+                            const uint8_t blk_split_flag,
+                            uint16_t sb_org_x, uint16_t sb_org_y,
+#if OPT_SKIP_NSQ_PATH
+                            uint32_t blk_idx_mds) {
+#else
+                            uint32_t blk_idx_mds,
                             uint8_t first_d1_blk) {
+#endif
     const BlockGeom *blk_geom         = ctx->blk_geom;
     BlkStruct       *blk_ptr          = ctx->blk_ptr;
     ctx->scale_palette                = 0;
@@ -13162,15 +13211,25 @@ static Bool update_redundant(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 */
 static void process_block_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs,
                                     ModeDecisionContext       *ctx,
+#if !OPT_SKIP_NSQ_PATH
                                     const EbMdcLeafData *const leaf_data_ptr,
+#endif
                                     const uint8_t blk_split_flag, EbPictureBufferDesc *in_pic,
                                     uint32_t sb_addr, uint16_t sb_org_x, uint16_t sb_org_y,
                                     uint32_t blk_idx_mds, uint32_t *next_non_skip_blk_idx_mds,
+#if OPT_SKIP_NSQ_PATH
+                                    Bool *md_early_exit_sq) {
+#else
                                     Bool *md_early_exit_sq, uint8_t first_d1_blk) {
+#endif
     const BlockGeom *blk_geom = ctx->blk_geom = get_blk_geom_mds(blk_idx_mds);
     BlkStruct       *blk_ptr = ctx->blk_ptr = &ctx->md_blk_arr_nsq[blk_idx_mds];
     init_block_data(
+#if OPT_SKIP_NSQ_PATH
+        pcs, ctx, blk_split_flag, sb_org_x, sb_org_y, blk_idx_mds);
+#else
         pcs, ctx, leaf_data_ptr, blk_split_flag, sb_org_x, sb_org_y, blk_idx_mds, first_d1_blk);
+#endif
     // Check current depth cost; if larger than parent, exit early
     check_curr_to_parent_cost_light_pd0(
         scs, pcs, ctx, sb_addr, next_non_skip_blk_idx_mds, md_early_exit_sq);
@@ -13227,7 +13286,9 @@ bool get_skip_processing_block(PictureControlSet *pcs, ModeDecisionContext *ctx)
  * Determined if a block should be processed, and if so, perform the MD pass on the block.
  */
 static void process_block_light_pd1(PictureControlSet *pcs, ModeDecisionContext *ctx,
+#if !OPT_SKIP_NSQ_PATH
                                     const EbMdcLeafData *const leaf_data_ptr,
+#endif
                                     EbPictureBufferDesc *in_pic, uint32_t sb_addr,
                                     uint16_t sb_org_x, uint16_t sb_org_y, uint32_t blk_idx_mds) {
     ctx->blk_geom = get_blk_geom_mds(blk_idx_mds);
@@ -13235,12 +13296,18 @@ static void process_block_light_pd1(PictureControlSet *pcs, ModeDecisionContext 
 
     init_block_data(pcs,
                     ctx,
+#if !OPT_SKIP_NSQ_PATH
                     leaf_data_ptr,
+#endif
                     FALSE, // blk_split_flag, - pred depth only; NSQ off
                     sb_org_x,
                     sb_org_y,
+#if OPT_SKIP_NSQ_PATH
+                    blk_idx_mds);
+#else
                     blk_idx_mds,
                     1); // first_d1_blk - NSQ off
+#endif
 
     // Encode the block
     if (pcs->ppcs->sb_geom[sb_addr].block_is_allowed[blk_idx_mds]) {
@@ -13416,7 +13483,10 @@ static void faster_md_settings(ModeDecisionContext *ctx) {
  * Determined if a block should be processed, and if so, perform the MD pass on the block.
  */
 static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
-                          const EbMdcLeafData *const leaf_data_ptr, const uint8_t blk_split_flag,
+                          const EbMdcLeafData *const leaf_data_ptr,
+#if !OPT_SKIP_NSQ_PATH
+                          const uint8_t blk_split_flag,
+#endif
                           EbPictureBufferDesc *in_pic, uint32_t sb_addr,
 #if !OPT_SKIP_NSQ_PATH
                           uint16_t sb_org_x,
@@ -13782,7 +13852,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb_light_pd0(SequenceControlSet    *
         process_block_light_pd0(scs,
                                 pcs,
                                 ctx,
+#if !OPT_SKIP_NSQ_PATH
                                 leaf_data_ptr,
+#endif
                                 blk_split_flag,
                                 input_pic,
                                 sb_addr,
@@ -13790,8 +13862,12 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb_light_pd0(SequenceControlSet    *
                                 sb_org_y,
                                 blk_idx_mds,
                                 &next_non_skip_blk_idx_mds,
+#if OPT_SKIP_NSQ_PATH
+                                &md_early_exit_sq);
+#else
                                 &md_early_exit_sq,
                                 1); // first_d1_blk
+#endif
 
         // Only using SQ, so always at tot_d1_blocks
         update_d2_decision_light_pd0(scs, pcs, ctx, sb_addr, sb_org_x, sb_org_y);
@@ -13850,10 +13926,16 @@ EB_EXTERN void svt_aom_mode_decision_sb_light_pd1(SequenceControlSet *scs, Pictu
     // Iterate over all blocks which are flagged to be considered
     for (uint32_t blk_idx = 0; blk_idx < leaf_count; blk_idx++) {
         uint32_t                   blk_idx_mds   = leaf_data_array[blk_idx].mds_idx;
+#if !OPT_SKIP_NSQ_PATH
         const EbMdcLeafData *const leaf_data_ptr = &leaf_data_array[blk_idx];
+#endif
 
         process_block_light_pd1(
+#if OPT_SKIP_NSQ_PATH
+            pcs, ctx, input_pic, sb_addr, sb_org_x, sb_org_y, blk_idx_mds);
+#else
             pcs, ctx, leaf_data_ptr, input_pic, sb_addr, sb_org_x, sb_org_y, blk_idx_mds);
+#endif
 
         // If using pred_depth only and NSQ off, no need to update cost with skip flag
         ctx->md_blk_arr_nsq[blk_idx_mds].part        = PARTITION_NONE;
@@ -13964,7 +14046,7 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
         ctx->blk_ptr  = &ctx->md_blk_arr_nsq[blk_idx_mds];
 
         init_block_data(
-            pcs, ctx, leaf_data_ptr, blk_split_flag, sb_org_x, sb_org_y, blk_idx_mds, first_d1_blk);
+            pcs, ctx, blk_split_flag, sb_org_x, sb_org_y, blk_idx_mds);
 #endif
 
 #if OPT_SUB_DEPTH_ALL_EXIT
@@ -13984,7 +14066,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
                       pcs,
                       ctx,
                       leaf_data_ptr,
+#if !OPT_SKIP_NSQ_PATH
                       blk_split_flag,
+#endif
                       input_pic,
                       sb_addr,
 #if !OPT_SKIP_NSQ_PATH
