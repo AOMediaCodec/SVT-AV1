@@ -7832,7 +7832,10 @@ static COMPONENT_TYPE chroma_complexity_check(PictureControlSet *pcs, ModeDecisi
     // At end, complex chroma was not detected, so only chroma path can be skipped
     return COMPONENT_LUMA;
 }
-static Bool get_perform_tx_flag(PictureControlSet *pcs, BlkStruct *blk_ptr,
+static Bool get_perform_tx_flag(PictureControlSet *pcs,
+#if !FIX_SKIP_COST
+                                BlkStruct *blk_ptr,
+#endif
                                 ModeDecisionContext *ctx, ModeDecisionCandidateBuffer *cand_bf,
                                 ModeDecisionCandidate *cand) {
     Bool perform_tx = 1;
@@ -7940,7 +7943,11 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, BlkStruct *blk_ptr,
     uint64_t cb_coeff_bits;
     uint64_t cr_coeff_bits;
     cand->skip_mode            = FALSE;
+#if FIX_SKIP_COST
+    Bool          perform_tx   = get_perform_tx_flag(pcs, ctx, cand_bf, cand);
+#else
     Bool          perform_tx   = get_perform_tx_flag(pcs, blk_ptr, ctx, cand_bf, cand);
+#endif
     const uint8_t recon_needed = do_md_recon(pcs->ppcs, ctx);
 
     // If need 10bit prediction, perform luma compensation before TX
@@ -11588,7 +11595,7 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
     }
 }
 #if OPT_NSQ_PSQ_MODE_BIS
-uint64_t get_best_intra_new_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
+uint64_t get_best_intra_new_cost(struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer **buffer_ptr_array,
                                  uint32_t                      candidate_total_count,
                                  uint32_t *                    best_candidate_index_array,
@@ -12112,7 +12119,6 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         ctx->blk_geom->sq_size > ctx->nsq_ctrls.min_nsq_block_size) {
         ctx->md_local_blk_unit[blk_ptr->mds_idx].best_intra_new_cost = get_best_intra_new_cost(
             ctx,
-            blk_ptr,
             cand_bf_ptr_array,
             ctx->md_stage_3_total_count,
             ctx->best_candidate_index_array,
@@ -12687,7 +12693,7 @@ Bool update_skip_nsq_based_on_parent_mode(ModeDecisionContext *ctx) {
         !ctx->nsq_psq_pred_ctrls.enabled)
         return FALSE;
 
-    MdBlkStruct *sq_md_local_blk_unit = &ctx->md_local_blk_unit[blk_geom->sqi_mds];
+
 
     if (ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEARESTMV ||
         ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEARMV ||
@@ -13243,7 +13249,7 @@ static void process_block_light_pd1(PictureControlSet *pcs, ModeDecisionContext 
 }
 #if OPT_SUB_DEPTH_ALL_EXIT
 
-static bool eval_sub_depth_skip_cond0(SequenceControlSet *scs, ModeDecisionContext *ctx) {
+static bool eval_sub_depth_skip_cond0(ModeDecisionContext *ctx) {
     MdBlkStruct *local_cu_unit = ctx->md_local_blk_unit;
 
     uint64_t sq_cost = local_cu_unit[ctx->blk_geom->sqi_mds].default_cost;
@@ -13352,7 +13358,7 @@ static bool eval_sub_depth_skip_cond0(SequenceControlSet *scs, ModeDecisionConte
     return FALSE;
 }
 
-static bool eval_sub_depth_skip_cond1(SequenceControlSet *scs, ModeDecisionContext *ctx) {
+static bool eval_sub_depth_skip_cond1(ModeDecisionContext *ctx) {
     uint8_t n = 4;
     float   average, variance, std_deviation, sum = 0, sum1 = 0;
 
@@ -13411,14 +13417,21 @@ static void faster_md_settings(ModeDecisionContext *ctx) {
  */
 static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
                           const EbMdcLeafData *const leaf_data_ptr, const uint8_t blk_split_flag,
-                          EbPictureBufferDesc *in_pic, uint32_t sb_addr, uint16_t sb_org_x,
-                          uint16_t sb_org_y, uint32_t blk_idx_mds,
+                          EbPictureBufferDesc *in_pic, uint32_t sb_addr,
+#if !OPT_SKIP_NSQ_PATH
+                          uint16_t sb_org_x,
+                          uint16_t sb_org_y,
+#endif
+                          uint32_t blk_idx_mds,
                           uint32_t *next_non_skip_blk_idx_mds, Bool *md_early_exit_sq,
                           Bool *md_early_exit_nsq,
 #if OPT_SUB_DEPTH_ALL_EXIT
                           Bool md_skip_sub_depths,
 #endif
-                          uint8_t first_d1_blk, uint8_t d1_blk_count) {
+#if !OPT_SKIP_NSQ_PATH
+                          uint8_t first_d1_blk,
+#endif
+                          uint8_t d1_blk_count) {
     const BlockGeom *blk_geom = ctx->blk_geom = get_blk_geom_mds(blk_idx_mds);
     BlkStruct       *blk_ptr = ctx->blk_ptr = &ctx->md_blk_arr_nsq[blk_idx_mds];
 #if !OPT_SKIP_NSQ_PATH
@@ -13974,8 +13987,10 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
                       blk_split_flag,
                       input_pic,
                       sb_addr,
+#if !OPT_SKIP_NSQ_PATH
                       sb_org_x,
                       sb_org_y,
+#endif
                       blk_idx_mds,
                       &next_non_skip_blk_idx_mds,
                       &md_early_exit_sq,
@@ -13983,7 +13998,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
 #if OPT_SUB_DEPTH_ALL_EXIT
                       md_skip_sub_depths,
 #endif
+#if !OPT_SKIP_NSQ_PATH
                       first_d1_blk,
+#endif
                       d1_blk_count);
 #if OPT_SKIP_NSQ_PATH
         if (!ctx->md_disallow_nsq && ctx->blk_geom->shape == PART_N &&
@@ -14040,9 +14057,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureC
                 ctx->avail_blk_flag[ctx->blk_geom->sqi_mds]) { // valid block
 
                 if ((ctx->blk_geom->sq_size <= ctx->skip_sub_depth_ctrls.max_size_cond0 &&
-                     eval_sub_depth_skip_cond0(scs, ctx) && !ctx->md_disallow_nsq) ||
+                     eval_sub_depth_skip_cond0(ctx) && !ctx->md_disallow_nsq) ||
                     (ctx->blk_geom->sq_size <= ctx->skip_sub_depth_ctrls.max_size_cond1 &&
-                     eval_sub_depth_skip_cond1(scs, ctx))) {
+                     eval_sub_depth_skip_cond1(ctx))) {
                     md_skip_sub_depths = 1;
                     next_blkidx_mds    = ctx->blk_geom->sqi_mds + ctx->blk_geom->ns_depth_offset;
                 }

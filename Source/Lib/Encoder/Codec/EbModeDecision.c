@@ -2853,7 +2853,10 @@ int  svt_av1_obmc_full_pixel_search(ModeDecisionContext *ctx, IntraBcContext *x,
                                     int sadpb, const AomVarianceFnPtr *fn_ptr, const MV *ref_mv,
                                     MV *dst_mv, int is_second);
 void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                          ModeDecisionCandidate *cand, const MvReferenceFrame *rf,
+                          ModeDecisionCandidate *cand,
+#if !CLN_MISC_CLEANUPS
+                          const MvReferenceFrame *rf,
+#endif
                           IntMv best_pred_mv, IntraBcContext *x, BlockSize bsize, MV *ref_mv,
                           int *rate_mv, int refine_level) {
     bool do_full_refine = 0;
@@ -3027,7 +3030,9 @@ uint8_t svt_aom_obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisi
     single_motion_search(pcs,
                          ctx,
                          cand,
+#if !CLN_MISC_CLEANUPS
                          (const MvReferenceFrame[]){cand->ref_frame_type, -1},
+#endif
                          best_mv,
                          x,
                          ctx->blk_geom->bsize,
