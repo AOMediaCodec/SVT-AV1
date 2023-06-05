@@ -1421,6 +1421,15 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
         cand_bf->fast_luma_rate   = 0;
         cand_bf->fast_chroma_rate = 0;
     } else {
+#if CLN_FAST_COST_FUNCS
+        *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
+            pcs,
+            ctx,
+            cand_bf,
+            fast_lambda,
+            luma_fast_dist,
+            0); //chroma_fast_distortion
+#else
         *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
             ctx,
 #if OPT_LPD0_8BIT_ONLY
@@ -1446,6 +1455,7 @@ static void fast_loop_core_light_pd1(ModeDecisionCandidateBuffer *cand_bf, Pictu
 #else
             ctx->intra_luma_left_mode,
             ctx->intra_luma_top_mode);
+#endif
 #endif
     }
 }
@@ -1615,6 +1625,15 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
             }
 
             // Fast Cost
+#if CLN_FAST_COST_FUNCS
+            *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
+                pcs,
+                ctx,
+                cand_bf,
+                (ctx->mds0_ctrls.mds0_dist_type == MDS0_SSD) ? full_lambda : fast_lambda,
+                luma_fast_dist,
+                chroma_fast_distortion);
+#else
             *(cand_bf->fast_cost) =
                 av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
                     ctx,
@@ -1637,6 +1656,7 @@ static void obmc_trans_face_off(ModeDecisionCandidateBuffer *cand_bf, PictureCon
 #else
                     ctx->intra_luma_left_mode,
                     ctx->intra_luma_top_mode);
+#endif
 #endif
             if (simple_translation_cost < *(cand_bf->fast_cost)) {
                 // Restore the simple-translation results
@@ -1824,6 +1844,15 @@ void fast_loop_core(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs
         cand_bf->fast_luma_rate   = 0;
         cand_bf->fast_chroma_rate = 0;
     } else {
+#if CLN_FAST_COST_FUNCS
+        *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
+            pcs,
+            ctx,
+            cand_bf,
+            (ctx->mds0_ctrls.mds0_dist_type == MDS0_SSD) ? full_lambda : fast_lambda,
+            luma_fast_dist,
+            chroma_fast_distortion);
+#else
         *(cand_bf->fast_cost) = av1_product_fast_cost_func_table[is_inter_mode(cand->pred_mode)](
             ctx,
             ctx->blk_ptr,
@@ -1845,6 +1874,7 @@ void fast_loop_core(ModeDecisionCandidateBuffer *cand_bf, PictureControlSet *pcs
 #else
             ctx->intra_luma_left_mode,
             ctx->intra_luma_top_mode);
+#endif
 #endif
     }
     cand_bf->valid_pred = 1;

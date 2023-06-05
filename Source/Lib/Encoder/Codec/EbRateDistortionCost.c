@@ -677,6 +677,15 @@ uint64_t svt_aom_get_intra_uv_fast_rate(PictureControlSet *pcs, struct ModeDecis
     return chroma_rate;
 }
 #endif
+#if CLN_FAST_COST_FUNCS
+uint64_t svt_aom_intra_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+                                 ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                 uint64_t luma_distortion, uint64_t chroma_distortion) {
+
+    const BlockGeom* blk_geom = ctx->blk_geom;
+    BlkStruct* blk_ptr = ctx->blk_ptr;
+    ModeDecisionCandidate *cand = cand_bf->cand;
+#else
 uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                  ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
                                  uint64_t luma_distortion, uint64_t chroma_distortion,
@@ -693,6 +702,7 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
 #if FIX_UV_INTRA_MODE_RATE
     UNUSED(miRow);
     UNUSED(miCol);
+#endif
 #endif
     if (svt_aom_allow_intrabc(&pcs->ppcs->frm_hdr, pcs->ppcs->slice_type) && cand->use_intrabc) {
         uint64_t rate = 0;
@@ -1359,6 +1369,21 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     }
     return (RDCOST(lambda, rate, total_distortion));
 }
+#if CLN_FAST_COST_FUNCS
+uint64_t svt_aom_inter_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+                                 ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                 uint64_t luma_distortion, uint64_t chroma_distortion) {
+
+    const BlockGeom* blk_geom = ctx->blk_geom;
+    BlkStruct* blk_ptr = ctx->blk_ptr;
+    ModeDecisionCandidate *cand = cand_bf->cand;
+    CandidateMv* ref_mv_stack =
+        &(ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[cand->ref_frame_type][0]);
+
+    if (ctx->approx_inter_rate)
+        return av1_inter_fast_cost_light(
+            ctx, blk_ptr, cand_bf, luma_distortion, chroma_distortion, lambda, pcs, ref_mv_stack);
+#else
 uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                  ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
                                  uint64_t luma_distortion, uint64_t chroma_distortion,
@@ -1377,7 +1402,7 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     UNUSED(left_neighbor_mode);
     UNUSED(miCol);
     UNUSED(miRow);
-
+#endif
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
 
     // Luma rate

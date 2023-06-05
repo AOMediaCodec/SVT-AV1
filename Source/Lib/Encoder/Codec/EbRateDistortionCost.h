@@ -77,6 +77,14 @@ uint64_t svt_aom_get_intra_uv_fast_rate(PictureControlSet *pcs, struct ModeDecis
                                         ModeDecisionCandidateBuffer *cand_bf,
                                         bool                         use_accurate_cfl);
 #endif
+#if CLN_FAST_COST_FUNCS
+uint64_t svt_aom_intra_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+                                 ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                 uint64_t luma_distortion, uint64_t chroma_distortion);
+uint64_t svt_aom_inter_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+                                 ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                 uint64_t luma_distortion, uint64_t chroma_distortion);
+#else
 extern uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                         ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
                                         uint64_t luma_distortion, uint64_t chroma_distortion,
@@ -92,7 +100,7 @@ extern uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStru
                                         CandidateMv *ref_mv_stack, const BlockGeom *blk_geom,
                                         uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
                                         uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
-
+#endif
 EbErrorType        svt_aom_full_cost_light_pd0(ModeDecisionContext                *ctx,
                                                struct ModeDecisionCandidateBuffer *cand_bf,
                                                uint64_t *y_distortion, uint64_t lambda,

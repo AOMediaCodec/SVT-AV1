@@ -88,6 +88,11 @@ typedef struct ModeDecisionCandidate {
 typedef EbErrorType (*EbPredictionFunc)(uint8_t hbd_md, struct ModeDecisionContext *ctx,
                                         PictureControlSet                  *pcs,
                                         struct ModeDecisionCandidateBuffer *cand_bf);
+#if CLN_FAST_COST_FUNCS
+typedef uint64_t(*EbFastCostFunc)(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+                                 struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                 uint64_t luma_distortion, uint64_t chroma_distortion);
+#else
 typedef uint64_t (*EbFastCostFunc)(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                    struct ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
                                    uint64_t luma_distortion, uint64_t chroma_distortion,
@@ -95,6 +100,7 @@ typedef uint64_t (*EbFastCostFunc)(struct ModeDecisionContext *ctx, BlkStruct *b
                                    CandidateMv *ref_mv_stack, const BlockGeom *blk_geom,
                                    uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
                                    uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
+#endif
 #if !FIX_SKIP_COST
 typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                          struct ModeDecisionCandidateBuffer *cand_bf,
