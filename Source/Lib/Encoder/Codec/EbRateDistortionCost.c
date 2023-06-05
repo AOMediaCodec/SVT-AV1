@@ -1336,7 +1336,7 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
 #endif
 
 #if FIX_SKIP_MODE_RATE
-    int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
+    uint32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
             is_comp_ref_allowed(ctx->blk_geom->bsize)
         ? r->skip_mode_fac_bits[skip_mode_ctx][0]
         : 0;
@@ -1660,7 +1660,7 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     uint32_t is_inter_rate = ctx->md_rate_est_ctx->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
 #endif
 #if FIX_SKIP_MODE_RATE
-    int32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
+    uint32_t skip_mode_rate = pcs->ppcs->frm_hdr.skip_mode_params.skip_mode_flag &&
             is_comp_ref_allowed(blk_geom->bsize)
         ? ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
         : 0;
