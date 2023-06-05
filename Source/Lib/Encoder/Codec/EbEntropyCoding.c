@@ -6058,8 +6058,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
     int           mi_stride = pcs->ppcs->av1_cm->mi_stride;
     const int32_t offset    = mi_row * mi_stride + mi_col;
     blk_ptr->av1xd->mi      = pcs->mi_grid_base + offset;
+#if !CLN_MBMI
     ModeInfo *mi_ptr        = *blk_ptr->av1xd->mi;
-
+#endif
     blk_ptr->av1xd->tile.mi_col_start = tb_ptr->tile_info.mi_col_start;
     blk_ptr->av1xd->tile.mi_col_end   = tb_ptr->tile_info.mi_col_end;
     blk_ptr->av1xd->tile.mi_row_start = tb_ptr->tile_info.mi_row_start;

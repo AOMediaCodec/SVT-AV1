@@ -2662,7 +2662,6 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
 #if CLN_OBMC_WARP
             EbPictureBufferDesc *        ref_pic_list0 = (EbPictureBufferDesc *)NULL;
             EbPictureBufferDesc *        ref_pic_list1 = (EbPictureBufferDesc *)NULL;
-            ModeDecisionCandidate *const cand          = cand_bf->cand;
             MvReferenceFrame             rf[2];
             av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
             int8_t  ref_idx_l0 = get_ref_frame_idx(rf[0]);

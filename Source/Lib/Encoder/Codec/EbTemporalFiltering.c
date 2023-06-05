@@ -5077,11 +5077,11 @@ static EbErrorType produce_temporally_filtered_pic(
               centre_pcs->past_altref_nframes ,
               centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes };
 
-            for (int segment_index = 0; segment_index < 3; segment_index++)
+            for (int segment_idx = 0; segment_idx < 3; segment_idx++)
 #if ENHANCE_KEY_FRAME
-                for (int frame_index = start_frame_index[segment_index]; frame_index <= end_frame_index[segment_index]; frame_index = frame_index+ me_context_ptr->me_ctx->tf_ctrls.ref_frame_factor) {
+                for (int frame_index = start_frame_index[segment_idx]; frame_index <= end_frame_index[segment_idx]; frame_index = frame_index+ me_context_ptr->me_ctx->tf_ctrls.ref_frame_factor) {
 #else
-                for (int frame_index = start_frame_index[segment_index]; frame_index <= end_frame_index[segment_index]; frame_index++) {
+                for (int frame_index = start_frame_index[segment_idx]; frame_index <= end_frame_index[segment_idx]; frame_index++) {
 #endif
 #else
             // for every frame to filter

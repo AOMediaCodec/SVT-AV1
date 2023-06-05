@@ -630,6 +630,7 @@ int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
                 : SWITCHABLE_FILTERS);
 }
 #endif
+extern int svt_aom_allow_intrabc(const FrameHeader *frm_hdr, SliceType slice_type);
 #if !CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, uint8_t palette_size,
                                  uint32_t mode);
