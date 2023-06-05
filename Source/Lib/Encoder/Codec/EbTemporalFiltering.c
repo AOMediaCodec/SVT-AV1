@@ -6292,7 +6292,7 @@ EbErrorType svt_av1_init_temporal_filtering(
             save_src_pic_buffers(centre_pcs, ss_y, is_highbd);
         }
         else if (centre_pcs->slice_type == I_SLICE) {
-            save_y_src_pic_buffers(centre_pcs, ss_y, is_highbd);
+            save_y_src_pic_buffers(centre_pcs, is_highbd);
         }
 #else
         if (centre_pcs->scs->static_config.stat_report ||

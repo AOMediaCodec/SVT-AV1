@@ -13846,7 +13846,9 @@ EB_EXTERN EbErrorType svt_aom_mode_decision_sb_light_pd0(SequenceControlSet    *
     // Iterate over all blocks which are flagged to be considered
     for (uint32_t blk_idx = 0; blk_idx < leaf_count; blk_idx++) {
         uint32_t                   blk_idx_mds    = leaf_data_array[blk_idx].mds_idx;
+#if !OPT_SKIP_NSQ_PATH
         const EbMdcLeafData *const leaf_data_ptr  = &leaf_data_array[blk_idx];
+#endif
         const uint8_t              blk_split_flag = mdc_sb_data->split_flag[blk_idx];
 
         process_block_light_pd0(scs,

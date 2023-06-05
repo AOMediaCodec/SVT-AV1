@@ -75,7 +75,7 @@ DECLARE_ALIGNED(32, static const uint8_t, shufflemask_16b[2][16]) = {
 DECLARE_ALIGNED(32, static const uint8_t, shufflemask_32b[2][16]) = {
     {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7},
     {0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7}};
-
+#if !CLN_TF
 static AOM_FORCE_INLINE void get_squared_error_16x16_sse4_1(
     const uint8_t *frame1, const unsigned int stride, const uint8_t *frame2,
     const unsigned int stride2, const int block_width, const int block_height, uint16_t *frame_sse,
@@ -245,7 +245,6 @@ static AOM_FORCE_INLINE __m128i xx_gather_i32(const int32_t *ptr, __m128i idx) {
     _mm_storeu_si128((__m128i *)i, idx);
     return _mm_setr_epi32(ptr[i[0]], ptr[i[1]], ptr[i[2]], ptr[i[3]]);
 }
-#if !CLN_TF
 static void apply_temporal_filter_planewise(struct MeContext *me_ctx, const uint8_t *frame1,
                                             const unsigned int stride, const uint8_t *frame2,
                                             const unsigned int stride2, const int block_width,
@@ -664,7 +663,7 @@ void svt_av1_apply_temporal_filter_planewise_sse4_1(
                                         ss_y_shift);
     }
 }
-#endif
+
 static AOM_FORCE_INLINE void get_squared_error_16x16_hbd_sse4_1(
     const uint16_t *frame1, const unsigned int stride, const uint16_t *frame2,
     const unsigned int stride2, const int block_width, const int block_height, uint32_t *frame_sse,
@@ -793,7 +792,7 @@ static AOM_FORCE_INLINE void xx_load_and_pad_hbd(uint32_t *src, int col, int blo
         output[1] = _mm_shuffle_epi8(output[1], *(__m128i *)shufflemask_32b[1]);
     }
 }
-#if !CLN_TF
+
 static void apply_temporal_filter_planewise_hbd(struct MeContext *me_ctx, const uint16_t *frame1,
                                                 const unsigned int stride, const uint16_t *frame2,
                                                 const unsigned int stride2, const int block_width,
