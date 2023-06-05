@@ -309,7 +309,7 @@ static void create_me_context_and_picture_control(
     me_context_ptr->me_ctx->sixteenth_b64_buffer = &sixteenth_pic_ptr->buffer_y[buffer_index];
     me_context_ptr->me_ctx->sixteenth_b64_buffer_stride = sixteenth_pic_ptr->stride_y;
 }
-
+#if !CLN_TF
 static INLINE void calculate_squared_errors(const uint8_t *s, int s_stride, const uint8_t *p,
                                             int p_stride, uint16_t *diff_sse, unsigned int w,
                                             unsigned int h) {
@@ -340,7 +340,7 @@ static INLINE void calculate_squared_errors_highbd(const uint16_t *s, int s_stri
         }
     }
 }
-
+#endif
 // Apply filtering to the central picture
 void svt_aom_apply_filtering_central_c(MeContext *          me_ctx,
                                EbPictureBufferDesc *input_picture_ptr_central, EbByte *src,

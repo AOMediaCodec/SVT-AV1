@@ -61,7 +61,7 @@ static const int32_t expf_tab_fp16[] = {
     43,    41,    38,    36,    34,    31,    30,    28,    26,    24,    23,    21};
 
 #define SSE_STRIDE (BW + 2)
-
+#if !CLN_TF
 DECLARE_ALIGNED(32, static const uint32_t, sse_bytemask[4][8]) = {
     {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 0},
     {0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0},
@@ -75,7 +75,7 @@ DECLARE_ALIGNED(32, static const uint8_t, shufflemask_16b[2][16]) = {
 DECLARE_ALIGNED(32, static const uint8_t, shufflemask_32b[2][16]) = {
     {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7},
     {0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7}};
-#if !CLN_TF
+
 static AOM_FORCE_INLINE void get_squared_error_16x16_sse4_1(
     const uint8_t *frame1, const unsigned int stride, const uint8_t *frame2,
     const unsigned int stride2, const int block_width, const int block_height, uint16_t *frame_sse,

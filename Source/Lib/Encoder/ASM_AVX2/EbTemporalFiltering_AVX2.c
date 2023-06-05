@@ -60,7 +60,7 @@ static const int32_t expf_tab_fp16[] = {
     43,    41,    38,    36,    34,    31,    30,    28,    26,    24,    23,    21};
 
 #define SSE_STRIDE (BW + 2)
-
+#if !CLN_TF
 DECLARE_ALIGNED(32, static const uint32_t, sse_bytemask[4][8]) = {
     {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 0},
     {0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0},
@@ -216,7 +216,7 @@ static AOM_FORCE_INLINE __m256 exp_256_ps(__m256 _x) {
 
     return r;
 }
-#if !CLN_TF
+
 static void apply_temporal_filter_planewise(struct MeContext *me_ctx, const uint8_t *frame1,
                                             const unsigned int stride, const uint8_t *frame2,
                                             const unsigned int stride2, const int block_width,
@@ -632,7 +632,7 @@ void svt_av1_apply_temporal_filter_planewise_avx2(
                                         ss_y_shift);
     }
 }
-#endif
+
 static AOM_FORCE_INLINE void get_squared_error_16x16_hbd_avx2(
     const uint16_t *frame1, const unsigned int stride, const uint16_t *frame2,
     const unsigned int stride2, const int block_width, const int block_height, uint32_t *frame_sse,
@@ -734,7 +734,7 @@ static AOM_FORCE_INLINE __m256i xx_load_and_pad_hbd(uint32_t *src, int col, int 
     }
     return v256tmp;
 }
-#if !CLN_TF
+
 static void apply_temporal_filter_planewise_hbd(struct MeContext *me_ctx, const uint16_t *frame1,
                                                 const unsigned int stride, const uint16_t *frame2,
                                                 const unsigned int stride2, const int block_width,
