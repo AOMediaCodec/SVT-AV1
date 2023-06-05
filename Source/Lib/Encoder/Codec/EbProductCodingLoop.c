@@ -4518,14 +4518,8 @@ static void cfl_prediction(PictureControlSet *pcs, ModeDecisionCandidateBuffer *
     const int8_t           non_cfl_angle_delta = cand_bf->cand->angle_delta[PLANE_TYPE_UV];
     const TxType           non_cfl_tx_type     = cand_bf->cand->transform_type_uv;
     if (!ctx->ind_uv_avail) {
-        uint64_t full_dist[DIST_CALC_TOTAL];
-        uint64_t coeff_bits;
-
         uint32_t full_lambda          = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD]
                                                     : ctx->full_lambda_md[EB_8_BIT_MD];
-        coeff_bits                    = 0;
-        full_dist[DIST_CALC_RESIDUAL] = 0;
-
         cand_bf->cand->cfl_alpha_idx   = 0;
         cand_bf->cand->cfl_alpha_signs = 0;
         const uint64_t fast_rate       = svt_aom_get_intra_uv_fast_rate(pcs, ctx, cand_bf, 0);
@@ -6201,11 +6195,11 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // For Inter blocks, transform type of chroma follows luma transfrom type
     if (is_inter && ctx->txb_itr == 0) {
 #if FIX_TXT
-        const TxSetType tx_set_type = get_ext_tx_set_type(
+        const TxSetType tx_set_type_uv = get_ext_tx_set_type(
             ctx->blk_geom->txsize_uv[ctx->tx_depth][ctx->txb_itr],
             is_inter,
             pcs->ppcs->frm_hdr.reduced_tx_set);
-        if (av1_ext_tx_used[tx_set_type][best_tx_type] == 0)
+        if (av1_ext_tx_used[tx_set_type_uv][best_tx_type] == 0)
             cand_bf->cand->transform_type_uv = DCT_DCT;
         else
             cand_bf->cand->transform_type_uv = cand_bf->cand->transform_type[ctx->txb_itr];
@@ -9360,7 +9354,7 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
     for (uint32_t full_loop_cand_idx = 0; full_loop_cand_idx < full_cand_count + 1;
          ++full_loop_cand_idx) {
         ModeDecisionCandidateBuffer *full_cand_bf;
-        ModeDecisionCandidate *      full_cand;
+        ModeDecisionCandidate *      full_cand = NULL;
 
         if (full_loop_cand_idx < full_cand_count) {
             uint32_t full_cand_index = ctx->best_candidate_index_array[full_loop_cand_idx];
@@ -9383,7 +9377,7 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
             tested_uv_modes[full_cand->intra_chroma_mode]
                            [MAX_ANGLE_DELTA + full_cand->angle_delta[PLANE_TYPE_UV]] = 1;
         }
-
+        assert(IMPLIES(full_loop_cand_idx < full_cand_count, full_cand != NULL));
         cand_array[uv_mode_total_count].use_intrabc               = 0;
         cand_array[uv_mode_total_count].angle_delta[PLANE_TYPE_Y] = 0;
         cand_array[uv_mode_total_count].pred_mode                 = DC_PRED;
