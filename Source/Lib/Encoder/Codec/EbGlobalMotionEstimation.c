@@ -308,8 +308,12 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                  ->object_ptr;
 
                 uint8_t              det_refn_sf;
+#if OPT_GM_CORNER
+                EbPictureBufferDesc *ref_detection, *ref_refinement;
+#else
                 EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement,
                     *ref_refinement;
+#endif
                 uint8_t chess_refn;
 #if GM_REFINFO
                 if (pcs->gm_ctrls.use_ref_info) {

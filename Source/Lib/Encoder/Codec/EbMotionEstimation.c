@@ -2551,8 +2551,8 @@ static void init_zz_sad(MeContext *me_ctx, uint32_t org_x, uint32_t org_y) {
 
                 if (ref_i == 0) continue;
 
-                const uint32_t zz_th = me_ctx->me_hme_prune_ctrls.zz_sad_pct;
-                if ((me_ctx->zz_sad[list_i][ref_i] - best_zz_sad) * 100 > (zz_th * best_zz_sad)) {
+                const uint32_t zz_sad_pct = me_ctx->me_hme_prune_ctrls.zz_sad_pct;
+                if ((me_ctx->zz_sad[list_i][ref_i] - best_zz_sad) * 100 > (zz_sad_pct * best_zz_sad)) {
                     me_ctx->search_results[list_i][ref_i].do_ref = 0;
                 }
             }

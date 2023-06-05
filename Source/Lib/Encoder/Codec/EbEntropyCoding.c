@@ -6627,8 +6627,9 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                                       nmvc,
                                       frm_hdr->allow_high_precision_mv);
                 }
+#if !CLN_MBMI
                 MbModeInfo *mbmi = &mi_ptr->mbmi;
-
+#endif
                 if (pcs->ppcs->frm_hdr.reference_mode != COMPOUND_REFERENCE &&
                     scs->seq_header.enable_interintra_compound &&
                     svt_aom_is_interintra_allowed(mbmi)) {
