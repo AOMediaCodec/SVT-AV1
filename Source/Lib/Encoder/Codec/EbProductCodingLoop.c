@@ -11809,7 +11809,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         : ctx->updated_enable_pme;
     // Read MVPs (rounded-up to the closest integer) for use in md_sq_motion_search() and/or predictive_me_search() and/or perform_md_reference_pruning()
 #if OPT_SPEL
-    if (pcs->slice_type != I_SLICE &&
+    if ((pcs->slice_type != I_SLICE) &&
             (ctx->md_subpel_me_ctrls.enabled && ctx->md_subpel_me_ctrls.mvp_th > 0) ||
         (ctx->md_sq_me_ctrls.enabled || ctx->updated_enable_pme || ctx->ref_pruning_ctrls.enabled))
 #else
