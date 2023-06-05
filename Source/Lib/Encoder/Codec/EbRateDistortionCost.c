@@ -1820,7 +1820,9 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx,
                        struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                        uint64_t *y_distortion, uint64_t *cb_distortion, uint64_t *cr_distortion,
                        uint64_t *y_coeff_bits, uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits) {
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
     BlkStruct *blk_ptr = ctx->blk_ptr;
+#endif
 #if FIX_SKIP_NEIGH_ARRAY
     const uint8_t skip_coeff_ctx = ctx->skip_coeff_ctx;
 #endif

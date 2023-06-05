@@ -2732,7 +2732,6 @@ int16_t svt_aom_mode_context_analyzer(int16_t mode_context, const MvReferenceFra
         {1, 2, 3, 4, 4},
         {4, 4, 5, 6, 7},
     };
-    const int ref_frame = av1_ref_frame_type(rf);
 
     if (rf[1] <= INTRA_FRAME)
         return mode_context;

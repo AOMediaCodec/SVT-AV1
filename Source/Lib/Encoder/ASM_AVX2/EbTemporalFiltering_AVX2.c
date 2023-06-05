@@ -1158,7 +1158,6 @@ void svt_av1_apply_temporal_filter_planewise_hbd_avx2(
                                             encoder_bit_depth);
     }
 }
-#endif
 static uint32_t calculate_squared_errors_sum_avx2(const uint8_t *s, int s_stride, const uint8_t *p,
                                                   int p_stride, unsigned int w, unsigned int h) {
     assert(w % 16 == 0 && "block width must be multiple of 16");
@@ -1226,7 +1225,6 @@ static double svt_aom_expf_tab[] = {
     0.000335
 
 };
-#if !CLN_TF
 void svt_av1_apply_temporal_filter_planewise_fast_avx2(struct MeContext *me_ctx,
                                                        const uint8_t *y_src, int y_src_stride,
                                                        const uint8_t *y_pre, int y_pre_stride,

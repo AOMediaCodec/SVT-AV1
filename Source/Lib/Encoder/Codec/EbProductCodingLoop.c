@@ -5204,9 +5204,8 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
         ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr] - ctx->blk_geom->org_y;
     uint8_t tx_width  = ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr];
     uint8_t tx_height = ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr];
-
-    MacroBlockD *xd           = ctx->blk_ptr->av1xd;
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
+    MacroBlockD *xd           = ctx->blk_ptr->av1xd;
     ctx->intra_luma_left_mode = DC_PRED;
     ctx->intra_luma_top_mode  = DC_PRED;
     if (xd->left_available)
@@ -11599,8 +11598,8 @@ uint64_t get_best_intra_new_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
 
     uint64_t best_intra_new_cost = MAX_CU_COST;
 
-    uint32_t count_non_zero_coeffs = ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].cnt_nz_coeff;
-    uint32_t total_samples         = (ctx->blk_geom->sq_size * ctx->blk_geom->sq_size);
+    uint32_t count_non_zero_coeffs = ctx->md_local_blk_unit[blk_geom->blkidx_mds].cnt_nz_coeff;
+    uint32_t total_samples         = (blk_geom->sq_size * blk_geom->sq_size);
 
     if (((count_non_zero_coeffs * 100) / total_samples) > ctx->nsq_psq_pred_ctrls.coef_th)
         return best_intra_new_cost;
@@ -11608,7 +11607,6 @@ uint64_t get_best_intra_new_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     // If the winner is MVP, then derive the index of the best non-MVP cand to be used at the NSQ shape(s) pruning
     if (cand->pred_mode == NEARESTMV || cand->pred_mode == NEARMV ||
         cand->pred_mode == NEAREST_NEARESTMV || cand->pred_mode == NEAR_NEARMV) {
-        ModeDecisionCandidate *cand                        = cand_bf->cand;
         uint32_t               lowest_intra_new_cost_index = (uint32_t)~0;
 
         // If MVP is the only survival after mds3 then return TRUE
@@ -12707,7 +12705,7 @@ Bool update_skip_nsq_based_on_parent_mode(ModeDecisionContext *ctx) {
                 return TRUE;
         }
     }
-#if 0
+#if !OPT_NSQ_PSQ_MODE
     else if (!is_intra_mode(ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode)) {
         if (((ctx->md_local_blk_unit[blk_geom->sqi_mds].best_intra_cost - ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost) * 100) >= (ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost * (ctx->nsq_ctrls.sq_pred_cost_th << 1)))
             return TRUE;

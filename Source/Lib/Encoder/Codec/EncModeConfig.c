@@ -38,7 +38,6 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off
     SequenceControlSet *scs      = pcs->scs;
     uint8_t             gm_level = 0;
     const EncMode       enc_mode = pcs->enc_mode;
-    const uint8_t       is_ref   = pcs->is_ref;
     const uint8_t       is_base  = pcs->temporal_layer_index == 0;
     // disable global motion when reference scaling enabled,
     // even if current pic is not scaled, because its reference

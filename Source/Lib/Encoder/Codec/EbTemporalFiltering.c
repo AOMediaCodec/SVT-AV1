@@ -722,7 +722,7 @@ double svt_aom_expf_tab[] = {1,        0.904837, 0.818731, 0.740818, 0.67032,  0
                      0.000335
 
 };
-
+#if !CLN_TF
 static float exp_ps_c(float _x) {
     float   t, f, p, r;
     int32_t i, j;
@@ -765,7 +765,7 @@ static float exp_ps_c(float _x) {
     memcpy(&r, &d, sizeof(r));
     return r;
 }
-
+#endif
 /***************************************************************************************************
 * Applies temporal filter plane by plane.
 * Inputs:
@@ -782,7 +782,7 @@ static float exp_ps_c(float _x) {
 *   Nothing will be returned. But the content to which `accum` and `pred`
 *   point will be modified.
 ***************************************************************************************************/
-
+#if !CLN_TF
 static uint32_t calc_scaled_diff_fp4(uint32_t distance_fp4, uint32_t distance_threshold_fp16,
                                      uint32_t block_error_fp8, uint32_t tf_decay_factor_fp16,
                                      uint32_t num_ref_pixels, uint64_t sum_square_diff) {
@@ -852,7 +852,6 @@ static uint32_t calc_scaled_diff_fp4(uint32_t distance_fp4, uint32_t distance_th
     uint32_t scaled_diff_fp4 = AOMMIN(scaled_diff_A_fp4 + scaled_diff_B_fp4, 7 * 16);
     return scaled_diff_fp4;
 }
-#if !CLN_TF
 void svt_av1_apply_temporal_filter_planewise_c(
     struct MeContext *me_ctx, const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre,
     int y_pre_stride, const uint8_t *u_src, const uint8_t *v_src, int uv_src_stride,
@@ -6408,7 +6407,6 @@ EbErrorType svt_av1_init_temporal_filtering(
         if (centre_pcs->slice_type == I_SLICE)
         {
 
-            EbPaReferenceObject* src_object = (EbPaReferenceObject*)centre_pcs->pa_ref_pic_wrapper->object_ptr;
             EbPictureBufferDesc* input_pic = centre_pcs->enhanced_pic;
             EbByte filt = input_pic->buffer_y + input_pic->org_y * input_pic->stride_y + input_pic->org_x;
             EbByte unfil = centre_pcs->save_source_picture_ptr[C_Y] + input_pic->org_y * input_pic->stride_y + input_pic->org_x;

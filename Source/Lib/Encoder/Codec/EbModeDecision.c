@@ -2591,7 +2591,9 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
     int      error_per_bit = full_lambda >> RD_EPB_SHIFT;
     error_per_bit += (error_per_bit == 0);
     cand_bf->cand                  = cand;
+#if !CLN_OBMC_WARP
     EbPictureBufferDesc *pred      = cand_bf->pred;
+#endif
     uint32_t blk_origin_index      = ctx->blk_geom->org_x + ctx->blk_geom->org_y * ctx->sb_size;
     EbPictureBufferDesc *input_pic = ppcs->enhanced_pic; // 10BIT not supported
     uint32_t input_origin_index    = (ctx->blk_org_y + input_pic->org_y) * input_pic->stride_y +
@@ -2661,7 +2663,6 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
             EbPictureBufferDesc *        ref_pic_list0 = (EbPictureBufferDesc *)NULL;
             EbPictureBufferDesc *        ref_pic_list1 = (EbPictureBufferDesc *)NULL;
             ModeDecisionCandidate *const cand          = cand_bf->cand;
-            SequenceControlSet *         scs           = pcs->scs;
             MvReferenceFrame             rf[2];
             av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
             int8_t  ref_idx_l0 = get_ref_frame_idx(rf[0]);

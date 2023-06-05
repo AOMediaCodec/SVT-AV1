@@ -849,7 +849,9 @@ static AOM_INLINE void update_palette_cdf(MacroBlockD *xd, const MbModeInfo *con
  * Updates all the Intra stats/CDF for the current block
  ******************************************************************************/
 static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_ptr,
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
                                        const MbModeInfo *above_mi, const MbModeInfo *left_mi,
+#endif
                                        const int intraonly, const int mi_row, const int mi_col) {
     MacroBlockD            *xd       = blk_ptr->av1xd;
     const MbModeInfo *const mbmi     = &xd->mi[0]->mbmi;
@@ -950,8 +952,10 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
     if (!is_inter_block(&mbmi->block_mi)) {
         sum_intra_stats(pcs,
                         blk_ptr,
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
                         xd->above_mbmi,
                         xd->left_mbmi,
+#endif
                         frame_is_intra_only(pcs->ppcs),
                         mi_row,
                         mi_col);

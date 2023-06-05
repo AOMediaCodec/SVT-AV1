@@ -4552,7 +4552,9 @@ EbErrorType av1_inter_prediction_light_pd1(SequenceControlSet *scs, MvUnit *mv_u
                                            EbPictureBufferDesc *pred_pic, uint16_t dst_origin_x,
                                            uint16_t dst_origin_y, uint32_t component_mask,
                                            uint8_t hbd_md, ScaleFactors *sf0, ScaleFactors *sf1) {
+#if !CLN_IFS_PATH
     EbErrorType return_error = EB_ErrorNone;
+#endif
     int32_t     bit_depth    = hbd_md ? EB_TEN_BIT : EB_EIGHT_BIT;
     uint8_t     is_16bit     = hbd_md ? 1 : 0;
     uint8_t     is_compound  = (mv_unit->pred_direction == BI_PRED) ? 1 : 0;

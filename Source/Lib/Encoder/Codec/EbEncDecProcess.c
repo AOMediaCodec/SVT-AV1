@@ -2320,7 +2320,9 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
         return;
     if (blk_geom->sq_size > 4) {
 #endif
+#if !TAG_SUB_PRED_NSQ
         DepthCtrls *depth_ctrls = &ctx->depth_ctrls;
+#endif
 
         // Set parent depth's split flag to be true
         for (uint32_t block_1d_idx = 0; block_1d_idx < tot_d1_blocks; block_1d_idx++) {
