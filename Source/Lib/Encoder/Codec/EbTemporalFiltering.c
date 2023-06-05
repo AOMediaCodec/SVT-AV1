@@ -2068,12 +2068,13 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
     count_ptr[C_V] = count[C_V] + offset_block_buffer_V;
 
     if (encoder_bit_depth == 8) {
+#if !CLN_TF
         uint8_t *src_ptr[COLOR_CHANNELS] = {
             src[C_Y] + offset_src_buffer_Y,
             src[C_U] + offset_src_buffer_U,
             src[C_V] + offset_src_buffer_V,
         };
-
+#endif
         uint8_t *pred_ptr[COLOR_CHANNELS] = {
             pred[C_Y] + offset_block_buffer_Y,
             pred[C_U] + offset_block_buffer_U,
@@ -2097,7 +2098,11 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
                 count_ptr[C_U],
                 accum_ptr[C_V],
                 count_ptr[C_V]);
+#if CLN_TF
+        } else{
+#else
         } else
+#endif
 #endif
 #if !CLN_TF
         if (me_ctx->tf_ctrls.use_fast_filter) {
@@ -2112,6 +2117,13 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
                                                          count_ptr[C_Y]);
         } else {
             if (me_ctx->tf_ctrls.use_medium_filter) {
+#endif
+#if CLN_TF
+                uint8_t *src_ptr[COLOR_CHANNELS] = {
+                        src[C_Y] + offset_src_buffer_Y,
+                        src[C_U] + offset_src_buffer_U,
+                        src[C_V] + offset_src_buffer_V,
+                };
 #endif
                 svt_av1_apply_temporal_filter_planewise_medium(me_ctx,
                                                                src_ptr[C_Y],
@@ -2134,6 +2146,9 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
                                                                count_ptr[C_U],
                                                                accum_ptr[C_V],
                                                                count_ptr[C_V]);
+#if CLN_TF
+            }
+#endif
 #if !CLN_TF
            } else
                 svt_av1_apply_temporal_filter_planewise(me_ctx,
@@ -2160,12 +2175,13 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
         }
 #endif
     } else {
+#if !CLN_TF
         uint16_t *src_ptr_16bit[COLOR_CHANNELS] = {
             src_16bit[C_Y] + offset_src_buffer_Y,
             src_16bit[C_U] + offset_src_buffer_U,
             src_16bit[C_V] + offset_src_buffer_V,
         };
-
+#endif
         uint16_t *pred_ptr_16bit[COLOR_CHANNELS] = {
             pred_16bit[C_Y] + offset_block_buffer_Y,
             pred_16bit[C_U] + offset_block_buffer_U,
@@ -2194,7 +2210,11 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
                 count_ptr[C_V],
                 encoder_bit_depth);
         }
+#if CLN_TF
+        else {
+#else
         else
+#endif
 #endif
 #if !CLN_TF
         if (me_ctx->tf_ctrls.use_fast_filter) {
@@ -2211,6 +2231,14 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
         } else {
             if (me_ctx->tf_ctrls.use_medium_filter) {
 #endif
+#if CLN_TF
+            uint16_t *src_ptr_16bit[COLOR_CHANNELS] = {
+                src_16bit[C_Y] + offset_src_buffer_Y,
+                src_16bit[C_U] + offset_src_buffer_U,
+                src_16bit[C_V] + offset_src_buffer_V,
+            };
+#endif
+
                 svt_av1_apply_temporal_filter_planewise_medium_hbd(me_ctx,
                                                                    src_ptr_16bit[C_Y],
                                                                    stride[C_Y],
@@ -2233,6 +2261,9 @@ static void apply_filtering_block_plane_wise(MeContext *me_ctx, int block_row, i
                                                                    accum_ptr[C_V],
                                                                    count_ptr[C_V],
                                                                    encoder_bit_depth);
+#if CLN_TF
+                }
+#endif
 #if !CLN_TF
             } else
                 svt_av1_apply_temporal_filter_planewise_hbd(me_ctx,
@@ -5015,11 +5046,11 @@ static EbErrorType produce_temporally_filtered_pic(
             int blk_y_src_offset  = (blk_col * BW) + (blk_row * BH) * stride[C_Y];
             int blk_ch_src_offset = (blk_col * blk_width_ch) +
                 (blk_row * blk_height_ch) * stride[C_U];
-#if !CLN_TF
+
             // reset accumulator and count
             memset(accumulator, 0, BLK_PELS * COLOR_CHANNELS * sizeof(accumulator[0]));
             memset(counter, 0, BLK_PELS * COLOR_CHANNELS * sizeof(counter[0]));
-#endif
+
             EbByte    src_center_ptr[COLOR_CHANNELS]           = {NULL};
             uint16_t *altref_buffer_highbd_ptr[COLOR_CHANNELS] = {NULL};
             // Prep 8bit source if 8bit content or using 8bit for subpel

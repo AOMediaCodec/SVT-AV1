@@ -9354,7 +9354,7 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
     for (uint32_t full_loop_cand_idx = 0; full_loop_cand_idx < full_cand_count + 1;
          ++full_loop_cand_idx) {
         ModeDecisionCandidateBuffer *full_cand_bf;
-        ModeDecisionCandidate *      full_cand = NULL;
+        ModeDecisionCandidate *      full_cand;
 
         if (full_loop_cand_idx < full_cand_count) {
             uint32_t full_cand_index = ctx->best_candidate_index_array[full_loop_cand_idx];
@@ -9376,18 +9376,21 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
 
             tested_uv_modes[full_cand->intra_chroma_mode]
                            [MAX_ANGLE_DELTA + full_cand->angle_delta[PLANE_TYPE_UV]] = 1;
+
+            // Inject all intra chroma modes for candidates that made it to MDS3. Set here instead of below for sanitizer
+            cand_array[uv_mode_total_count].intra_chroma_mode = full_cand->intra_chroma_mode;
+            cand_array[uv_mode_total_count].angle_delta[PLANE_TYPE_UV] =
+                full_cand->angle_delta[PLANE_TYPE_UV];
+        } else {
+            // Always test DC, which is injected during the last pass
+            assert(full_loop_cand_idx == full_cand_count);
+            cand_array[uv_mode_total_count].intra_chroma_mode          = UV_DC_PRED;
+            cand_array[uv_mode_total_count].angle_delta[PLANE_TYPE_UV] = 0;
         }
-        assert(IMPLIES(full_loop_cand_idx < full_cand_count, full_cand != NULL));
+
         cand_array[uv_mode_total_count].use_intrabc               = 0;
         cand_array[uv_mode_total_count].angle_delta[PLANE_TYPE_Y] = 0;
         cand_array[uv_mode_total_count].pred_mode                 = DC_PRED;
-        cand_array[uv_mode_total_count].intra_chroma_mode = (full_loop_cand_idx == full_cand_count)
-            ? UV_DC_PRED
-            : full_cand->intra_chroma_mode;
-        cand_array[uv_mode_total_count].angle_delta[PLANE_TYPE_UV] = (full_loop_cand_idx ==
-                                                                      full_cand_count)
-            ? 0
-            : full_cand->angle_delta[PLANE_TYPE_UV];
         cand_array[uv_mode_total_count].tx_depth                   = 0;
         cand_array[uv_mode_total_count].palette_info               = NULL;
         cand_array[uv_mode_total_count].filter_intra_mode          = FILTER_INTRA_MODES;
