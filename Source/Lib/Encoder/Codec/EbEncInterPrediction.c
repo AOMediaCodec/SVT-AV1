@@ -2385,9 +2385,7 @@ static int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf,
                 /*mbmi*/ cand_bf->cand->interp_filters, dir);
             assert(pred_ctx < SWITCHABLE_FILTER_CONTEXTS);
             assert(filter < SWITCHABLE_FILTERS);
-            inter_filter_cost +=
-                /*x->switchable_interp_costs*/ ctx->md_rate_est_ctx
-                    ->switchable_interp_fac_bitss[pred_ctx][filter];
+            inter_filter_cost += ctx->md_rate_est_ctx->switchable_interp_fac_bitss[pred_ctx][filter];
         }
 #if CLN_IFS_PATH
         return inter_filter_cost;
@@ -3241,27 +3239,27 @@ static void inter_intra_prediction(
                 !ED_STAGE,
                 blk_geom,
                 blk_ptr->av1xd,
-                plane ? blk_geom->bwidth_uv : blk_geom->bwidth, //int32_t wpx,
-                plane ? blk_geom->bheight_uv : blk_geom->bheight, //int32_t hpx,
-                plane ? tx_size_Chroma : tx_size, //TxSize tx_size,
-                interintra_to_intra_mode[interintra_mode], //PredictionMode mode,
+                plane ? blk_geom->bwidth_uv : blk_geom->bwidth,
+                plane ? blk_geom->bheight_uv : blk_geom->bheight,
+                plane ? tx_size_Chroma : tx_size,
+                interintra_to_intra_mode[interintra_mode],
                 0,
-                0, //int32_t use_palette,
+                0,
                 NULL,
-                FILTER_INTRA_MODES, // FilterIntraMode filter_intra_mode,
+                FILTER_INTRA_MODES, 
                 (uint16_t *)topNeighArray + 1,
                 (uint16_t *)leftNeighArray + 1,
-                &intra_pred_desc, //uint8_t *dst,
-                0, //int32_t col_off,
-                0, //int32_t row_off,
-                plane, //int32_t plane,
-                blk_geom->bsize, //uint32_t puSize,
+                &intra_pred_desc,
+                0,
+                0,
+                plane,
+                blk_geom->bsize,
                 dst_origin_x,
                 dst_origin_y,
                 pu_origin_x,
                 pu_origin_y,
-                0, //uint32_t cuOrgX used only for prediction Ptr
-                0, //uint32_t cuOrgY used only for prediction Ptr
+                0,
+                0,
                 &pcs->scs->seq_header);
             svt_aom_combine_interintra_highbd(interintra_mode,
                                               use_wedge_interintra,
@@ -3281,27 +3279,27 @@ static void inter_intra_prediction(
                 !ED_STAGE,
                 blk_geom,
                 blk_ptr->av1xd,
-                plane ? blk_geom->bwidth_uv : blk_geom->bwidth, //int32_t wpx,
-                plane ? blk_geom->bheight_uv : blk_geom->bheight, //int32_t hpx,
-                plane ? tx_size_Chroma : tx_size, //TxSize tx_size,
-                interintra_to_intra_mode[interintra_mode], //PredictionMode mode,
+                plane ? blk_geom->bwidth_uv : blk_geom->bwidth,
+                plane ? blk_geom->bheight_uv : blk_geom->bheight,
+                plane ? tx_size_Chroma : tx_size,
+                interintra_to_intra_mode[interintra_mode],
                 0,
-                0, //int32_t use_palette,
+                0,
                 NULL,
-                FILTER_INTRA_MODES, // FilterIntraMode filter_intra_mode,
+                FILTER_INTRA_MODES,
                 topNeighArray + 1,
                 leftNeighArray + 1,
-                &intra_pred_desc, //uint8_t *dst,
-                0, //int32_t col_off,
-                0, //int32_t row_off,
-                plane, //int32_t plane,
-                blk_geom->bsize, //uint32_t puSize,
+                &intra_pred_desc, 
+                0,
+                0,
+                plane,
+                blk_geom->bsize,
                 dst_origin_x,
                 dst_origin_y,
                 pu_origin_x,
                 pu_origin_y,
-                0, //uint32_t cuOrgX used only for prediction Ptr
-                0, //uint32_t cuOrgY used only for prediction Ptr
+                0,
+                0,
                 &pcs->scs->seq_header);
 
             svt_aom_combine_interintra(interintra_mode,

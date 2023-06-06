@@ -464,8 +464,9 @@ typedef struct ParentSqCmplxCtrls {
 #if OPT_NON_NORMATIVE_TXS
 typedef struct NsqPsqTxsCtrls {
     uint8_t  enabled;
-    uint32_t th0;
-    uint32_t th1;
+    uint32_t hv_to_sq_th; // Skip NSQ if min(H0-nz,H1-nz) is higher than hv_to_sq_th * sq-nz, and min(V0-nz,V1-nz) is higher than hv_to_sq_th * sq-nz
+    uint32_t h_to_v_th;   // Skip H/V if min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than min(V0-nz,V1-nz)/min(H0-nz,H1-nz),  
+                          // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
 } NsqPsqTxsCtrls;
 #endif
 #if OPT_NSQ_PSQ_MODE
@@ -602,6 +603,8 @@ typedef struct NsqCtrls {
     // VA, VB, and V4 if v_cost > (weighted sq_cost)
     uint32_t sq_weight;
 #if OPT_SQ_WEIGHT
+    // Skip H/V if the cost of H/V is bigger than the cost of V/H by hv_weight
+    // Only active when sq_weight is used (ie. sq_weight != (uint32_t)~0)
     uint32_t hv_weight;
 #endif
     // max_part0_to_part1_dev is used to:
@@ -1210,12 +1213,6 @@ typedef struct ModeDecisionContext {
 #endif
     uint8_t     *above_txfm_context;
     uint8_t     *left_txfm_context;
-    // square cost weighting for deciding if a/b shapes could be skipped
-    uint32_t sq_weight;
-#if OPT_SQ_WEIGHT
-    uint32_t hv_weight;
-#endif
-    uint32_t max_part0_to_part1_dev;
 #if !CLN_SKIP_HV4
     // if true, skip H4/V4 shapes when best partition so far is not H/V
     uint32_t skip_hv4_on_best_part;

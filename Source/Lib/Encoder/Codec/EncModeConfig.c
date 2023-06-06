@@ -5610,13 +5610,13 @@ static void set_sq_txs_ctrls(ModeDecisionContext *ctx, uint8_t psq_txs_lvl) {
     case 0: nsq_psq_txs_ctrls->enabled = 0; break;
     case 1:
         nsq_psq_txs_ctrls->enabled = 1;
-        nsq_psq_txs_ctrls->th0     = 250;
-        nsq_psq_txs_ctrls->th1     = 25;
+        nsq_psq_txs_ctrls->hv_to_sq_th = 250;
+        nsq_psq_txs_ctrls->h_to_v_th   = 25;
         break;
     case 2:
         nsq_psq_txs_ctrls->enabled = 1;
-        nsq_psq_txs_ctrls->th0     = 150;
-        nsq_psq_txs_ctrls->th1     = 15;
+        nsq_psq_txs_ctrls->hv_to_sq_th = 150;
+        nsq_psq_txs_ctrls->h_to_v_th   = 15;
         break;
     default: assert(0); break;
     }

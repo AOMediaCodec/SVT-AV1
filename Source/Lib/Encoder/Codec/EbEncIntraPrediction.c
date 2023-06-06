@@ -855,29 +855,28 @@ EbErrorType svt_av1_intra_prediction_cl(
                     !ED_STAGE,
                     ctx->blk_geom,
                     ctx->blk_ptr->av1xd,
-                    plane ? ctx->blk_geom->bwidth_uv : ctx->blk_geom->bwidth,          //int32_t wpx,
-                    plane ? ctx->blk_geom->bheight_uv : ctx->blk_geom->bheight,          //int32_t hpx,
-                    plane ? tx_size_chroma : tx_size,                                               //TxSize tx_size,
-                    mode,                                                                           //PredictionMode mode,
+                    plane ? ctx->blk_geom->bwidth_uv : ctx->blk_geom->bwidth,       
+                    plane ? ctx->blk_geom->bheight_uv : ctx->blk_geom->bheight,     
+                    plane ? tx_size_chroma : tx_size,                               
+                    mode,                                                           
                     plane ? cand_bf->cand->angle_delta[PLANE_TYPE_UV] : cand_bf->cand->angle_delta[PLANE_TYPE_Y],
                     plane==0 ? (cand_bf->cand->palette_info ?
                                     cand_bf->cand->palette_size[0]>0 : 0) : 0,
-                    plane==0 ? cand_bf->cand->palette_info : NULL,    //MD
+                    plane==0 ? cand_bf->cand->palette_info : NULL,
                     plane ? FILTER_INTRA_MODES : cand_bf->cand->filter_intra_mode,
                     top_neigh_array + 1,
                     left_neigh_array + 1,
-                    cand_bf->pred,                                              //uint8_t *dst,
-                    //int32_t dst_stride,
-                    0,                                                                              //int32_t col_off,
-                    0,                                                                              //int32_t row_off,
-                    plane,                                                                          //int32_t plane,
-                    ctx->blk_geom->bsize,       //uint32_t puSize,
+                    cand_bf->pred,
+                    0,                         
+                    0,                         
+                    plane,                     
+                    ctx->blk_geom->bsize,      
                     ctx->blk_org_x,
                     ctx->blk_org_y,
-                    ctx->blk_org_x,                  //uint32_t cuOrgX,
-                    ctx->blk_org_y,                  //uint32_t cuOrgY
-                    plane ? ((ctx->blk_geom->org_x >> 3) << 3) / 2 : ctx->blk_geom->org_x,  //uint32_t cuOrgX used only for prediction Ptr
-                    plane ? ((ctx->blk_geom->org_y >> 3) << 3) / 2 : ctx->blk_geom->org_y,   //uint32_t cuOrgY used only for prediction Ptr
+                    ctx->blk_org_x,            
+                    ctx->blk_org_y,            
+                    plane ? ((ctx->blk_geom->org_x >> 3) << 3) / 2 : ctx->blk_geom->org_x,
+                    plane ? ((ctx->blk_geom->org_y >> 3) << 3) / 2 : ctx->blk_geom->org_y,
                     &pcs->scs->seq_header
             );
         }
@@ -992,28 +991,28 @@ EbErrorType svt_av1_intra_prediction_cl(
                     !ED_STAGE,
                     ctx->blk_geom,
                     ctx->blk_ptr->av1xd,
-                    plane ? ctx->blk_geom->bwidth_uv : ctx->blk_geom->bwidth,          //int32_t wpx,
-                    plane ? ctx->blk_geom->bheight_uv : ctx->blk_geom->bheight,          //int32_t hpx,
-                    plane ? tx_size_chroma : tx_size,                                               //TxSize tx_size,
-                    mode,                                                                           //PredictionMode mode,
+                    plane ? ctx->blk_geom->bwidth_uv : ctx->blk_geom->bwidth,   
+                    plane ? ctx->blk_geom->bheight_uv : ctx->blk_geom->bheight, 
+                    plane ? tx_size_chroma : tx_size,                           
+                    mode,                                                       
                     plane ? cand_bf->cand->angle_delta[PLANE_TYPE_UV] : cand_bf->cand->angle_delta[PLANE_TYPE_Y],
                     plane==0 ? (cand_bf->cand->palette_info ?
                                     cand_bf->cand->palette_size[0]>0 : 0) : 0,
-                    plane==0 ? cand_bf->cand->palette_info : NULL,    //MD
+                    plane==0 ? cand_bf->cand->palette_info : NULL,
                     plane ? FILTER_INTRA_MODES : cand_bf->cand->filter_intra_mode,
                     top_neigh_array + 1,
                     left_neigh_array + 1,
-                    cand_bf->pred,                                              //uint8_t *dst,
-                    0,                                                                              //int32_t col_off,
-                    0,                                                                              //int32_t row_off,
-                    plane,                                                                          //int32_t plane,
-                    ctx->blk_geom->bsize,       //uint32_t puSize,
+                    cand_bf->pred,             
+                    0,                         
+                    0,                         
+                    plane,                     
+                    ctx->blk_geom->bsize,      
                     ctx->blk_org_x,
                     ctx->blk_org_y,
-                    ctx->blk_org_x,                  //uint32_t cuOrgX,
-                    ctx->blk_org_y,                  //uint32_t cuOrgY
-                    plane ? ((ctx->blk_geom->org_x >> 3) << 3) / 2 : ctx->blk_geom->org_x,  //uint32_t cuOrgX used only for prediction Ptr
-                    plane ? ((ctx->blk_geom->org_y >> 3) << 3) / 2 : ctx->blk_geom->org_y,   //uint32_t cuOrgY used only for prediction Ptr
+                    ctx->blk_org_x,            
+                    ctx->blk_org_y,            
+                    plane ? ((ctx->blk_geom->org_x >> 3) << 3) / 2 : ctx->blk_geom->org_x,
+                    plane ? ((ctx->blk_geom->org_y >> 3) << 3) / 2 : ctx->blk_geom->org_y,
                     &pcs->scs->seq_header
             );
         }

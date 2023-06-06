@@ -12763,29 +12763,26 @@ Bool update_skip_nsq_based_on_parent_mode(ModeDecisionContext *ctx) {
         return FALSE;
 
 
+    MdBlkStruct* sq_md_local_blk_unit = &ctx->md_local_blk_unit[blk_geom->sqi_mds];
+    BlkStruct* sq_blk_ptr = &ctx->md_blk_arr_nsq[blk_geom->sqi_mds];
 
-    if (ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEARESTMV ||
-        ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEARMV ||
-        ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEAREST_NEARESTMV ||
-        ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode == NEAR_NEARMV) {
+    if (sq_blk_ptr->pred_mode == NEARESTMV ||
+        sq_blk_ptr->pred_mode == NEARMV ||
+        sq_blk_ptr->pred_mode == NEAREST_NEARESTMV ||
+        sq_blk_ptr->pred_mode == NEAR_NEARMV) {
+
         uint32_t count_non_zero_coeffs =
-            ctx->md_local_blk_unit[ctx->blk_geom->sqi_mds].cnt_nz_coeff;
+            sq_md_local_blk_unit->cnt_nz_coeff;
         uint32_t total_samples = (ctx->blk_geom->sq_size * ctx->blk_geom->sq_size);
 
         if (((count_non_zero_coeffs * 100) / total_samples) <= ctx->nsq_psq_pred_ctrls.coef_th) {
-            if (((ctx->md_local_blk_unit[blk_geom->sqi_mds].best_intra_new_cost -
-                  ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost) *
-                 100) >= (ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost *
-                          ctx->nsq_psq_pred_ctrls.cost_th))
+
+            if (((sq_md_local_blk_unit->best_intra_new_cost - sq_md_local_blk_unit->default_cost) * 100) >= (sq_md_local_blk_unit->default_cost * ctx->nsq_psq_pred_ctrls.cost_th))
                 return TRUE;
+
         }
     }
-#if !OPT_NSQ_PSQ_MODE
-    else if (!is_intra_mode(ctx->md_blk_arr_nsq[blk_geom->sqi_mds].pred_mode)) {
-        if (((ctx->md_local_blk_unit[blk_geom->sqi_mds].best_intra_cost - ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost) * 100) >= (ctx->md_local_blk_unit[blk_geom->sqi_mds].default_cost * (ctx->nsq_ctrls.sq_pred_cost_th << 1)))
-            return TRUE;
-    }
-#endif
+
     return FALSE;
 }
 #endif
@@ -12812,8 +12809,8 @@ Bool update_skip_nsq_based_on_sq_txs(ModeDecisionContext *ctx) {
         (sq_md_local_blk_unit->cnt_non_zero_v[1] != (uint16_t)~0)) {
 #endif
 #if OPT_NON_NORMATIVE_TXS
-        uint32_t coeff_th0 = ctx->nsq_psq_txs_ctrls.th0;
-        uint32_t coeff_th1 = ctx->nsq_psq_txs_ctrls.th1;
+        uint32_t hv_to_sq_th = ctx->nsq_psq_txs_ctrls.hv_to_sq_th;
+        uint32_t h_to_v_th = ctx->nsq_psq_txs_ctrls.h_to_v_th;
         uint16_t cnt_h_min = sq_md_local_blk_unit->min_nz_h;
         uint16_t cnt_v_min = sq_md_local_blk_unit->min_nz_v;
 #else
@@ -12828,21 +12825,21 @@ Bool update_skip_nsq_based_on_sq_txs(ModeDecisionContext *ctx) {
         uint16_t cnt_h_best = cnt_h_min << 1;
         uint16_t cnt_v_best = cnt_v_min << 1;
 
-        if ((cnt_h_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th0) / 100)) &&
-            (cnt_v_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th0) / 100)))
+        if ((cnt_h_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * hv_to_sq_th) / 100)) &&
+            (cnt_v_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * hv_to_sq_th) / 100)))
             return TRUE;
 
         if (blk_geom->shape == PART_H || blk_geom->shape == PART_HA || blk_geom->shape == PART_HB ||
             blk_geom->shape == PART_H4) {
             if ((cnt_v_best <= cnt_h_best) &&
-                (cnt_h_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th1) / 100)))
+                (cnt_h_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * h_to_v_th) / 100)))
                 return TRUE;
         }
 
         if (blk_geom->shape == PART_V || blk_geom->shape == PART_VA || blk_geom->shape == PART_VB ||
             blk_geom->shape == PART_V4) {
             if ((cnt_h_best <= cnt_v_best) &&
-                (cnt_v_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * coeff_th1) / 100)))
+                (cnt_v_best >= ((sq_md_local_blk_unit->cnt_nz_coeff * h_to_v_th) / 100)))
                 return TRUE;
         }
     }
