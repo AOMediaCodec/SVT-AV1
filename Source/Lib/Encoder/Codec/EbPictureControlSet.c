@@ -1609,6 +1609,10 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
         : 0;
     EB_NEW(object_ptr->dg_detector, svt_aom_dg_detector_seg_ctor);
 #if GM_REFINFO
+
+#if FIX_GM_CI
+    if(svt_aom_need_gm_ref_info(init_data_ptr->enc_mode, true, init_data_ptr->static_config.resize_mode == RESIZE_NONE))
+#endif
     {
         EbPictureBufferDescInitData input_pic_buf_desc_init_data;
         input_pic_buf_desc_init_data.max_width          = init_data_ptr->picture_width >> 1;

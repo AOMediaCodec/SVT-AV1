@@ -251,6 +251,7 @@ extern "C" {
 #define ENABLE_LD_DLF_RA                          1 // Enable LD DLF changes in RA
 #define CLN_FAST_COST_FUNCS                       1 // Cleanup fast cost functions
 #define CLN_UNUSED_DEFNS                          1 // Remove unused definitions
+#define FIX_GM_CI                                 1 // Clean Up GM code
 
 //FOR DEBUGGING - Do not remove
 #define LOG_ENC_DONE            0 // log encoder job one

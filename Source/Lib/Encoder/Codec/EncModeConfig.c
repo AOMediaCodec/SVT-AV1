@@ -33,6 +33,37 @@ uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode, bool rtc_tune) {
 
     return enable_me_16x16;
 }
+
+
+#if FIX_GM_CI
+uint8_t  svt_aom_get_gm_core_level(EncMode  enc_mode, uint8_t is_base, bool super_res_off) {
+    uint8_t gm_level = 0;
+    if (super_res_off) {
+        if (enc_mode <= ENC_M1)
+            gm_level = 2;
+        else if (enc_mode <= ENC_M2)
+            gm_level = 3;
+        else if (enc_mode <= ENC_M3)
+            gm_level = 4;
+        else if (enc_mode <= ENC_M5)
+            gm_level = 5;
+        else if (enc_mode <= ENC_M6)
+            gm_level = is_base ? 7 : 0;
+        else
+            gm_level = 0;
+    }
+    return gm_level;
+}
+bool svt_aom_need_gm_ref_info(EncMode  enc_mode, uint8_t is_base, bool super_res_off)
+{
+    uint8_t gm_lvl = svt_aom_get_gm_core_level(enc_mode, is_base, super_res_off);
+    PictureParentControlSet pcs_tmp;
+    svt_aom_set_gm_controls(&pcs_tmp, gm_lvl);
+    return pcs_tmp.gm_ctrls.use_ref_info;
+}
+#endif
+
+
 #if FIX_GM_PP
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off) {
     SequenceControlSet *scs      = pcs->scs;
@@ -47,6 +78,16 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off
     // pics might be scaled in different size
     // super-res is ok for its reference pics are always upscaled
     // to original size
+#if FIX_GM_CI
+#if GM_REFINFO
+    if (!is_islice)
+        gm_level = svt_aom_get_gm_core_level(pcs->enc_mode, is_base, super_res_off);
+    return gm_level;
+#else
+    gm_level = svt_aom_get_gm_core_level(pcs->enc_mode, is_base, super_res_off);
+    return gm_level;
+#endif
+#else
 #if GM_REFINFO
     if (scs->enable_global_motion == TRUE && super_res_off && !is_islice) {
 #else
@@ -85,6 +126,9 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off
     }
 #endif
     return gm_level;
+
+#endif
+
 }
 #else
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs) {

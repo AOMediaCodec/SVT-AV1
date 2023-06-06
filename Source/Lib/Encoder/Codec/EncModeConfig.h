@@ -56,6 +56,9 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
 void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs,
                                ModeDecisionContext *ctx);
 
+#if FIX_GM_CI
+bool svt_aom_need_gm_ref_info(EncMode  enc_mode, uint8_t is_base, bool super_res_off);
+#endif
 #if FIX_GM_PP
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off);
 #else

@@ -16,6 +16,9 @@
 #include "EbReferenceObject.h"
 #include "EbPictureBufferDesc.h"
 #include "EbUtility.h"
+#if FIX_GM_CI
+#include "EncModeConfig.h"
+#endif
 
 void initialize_samples_neighboring_reference_picture_8bit(EbByte   recon_samples_buffer_ptr,
                                                            uint16_t stride, uint16_t recon_width,
@@ -141,9 +144,14 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
     }
     ref_object->input_picture = NULL;
 #if GM_REFINFO
-    EB_NEW(ref_object->input_picture,
-           svt_picture_buffer_desc_ctor,
-           (EbPtr)picture_buffer_desc_init_data_ptr);
+#if FIX_GM_CI
+    const bool gm_ref_info = svt_aom_need_gm_ref_info(ref_init_ptr->static_config->enc_mode,
+        true, ref_init_ptr->static_config->resize_mode == RESIZE_NONE);
+    if (gm_ref_info)
+#endif
+        EB_NEW(ref_object->input_picture,
+               svt_picture_buffer_desc_ctor,
+               (EbPtr)picture_buffer_desc_init_data_ptr);
 #endif
     uint32_t mi_rows = ref_object->reference_picture->height >> MI_SIZE_LOG2;
     uint32_t mi_cols = ref_object->reference_picture->width >> MI_SIZE_LOG2;
@@ -160,6 +168,9 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
     ref_object->quarter_reference_picture   = NULL;
     ref_object->sixteenth_reference_picture = NULL;
 #if GM_REFINFO
+#if FIX_GM_CI
+    if (gm_ref_info)
+#endif
     {
         EbPictureBufferDescInitData buf_desc;
         buf_desc.max_width          = picture_buffer_desc_init_data_ptr->max_width >> 1;

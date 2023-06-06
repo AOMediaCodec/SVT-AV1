@@ -1485,7 +1485,9 @@ static int create_ref_buf_descs(EbEncHandle *enc_handle_ptr, uint32_t instance_i
     eb_ref_obj_ect_desc_init_data_structure.reference_picture_desc_init_data = ref_pic_buf_desc_init_data;
     eb_ref_obj_ect_desc_init_data_structure.hbd_md =
         scs->enable_hbd_mode_decision;
-
+#if FIX_GM_CI
+    eb_ref_obj_ect_desc_init_data_structure.static_config = &scs->static_config;
+#endif
     // Reference Picture Buffers
     EB_NEW(
             enc_handle_ptr->reference_picture_pool_ptr_array[instance_index],

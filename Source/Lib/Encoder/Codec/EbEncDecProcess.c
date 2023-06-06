@@ -1910,7 +1910,11 @@ void pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs) {
     ref_object->slice_type = pcs->ppcs->slice_type;
     ref_object->r0         = pcs->ppcs->r0;
 #if GM_REFINFO
+#if FIX_GM_CI
+    if (pcs->ppcs->gm_ctrls.enabled && pcs->ppcs->gm_ctrls.use_ref_info) {
+#else
     if (pcs->ppcs->gm_ctrls.enabled) {
+#endif
         bool gm_need_full, gm_need_quart, gm_need_sixteen;
 
         svt_aom_get_gm_needed_resolutions(
