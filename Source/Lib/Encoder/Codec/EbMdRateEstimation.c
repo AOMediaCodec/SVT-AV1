@@ -20,8 +20,8 @@
 #include "EbRateDistortionCost.h"
 #include "EbInterPrediction.h"
 
-static INLINE int32_t get_interinter_wedge_bits(BlockSize sb_type) {
-    const int32_t wbits = svt_aom_get_wedge_params_bits(sb_type);
+static INLINE int32_t get_interinter_wedge_bits(BlockSize bsize) {
+    const int32_t wbits = svt_aom_get_wedge_params_bits(bsize);
     return (wbits > 0) ? wbits + 1 : 0;
 }
 
@@ -641,7 +641,7 @@ INLINE int32_t is_chroma_reference(int32_t mi_row, int32_t mi_col, BlockSize bsi
 
 int32_t is_inter_block(const BlockModeInfoEnc *mbmi);
 
-int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize sb_type);
+int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize bsize);
 
 int svt_aom_get_palette_bsize_ctx(BlockSize bsize);
 
@@ -859,7 +859,7 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
     FRAME_CONTEXT          *fc       = xd->tile_ctx;
     const PredictionMode    y_mode   = mbmi->block_mi.mode;
     const BlockGeom        *blk_geom = get_blk_geom_mds(blk_ptr->mds_idx);
-    const BlockSize         bsize    = mbmi->block_mi.sb_type;
+    const BlockSize         bsize    = mbmi->block_mi.bsize;
     assert(bsize < BlockSizeS_ALL);
     assert(y_mode < 13);
 

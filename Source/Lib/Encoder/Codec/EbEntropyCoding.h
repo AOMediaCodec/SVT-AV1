@@ -44,7 +44,7 @@ extern EbErrorType svt_aom_write_sb(struct EntropyCodingContext *context_ptr, Su
                                     PictureControlSet *pcs, uint16_t tile_idx, EntropyCoder *ec,
                                     EbPictureBufferDesc *coeff_ptr);
 
-extern int svt_aom_get_wedge_params_bits(BlockSize sb_type);
+extern int svt_aom_get_wedge_params_bits(BlockSize bsize);
 
 extern EbErrorType svt_aom_encode_slice_finish(EntropyCoder *ec);
 

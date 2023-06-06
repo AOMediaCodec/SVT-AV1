@@ -2186,17 +2186,17 @@ static const WedgeParamsType wedge_params_lookup[BlockSizeS_ALL] = {
     {0, NULL, NULL, NULL},
 };
 
-int svt_aom_is_interintra_wedge_used(BlockSize sb_type) {
-    return wedge_params_lookup[sb_type].bits > 0;
+int svt_aom_is_interintra_wedge_used(BlockSize bsize) {
+    return wedge_params_lookup[bsize].bits > 0;
 }
 
-int32_t svt_aom_get_wedge_bits_lookup(BlockSize sb_type) {
-    return wedge_params_lookup[sb_type].bits;
+int32_t svt_aom_get_wedge_bits_lookup(BlockSize bsize) {
+    return wedge_params_lookup[bsize].bits;
 }
 
 const uint8_t *svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign,
-                                                BlockSize sb_type) {
-    return wedge_params_lookup[sb_type].masks[wedge_sign][wedge_index];
+                                                BlockSize bsize) {
+    return wedge_params_lookup[bsize].masks[wedge_sign][wedge_index];
 }
 
 static void aom_convolve_copy_c(const uint8_t *src, ptrdiff_t src_stride, uint8_t *dst,
@@ -2225,7 +2225,7 @@ static void shift_copy(const uint8_t *src, uint8_t *dst, int shift, int width) {
     }
 }
 
-int svt_aom_get_wedge_params_bits(BlockSize sb_type) { return wedge_params_lookup[sb_type].bits; }
+int svt_aom_get_wedge_params_bits(BlockSize bsize) { return wedge_params_lookup[bsize].bits; }
 
 #endif // USE_PRECOMPUTED_WEDGE_MASK
 
@@ -2304,17 +2304,17 @@ static void init_wedge_primary_masks() {
 // wedge codebook.
 static void init_wedge_signs() {
     memset(wedge_signflip_lookup, 0, sizeof(wedge_signflip_lookup));
-    for (BLOCK_SIZE sb_type = BLOCK_4X4; sb_type < BLOCK_SIZES_ALL; ++sb_type) {
-        const int               bw           = block_size_wide[sb_type];
-        const int               bh           = block_size_high[sb_type];
-        const wedge_params_type wedge_params = wedge_params_lookup[sb_type];
+    for (BLOCK_SIZE bsize = BLOCK_4X4; bsize < BLOCK_SIZES_ALL; ++bsize) {
+        const int               bw           = block_size_wide[bsize];
+        const int               bh           = block_size_high[bsize];
+        const wedge_params_type wedge_params = wedge_params_lookup[bsize];
         const int               wbits        = wedge_params.bits;
         const int               wtypes       = 1 << wbits;
 
         if (wbits) {
             for (int w = 0; w < wtypes; ++w) {
                 // Get the mask primary, i.e. index [0]
-                const uint8_t *mask = get_wedge_mask_inplace(w, 0, sb_type);
+                const uint8_t *mask = get_wedge_mask_inplace(w, 0, bsize);
                 int            avg  = 0;
                 for (int i = 0; i < bw; ++i) avg += mask[i];
                 for (int i = 1; i < bh; ++i) avg += mask[i * MASK_PRIMARY_STRIDE];
@@ -2335,14 +2335,14 @@ static void init_wedge_signs() {
 }
 #endif // !USE_PRECOMPUTED_WEDGE_SIGN
 
-static const uint8_t *get_wedge_mask_inplace(int wedge_index, int neg, BlockSize sb_type) {
-    const int bh = block_size_high[sb_type];
-    const int bw = block_size_wide[sb_type];
+static const uint8_t *get_wedge_mask_inplace(int wedge_index, int neg, BlockSize bsize) {
+    const int bh = block_size_high[bsize];
+    const int bw = block_size_wide[bsize];
 
-    assert(wedge_index >= 0 && wedge_index < (1 << svt_aom_get_wedge_bits_lookup(sb_type)));
-    const WedgeCodeType *a = wedge_params_lookup[sb_type].codebook + wedge_index;
+    assert(wedge_index >= 0 && wedge_index < (1 << svt_aom_get_wedge_bits_lookup(bsize)));
+    const WedgeCodeType *a = wedge_params_lookup[bsize].codebook + wedge_index;
     int                  woff, hoff;
-    const uint8_t        wsignflip = wedge_params_lookup[sb_type].signflip[wedge_index];
+    const uint8_t        wsignflip = wedge_params_lookup[bsize].signflip[wedge_index];
 
     woff = (a->x_offset * bw) >> 3;
     hoff = (a->y_offset * bh) >> 3;
@@ -2491,13 +2491,13 @@ void svt_aom_combine_interintra_highbd(InterIntraMode mode, uint8_t use_wedge_in
 }
 
 static const uint8_t *av1_get_compound_type_mask(const InterInterCompoundData *const comp_data,
-                                                 uint8_t *seg_mask, BlockSize sb_type) {
+                                                 uint8_t *seg_mask, BlockSize bsize) {
     assert(svt_aom_is_masked_compound_type(comp_data->type));
-    (void)sb_type;
+    (void)bsize;
     switch (comp_data->type) {
     case COMPOUND_WEDGE:
         return svt_aom_get_contiguous_soft_mask(
-            comp_data->wedge_index, comp_data->wedge_sign, sb_type);
+            comp_data->wedge_index, comp_data->wedge_sign, bsize);
     case COMPOUND_DIFFWTD: return seg_mask;
     default: assert(0); return NULL;
     }
@@ -2507,14 +2507,14 @@ void svt_aom_build_masked_compound_no_round(uint8_t *dst, int dst_stride, const 
                                             int src0_stride, const CONV_BUF_TYPE *src1,
                                             int                                 src1_stride,
                                             const InterInterCompoundData *const comp_data,
-                                            uint8_t *seg_mask, BlockSize sb_type, int h, int w,
+                                            uint8_t *seg_mask, BlockSize bsize, int h, int w,
                                             ConvolveParams *conv_params, uint8_t bit_depth,
                                             Bool is_16bit) {
     // Derive subsampling from h and w passed in. May be refactored to
     // pass in subsampling factors directly.
-    const int      subh = (2 << mi_size_high_log2[sb_type]) == h;
-    const int      subw = (2 << mi_size_wide_log2[sb_type]) == w;
-    const uint8_t *mask = av1_get_compound_type_mask(comp_data, seg_mask, sb_type);
+    const int      subh = (2 << mi_size_high_log2[bsize]) == h;
+    const int      subw = (2 << mi_size_wide_log2[bsize]) == w;
+    const uint8_t *mask = av1_get_compound_type_mask(comp_data, seg_mask, bsize);
 
     if (is_16bit) {
         svt_aom_highbd_blend_a64_d16_mask(dst,
@@ -2524,7 +2524,7 @@ void svt_aom_build_masked_compound_no_round(uint8_t *dst, int dst_stride, const 
                                           src1,
                                           src1_stride,
                                           mask,
-                                          block_size_wide[sb_type],
+                                          block_size_wide[bsize],
                                           w,
                                           h,
                                           subw,
@@ -2539,7 +2539,7 @@ void svt_aom_build_masked_compound_no_round(uint8_t *dst, int dst_stride, const 
                                          src1,
                                          src1_stride,
                                          mask,
-                                         block_size_wide[sb_type],
+                                         block_size_wide[bsize],
                                          w,
                                          h,
                                          subw,

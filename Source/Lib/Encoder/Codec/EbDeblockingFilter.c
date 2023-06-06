@@ -154,11 +154,11 @@ static INLINE TxSize get_transform_size(const MbModeInfo *const mbmi, const Edge
     assert(mbmi != NULL);
 
     TxSize tx_size = (plane == COMPONENT_LUMA)
-        ? (is_skip ? tx_depth_to_tx_size[0][mbmi->block_mi.sb_type]
+        ? (is_skip ? tx_depth_to_tx_size[0][mbmi->block_mi.bsize]
                    : tx_depth_to_tx_size[mbmi->block_mi.tx_depth]
-                                        [mbmi->block_mi.sb_type]) // use max_tx_size
+                                        [mbmi->block_mi.bsize]) // use max_tx_size
         : av1_get_max_uv_txsize(
-              mbmi->block_mi.sb_type, plane_ptr->subsampling_x, plane_ptr->subsampling_y);
+              mbmi->block_mi.bsize, plane_ptr->subsampling_x, plane_ptr->subsampling_y);
     assert(tx_size < TX_SIZES_ALL);
 
     // since in case of chrominance or non-square transorm need to convert
@@ -299,7 +299,7 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
                 }
 
                 const BlockSize bsize = get_plane_block_size(
-                    mbmi->block_mi.sb_type, plane_ptr->subsampling_x, plane_ptr->subsampling_y);
+                    mbmi->block_mi.bsize, plane_ptr->subsampling_x, plane_ptr->subsampling_y);
                 assert(bsize < BlockSizeS_ALL);
                 const int32_t prediction_masks = (edge_dir == VERT_EDGE)
                     ? block_size_wide[bsize] - 1

@@ -3009,7 +3009,7 @@ static void write_ref_frames(FRAME_CONTEXT *frame_context, PictureParentControlS
         // does the feature use compound prediction or not
         // (if not specified at the frame/segment level)
         if (frm_hdr->reference_mode == REFERENCE_MODE_SELECT) {
-            if (is_comp_ref_allowed(mbmi->block_mi.sb_type))
+            if (is_comp_ref_allowed(mbmi->block_mi.bsize))
                 aom_write_symbol(w, is_compound, svt_aom_get_reference_mode_cdf(xd), 2);
         } else {
             assert((!is_compound) == (frm_hdr->reference_mode == SINGLE_REFERENCE));
@@ -5232,9 +5232,9 @@ static EbErrorType ec_update_neighbors(PictureControlSet *pcs, EntropyCodingCont
 #endif
     return return_error;
 }
-int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize sb_type) {
-    return allow_screen_content_tools && block_size_wide[sb_type] <= 64 &&
-        block_size_high[sb_type] <= 64 && sb_type >= BLOCK_8X8;
+int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize bsize) {
+    return allow_screen_content_tools && block_size_wide[bsize] <= 64 &&
+        block_size_high[bsize] <= 64 && bsize >= BLOCK_8X8;
 }
 int svt_aom_get_palette_bsize_ctx(BlockSize bsize) {
     return num_pels_log2_lookup[bsize] - num_pels_log2_lookup[BLOCK_8X8];
@@ -5526,8 +5526,8 @@ static INLINE int txfm_partition_context(TXFM_CONTEXT *above_ctx, TXFM_CONTEXT *
 static void write_tx_size_vartx(MacroBlockD *xd, const MbModeInfo *mbmi, TxSize tx_size, int depth,
                                 int blk_row, int blk_col, FRAME_CONTEXT *ec_ctx, AomWriter *w) {
     //FRAME_CONTEXT *ec_ctx = xd->tile_ctx;
-    const int max_blocks_high = max_block_high(xd, mbmi->block_mi.sb_type, 0);
-    const int max_blocks_wide = max_block_wide(xd, mbmi->block_mi.sb_type, 0);
+    const int max_blocks_high = max_block_high(xd, mbmi->block_mi.bsize, 0);
+    const int max_blocks_wide = max_block_wide(xd, mbmi->block_mi.bsize, 0);
 
     if (blk_row >= max_blocks_high || blk_col >= max_blocks_wide)
         return;
@@ -5540,10 +5540,10 @@ static void write_tx_size_vartx(MacroBlockD *xd, const MbModeInfo *mbmi, TxSize 
 
     const int ctx = txfm_partition_context(xd->above_txfm_context + blk_col,
                                            xd->left_txfm_context + blk_row,
-                                           mbmi->block_mi.sb_type,
+                                           mbmi->block_mi.bsize,
                                            tx_size);
     const int write_txfm_partition =
-        (tx_size == tx_depth_to_tx_size[mbmi->block_mi.tx_depth][mbmi->block_mi.sb_type]);
+        (tx_size == tx_depth_to_tx_size[mbmi->block_mi.tx_depth][mbmi->block_mi.bsize]);
 
     if (write_txfm_partition) {
         aom_write_symbol(w, 0, ec_ctx->txfm_partition_cdf[ctx], 2);
@@ -5614,7 +5614,7 @@ static INLINE int get_tx_size_context(const MacroBlockD *xd) {
     const MbModeInfo       *mbmi        = &mi->mbmi;
     const MbModeInfo *const above_mbmi  = xd->above_mbmi;
     const MbModeInfo *const left_mbmi   = xd->left_mbmi;
-    const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.sb_type];
+    const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.bsize];
     const int               max_tx_wide = tx_size_wide[max_tx_size];
     const int               max_tx_high = tx_size_high[max_tx_size];
     const int               has_above   = xd->up_available;
@@ -5625,11 +5625,11 @@ static INLINE int get_tx_size_context(const MacroBlockD *xd) {
 
     if (has_above)
         if (is_inter_block(&above_mbmi->block_mi))
-            above = block_size_wide[above_mbmi->block_mi.sb_type] >= max_tx_wide;
+            above = block_size_wide[above_mbmi->block_mi.bsize] >= max_tx_wide;
 
     if (has_left)
         if (is_inter_block(&left_mbmi->block_mi))
-            left = block_size_high[left_mbmi->block_mi.sb_type] >= max_tx_high;
+            left = block_size_high[left_mbmi->block_mi.bsize] >= max_tx_high;
 
     if (has_above && has_left)
         return (above + left);
@@ -5644,7 +5644,7 @@ static void write_selected_tx_size(const MacroBlockD *xd, FRAME_CONTEXT *ec_ctx,
                                    TxSize tx_size) {
     const ModeInfo *const   mi    = xd->mi[0];
     const MbModeInfo *const mbmi  = &mi->mbmi;
-    const BlockSize         bsize = mbmi->block_mi.sb_type;
+    const BlockSize         bsize = mbmi->block_mi.bsize;
 
     if (block_signals_txsize(bsize)) {
         const int tx_size_ctx = get_tx_size_context(xd);
@@ -5998,12 +5998,12 @@ int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]) {
 }
 #endif
 int svt_aom_is_interintra_allowed(const MbModeInfo *mbmi) {
-    return svt_aom_is_interintra_allowed_bsize(mbmi->block_mi.sb_type) &&
+    return svt_aom_is_interintra_allowed_bsize(mbmi->block_mi.bsize) &&
         svt_aom_is_interintra_allowed_mode(mbmi->block_mi.mode) &&
         svt_aom_is_interintra_allowed_ref(mbmi->block_mi.ref_frame);
 }
 
-int svt_aom_is_interintra_wedge_used(BlockSize sb_type);
+int svt_aom_is_interintra_wedge_used(BlockSize bsize);
 #if OPT_CHILD_PCS
 static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *ec_ctx,
                                  EntropyCoder *ec, SuperBlock *tb_ptr, EcBlkStruct *blk_ptr,

@@ -509,7 +509,7 @@ void svt_av1_predict_intra_block(
         return;
     }
 
-    //CHKN BlockSize bsize = mbmi->sb_type;
+    //CHKN BlockSize bsize = mbmi->bsize;
     struct MacroblockdPlane  pd_s;
     struct MacroblockdPlane * pd = &pd_s;
     if (plane == 0)
@@ -655,7 +655,7 @@ void svt_av1_predict_intra_block_16bit(
         return;
     }
 
-    //CHKN BlockSize bsize = mbmi->sb_type;
+    //CHKN BlockSize bsize = mbmi->bsize;
 
     struct MacroblockdPlane  pd_s;
     struct MacroblockdPlane * pd = &pd_s;

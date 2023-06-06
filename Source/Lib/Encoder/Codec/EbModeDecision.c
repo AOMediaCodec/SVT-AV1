@@ -84,9 +84,9 @@ static INLINE int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]
     return (rf[0] > INTRA_FRAME) && (rf[1] <= INTRA_FRAME);
 }
 #endif
-int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
+int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize bsize, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]) {
-    return enable_inter_intra && svt_aom_is_interintra_allowed_bsize((const BlockSize)sb_type) &&
+    return enable_inter_intra && svt_aom_is_interintra_allowed_bsize((const BlockSize)bsize) &&
         svt_aom_is_interintra_allowed_mode(mode) && svt_aom_is_interintra_allowed_ref(ref_frame);
 }
 #if CLN_FUNC_DECL
@@ -2797,7 +2797,7 @@ static INLINE void setup_pred_plane(struct Buf2D *dst, BlockSize bsize, uint8_t 
     dst->height = height;
     dst->stride = stride;
 }
-void svt_av1_setup_pred_block(BlockSize sb_type, struct Buf2D dst[MAX_MB_PLANE],
+void svt_av1_setup_pred_block(BlockSize bsize, struct Buf2D dst[MAX_MB_PLANE],
                               const Yv12BufferConfig *src, int mi_row, int mi_col) {
     dst[0].buf    = src->y_buffer;
     dst[0].stride = src->y_stride;
@@ -2806,7 +2806,7 @@ void svt_av1_setup_pred_block(BlockSize sb_type, struct Buf2D dst[MAX_MB_PLANE],
     dst[1].stride = dst[2].stride = src->uv_stride;
 
     setup_pred_plane(dst,
-                     sb_type,
+                     bsize,
                      dst[0].buf,
                      src->y_crop_width,
                      src->y_crop_height,
@@ -5333,10 +5333,10 @@ static void inject_zz_backup_candidate(
     }
 }
 int svt_av1_allow_palette(int allow_palette,
-    BlockSize sb_type) {
-    assert(sb_type < BlockSizeS_ALL);
-    return allow_palette && block_size_wide[sb_type] <= 64 &&
-        block_size_high[sb_type] <= 64 && sb_type >= BLOCK_8X8;
+    BlockSize bsize) {
+    assert(bsize < BlockSizeS_ALL);
+    return allow_palette && block_size_wide[bsize] <= 64 &&
+        block_size_high[bsize] <= 64 && bsize >= BLOCK_8X8;
 }
 void  search_palette_luma(
     PictureControlSet            *pcs,

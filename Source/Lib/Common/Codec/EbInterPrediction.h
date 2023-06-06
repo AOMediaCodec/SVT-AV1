@@ -143,7 +143,7 @@ void svt_aom_build_masked_compound_no_round(uint8_t *dst, int dst_stride, const 
                                             int src0_stride, const CONV_BUF_TYPE *src1,
                                             int                                 src1_stride,
                                             const InterInterCompoundData *const comp_data,
-                                            uint8_t *seg_mask, BlockSize sb_type, int h, int w,
+                                            uint8_t *seg_mask, BlockSize bsize, int h, int w,
                                             ConvolveParams *conv_params, uint8_t bd, Bool is_16bit);
 
 static const InterpFilterParams av1_interp_4tap[2] = {
@@ -220,13 +220,13 @@ extern aom_highbd_convolve_fn_t convolve_hbd[/*sub_x*/ 2][/*sub_y*/ 2][/*bi*/ 2]
 
 extern AomConvolveFn svt_aom_convolve[/*sub_x*/ 2][/*sub_y*/ 2][/*bi*/ 2];
 
-int svt_aom_is_interintra_wedge_used(BlockSize sb_type);
+int svt_aom_is_interintra_wedge_used(BlockSize bsize);
 
-int32_t svt_aom_get_wedge_bits_lookup(BlockSize sb_type);
+int32_t svt_aom_get_wedge_bits_lookup(BlockSize bsize);
 
-const uint8_t *svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign, BlockSize sb_type);
+const uint8_t *svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign, BlockSize bsize);
 
-int svt_aom_get_wedge_params_bits(BlockSize sb_type);
+int svt_aom_get_wedge_params_bits(BlockSize bsize);
 
 int svt_aom_is_masked_compound_type(COMPOUND_TYPE type);
 
@@ -317,26 +317,26 @@ static INLINE int32_t is_comp_ref_allowed(BlockSize bsize) {
     return AOMMIN(block_size_wide[bsize], block_size_high[bsize]) >= 8;
 }
 
-static INLINE int is_interinter_compound_used(CompoundType type, BlockSize sb_type) {
-    const int comp_allowed = is_comp_ref_allowed(sb_type);
+static INLINE int is_interinter_compound_used(CompoundType type, BlockSize bsize) {
+    const int comp_allowed = is_comp_ref_allowed(bsize);
     switch (type) {
     case COMPOUND_AVERAGE:
     case COMPOUND_DISTWTD:
     case COMPOUND_DIFFWTD: return comp_allowed;
-    case COMPOUND_WEDGE: return comp_allowed && svt_aom_get_wedge_params_bits(sb_type) > 0;
+    case COMPOUND_WEDGE: return comp_allowed && svt_aom_get_wedge_params_bits(bsize) > 0;
     default: assert(0); return 0;
     }
 }
 
-static INLINE int is_any_masked_compound_used(BlockSize sb_type) {
+static INLINE int is_any_masked_compound_used(BlockSize bsize) {
     CompoundType comp_type;
     int          i;
-    if (!is_comp_ref_allowed(sb_type))
+    if (!is_comp_ref_allowed(bsize))
         return 0;
     for (i = 0; i < COMPOUND_TYPES; i++) {
         comp_type = (CompoundType)i;
         if (svt_aom_is_masked_compound_type(comp_type) &&
-            is_interinter_compound_used(comp_type, sb_type))
+            is_interinter_compound_used(comp_type, bsize))
             return 1;
     }
     return 0;

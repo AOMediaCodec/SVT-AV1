@@ -351,17 +351,17 @@ GeomIndex svt_aom_geom_idx;
 
 BlockGeom svt_aom_blk_geom_mds
     [MAX_NUM_BLOCKS_ALLOC]; // to access geom info of a particular block; use this table if you have the block index in md scan
-static INLINE TxSize av1_get_tx_size(BlockSize sb_type, int32_t plane /*, const MacroBlockD *xd*/) {
+static INLINE TxSize av1_get_tx_size(BlockSize bsize, int32_t plane /*, const MacroBlockD *xd*/) {
     UNUSED(plane);
     //const MbModeInfo *mbmi = xd->mi[0];
     // if (xd->lossless[mbmi->segment_id]) return TX_4X4;
     if (plane == 0)
-        return blocksize_to_txsize[sb_type];
+        return blocksize_to_txsize[bsize];
     // const MacroblockdPlane *pd = &xd->plane[plane];
 
     uint32_t subsampling_x = plane > 0 ? 1 : 0;
     uint32_t subsampling_y = plane > 0 ? 1 : 0;
-    return av1_get_max_uv_txsize(/*mbmi->*/ sb_type, subsampling_x, subsampling_y);
+    return av1_get_max_uv_txsize(/*mbmi->*/ bsize, subsampling_x, subsampling_y);
 }
 static void md_scan_all_blks(uint32_t* idx_mds, uint32_t sq_size, uint32_t x, uint32_t y,
                              int32_t is_last_quadrant, uint8_t quad_it, uint8_t min_nsq_bsize) {

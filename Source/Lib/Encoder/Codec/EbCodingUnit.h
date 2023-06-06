@@ -300,7 +300,7 @@ typedef struct MacroBlockD {
 #if !CLN_UNUSED_DEFNS
     struct macroblockd_plane plane[MAX_MB_PLANE];
 #endif
-    BlockSize                sb_type;
+    BlockSize                bsize;
 } MacroBlockD;
 
 typedef struct Macroblock {

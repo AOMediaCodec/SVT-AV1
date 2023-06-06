@@ -739,7 +739,7 @@ static INLINE void foreach_overlappable_nb_above(uint8_t is16bit, const AV1_COMM
     for (int above_mi_col = mi_col; above_mi_col < end_col && nb_count < nb_max;
          above_mi_col += mi_step) {
         ModeInfo /*MbModeInfo*/ **above_mi = prev_row_mi + above_mi_col;
-        mi_step = AOMMIN(mi_size_wide[above_mi[0]->mbmi.block_mi.sb_type],
+        mi_step = AOMMIN(mi_size_wide[above_mi[0]->mbmi.block_mi.bsize],
                          mi_size_wide[BLOCK_64X64]);
         // If we're considering a block with width 4, it should be treated as
         // half of a pair of blocks with chroma information in the second. Move
@@ -783,7 +783,7 @@ static INLINE void foreach_overlappable_nb_left(uint8_t is16bit, const AV1_COMMO
     for (int left_mi_row = mi_row; left_mi_row < end_row && nb_count < nb_max;
          left_mi_row += mi_step) {
         ModeInfo **left_mi = prev_col_mi + left_mi_row * xd->mi_stride;
-        mi_step            = AOMMIN(mi_size_high[left_mi[0]->mbmi.block_mi.sb_type],
+        mi_step            = AOMMIN(mi_size_high[left_mi[0]->mbmi.block_mi.bsize],
                          mi_size_high[BLOCK_64X64]);
         if (mi_step == 1) {
             left_mi_row &= ~1;
@@ -899,7 +899,7 @@ static EbErrorType get_single_prediction_for_obmc_luma_hbd(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -972,7 +972,7 @@ static EbErrorType get_single_prediction_for_obmc_chroma_hbd(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -1012,7 +1012,7 @@ static EbErrorType get_single_prediction_for_obmc_chroma_hbd(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -1084,7 +1084,7 @@ static EbErrorType get_single_prediction_for_obmc_luma(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -1163,7 +1163,7 @@ static EbErrorType get_single_prediction_for_obmc_chroma(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -1206,7 +1206,7 @@ static EbErrorType get_single_prediction_for_obmc_chroma(
                                      ref_pic_list0->height,
                                      bwidth,
                                      bheight,
-                                     xd->sb_type,
+                                     xd->bsize,
                                      xd,
                                      src_stride,
                                      dst_stride,
@@ -1246,7 +1246,7 @@ static INLINE void build_prediction_by_above_pred(uint8_t is16bit, MacroBlockD *
     mi_x = above_mi_col << MI_SIZE_LOG2;
     mi_y = ctxt->mi_row << MI_SIZE_LOG2;
 
-    const BlockSize bsize = xd->sb_type;
+    const BlockSize bsize = xd->bsize;
 
     for (int j = 0; j < num_planes; ++j) {
         int subsampling_x = j > 0 ? ctxt->ss_x : 0;
@@ -1348,7 +1348,7 @@ static INLINE void build_prediction_by_left_pred(uint8_t is16bit, MacroBlockD *x
     ctxt->dst_origin_x = 0;
     ctxt->dst_origin_y = rel_mi_row << MI_SIZE_LOG2;
 
-    const BlockSize bsize = xd->sb_type;
+    const BlockSize bsize = xd->bsize;
 
     for (int j = 0; j < num_planes; ++j) {
         int subsampling_x = j > 0 ? ctxt->ss_x : 0;
@@ -1452,7 +1452,7 @@ static void build_prediction_by_above_preds(Bool perform_chroma, BlockSize bsize
 
     ctxt.pcs            = pcs;
     ctxt.perform_chroma = perform_chroma;
-    xd->sb_type         = bsize;
+    xd->bsize         = bsize;
 
     foreach_overlappable_nb_above(is16bit,
                                   pcs->ppcs->av1_cm,
@@ -1496,7 +1496,7 @@ static void build_prediction_by_left_preds(Bool perform_chroma, BlockSize bsize,
     ctxt.pcs            = pcs;
     ctxt.perform_chroma = perform_chroma;
 
-    xd->sb_type = bsize;
+    xd->bsize = bsize;
 
     foreach_overlappable_nb_left(is16bit,
                                  pcs->ppcs->av1_cm,
@@ -1532,7 +1532,7 @@ static INLINE void build_obmc_inter_pred_above(uint8_t is16bit, MacroBlockD *xd,
     (void)above_mi;
     (void)num_planes;
     struct obmc_inter_pred_ctxt *ctxt  = (struct obmc_inter_pred_ctxt *)fun_ctxt;
-    const BlockSize              bsize = xd->sb_type;
+    const BlockSize              bsize = xd->bsize;
 
     const int overlap = AOMMIN(block_size_high[bsize], block_size_high[BLOCK_64X64]) >> 1;
 #if OPT_OBMC_UV_ONLY
@@ -1588,7 +1588,7 @@ static INLINE void build_obmc_inter_pred_left(uint8_t is16bit, MacroBlockD *xd, 
     (void)left_mi;
     (void)num_planes;
     struct obmc_inter_pred_ctxt *ctxt  = (struct obmc_inter_pred_ctxt *)fun_ctxt;
-    const BlockSize              bsize = xd->sb_type;
+    const BlockSize              bsize = xd->bsize;
     const int overlap = AOMMIN(block_size_wide[bsize], block_size_wide[BLOCK_64X64]) >> 1;
 #if OPT_OBMC_UV_ONLY
     int start_plane = (ctxt->component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) ? 0 : 1;
@@ -2626,7 +2626,7 @@ static void model_rd_for_sb(PictureControlSet *pcs, EbPictureBufferDesc *predict
     *out_dist_sum = dist_sum;
 }
 
-int32_t svt_aom_is_nontrans_global_motion(BlockSize sb_type, ModeDecisionCandidateBuffer *cand_bf,
+int32_t svt_aom_is_nontrans_global_motion(BlockSize bsize, ModeDecisionCandidateBuffer *cand_bf,
                                           PictureControlSet *pcs) {
     int32_t ref;
 
@@ -2634,7 +2634,7 @@ int32_t svt_aom_is_nontrans_global_motion(BlockSize sb_type, ModeDecisionCandida
     if (cand_bf->cand->pred_mode != GLOBALMV && cand_bf->cand->pred_mode != GLOBAL_GLOBALMV)
         return 0;
 
-    if (MIN(mi_size_wide[sb_type], mi_size_high[sb_type]) < 2)
+    if (MIN(mi_size_wide[bsize], mi_size_high[bsize]) < 2)
         return 0;
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);

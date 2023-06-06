@@ -215,7 +215,7 @@ static INLINE int svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]
     return (rf[0] > INTRA_FRAME) && (rf[1] <= INTRA_FRAME);
 }
 #endif
-int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize sb_type, PredictionMode mode,
+int svt_is_interintra_allowed(uint8_t enable_inter_intra, BlockSize bsize, PredictionMode mode,
                               const MvReferenceFrame ref_frame[2]);
 #if CLN_FUNC_DECL
 int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
@@ -270,7 +270,7 @@ struct CodingLoopContext_s;
 extern MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx);
 int                     svt_aom_get_sad_per_bit(int qidx, EbBitDepth is_hbd);
 
-int svt_av1_allow_palette(int allow_palette, BlockSize sb_type);
+int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
 #ifdef __cplusplus
 }
 #endif

@@ -42,7 +42,7 @@ int  svt_av1_cost_color_map(ModeDecisionCandidate *cand, MdRateEstimationContext
                             BlkStruct *blk_ptr, int plane, BlockSize bsize, COLOR_MAP_TYPE type);
 void svt_aom_get_block_dimensions(BlockSize bsize, int plane, const MacroBlockD *xd, int *width,
                                   int *height, int *rows_within_bounds, int *cols_within_bounds);
-int  svt_aom_allow_palette(int allow_screen_content_tools, BlockSize sb_type);
+int  svt_aom_allow_palette(int allow_screen_content_tools, BlockSize bsize);
 int  svt_aom_allow_intrabc(const FrameHeader *frm_hdr, SliceType slice_type);
 /* Symbols for coding which components are zero jointly */
 //#define MV_JOINTS 4
@@ -1099,7 +1099,7 @@ uint64_t estimate_ref_frame_type_bits(struct ModeDecisionContext *ctx, BlkStruct
 }
 
 int                    svt_aom_get_comp_group_idx_context_enc(const MacroBlockD *xd);
-int                    is_any_masked_compound_used(BlockSize sb_type);
+int                    is_any_masked_compound_used(BlockSize bsize);
 static INLINE uint32_t get_compound_mode_rate(struct ModeDecisionContext *ctx,
                                               ModeDecisionCandidate *cand, BlkStruct *blk_ptr,
                                               uint8_t ref_frame_type, BlockSize bsize,
@@ -1168,7 +1168,7 @@ static INLINE uint32_t get_compound_mode_rate(struct ModeDecisionContext *ctx,
 
     return comp_rate;
 }
-int             svt_aom_is_interintra_wedge_used(BlockSize sb_type);
+int             svt_aom_is_interintra_wedge_used(BlockSize bsize);
 static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                           ModeDecisionCandidateBuffer *cand_bf,
                                           uint64_t luma_distortion, uint64_t chroma_distortion,
@@ -2561,8 +2561,8 @@ static uint64_t cost_tx_size_vartx(MacroBlockD *xd, const MbModeInfo *mbmi, TxSi
                                    MdRateEstimationContext *md_rate_est_ctx, FRAME_CONTEXT *ec_ctx,
                                    uint8_t allow_update_cdf) {
     uint64_t  bits            = 0;
-    const int max_blocks_high = max_block_high(xd, mbmi->block_mi.sb_type, 0);
-    const int max_blocks_wide = max_block_wide(xd, mbmi->block_mi.sb_type, 0);
+    const int max_blocks_high = max_block_high(xd, mbmi->block_mi.bsize, 0);
+    const int max_blocks_wide = max_block_wide(xd, mbmi->block_mi.bsize, 0);
 
     if (blk_row >= max_blocks_high || blk_col >= max_blocks_wide)
         return bits;
@@ -2576,10 +2576,10 @@ static uint64_t cost_tx_size_vartx(MacroBlockD *xd, const MbModeInfo *mbmi, TxSi
 
     const int ctx = txfm_partition_context(xd->above_txfm_context + blk_col,
                                            xd->left_txfm_context + blk_row,
-                                           mbmi->block_mi.sb_type,
+                                           mbmi->block_mi.bsize,
                                            tx_size);
     const int write_txfm_partition =
-        (tx_size == tx_depth_to_tx_size[mbmi->block_mi.tx_depth][mbmi->block_mi.sb_type]);
+        (tx_size == tx_depth_to_tx_size[mbmi->block_mi.tx_depth][mbmi->block_mi.bsize]);
     if (write_txfm_partition) {
         bits += md_rate_est_ctx->txfm_partition_fac_bits[ctx][0];
 
@@ -2667,7 +2667,7 @@ static INLINE int get_tx_size_context(const MacroBlockD *xd) {
     const MbModeInfo *      mbmi        = &mi->mbmi;
     const MbModeInfo *const above_mbmi  = xd->above_mbmi;
     const MbModeInfo *const left_mbmi   = xd->left_mbmi;
-    const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.sb_type];
+    const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.bsize];
     const int               max_tx_wide = tx_size_wide[max_tx_size];
     const int               max_tx_high = tx_size_high[max_tx_size];
     const int               has_above   = xd->up_available;
@@ -2678,11 +2678,11 @@ static INLINE int get_tx_size_context(const MacroBlockD *xd) {
 
     if (has_above)
         if (is_inter_block(&above_mbmi->block_mi))
-            above = block_size_wide[above_mbmi->block_mi.sb_type] >= max_tx_wide;
+            above = block_size_wide[above_mbmi->block_mi.bsize] >= max_tx_wide;
 
     if (has_left)
         if (is_inter_block(&left_mbmi->block_mi))
-            left = block_size_high[left_mbmi->block_mi.sb_type] >= max_tx_high;
+            left = block_size_high[left_mbmi->block_mi.bsize] >= max_tx_high;
 
     if (has_above && has_left)
         return (above + left);
@@ -2698,7 +2698,7 @@ static uint64_t cost_selected_tx_size(const MacroBlockD *      xd,
                                       FRAME_CONTEXT *ec_ctx, uint8_t allow_update_cdf) {
     const ModeInfo *const   mi    = xd->mi[0];
     const MbModeInfo *const mbmi  = &mi->mbmi;
-    const BlockSize         bsize = mbmi->block_mi.sb_type;
+    const BlockSize         bsize = mbmi->block_mi.bsize;
     uint64_t                bits  = 0;
 
     if (block_signals_txsize(bsize)) {
@@ -2784,7 +2784,7 @@ uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
 
     xd->above_txfm_context      = ctx->above_txfm_context;
     xd->left_txfm_context       = ctx->left_txfm_context;
-    mbmi->block_mi.sb_type      = ctx->blk_geom->bsize;
+    mbmi->block_mi.bsize      = ctx->blk_geom->bsize;
     mbmi->block_mi.use_intrabc  = candidateBuffer->cand->use_intrabc;
     mbmi->block_mi.ref_frame[0] = candidateBuffer->cand->ref_frame_type;
     mbmi->block_mi.tx_depth     = tx_depth;

@@ -222,7 +222,7 @@ static AOM_FORCE_INLINE TxSize dec_set_lpf_parameters(
 
                 const int32_t pv_skip = mi_near->skip &&
                     is_inter_block_no_intrabc(mi_near->ref_frame[0]);
-                const BlockSize bsize = get_plane_block_size(mi_near->sb_type, sub_x, sub_y);
+                const BlockSize bsize = get_plane_block_size(mi_near->bsize, sub_x, sub_y);
                 assert(bsize < BlockSizeS_ALL);
                 const int32_t prediction_masks = edge_dir == VERT_EDGE ? block_size_wide[bsize] - 1
                                                                        : block_size_high[bsize] - 1;
@@ -294,7 +294,7 @@ static void dec_av1_filter_block_plane_vert(EbDecHandle *dec_handle, SBInfo *sb_
     for (int sub_blck = 0; sub_blck < n_blocks; sub_blck++) {
         int32_t   blk_mi_row = sb_mi_row + mode_info->mi_row_in_sb;
         int32_t   blk_mi_col = sb_mi_col + mode_info->mi_col_in_sb;
-        BlockSize bsize      = mode_info->sb_type;
+        BlockSize bsize      = mode_info->bsize;
 
         int32_t bw4               = mi_size_wide[bsize];
         int32_t bh4               = mi_size_high[bsize];
@@ -482,7 +482,7 @@ static void dec_av1_filter_block_plane_horz(EbDecHandle *dec_handle, SBInfo *sb_
     for (int sub_blck = 0; sub_blck < n_blocks; sub_blck++) {
         int32_t   blk_mi_row = sb_mi_row + mode_info->mi_row_in_sb;
         int32_t   blk_mi_col = sb_mi_col + mode_info->mi_col_in_sb;
-        BlockSize bsize      = mode_info->sb_type;
+        BlockSize bsize      = mode_info->bsize;
 
         int32_t bw4               = mi_size_wide[bsize];
         int32_t bh4               = mi_size_high[bsize];
