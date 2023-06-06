@@ -34,6 +34,7 @@ extern "C" {
     */
 
 // Macros for deblocking filter
+#if !CLN_UNUSED_DEFNS
 #define MAX_SB_SIZE_IN_4X4BLK (BLOCK_SIZE_64 >> 2)
 #define VERTICAL_EDGE_BS_ARRAY_SIZE (MAX_SB_SIZE_IN_4X4BLK * MAX_SB_SIZE_IN_4X4BLK)
 #define HORIZONTAL_EDGE_BS_ARRAY_SIZE (MAX_SB_SIZE_IN_4X4BLK * MAX_SB_SIZE_IN_4X4BLK)
@@ -41,11 +42,14 @@ extern "C" {
 #define MAX_NUMBER_OF_BS_EDGES_PER_TREEBLOCK 128
 #define MAX_NUMBER_OF_LEAFS_PER_TREEBLOCK 64
 #define MAX_NUMBER_OF_4x4_TUs_IN_8x8_LEAF 4
+#endif
 #define MAX_CU_COST (0xFFFFFFFFFFFFFFFFull >> 1)
 #define MAX_MODE_COST \
     (13754408443200 * 8) // RDCOST(6544618, 128 * 128 * 255 * 255, 128 * 128 * 255 * 255) * 8;
+#if !CLN_UNUSED_DEFNS
 #define INVALID_FAST_CANDIDATE_INDEX ~0
 #define MAX_OIS_CANDIDATES 61 //18//18
+#endif
 
 #if !CLN_MISC_CLEANUPS
 static const uint32_t intra_hev_cmode_to_intra_av1_mode[35] = {
@@ -140,6 +144,7 @@ static const uint32_t intra_luma_to_chroma[INTRA_MODES] = // EB_INTRA_PLANAR
         UV_PAETH_PRED, // Predict from the direction of smallest gradient
 };
 
+#if !CLN_UNUSED_DEFNS
 static const TxType chroma_transform_type[14] = {
     /*UV_DC_PRED,          */ DCT_DCT,
     /*UV_V_PRED,           */ ADST_DCT,
@@ -186,7 +191,7 @@ static const uint8_t av1_is_directional[35] = {
 };
 
 struct PictureControlSet;
-
+#endif
 typedef struct {
     IntMv   mfmv0;
     uint8_t ref_frame_offset;
@@ -232,6 +237,7 @@ typedef struct MacroBlockPlane {
 */
 } MacroBlockPlane;
 
+#if !CLN_UNUSED_DEFNS
 typedef struct macroblockd_plane {
     int subsampling_x;
     int subsampling_y;
@@ -261,6 +267,7 @@ typedef struct InterPredParams {
     int                        use_hbd_buf;
     int                        is_intrabc;
 } InterPredParams;
+#endif
 typedef struct MacroBlockD {
     // block dimension in the unit of mode_info.
     uint8_t    n8_w, n8_h;
@@ -290,7 +297,9 @@ typedef struct MacroBlockD {
     FRAME_CONTEXT           *tile_ctx;
     TXFM_CONTEXT            *above_txfm_context;
     TXFM_CONTEXT            *left_txfm_context;
+#if !CLN_UNUSED_DEFNS
     struct macroblockd_plane plane[MAX_MB_PLANE];
+#endif
     BlockSize                sb_type;
 } MacroBlockD;
 
