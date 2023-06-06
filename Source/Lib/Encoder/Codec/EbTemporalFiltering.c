@@ -6179,7 +6179,7 @@ static EbErrorType save_y_src_pic_buffers(PictureParentControlSet* centre_pcs, B
 #endif
 
 #if OPT_TF_REF_PICS
-uint32_t static filt_unfilt_dist(
+static uint32_t filt_unfilt_dist(
     PictureParentControlSet* ppcs,
     EbByte filt,
     EbByte unfil,

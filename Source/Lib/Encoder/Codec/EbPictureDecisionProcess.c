@@ -2819,7 +2819,7 @@ void svt_aom_pack_highbd_pic(const EbPictureBufferDesc *pic_ptr, uint16_t *buffe
  For BASE and L1, the modulation uses the filt_INTRA-to-unfilterd_INTRA distortion range, and towards decreasing the number of ref_pics
 */
 #if CLN_TF
-int static ref_pics_modulation(
+static int ref_pics_modulation(
     PictureParentControlSet* pcs,
     int32_t noise_levels_log1p_fp16) {
 #else
