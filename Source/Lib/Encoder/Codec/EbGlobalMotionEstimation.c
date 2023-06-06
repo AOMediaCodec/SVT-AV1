@@ -165,8 +165,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                 pa_reference_object->sixteenth_downsampled_picture_ptr;
 #if GM_REFINFO
     PictureControlSet *cpcs;
+    cpcs = pcs->child_pcs;
     if (pcs->gm_ctrls.use_ref_info) {
-        cpcs                  = pcs->child_pcs;
         quarter_picture_ptr   = pcs->quarter_src_pic;
         sixteenth_picture_ptr = pcs->sixteenth_src_pic;
     }
