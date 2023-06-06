@@ -9378,7 +9378,7 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
     ModeDecisionCandidateBuffer **cand_bf_ptr_array_base = ctx->cand_bf_ptr_array;
     ModeDecisionCandidateBuffer **cand_bf_ptr_array      = &(cand_bf_ptr_array_base[0]);
 
-    uint8_t tested_uv_modes[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1] = {0};
+    uint8_t tested_uv_modes[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1] = {{0}};
     // Prepare the candidates to test
     // The search will only be over the chroma modes that are to be tested in MDS3 plus UV_DC_PRED, which will always be tested
     for (uint32_t full_loop_cand_idx = 0; full_loop_cand_idx < full_cand_count + 1;
