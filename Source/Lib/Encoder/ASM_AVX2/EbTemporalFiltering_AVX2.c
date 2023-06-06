@@ -2433,7 +2433,7 @@ int32_t svt_estimate_noise_highbd_fp16_avx2(const uint16_t *src, int width, int 
     FP_ASSERT((((int64_t)sum * SQRT_PI_BY_2_FP16) / (6 * num)) < ((int64_t)1 << 31));
     return (int32_t)((sum * SQRT_PI_BY_2_FP16) / (6 * num));
 }
-
+#if !CLN_TF
 double svt_estimate_noise_avx2(const uint8_t *src, uint16_t width, uint16_t height,
                                uint16_t stride_y) {
     int64_t sum = 0;
@@ -2634,3 +2634,4 @@ double svt_estimate_noise_highbd_avx2(const uint16_t *src, int width, int height
     const double sigma = (double)sum / (6 * num) * SQRT_PI_BY_2;
     return sigma;
 }
+#endif

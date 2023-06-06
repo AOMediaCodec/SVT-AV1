@@ -1806,8 +1806,10 @@ extern "C" {
 
     int32_t svt_estimate_noise_fp16_avx2(const uint8_t *src, uint16_t width, uint16_t height, uint16_t stride_y);
     int32_t svt_estimate_noise_highbd_fp16_avx2(const uint16_t *src, int width, int height, int stride, int bd);
+#if !CLN_TF
     double svt_estimate_noise_avx2(const uint8_t *src, uint16_t width, uint16_t height, uint16_t stride_y);
     double svt_estimate_noise_highbd_avx2(const uint16_t *src, int width, int height, int stride, int bd);
+#endif
     void svt_copy_mi_map_grid_avx2(ModeInfo **mi_grid_ptr, uint32_t mi_stride, uint8_t num_rows, uint8_t num_cols);
     void svt_av1_add_block_observations_internal_avx2(uint32_t n, const double val, const double recp_sqr_norm, double *buffer, double *buffer_norm, double *b, double *A);
     void svt_av1_pointwise_multiply_avx2(const float *a, float *b, float *c, double *b_d, double *c_d, int32_t n);
