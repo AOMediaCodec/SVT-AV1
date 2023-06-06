@@ -53,8 +53,7 @@ void svt_av1_loop_restoration_filter_frame(int32_t *rst_tmpbuf, Yv12BufferConfig
 void        svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
                                                   int32_t optimized_lr);
 #endif
-EbErrorType psnr_calculations( \
-    PictureControlSet *pcs, SequenceControlSet *scs, Bool free_memory);
+EbErrorType psnr_calculations(PictureControlSet *pcs, SequenceControlSet *scs, Bool free_memory);
 EbErrorType svt_aom_ssim_calculations(PictureControlSet *pcs, SequenceControlSet *scs,
                                       Bool free_memory);
 void        pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs);

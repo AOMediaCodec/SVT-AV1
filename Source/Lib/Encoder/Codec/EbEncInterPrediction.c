@@ -2381,8 +2381,7 @@ static int32_t svt_av1_get_switchable_rate(ModeDecisionCandidateBuffer *cand_bf,
                 rf[0], rf[1], ctx->blk_ptr->av1xd, dir);
 #endif
 
-            const InterpFilter filter = av1_extract_interp_filter(
-                /*mbmi*/ cand_bf->cand->interp_filters, dir);
+            const InterpFilter filter = av1_extract_interp_filter(cand_bf->cand->interp_filters, dir);
             assert(pred_ctx < SWITCHABLE_FILTER_CONTEXTS);
             assert(filter < SWITCHABLE_FILTERS);
             inter_filter_cost += ctx->md_rate_est_ctx->switchable_interp_fac_bitss[pred_ctx][filter];
@@ -3117,21 +3116,22 @@ static void inter_intra_prediction(
     // temp buffer for intra pred (luma/chroma computed separately, so can re-use buffer)
     DECLARE_ALIGNED(16, uint8_t, intra_pred[MAX_SB_SQUARE]);
 
-    uint8_t *dst_ptr;
+    uint8_t *dst;
     int32_t  dst_stride, intra_stride;
     uint32_t sb_size_luma   = pcs->scs->sb_size;
     uint32_t sb_size_chroma = pcs->scs->sb_size >> 1;
 
-    for (int32_t plane = start_plane; plane < end_plane; ++plane) {
-        EbPictureBufferDesc intra_pred_desc;
-        intra_pred_desc.org_x = intra_pred_desc.org_y = 0;
-        intra_pred_desc.stride_y                      = blk_geom->bwidth;
-        intra_pred_desc.stride_cb                     = blk_geom->bwidth / 2;
-        intra_pred_desc.stride_cr                     = blk_geom->bwidth / 2;
-        intra_pred_desc.buffer_y                      = intra_pred;
-        intra_pred_desc.buffer_cb                     = intra_pred;
-        intra_pred_desc.buffer_cr                     = intra_pred;
+    EbPictureBufferDesc intra_pred_desc;
+    intra_pred_desc.org_x =
+        intra_pred_desc.org_y   = 0;
+    intra_pred_desc.stride_y    = blk_geom->bwidth;
+    intra_pred_desc.stride_cb   = blk_geom->bwidth / 2;
+    intra_pred_desc.stride_cr   = blk_geom->bwidth / 2;
+    intra_pred_desc.buffer_y    = intra_pred;
+    intra_pred_desc.buffer_cb   = intra_pred;
+    intra_pred_desc.buffer_cr   = intra_pred;
 
+    for (int32_t plane = start_plane; plane < end_plane; ++plane) {
         const int       ssx         = plane ? 1 : 0;
         const int       ssy         = plane ? 1 : 0;
         const BlockSize plane_bsize = get_plane_block_size(blk_geom->bsize, ssx, ssy);
@@ -3143,7 +3143,7 @@ static void inter_intra_prediction(
         uint32_t blk_originy_uv = (pu_origin_y >> 3 << 3) >> 1;
 
         if (plane == 0) {
-            dst_ptr = pred_pic->buffer_y +
+            dst = pred_pic->buffer_y +
                 ((pred_pic->org_x + dst_origin_x +
                   (pred_pic->org_y + dst_origin_y) * pred_pic->stride_y)
                  << is16bit);
@@ -3174,7 +3174,7 @@ static void inter_intra_prediction(
         }
 
         else if (plane == 1) {
-            dst_ptr = pred_pic->buffer_cb +
+            dst = pred_pic->buffer_cb +
                 (((pred_pic->org_x + ((dst_origin_x >> 3) << 3)) / 2 +
                   (pred_pic->org_y + ((dst_origin_y >> 3) << 3)) / 2 * pred_pic->stride_cb)
                  << is16bit);
@@ -3202,7 +3202,7 @@ static void inter_intra_prediction(
                                                     blk_originy_uv / 2)
                                                    << is16bit];
         } else {
-            dst_ptr = pred_pic->buffer_cr +
+            dst = pred_pic->buffer_cr +
                 (((pred_pic->org_x + ((dst_origin_x >> 3) << 3)) / 2 +
                   (pred_pic->org_y + ((dst_origin_y >> 3) << 3)) / 2 * pred_pic->stride_cr)
                  << is16bit);
@@ -3267,9 +3267,9 @@ static void inter_intra_prediction(
                                               INTERINTRA_WEDGE_SIGN,
                                               blk_geom->bsize,
                                               plane_bsize,
-                                              dst_ptr,
+                                              dst,
                                               dst_stride,
-                                              dst_ptr, // Inter pred buff
+                                              dst, // Inter pred buff
                                               dst_stride, // Inter pred stride
                                               intra_pred, // Intra pred buff
                                               intra_stride, // Intra pred stride
@@ -3308,9 +3308,9 @@ static void inter_intra_prediction(
                                        INTERINTRA_WEDGE_SIGN,
                                        blk_geom->bsize,
                                        plane_bsize,
-                                       dst_ptr,
+                                       dst,
                                        dst_stride,
-                                       dst_ptr, // Inter pred buff
+                                       dst, // Inter pred buff
                                        dst_stride, // Inter pred stride
                                        intra_pred, // Intra pred buff
                                        intra_stride); // Intra pred stride
@@ -4080,14 +4080,14 @@ void tf_inter_predictor(SequenceControlSet *scs, uint8_t *src_ptr, uint8_t *dst_
     }
 }
 #if OPT_LPD0_8BIT_ONLY
-static void enc_make_inter_predictor_light_pd0(uint8_t *src_ptr, uint8_t *dst_ptr,
+static void enc_make_inter_predictor_light_pd0(uint8_t *src, uint8_t *dst,
                                                SubpelParams *  subpel_params,
                                                ConvolveParams *conv_params, uint8_t blk_width,
                                                uint8_t blk_height, int32_t src_stride,
                                                int32_t dst_stride) {
-    svt_inter_predictor_light_pd0(src_ptr,
+    svt_inter_predictor_light_pd0(src,
                                   src_stride,
-                                  dst_ptr,
+                                  dst,
                                   dst_stride,
                                   blk_width,
                                   blk_height,

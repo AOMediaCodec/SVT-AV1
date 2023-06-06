@@ -1139,7 +1139,7 @@ EbErrorType  intra_luma_prediction_for_interintra(
 }
 
 #if CLN_FUNC_DECL
-//for every CU, perform DC/V/H/S intra prediction to be used later in inter-intra search
+// For every block, perform DC/V/H/S intra prediction to be used later in inter-intra search
 void svt_aom_precompute_intra_pred_for_inter_intra(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     uint32_t            j;
     EbPictureBufferDesc pred_desc;

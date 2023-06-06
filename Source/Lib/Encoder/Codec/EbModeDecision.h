@@ -17,7 +17,6 @@
 #include "EbPictureControlSet.h"
 #include "EbCodingUnit.h"
 #include "EbPredictionUnit.h"
-#include "EbSyntaxElements.h"
 #include "EbPictureBufferDesc.h"
 #include "EbAdaptiveMotionVectorPrediction.h"
 #include "EbPictureOperators.h"

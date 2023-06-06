@@ -13,8 +13,6 @@
 #define EbPredictionUnit_h
 
 #include "EbDefinitions.h"
-#include "EbSyntaxElements.h"
-#include "EbDefinitions.h"
 #include "EbMotionVectorUnit.h"
 #ifdef __cplusplus
 extern "C" {

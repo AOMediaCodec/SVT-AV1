@@ -14,7 +14,6 @@
 
 #include "EbDefinitions.h"
 #include "EbModeDecision.h"
-#include "EbSyntaxElements.h"
 #include "EbSystemResourceManager.h"
 #include "EbPictureBufferDesc.h"
 #include "EbEntropyCoding.h"
@@ -728,6 +727,7 @@ typedef struct UvCtrls {
     uint8_t nd_uv_serach_mode;
 #endif
 #endif
+    // Scaling numerator for independent chroma NICS: <x>/16
     uint8_t uv_nic_scaling_num;
 #if CLN_CFL_SIGNALLING
     // Threshold to skip the independent chroma search when the search is performed before the last MD stage.
