@@ -262,8 +262,8 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                         ctx->blk_geom->tx_org_x[is_inter][ctx->blk_ptr->tx_depth][txb_itr],
                     ctx->sb_origin_y +
                         ctx->blk_geom->tx_org_y[is_inter][ctx->blk_ptr->tx_depth][txb_itr],
-                    ctx->blk_geom->tx_width[ctx->blk_ptr->tx_depth][txb_itr],
-                    ctx->blk_geom->tx_height[ctx->blk_ptr->tx_depth][txb_itr],
+                    ctx->blk_geom->tx_width[ctx->blk_ptr->tx_depth],
+                    ctx->blk_geom->tx_height[ctx->blk_ptr->tx_depth],
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
                 svt_aom_neighbor_array_unit_mode_write(
@@ -274,8 +274,8 @@ static void mode_decision_update_neighbor_arrays(PictureControlSet *pcs, ModeDec
                         ctx->blk_geom->tx_org_x[is_inter][ctx->blk_ptr->tx_depth][txb_itr],
                     ctx->sb_origin_y +
                         ctx->blk_geom->tx_org_y[is_inter][ctx->blk_ptr->tx_depth][txb_itr],
-                    ctx->blk_geom->tx_width[ctx->blk_ptr->tx_depth][txb_itr],
-                    ctx->blk_geom->tx_height[ctx->blk_ptr->tx_depth][txb_itr],
+                    ctx->blk_geom->tx_width[ctx->blk_ptr->tx_depth],
+                    ctx->blk_geom->tx_height[ctx->blk_ptr->tx_depth],
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
             }
         }
@@ -817,8 +817,8 @@ void av1_perform_inverse_transform_recon_luma(ModeDecisionContext         *ctx,
     do {
         uint32_t txb_origin_x     = ctx->blk_geom->tx_org_x[is_inter][tx_depth][txb_itr];
         uint32_t txb_origin_y     = ctx->blk_geom->tx_org_y[is_inter][tx_depth][txb_itr];
-        uint32_t txb_width        = ctx->blk_geom->tx_width[tx_depth][txb_itr];
-        uint32_t txb_height       = ctx->blk_geom->tx_height[tx_depth][txb_itr];
+        uint32_t txb_width        = ctx->blk_geom->tx_width[tx_depth];
+        uint32_t txb_height       = ctx->blk_geom->tx_height[tx_depth];
         uint32_t txb_origin_index = txb_origin_x + txb_origin_y * cand_bf->pred->stride_y;
         uint32_t rec_luma_offset  = txb_origin_x + txb_origin_y * cand_bf->recon->stride_y;
         uint32_t y_has_coeff      = (cand_bf->y_has_coeff & (1 << txb_itr)) > 0;
@@ -833,7 +833,7 @@ void av1_perform_inverse_transform_recon_luma(ModeDecisionContext         *ctx,
                 (int32_t *)cand_bf->rec_coeff->buffer_y,
                 txb_1d_offset,
                 ctx->hbd_md,
-                ctx->blk_geom->txsize[tx_depth][txb_itr],
+                ctx->blk_geom->txsize[tx_depth],
                 cand_bf->cand->transform_type[txb_itr],
                 PLANE_TYPE_Y,
                 (uint32_t)cand_bf->eob[0][txb_itr]);
@@ -855,8 +855,8 @@ void av1_perform_inverse_transform_recon_luma(ModeDecisionContext         *ctx,
                                              txb_height);
             }
         }
-        txb_1d_offset += ctx->blk_geom->tx_width[tx_depth][txb_itr] *
-            ctx->blk_geom->tx_height[tx_depth][txb_itr];
+        txb_1d_offset += ctx->blk_geom->tx_width[tx_depth] *
+            ctx->blk_geom->tx_height[tx_depth];
         ++txb_itr;
     } while (txb_itr < tu_total_count);
 }
@@ -878,8 +878,8 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
     do {
         uint32_t txb_origin_x = ctx->blk_geom->tx_org_x[is_inter][tx_depth][txb_itr];
         uint32_t txb_origin_y = ctx->blk_geom->tx_org_y[is_inter][tx_depth][txb_itr];
-        uint32_t txb_width    = ctx->blk_geom->tx_width[tx_depth][txb_itr];
-        TxSize   tx_size      = ctx->blk_geom->txsize[tx_depth][txb_itr];
+        uint32_t txb_width    = ctx->blk_geom->tx_width[tx_depth];
+        TxSize   tx_size      = ctx->blk_geom->txsize[tx_depth];
         if (ctx->mds_subres_step == 2) {
             if (tx_size == TX_64X64)
                 tx_size = TX_64X16;
@@ -901,7 +901,7 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
             else
                 assert(0);
         }
-        uint32_t txb_height = ctx->blk_geom->tx_height[tx_depth][txb_itr] >> ctx->mds_subres_step;
+        uint32_t txb_height = ctx->blk_geom->tx_height[tx_depth] >> ctx->mds_subres_step;
         uint32_t rec_luma_offset          = txb_origin_x + txb_origin_y * cand_bf->recon->stride_y;
         uint32_t rec_cb_offset            = ((((txb_origin_x >> 3) << 3) +
                                    ((txb_origin_y >> 3) << 3) * cand_bf->recon->stride_cb) >>
@@ -1023,9 +1023,9 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
         if (tx_depth == 0 || txb_itr == 0) {
             if (ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1) {
                 uint32_t chroma_txb_width =
-                    tx_size_wide[ctx->blk_geom->txsize_uv[tx_depth][txb_itr]];
+                    tx_size_wide[ctx->blk_geom->txsize_uv[tx_depth]];
                 uint32_t chroma_txb_height =
-                    tx_size_high[ctx->blk_geom->txsize_uv[tx_depth][txb_itr]];
+                    tx_size_high[ctx->blk_geom->txsize_uv[tx_depth]];
                 uint32_t cb_tu_chroma_origin_index = ((((txb_origin_x >> 3) << 3) +
                                                        ((txb_origin_y >> 3) << 3) *
                                                            cand_bf->rec_coeff->stride_cb) >>
@@ -1046,7 +1046,7 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
                                                         (int32_t *)cand_bf->rec_coeff->buffer_cb,
                                                         txb_1d_offset_uv,
                                                         ctx->hbd_md,
-                                                        ctx->blk_geom->txsize_uv[tx_depth][txb_itr],
+                                                        ctx->blk_geom->txsize_uv[tx_depth],
                                                         cand_bf->cand->transform_type_uv,
                                                         PLANE_TYPE_UV,
                                                         (uint32_t)cand_bf->eob[1][txb_itr]);
@@ -1075,7 +1075,7 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
                                                         (int32_t *)cand_bf->rec_coeff->buffer_cr,
                                                         txb_1d_offset_uv,
                                                         ctx->hbd_md,
-                                                        ctx->blk_geom->txsize_uv[tx_depth][txb_itr],
+                                                        ctx->blk_geom->txsize_uv[tx_depth],
                                                         cand_bf->cand->transform_type_uv,
                                                         PLANE_TYPE_UV,
                                                         (uint32_t)cand_bf->eob[2][txb_itr]);
@@ -1094,12 +1094,12 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
                                          ctx->hbd_md);
 
                 if (ctx->blk_geom->has_uv)
-                    txb_1d_offset_uv += ctx->blk_geom->tx_width_uv[tx_depth][txb_itr] *
-                        ctx->blk_geom->tx_height_uv[tx_depth][txb_itr];
+                    txb_1d_offset_uv += ctx->blk_geom->tx_width_uv[tx_depth] *
+                        ctx->blk_geom->tx_height_uv[tx_depth];
             }
         }
-        txb_1d_offset += ctx->blk_geom->tx_width[tx_depth][txb_itr] *
-            ctx->blk_geom->tx_height[tx_depth][txb_itr];
+        txb_1d_offset += ctx->blk_geom->tx_width[tx_depth] *
+            ctx->blk_geom->tx_height[tx_depth];
         ++txb_index;
         ++txb_itr;
     } while (txb_itr < tu_total_count);
@@ -5112,7 +5112,7 @@ static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDes
 #if FIX_TXT
         cand_bf->cand->transform_type_uv = svt_aom_get_intra_uv_tx_type(
             ctx->best_uv_mode[cand_bf->cand->pred_mode],
-            ctx->blk_geom->txsize_uv[0][0],
+            ctx->blk_geom->txsize_uv[0],
             frm_hdr->reduced_tx_set);
 #else
         cand_bf->cand->transform_type_uv = av1_get_tx_type(
@@ -5149,7 +5149,7 @@ static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDes
             (UvPredictionMode)ctx->best_uv_mode[cand_bf->cand->pred_mode]
                                                [3 + cand_bf->cand->angle_delta[PLANE_TYPE_Y]],
             PLANE_TYPE_UV,
-            ctx->blk_geom->txsize_uv[0][0],
+            ctx->blk_geom->txsize_uv[0],
             frm_hdr->reduced_tx_set);
 #endif
         ctx->uv_intra_comp_only = TRUE;
@@ -5226,8 +5226,8 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
         ctx->blk_geom->tx_org_x[is_inter][ctx->tx_depth][ctx->txb_itr] - ctx->blk_geom->org_x;
     uint16_t txb_origin_y = ctx->blk_org_y +
         ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr] - ctx->blk_geom->org_y;
-    uint8_t tx_width  = ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr];
-    uint8_t tx_height = ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr];
+    uint8_t tx_width  = ctx->blk_geom->tx_width[ctx->tx_depth];
+    uint8_t tx_height = ctx->blk_geom->tx_height[ctx->tx_depth];
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
     MacroBlockD *xd           = ctx->blk_ptr->av1xd;
     ctx->intra_luma_left_mode = DC_PRED;
@@ -5241,7 +5241,7 @@ static EbErrorType av1_intra_luma_prediction(ModeDecisionContext *ctx, PictureCo
             ? DC_PRED
             : xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
 #endif
-    TxSize   tx_size      = ctx->blk_geom->txsize[ctx->tx_depth][ctx->txb_itr];
+    TxSize   tx_size      = ctx->blk_geom->txsize[ctx->tx_depth];
     uint32_t sb_size_luma = pcs->ppcs->scs->sb_size;
 
     PredictionMode mode;
@@ -5483,8 +5483,8 @@ void tx_update_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr],
                 ctx->sb_origin_x + ctx->blk_geom->tx_org_x[is_inter][ctx->tx_depth][ctx->txb_itr],
                 ctx->sb_origin_y + ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr],
-                ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
-                ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr],
+                ctx->blk_geom->tx_width[ctx->tx_depth],
+                ctx->blk_geom->tx_height[ctx->tx_depth],
                 ctx->hbd_md);
         int8_t dc_sign_level_coeff = cand_bf->quantized_dc[0][ctx->txb_itr];
         svt_aom_neighbor_array_unit_mode_write(
@@ -5492,8 +5492,8 @@ void tx_update_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
             (uint8_t *)&dc_sign_level_coeff,
             ctx->sb_origin_x + ctx->blk_geom->tx_org_x[is_inter][ctx->tx_depth][ctx->txb_itr],
             ctx->sb_origin_y + ctx->blk_geom->tx_org_y[is_inter][ctx->tx_depth][ctx->txb_itr],
-            ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
-            ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr],
+            ctx->blk_geom->tx_width[ctx->tx_depth],
+            ctx->blk_geom->tx_height[ctx->tx_depth],
             NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
     }
 }
@@ -5594,8 +5594,8 @@ static void copy_txt_data(ModeDecisionCandidateBuffer *cand_bf, ModeDecisionCont
     uint8_t  tx_depth      = ctx->tx_depth;
     uint8_t  txb_itr       = ctx->txb_itr;
     uint32_t txb_1d_offset = ctx->txb_1d_offset;
-    uint8_t  tx_width      = ctx->blk_geom->tx_width[tx_depth][txb_itr];
-    uint8_t  tx_height     = ctx->blk_geom->tx_height[tx_depth][txb_itr];
+    uint8_t  tx_width      = ctx->blk_geom->tx_width[tx_depth];
+    uint8_t  tx_height     = ctx->blk_geom->tx_height[tx_depth];
     // copy recon_coeff_ptr
     memcpy(((int32_t *)cand_bf->rec_coeff->buffer_y) + txb_1d_offset,
            ((int32_t *)ctx->recon_coeff_ptr[best_tx_type]->buffer_y) + txb_1d_offset,
@@ -5617,7 +5617,7 @@ static void copy_txt_data(ModeDecisionCandidateBuffer *cand_bf, ModeDecisionCont
             memcpy(
                 recon_ptr->buffer_y + txb_origin_index + j * recon_ptr->stride_y,
                 ctx->recon_ptr[best_tx_type]->buffer_y + txb_origin_index + j * recon_ptr->stride_y,
-                ctx->blk_geom->tx_width[tx_depth][txb_itr]);
+                ctx->blk_geom->tx_width[tx_depth]);
     }
 }
 static uint8_t get_tx_type_group(ModeDecisionContext *ctx, ModeDecisionCandidateBuffer *cand_bf,
@@ -5625,13 +5625,13 @@ static uint8_t get_tx_type_group(ModeDecisionContext *ctx, ModeDecisionCandidate
     int tx_group = 1;
     if (!only_dct_dct) {
         if (is_intra_mode(cand_bf->cand->pred_mode)) {
-            tx_group = (ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] < 16 ||
-                        ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] < 16)
+            tx_group = (ctx->blk_geom->tx_width[ctx->tx_depth] < 16 ||
+                        ctx->blk_geom->tx_height[ctx->tx_depth] < 16)
                 ? ctx->txt_ctrls.txt_group_intra_lt_16x16
                 : ctx->txt_ctrls.txt_group_intra_gt_eq_16x16;
         } else {
-            tx_group = (ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] < 16 ||
-                        ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] < 16)
+            tx_group = (ctx->blk_geom->tx_width[ctx->tx_depth] < 16 ||
+                        ctx->blk_geom->tx_height[ctx->tx_depth] < 16)
                 ? ctx->txt_ctrls.txt_group_inter_lt_16x16
                 : ctx->txt_ctrls.txt_group_inter_gt_eq_16x16;
         }
@@ -5651,7 +5651,7 @@ static void perform_tx_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
                                  uint64_t *y_full_distortion) {
     ctx->three_quad_energy = 0;
 
-    TxSize tx_size = ctx->blk_geom->txsize[0][0];
+    TxSize tx_size = ctx->blk_geom->txsize[0];
 
     if (ctx->mds_subres_step == 2) {
         if (tx_size == TX_64X64)
@@ -5716,8 +5716,8 @@ static void perform_tx_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
                                         DCT_DCT);
 
     // LUMA DISTORTION
-    uint32_t txbwidth  = ctx->blk_geom->tx_width[0][0];
-    uint32_t txbheight = (ctx->blk_geom->tx_height[0][0] >> ctx->mds_subres_step);
+    uint32_t txbwidth  = ctx->blk_geom->tx_width[0];
+    uint32_t txbheight = (ctx->blk_geom->tx_height[0] >> ctx->mds_subres_step);
     uint32_t bwidth, bheight;
     if (pf_shape) {
         bwidth  = MAX((txbwidth >> pf_shape), 4);
@@ -5776,11 +5776,11 @@ static INLINE Bool search_dct_dct_only(PictureControlSet *pcs, ModeDecisionConte
 #if !FIX_TXT
     const TxSize max_tx_size = ctx->blk_geom->txsize[0][0];
 #endif
-    const TxSize tx_size     = ctx->blk_geom->txsize[tx_depth][txb_itr];
+    const TxSize tx_size     = ctx->blk_geom->txsize[tx_depth];
 
     // get_ext_tx_set() == 0 should correspond to a set with only DCT_DCT and there is no need to send the tx_type
-    if (ctx->blk_geom->tx_height[tx_depth][txb_itr] > 32 ||
-        ctx->blk_geom->tx_width[tx_depth][txb_itr] > 32 ||
+    if (ctx->blk_geom->tx_height[tx_depth] > 32 ||
+        ctx->blk_geom->tx_width[tx_depth] > 32 ||
         get_ext_tx_types(tx_size, is_inter, pcs->ppcs->frm_hdr.reduced_tx_set) == 1 ||
 #if FIX_TXT
         get_ext_tx_set(tx_size, is_inter, pcs->ppcs->frm_hdr.reduced_tx_set) == 0)
@@ -5829,7 +5829,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
 
     uint32_t   full_lambda = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD]
                                          : ctx->full_lambda_md[EB_8_BIT_MD];
-    TxSize     tx_size     = ctx->blk_geom->txsize[ctx->tx_depth][ctx->txb_itr];
+    TxSize     tx_size     = ctx->blk_geom->txsize[ctx->tx_depth];
     const Bool is_inter    = (is_inter_mode(cand_bf->cand->pred_mode) || cand_bf->cand->use_intrabc)
            ? TRUE
            : FALSE;
@@ -5876,8 +5876,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
              ctx->perform_mds1) {
         uint8_t use_pfn4_cond = 0;
 
-        const uint16_t th = ((ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] >> 4) *
-                             (ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >> 4));
+        const uint16_t th = ((ctx->blk_geom->tx_width[ctx->tx_depth] >> 4) *
+                             (ctx->blk_geom->tx_height[ctx->tx_depth] >> 4));
         use_pfn4_cond     = (cand_bf->cnt_nz_coeff < th) || !cand_bf->block_has_coeff ? 1 : 0;
         if (use_pfn4_cond)
             pf_shape = N4_SHAPE;
@@ -5914,13 +5914,13 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
     uint32_t       txb_origin_index = txb_origin_x + (txb_origin_y * cand_bf->residual->stride_y);
     uint32_t       input_txb_origin_index = (ctx->sb_origin_x + txb_origin_x + input_pic->org_x) +
         ((ctx->sb_origin_y + txb_origin_y + input_pic->org_y) * input_pic->stride_y);
-    int32_t cropped_tx_width  = MIN(ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
+    int32_t cropped_tx_width  = MIN(ctx->blk_geom->tx_width[ctx->tx_depth],
                                    pcs->ppcs->aligned_width - (ctx->sb_origin_x + txb_origin_x));
     int32_t cropped_tx_height = MIN(
-        (uint8_t)(ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >> ctx->mds_subres_step),
+        (uint8_t)(ctx->blk_geom->tx_height[ctx->tx_depth] >> ctx->mds_subres_step),
         pcs->ppcs->aligned_height - (ctx->sb_origin_y + txb_origin_y));
-    const uint32_t txbwidth    = ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr];
-    const uint32_t txbheight   = (ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >>
+    const uint32_t txbwidth    = ctx->blk_geom->tx_width[ctx->tx_depth];
+    const uint32_t txbheight   = (ctx->blk_geom->tx_height[ctx->tx_depth] >>
                                 ctx->mds_subres_step);
     ctx->luma_txb_skip_context = 0;
     ctx->luma_dc_sign_context  = 0;
@@ -6029,8 +6029,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                     &(((int32_t *)recon_coeff_ptr->buffer_y)[ctx->txb_1d_offset]),
                     qindex,
                     seg_qp,
-                    ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
-                    ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >> ctx->mds_subres_step,
+                    ctx->blk_geom->tx_width[ctx->tx_depth],
+                    ctx->blk_geom->tx_height[ctx->tx_depth] >> ctx->mds_subres_step,
                     tx_size,
                     &eob_txt[tx_type],
                     &(y_count_non_zero_coeffs_txt[tx_type]),
@@ -6064,7 +6064,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                         (int32_t *)recon_coeff_ptr->buffer_y,
                         ctx->txb_1d_offset,
                         ctx->hbd_md,
-                        ctx->blk_geom->txsize[ctx->tx_depth][ctx->txb_itr],
+                        ctx->blk_geom->txsize[ctx->tx_depth],
                         tx_type,
                         PLANE_TYPE_Y,
                         (uint32_t)eob_txt[tx_type]);
@@ -6075,8 +6075,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                          recon_ptr,
                                          txb_origin_index,
                                          0,
-                                         ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
-                                         ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr],
+                                         ctx->blk_geom->tx_width[ctx->tx_depth],
+                                         ctx->blk_geom->tx_height[ctx->tx_depth],
                                          0,
                                          0,
                                          PICTURE_BUFFER_DESC_Y_FLAG,
@@ -6143,8 +6143,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                 continue;
             }
             //LUMA-ONLY
-            uint64_t th = ((ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] *
-                            ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr]) >>
+            uint64_t th = ((ctx->blk_geom->tx_width[ctx->tx_depth] *
+                            ctx->blk_geom->tx_height[ctx->tx_depth]) >>
                            6);
             if ((ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 ||
                  ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) &&
@@ -6169,7 +6169,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
                     &(y_txb_coeff_bits_txt[tx_type]),
                     &(y_txb_coeff_bits_txt[tx_type]),
                     tx_size,
-                    ctx->blk_geom->txsize_uv[ctx->tx_depth][ctx->txb_itr],
+                    ctx->blk_geom->txsize_uv[ctx->tx_depth],
                     tx_type,
                     NOT_USED_VALUE,
                     COMPONENT_LUMA);
@@ -6188,8 +6188,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
             if (!only_dct_dct) {
                 uint32_t coeff_th      = ctx->txt_ctrls.early_exit_coeff_th;
                 uint32_t dist_err_unit = ctx->txt_ctrls.early_exit_dist_th;
-                uint32_t dist_err      = ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] *
-                    ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] * dist_err_unit;
+                uint32_t dist_err      = ctx->blk_geom->tx_width[ctx->tx_depth] *
+                    ctx->blk_geom->tx_height[ctx->tx_depth] * dist_err_unit;
 
                 uint64_t cost_th = dist_err_unit ? RDCOST(full_lambda, 1, dist_err)
                                                  : 0; // if distortion th=0, set cost_th to 0
@@ -6220,13 +6220,13 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
         // copy best_tx_type data
         copy_txt_data(cand_bf, ctx, txb_origin_index, best_tx_type);
     }
-    ctx->txb_1d_offset += ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr] *
-        (ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >> ctx->mds_subres_step);
+    ctx->txb_1d_offset += ctx->blk_geom->tx_width[ctx->tx_depth] *
+        (ctx->blk_geom->tx_height[ctx->tx_depth] >> ctx->mds_subres_step);
     // For Inter blocks, transform type of chroma follows luma transfrom type
     if (is_inter && ctx->txb_itr == 0) {
 #if FIX_TXT
         const TxSetType tx_set_type_uv = get_ext_tx_set_type(
-            ctx->blk_geom->txsize_uv[ctx->tx_depth][ctx->txb_itr],
+            ctx->blk_geom->txsize_uv[ctx->tx_depth],
             is_inter,
             pcs->ppcs->frm_hdr.reduced_tx_set);
         if (av1_ext_tx_used[tx_set_type_uv][best_tx_type] == 0)
@@ -6850,8 +6850,8 @@ static void perform_tx_partitioning(ModeDecisionCandidateBuffer *cand_bf, ModeDe
                     txb_origin_index,
                     tx_cand_bf->residual->stride_y,
                     ctx->hbd_md,
-                    ctx->blk_geom->tx_width[ctx->tx_depth][ctx->txb_itr],
-                    ctx->blk_geom->tx_height[ctx->tx_depth][ctx->txb_itr] >> ctx->mds_subres_step);
+                    ctx->blk_geom->tx_width[ctx->tx_depth],
+                    ctx->blk_geom->tx_height[ctx->tx_depth] >> ctx->mds_subres_step);
             }
             uint8_t tx_search_skip_flag = 0;
             // only have prev. stage coeff info if mds1/2 were performed
@@ -6947,7 +6947,7 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
                             ctx->hbd_md,
                             ctx->blk_geom->bwidth,
                             ctx->blk_geom->bheight);
-    TxSize tx_size = ctx->blk_geom->txsize[0][0];
+    TxSize tx_size = ctx->blk_geom->txsize[0];
     assert(tx_size < TX_SIZES_ALL);
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
     if (ctx->use_tx_shortcuts_mds3 && ctx->rtc_use_N4_dct_dct_shortcut) {
@@ -6997,8 +6997,8 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         &(((int32_t *)recon_coeff_ptr->buffer_y)[0]),
         ctx->blk_ptr->qindex,
         0,
-        ctx->blk_geom->tx_width[0][0],
-        ctx->blk_geom->tx_height[0][0],
+        ctx->blk_geom->tx_width[0],
+        ctx->blk_geom->tx_height[0],
         tx_size,
         &(cand_bf->eob[0][0]),
         &(y_count_non_zero_coeffs_txt),
@@ -7013,8 +7013,8 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
         full_lambda,
         FALSE);
     // LUMA DISTORTION
-    const uint32_t txbwidth  = ctx->blk_geom->tx_width[0][0];
-    const uint32_t txbheight = ctx->blk_geom->tx_height[0][0];
+    const uint32_t txbwidth  = ctx->blk_geom->tx_width[0];
+    const uint32_t txbheight = ctx->blk_geom->tx_height[0];
     uint32_t       bwidth, bheight;
     if (pf_shape) {
         bwidth  = MAX((txbwidth >> pf_shape), 4);
@@ -7060,7 +7060,7 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet *pcs, ModeDecisionCon
                                         NULL,
                                         NULL,
                                         tx_size,
-                                        ctx->blk_geom->txsize_uv[0][0],
+                                        ctx->blk_geom->txsize_uv[0],
                                         DCT_DCT,
                                         NOT_USED_VALUE,
                                         COMPONENT_LUMA);
@@ -7111,8 +7111,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
             txb_origin_index,
             cand_bf->residual->stride_y,
             ctx->hbd_md,
-            ctx->blk_geom->tx_width[tx_depth][txb_itr],
-            ctx->blk_geom->tx_height[tx_depth][txb_itr] >> ctx->mds_subres_step);
+            ctx->blk_geom->tx_width[tx_depth],
+            ctx->blk_geom->tx_height[tx_depth] >> ctx->mds_subres_step);
     }
 
     // TX search
@@ -7121,7 +7121,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
          ? pcs->ppcs->frm_hdr.segmentation_params
               .feature_data[ctx->blk_ptr->segment_id][SEG_LVL_ALT_Q]
          : 0;
-    TxSize    tx_size = ctx->blk_geom->txsize[tx_depth][txb_itr];
+    TxSize    tx_size = ctx->blk_geom->txsize[tx_depth];
 
     if (ctx->mds_subres_step == 2) {
         if (tx_size == TX_64X64)
@@ -7155,8 +7155,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
              ctx->perform_mds1) {
         uint8_t use_pfn4_cond = 0;
 
-        const uint16_t th = ((ctx->blk_geom->tx_width[tx_depth][txb_itr] >> 4) *
-                             (ctx->blk_geom->tx_height[tx_depth][txb_itr] >> 4));
+        const uint16_t th = ((ctx->blk_geom->tx_width[tx_depth] >> 4) *
+                             (ctx->blk_geom->tx_height[tx_depth] >> 4));
         use_pfn4_cond     = (cand_bf->cnt_nz_coeff < th) || !cand_bf->block_has_coeff ? 1 : 0;
         if (use_pfn4_cond)
             pf_shape = N4_SHAPE;
@@ -7207,8 +7207,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
             &(((int32_t *)recon_coeff_ptr->buffer_y)[txb_1d_offset]),
             qindex,
             seg_qp,
-            ctx->blk_geom->tx_width[tx_depth][txb_itr],
-            ctx->blk_geom->tx_height[tx_depth][txb_itr] >> ctx->mds_subres_step,
+            ctx->blk_geom->tx_width[tx_depth],
+            ctx->blk_geom->tx_height[tx_depth] >> ctx->mds_subres_step,
             tx_size,
             &(cand_bf->eob[0][txb_itr]),
             &(y_count_non_zero_coeffs_txt),
@@ -7240,7 +7240,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                                 (int32_t *)recon_coeff_ptr->buffer_y,
                                                 txb_1d_offset,
                                                 ctx->hbd_md,
-                                                ctx->blk_geom->txsize[tx_depth][txb_itr],
+                                                ctx->blk_geom->txsize[tx_depth],
                                                 tx_type,
                                                 PLANE_TYPE_Y,
                                                 (uint32_t)cand_bf->eob[0][txb_itr]);
@@ -7251,18 +7251,18 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                  recon_ptr,
                                  txb_origin_index,
                                  0,
-                                 ctx->blk_geom->tx_width[tx_depth][txb_itr],
-                                 ctx->blk_geom->tx_height[tx_depth][txb_itr],
+                                 ctx->blk_geom->tx_width[tx_depth],
+                                 ctx->blk_geom->tx_height[tx_depth],
                                  0,
                                  0,
                                  PICTURE_BUFFER_DESC_Y_FLAG,
                                  ctx->hbd_md);
 
         const int32_t cropped_tx_width = MIN(
-            ctx->blk_geom->tx_width[tx_depth][txb_itr],
+            ctx->blk_geom->tx_width[tx_depth],
             pcs->ppcs->aligned_width - (ctx->sb_origin_x + tx_org_x));
         const int32_t cropped_tx_height = MIN(
-            (uint8_t)(ctx->blk_geom->tx_height[tx_depth][txb_itr] >> ctx->mds_subres_step),
+            (uint8_t)(ctx->blk_geom->tx_height[tx_depth] >> ctx->mds_subres_step),
             pcs->ppcs->aligned_height - (ctx->sb_origin_y + tx_org_y));
         EbSpatialFullDistType spatial_full_dist_type_fun = ctx->hbd_md
             ? svt_full_distortion_kernel16_bits
@@ -7289,8 +7289,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
         y_full_distortion[DIST_CALC_RESIDUAL] <<= 4;
     } else {
         // LUMA DISTORTION
-        uint32_t txbwidth  = ctx->blk_geom->tx_width[tx_depth][txb_itr];
-        uint32_t txbheight = (ctx->blk_geom->tx_height[tx_depth][txb_itr] >> ctx->mds_subres_step);
+        uint32_t txbwidth  = ctx->blk_geom->tx_width[tx_depth];
+        uint32_t txbheight = (ctx->blk_geom->tx_height[tx_depth] >> ctx->mds_subres_step);
 
         uint32_t bwidth, bheight;
         if (pf_shape && !tx_search_skip_flag) {
@@ -7323,8 +7323,8 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     y_full_distortion[DIST_CALC_PREDICTION] <<= ctx->mds_subres_step;
 
     //LUMA-ONLY
-    const uint32_t th = ((ctx->blk_geom->tx_width[tx_depth][txb_itr] *
-                          ctx->blk_geom->tx_height[tx_depth][txb_itr]) >>
+    const uint32_t th = ((ctx->blk_geom->tx_width[tx_depth] *
+                          ctx->blk_geom->tx_height[tx_depth]) >>
                          6);
     if ((ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 ||
          ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) &&
@@ -7348,7 +7348,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                         NULL,
                                         NULL,
                                         tx_size,
-                                        ctx->blk_geom->txsize_uv[tx_depth][txb_itr],
+                                        ctx->blk_geom->txsize_uv[tx_depth],
                                         tx_type,
                                         NOT_USED_VALUE,
                                         COMPONENT_LUMA);
@@ -8771,7 +8771,7 @@ static void update_intra_chroma_mode(PictureControlSet *pcs, ModeDecisionContext
 #if FIX_TXT
             cand_bf->cand->transform_type_uv = svt_aom_get_intra_uv_tx_type(
                 cand->intra_chroma_mode,
-                ctx->blk_geom->txsize_uv[0][0],
+                ctx->blk_geom->txsize_uv[0],
                 pcs->ppcs->frm_hdr.reduced_tx_set);
 #else
             cand->transform_type_uv = av1_get_tx_type(0, // is_inter
@@ -8870,7 +8870,7 @@ static void update_intra_chroma_mode(ModeDecisionContext *ctx, ModeDecisionCandi
                                 cand->pred_mode,
                                 (UvPredictionMode)cand->intra_chroma_mode,
                                 PLANE_TYPE_UV,
-                                ctx->blk_geom->txsize_uv[0][0],
+                                ctx->blk_geom->txsize_uv[0],
                                 frm_hdr->reduced_tx_set);
 #if FIX_UV_INTRA_MODE_RATE
                         // Update fast_chroma_rate
@@ -9300,23 +9300,6 @@ static void check_redundant_block(const BlockGeom *blk_geom, ModeDecisionContext
     }
 }
 
-/*
-   search for a valid previously encoded similar
-   block (block having the same location and shape as the current block,
-   but where neighboring blocks are different from those for the current block)
-*/
-static void check_similar_block(const BlockGeom *blk_geom, ModeDecisionContext *ctx,
-                                uint8_t *similar_blk_avail, uint16_t *similar_blk_mds) {
-    if (blk_geom->similar) {
-        for (int it = 0; it < blk_geom->similar_list.list_size; it++) {
-            if (ctx->avail_blk_flag[blk_geom->similar_list.blk_mds_table[it]]) {
-                *similar_blk_mds   = blk_geom->similar_list.blk_mds_table[it];
-                *similar_blk_avail = 1;
-                break;
-            }
-        }
-    }
-}
 #if !CLN_IND_UV_SEARCH
 static void init_chroma_mode(ModeDecisionContext *ctx) {
     Bool use_angle_delta = av1_use_angle_delta(ctx->blk_geom->bsize,
@@ -9432,7 +9415,7 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
 #if FIX_TXT
         cand_array[uv_mode_total_count].transform_type_uv = svt_aom_get_intra_uv_tx_type(
             cand_array[uv_mode_total_count].intra_chroma_mode,
-            ctx->blk_geom->txsize_uv[0][0],
+            ctx->blk_geom->txsize_uv[0],
             frm_hdr->reduced_tx_set);
 #else
         cand_array[uv_mode_total_count].transform_type_uv = av1_get_tx_type(
@@ -9660,7 +9643,7 @@ static void search_best_independent_uv_mode(PictureControlSet *pcs, EbPictureBuf
                 cand_array[uv_mode_total_count].motion_mode                = SIMPLE_TRANSLATION;
 #if FIX_TXT
                 cand_array[uv_mode_total_count].transform_type_uv = svt_aom_get_intra_uv_tx_type(
-                    uv_mode, ctx->blk_geom->txsize_uv[0][0], frm_hdr->reduced_tx_set);
+                    uv_mode, ctx->blk_geom->txsize_uv[0], frm_hdr->reduced_tx_set);
 #else
                 cand_array[uv_mode_total_count].transform_type_uv          = av1_get_tx_type(
                     0, // is_inter
@@ -11521,7 +11504,7 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
         {
             // 2 * Tx-2NxN
             ctx->txb_1d_offset = 0;
-            TxSize tx_size     = ctx->blk_geom->txsize[0][0];
+            TxSize tx_size     = ctx->blk_geom->txsize[0];
             if (tx_size == TX_64X64)
                 tx_size = TX_64X32;
             else if (tx_size == TX_32X32)
@@ -11533,8 +11516,8 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
             else
                 assert(0);
 
-            const uint32_t txbwidth  = ctx->blk_geom->tx_width[0][0];
-            const uint32_t txbheight = ctx->blk_geom->tx_height[0][0] >> 1;
+            const uint32_t txbwidth  = ctx->blk_geom->tx_width[0];
+            const uint32_t txbheight = ctx->blk_geom->tx_height[0] >> 1;
 
             // Transform Loop
             for (int h_part = 0; h_part < 2; h_part++) {
@@ -11590,7 +11573,7 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
         {
             // 2 * Tx-2NxN
             ctx->txb_1d_offset = 0;
-            TxSize tx_size     = ctx->blk_geom->txsize[0][0];
+            TxSize tx_size     = ctx->blk_geom->txsize[0];
             if (tx_size == TX_64X64)
                 tx_size = TX_32X64;
             else if (tx_size == TX_32X32)
@@ -11602,8 +11585,8 @@ static void non_normative_txs(PictureControlSet *pcs, ModeDecisionContext *ctx, 
             else
                 assert(0);
 
-            const uint32_t txbwidth  = ctx->blk_geom->tx_width[0][0] >> 1;
-            const uint32_t txbheight = ctx->blk_geom->tx_height[0][0];
+            const uint32_t txbwidth  = ctx->blk_geom->tx_width[0] >> 1;
+            const uint32_t txbheight = ctx->blk_geom->tx_height[0];
 
             // Transform Loop
             for (int v_part = 0; v_part < 2; v_part++) {
@@ -13171,11 +13154,6 @@ static Bool update_redundant(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 
     if (!ctx->md_disallow_nsq)
         check_redundant_block(blk_geom, ctx, &redundant_blk_avail, &redundant_blk_mds);
-
-    ctx->similar_blk_avail = 0;
-
-    if (!ctx->md_disallow_nsq)
-        check_similar_block(blk_geom, ctx, &ctx->similar_blk_avail, &ctx->similar_blk_mds);
 
     if (redundant_blk_avail && ctx->redundant_blk) {
         // Copy results

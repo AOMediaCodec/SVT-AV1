@@ -4938,7 +4938,7 @@ static void inject_intra_candidates(
                 cand_array[cand_total_cnt].transform_type_uv =
 #if FIX_TXT
                 svt_aom_get_intra_uv_tx_type(cand_array[cand_total_cnt].intra_chroma_mode,
-                    ctx->blk_geom->txsize_uv[0][0],
+                    ctx->blk_geom->txsize_uv[0],
                     frm_hdr->reduced_tx_set);
 #else
                 av1_get_tx_type(
@@ -5048,7 +5048,7 @@ static void inject_filter_intra_candidates(
                 cand_array[cand_total_cnt].transform_type_uv =
 #if FIX_TXT
                 svt_aom_get_intra_uv_tx_type(cand_array[cand_total_cnt].intra_chroma_mode,
-                    ctx->blk_geom->txsize_uv[0][0],
+                    ctx->blk_geom->txsize_uv[0],
                     frm_hdr->reduced_tx_set);
 #else
                 av1_get_tx_type(
@@ -5149,7 +5149,7 @@ void  inject_intra_candidates(
                             cand_array[cand_total_cnt].pred_mode,
                             (UvPredictionMode)cand_array[cand_total_cnt].intra_chroma_mode,
                             PLANE_TYPE_UV,
-                            ctx->blk_geom->txsize_uv[0][0],
+                            ctx->blk_geom->txsize_uv[0],
                             frm_hdr->reduced_tx_set);
                     cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
                     cand_array[cand_total_cnt].motion_mode = SIMPLE_TRANSLATION;
@@ -5201,7 +5201,7 @@ void  inject_intra_candidates(
                     cand_array[cand_total_cnt].pred_mode,
                     (UvPredictionMode)cand_array[cand_total_cnt].intra_chroma_mode,
                     PLANE_TYPE_UV,
-                    ctx->blk_geom->txsize_uv[0][0],
+                    ctx->blk_geom->txsize_uv[0],
                     frm_hdr->reduced_tx_set);
             cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
             cand_array[cand_total_cnt].motion_mode = SIMPLE_TRANSLATION;
@@ -5280,7 +5280,7 @@ void  inject_filter_intra_candidates(
                     cand_array[cand_total_cnt].pred_mode,
                     (UvPredictionMode)cand_array[cand_total_cnt].intra_chroma_mode,
                     PLANE_TYPE_UV,
-                    ctx->blk_geom->txsize_uv[0][0],
+                    ctx->blk_geom->txsize_uv[0],
                     frm_hdr->reduced_tx_set);
             cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
             cand_array[cand_total_cnt].motion_mode = SIMPLE_TRANSLATION;
@@ -5441,7 +5441,7 @@ void  inject_palette_candidates(
             cand_array[can_total_cnt].transform_type_uv =
 #if FIX_TXT
             svt_aom_get_intra_uv_tx_type(cand_array[can_total_cnt].intra_chroma_mode,
-                ctx->blk_geom->txsize_uv[0][0],
+                ctx->blk_geom->txsize_uv[0],
                 pcs->ppcs->frm_hdr.reduced_tx_set);
 #else
             av1_get_tx_type(
@@ -5825,8 +5825,8 @@ void svt_aom_product_full_mode_decision_light_pd1(
         int32_t* src_ptr;
         int32_t* dst_ptr;
 
-        uint16_t  bwidth = MIN(ctx->blk_geom->tx_width[blk_ptr->tx_depth][txb_itr], 32);
-        uint16_t  bheight = MIN(ctx->blk_geom->tx_height[blk_ptr->tx_depth][txb_itr], 32);
+        uint16_t  bwidth = MIN(ctx->blk_geom->tx_width[blk_ptr->tx_depth], 32);
+        uint16_t  bheight = MIN(ctx->blk_geom->tx_height[blk_ptr->tx_depth], 32);
 
         if (ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].y_has_coeff[txb_itr]) {
             src_ptr = &(((int32_t*)cand_bf->quant->buffer_y)[txb_1d_offset]);
@@ -5835,8 +5835,8 @@ void svt_aom_product_full_mode_decision_light_pd1(
         }
         ctx->coded_area_sb += bwidth * bheight;
 
-        uint16_t bwidth_uv = ctx->blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr];
-        uint16_t bheight_uv = ctx->blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr];
+        uint16_t bwidth_uv = ctx->blk_geom->tx_width_uv[blk_ptr->tx_depth];
+        uint16_t bheight_uv = ctx->blk_geom->tx_height_uv[blk_ptr->tx_depth];
 
         // Cb
         if (ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].u_has_coeff[txb_itr]) {
@@ -6064,8 +6064,8 @@ uint32_t svt_aom_product_full_mode_decision(
             txb_ptr->nz_coef_count[0] = cand_bf->eob[0][txb_itr];
             txb_ptr->nz_coef_count[1] = cand_bf->eob[1][txb_itr];
             txb_ptr->nz_coef_count[2] = cand_bf->eob[2][txb_itr];
-            uint16_t  bwidth = MIN(ctx->blk_geom->tx_width[blk_ptr->tx_depth][txb_itr], 32);
-            uint16_t  bheight = MIN(ctx->blk_geom->tx_height[blk_ptr->tx_depth][txb_itr], 32);
+            uint16_t  bwidth = MIN(ctx->blk_geom->tx_width[blk_ptr->tx_depth], 32);
+            uint16_t  bheight = MIN(ctx->blk_geom->tx_height[blk_ptr->tx_depth], 32);
             int32_t* src_ptr = &(((int32_t*)cand_bf->quant->buffer_y)[txb_1d_offset]);
             int32_t* dst_ptr = &(((int32_t*)ctx->blk_ptr->coeff_tmp->buffer_y)[txb_1d_offset]);
 
@@ -6082,8 +6082,8 @@ uint32_t svt_aom_product_full_mode_decision(
 
             if (ctx->blk_geom->has_uv && (blk_ptr->tx_depth == 0 || txb_itr == 0)) {
                 // Cb
-                uint16_t bwidth_uv = ctx->blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr];
-                uint16_t bheight_uv = ctx->blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr];
+                uint16_t bwidth_uv = ctx->blk_geom->tx_width_uv[blk_ptr->tx_depth];
+                uint16_t bheight_uv = ctx->blk_geom->tx_height_uv[blk_ptr->tx_depth];
                 src_ptr = &(((int32_t*)cand_bf->quant->buffer_cb)[txb_1d_offset_uv]);
                 dst_ptr = &(((int32_t*)ctx->blk_ptr->coeff_tmp->buffer_cb)[txb_1d_offset_uv]);
 

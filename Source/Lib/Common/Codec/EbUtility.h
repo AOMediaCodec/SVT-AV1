@@ -50,53 +50,47 @@ typedef enum GeomIndex {
 void svt_aom_build_blk_geom(GeomIndex geom);
 
 typedef struct BlockGeom {
-    GeomIndex svt_aom_geom_idx; //type of geom this block belongs
-    uint8_t   depth; // depth of the block
     Part      shape; // P_N..P_V4 . P_S is not used.
     uint8_t   org_x; // orgin x from topleft of sb
     uint8_t   org_y; // orgin x from topleft of sb
 
-    // index of the block in d1 dimension 0..24  (0 is parent square, 1 top half of H , ...., 24:last quarter of V4)
-    uint8_t  d1i;
-    uint16_t sqi_mds; // index of the parent square in md  scan.
-    uint16_t parent_depth_idx_mds; // index of the parent block of a given depth
-    uint16_t d1_depth_offset; // offset to the next d1 sq block
-    uint16_t ns_depth_offset; // offset to the next nsq block (skip remaining d2 blocks)
-    // max number of ns blocks within one partition 1..4 (N:1,H:2,V:2,HA:3,HB:3,VA:3,VB:3,H4:4,V4:4)
-    uint8_t     totns;
-    uint8_t     nsi; // non square index within a partition  0..totns-1
-    uint8_t     similar; // 1: means that this block is similar (same shape/location) to another
-    uint8_t     quadi; // parent square is in which quadrant 0..3
-    uint8_t     redund; // 1: means that this block is redundant to another
-    BlockList_t redund_list; // the list where the block is redundant
-    BlockList_t similar_list;
+    uint8_t   has_uv;
+    uint8_t   sq_size; // size of parent square
 
     uint8_t   bwidth; // block width
     uint8_t   bheight; // block height
     uint8_t   bwidth_uv; // block width for Chroma 4:2:0
     uint8_t   bheight_uv; // block height for Chroma 4:2:0
-    uint8_t   bwidth_log2; // block width log2
-    uint8_t   bheight_log2; // block height log2
     BlockSize bsize; // bloc size
     BlockSize bsize_uv; // bloc size for Chroma 4:2:0
-    uint16_t  txb_count[MAX_VARTX_DEPTH + 1]; //4-2-1
-    TxSize    txsize[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
-    TxSize    txsize_uv[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
-    uint16_t  tx_org_x
-        [2][MAX_VARTX_DEPTH + 1]
-        [MAX_TXB_COUNT]; //origin is SB - separate tables for INTRA (idx 0) and INTER (idx 1)
-    uint16_t tx_org_y
-        [2][MAX_VARTX_DEPTH + 1]
-        [MAX_TXB_COUNT]; //origin is SB - separate tables for INTRA (idx 0) and INTER (idx 1)
-    uint8_t tx_width[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT]; //tx_size_wide
-    uint8_t tx_height[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT]; //tx_size_wide
-    uint8_t tx_width_uv[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT]; //tx_size_wide
-    uint8_t tx_height_uv[MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT]; //tx_size_wide
+    uint8_t   txb_count[MAX_VARTX_DEPTH + 1]; //4-2-1
+    TxSize    txsize[MAX_VARTX_DEPTH + 1];
+    TxSize    txsize_uv[MAX_VARTX_DEPTH + 1];
+    uint8_t   tx_width[MAX_VARTX_DEPTH + 1]; //tx_size_wide
+    uint8_t   tx_height[MAX_VARTX_DEPTH + 1]; //tx_size_high
+    uint8_t   tx_width_uv[MAX_VARTX_DEPTH + 1]; //tx_size_wide
+    uint8_t   tx_height_uv[MAX_VARTX_DEPTH + 1]; //tx_size_high
+
+    //origin is SB - separate tables for INTRA (idx 0) and INTER (idx 1)
+    uint8_t   tx_org_x[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
+    uint8_t   tx_org_y[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
 
     uint16_t blkidx_mds; // block index in md scan
-    int32_t  has_uv;
-    int32_t  sq_size; // size of parent square
-    int32_t  is_last_quadrant; // only for square bloks, is this the fourth quadrant block?
+    // index of the block in d1 dimension 0..24  (0 is parent square, 1 top half of H , ...., 24:last quarter of V4)
+    uint8_t  d1i;
+    uint16_t sqi_mds; // index of the parent square in md  scan.
+    uint16_t parent_depth_idx_mds; // index of the parent block of a given depth
+    // max number of ns blocks within one partition 1..4 (N:1,H:2,V:2,HA:3,HB:3,VA:3,VB:3,H4:4,V4:4)
+    uint8_t     totns;
+    uint8_t     nsi; // non square index within a partition  0..totns-1
+    uint8_t     quadi; // parent square is in which quadrant 0..3
+    GeomIndex svt_aom_geom_idx; //type of geom this block belongs
+    uint8_t   depth; // depth of the block
+    uint16_t d1_depth_offset; // offset to the next d1 sq block
+    uint16_t ns_depth_offset; // offset to the next nsq block (skip remaining d2 blocks)
+    uint8_t  is_last_quadrant; // only for square bloks, is this the fourth quadrant block?
+    uint8_t     redund; // 1: means that this block is redundant to another
+    BlockList_t redund_list; // the list where the block is redundant
 } BlockGeom;
 
 static const BlockSize ss_size_lookup[BlockSizeS_ALL][2][2] = {

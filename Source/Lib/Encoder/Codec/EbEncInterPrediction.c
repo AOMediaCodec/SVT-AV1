@@ -3230,8 +3230,8 @@ static void inter_intra_prediction(
                                                     blk_originy_uv / 2)
                                                    << is16bit];
         }
-        TxSize tx_size        = blk_geom->txsize[0][0]; // Nader - Intra 128x128 not supported
-        TxSize tx_size_Chroma = blk_geom->txsize_uv[0][0]; //Nader - Intra 128x128 not supported
+        TxSize tx_size        = blk_geom->txsize[0]; // Nader - Intra 128x128 not supported
+        TxSize tx_size_Chroma = blk_geom->txsize_uv[0]; //Nader - Intra 128x128 not supported
 
         if (is16bit) {
             svt_av1_predict_intra_block_16bit(

@@ -742,8 +742,8 @@ EbErrorType svt_av1_intra_prediction_cl(
             ctx->intra_luma_top_mode = xd->mi[-xd->mi_stride]->mbmi.block_mi.mode >= NEARESTMV ? DC_PRED : xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
     }
 #endif
-    TxSize  tx_size = ctx->blk_geom->txsize[cand_bf->cand->tx_depth][0]; // Nader - Intra 128x128 not supported
-    TxSize  tx_size_chroma = ctx->blk_geom->txsize_uv[cand_bf->cand->tx_depth][0]; //Nader - Intra 128x128 not supported
+    TxSize  tx_size = ctx->blk_geom->txsize[cand_bf->cand->tx_depth]; // Nader - Intra 128x128 not supported
+    TxSize  tx_size_chroma = ctx->blk_geom->txsize_uv[cand_bf->cand->tx_depth]; //Nader - Intra 128x128 not supported
     uint32_t sb_size_luma   = pcs->ppcs->scs->sb_size;
     uint32_t sb_size_chroma   = pcs->ppcs->scs->sb_size/2;
 
@@ -1045,7 +1045,7 @@ EbErrorType  intra_luma_prediction_for_interintra(
             ctx->intra_luma_top_mode = xd->mi[-xd->mi_stride]->mbmi.block_mi.mode >= NEARESTMV ? DC_PRED : xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
     }
 #endif
-    TxSize  tx_size = ctx->blk_geom->txsize[0][0];  //CHKN  TOcheck
+    TxSize  tx_size = ctx->blk_geom->txsize[0];  //CHKN  TOcheck
     PredictionMode mode = interintra_to_intra_mode[interintra_mode];
     uint32_t        sb_size_luma   = pcs->ppcs->scs->sb_size;
 

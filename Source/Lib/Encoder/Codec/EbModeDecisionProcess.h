@@ -1130,8 +1130,6 @@ typedef struct ModeDecisionContext {
     uint8_t              bipred3x3_injection;
     uint8_t              redundant_blk;
     uint8_t              nic_level;
-    uint8_t              similar_blk_avail;
-    uint16_t             similar_blk_mds;
     uint8_t              svt_aom_inject_inter_candidates;
     uint8_t             *cfl_temp_luma_recon;
     uint16_t            *cfl_temp_luma_recon16bit;

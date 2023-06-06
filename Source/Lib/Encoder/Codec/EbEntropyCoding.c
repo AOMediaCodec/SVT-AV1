@@ -729,7 +729,7 @@ static EbErrorType av1_encode_tx_coef_y(PictureControlSet *pcs, EntropyCodingCon
     for (uint16_t tx_index = 0; tx_index < txb_count; tx_index++) {
         uint16_t txb_itr = tx_index;
 
-        const TxSize tx_size = blk_geom->txsize[tx_depth][txb_itr];
+        const TxSize tx_size = blk_geom->txsize[tx_depth];
 
         const uint32_t coeff1d_offset = ec_ctx->coded_area_sb;
 
@@ -775,12 +775,12 @@ static EbErrorType av1_encode_tx_coef_y(PictureControlSet *pcs, EntropyCodingCon
             (uint8_t *)&dc_sign_level_coeff,
             blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x,
             blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y,
-            blk_geom->tx_width[tx_depth][txb_itr],
-            blk_geom->tx_height[tx_depth][txb_itr],
+            blk_geom->tx_width[tx_depth],
+            blk_geom->tx_height[tx_depth],
             NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 
-        ec_ctx->coded_area_sb += blk_geom->tx_width[tx_depth][txb_itr] *
-            blk_geom->tx_height[tx_depth][txb_itr];
+        ec_ctx->coded_area_sb += blk_geom->tx_width[tx_depth] *
+            blk_geom->tx_height[tx_depth];
     }
 
     return return_error;
@@ -821,7 +821,7 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
     unsigned      txb_count = 1;
 
     for (unsigned tx_index = 0; tx_index < txb_count; ++tx_index) {
-        const TxSize chroma_tx_size = blk_geom->txsize_uv[tx_depth][tx_index];
+        const TxSize chroma_tx_size = blk_geom->txsize_uv[tx_depth];
 
         if (blk_geom->has_uv) {
             // cb
@@ -912,8 +912,8 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
                 ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][tx_index] -
                          blk_geom->org_y) >>
                     1,
-                blk_geom->tx_width_uv[tx_depth][tx_index],
-                blk_geom->tx_height_uv[tx_depth][tx_index],
+                blk_geom->tx_width_uv[tx_depth],
+                blk_geom->tx_height_uv[tx_depth],
                 NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
             // Update the cr DC Sign Level Coeff Neighbor Array
             dc_sign_level_coeff = (uint8_t)cul_level_cr;
@@ -926,13 +926,13 @@ static EbErrorType av1_encode_tx_coef_uv(PictureControlSet *pcs, EntropyCodingCo
                 ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][tx_index] -
                          blk_geom->org_y) >>
                     1,
-                blk_geom->tx_width_uv[tx_depth][tx_index],
-                blk_geom->tx_height_uv[tx_depth][tx_index],
+                blk_geom->tx_width_uv[tx_depth],
+                blk_geom->tx_height_uv[tx_depth],
                 NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
         }
 
-        ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[tx_depth][tx_index] *
-            blk_geom->tx_height_uv[tx_depth][tx_index];
+        ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[tx_depth] *
+            blk_geom->tx_height_uv[tx_depth];
     }
 
     return return_error;
@@ -1018,8 +1018,8 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
 
         for (txb_itr = 0; txb_itr < txb_count; txb_itr++) {
 #if CLN_MBMI_7
-            const TxSize tx_size        = blk_geom->txsize[tx_depth][txb_itr];
-            const TxSize chroma_tx_size = blk_geom->txsize_uv[tx_depth][txb_itr];
+            const TxSize tx_size        = blk_geom->txsize[tx_depth];
+            const TxSize chroma_tx_size = blk_geom->txsize_uv[tx_depth];
 #else
             const TxSize tx_size        = blk_geom->txsize[blk_ptr->tx_depth][txb_itr];
             const TxSize chroma_tx_size = blk_geom->txsize_uv[blk_ptr->tx_depth][txb_itr];
@@ -1180,15 +1180,15 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
 #if CLN_MBMI_7
                     blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x,
                     blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y,
-                    blk_geom->tx_width[tx_depth][txb_itr],
-                    blk_geom->tx_height[tx_depth][txb_itr],
+                    blk_geom->tx_width[tx_depth],
+                    blk_geom->tx_height[tx_depth],
 #else
                     blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_x,
                     blk_org_y + blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                         blk_geom->org_y,
-                    blk_geom->tx_width[blk_ptr->tx_depth][txb_itr],
-                    blk_geom->tx_height[blk_ptr->tx_depth][txb_itr],
+                    blk_geom->tx_width[blk_ptr->tx_depth],
+                    blk_geom->tx_height[blk_ptr->tx_depth],
 #endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
             }
@@ -1203,8 +1203,8 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
 #if CLN_MBMI_7
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
                     ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
-                    blk_geom->tx_width_uv[tx_depth][txb_itr],
-                    blk_geom->tx_height_uv[tx_depth][txb_itr],
+                    blk_geom->tx_width_uv[tx_depth],
+                    blk_geom->tx_height_uv[tx_depth],
 #else
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_x) >>
@@ -1212,8 +1212,8 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                     ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_y) >>
                         1,
-                    blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr],
-                    blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr],
+                    blk_geom->tx_width_uv[blk_ptr->tx_depth],
+                    blk_geom->tx_height_uv[blk_ptr->tx_depth],
 #endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
                 // Update the cr DC Sign Level Coeff Neighbor Array
@@ -1224,8 +1224,8 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
 #if CLN_MBMI_7
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][tx_depth][txb_itr] - blk_geom->org_x) >> 1,
                     ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][tx_depth][txb_itr] - blk_geom->org_y) >> 1,
-                    blk_geom->tx_width_uv[tx_depth][txb_itr],
-                    blk_geom->tx_height_uv[tx_depth][txb_itr],
+                    blk_geom->tx_width_uv[tx_depth],
+                    blk_geom->tx_height_uv[tx_depth],
 #else
                     ROUND_UV(blk_org_x + blk_geom->tx_org_x[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_x) >>
@@ -1233,24 +1233,24 @@ static EbErrorType av1_encode_coeff_1d(PictureControlSet *pcs, EntropyCodingCont
                     ROUND_UV(blk_org_y + blk_geom->tx_org_y[is_inter][blk_ptr->tx_depth][txb_itr] -
                              blk_geom->org_y) >>
                         1,
-                    blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr],
-                    blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr],
+                    blk_geom->tx_width_uv[blk_ptr->tx_depth],
+                    blk_geom->tx_height_uv[blk_ptr->tx_depth],
 #endif
                     NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
 #if CLN_MBMI_7
-                ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[tx_depth][txb_itr] *
-                    blk_geom->tx_height_uv[tx_depth][txb_itr];
+                ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[tx_depth] *
+                    blk_geom->tx_height_uv[tx_depth];
 #else
-                ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[blk_ptr->tx_depth][txb_itr] *
-                    blk_geom->tx_height_uv[blk_ptr->tx_depth][txb_itr];
+                ec_ctx->coded_area_sb_uv += blk_geom->tx_width_uv[blk_ptr->tx_depth] *
+                    blk_geom->tx_height_uv[blk_ptr->tx_depth];
 #endif
             }
 #if CLN_MBMI_7
-            ec_ctx->coded_area_sb += blk_geom->tx_width[tx_depth][txb_itr] *
-                blk_geom->tx_height[tx_depth][txb_itr];
+            ec_ctx->coded_area_sb += blk_geom->tx_width[tx_depth] *
+                blk_geom->tx_height[tx_depth];
 #else
-            ec_ctx->coded_area_sb += blk_geom->tx_width[blk_ptr->tx_depth][txb_itr] *
-                blk_geom->tx_height[blk_ptr->tx_depth][txb_itr];
+            ec_ctx->coded_area_sb += blk_geom->tx_width[blk_ptr->tx_depth] *
+                blk_geom->tx_height[blk_ptr->tx_depth];
 #endif
         }
     }
@@ -5763,7 +5763,7 @@ static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t bl
 #if CLN_MISC_CLEANUPS
 #if CLN_MBMI_7
     TxSize tx_size =
-        blk_geom->txsize[mbmi->block_mi.tx_depth][0]; // inherit tx_size from 1st transform block;
+        blk_geom->txsize[mbmi->block_mi.tx_depth]; // inherit tx_size from 1st transform block;
 #else
     TxSize tx_size =
         blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
@@ -5772,7 +5772,7 @@ static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t bl
     TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                       blk_ptr->pred_mode == INTRA_MODE_4x4)
                       ? 0
-                      : blk_geom->txsize[blk_ptr->tx_depth][0]; // inherit tx_size from 1st transform block;
+                      : blk_geom->txsize[blk_ptr->tx_depth]; // inherit tx_size from 1st transform block;
 #endif
     av1_code_tx_size(ec_ctx, w, xd, mbmi, tx_size, tx_mode, bsize, skip);
 }
@@ -6272,19 +6272,16 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 #if CLN_MISC_CLEANUPS
 #if CLN_MBMI_7
                         TxSize tx_size =
-                            blk_geom->txsize[mbmi->block_mi.tx_depth]
-                                            [0]; // inherit tx_size from 1st transform block;
+                            blk_geom->txsize[mbmi->block_mi.tx_depth]; // inherit tx_size from 1st transform block;
 #else
                         TxSize tx_size =
-                            blk_geom->txsize[blk_ptr->tx_depth]
-                                            [0]; // inherit tx_size from 1st transform block;
+                            blk_geom->txsize[blk_ptr->tx_depth]; // inherit tx_size from 1st transform block;
 #endif
 #else
                         TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                                           blk_ptr->pred_mode == INTRA_MODE_4x4)
                             ? 0
-                            : blk_geom->txsize[blk_ptr->tx_depth]
-                                              [0]; // inherit tx_size from 1st transform block;
+                            : blk_geom->txsize[blk_ptr->tx_depth]; // inherit tx_size from 1st transform block;
 #endif
                         svt_av1_tokenize_color_map(
                             frame_context,
@@ -6800,19 +6797,16 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 #if CLN_MISC_CLEANUPS
 #if CLN_MBMI_7
                         TxSize tx_size =
-                            blk_geom->txsize[mbmi->block_mi.tx_depth]
-                                            [0]; // inherit tx_size from 1st transform block;
+                            blk_geom->txsize[mbmi->block_mi.tx_depth]; // inherit tx_size from 1st transform block;
 #else
                         TxSize tx_size =
-                            blk_geom->txsize[blk_ptr->tx_depth]
-                                            [0]; // inherit tx_size from 1st transform block;
+                            blk_geom->txsize[blk_ptr->tx_depth]; // inherit tx_size from 1st transform block;
 #endif
 #else
                         TxSize tx_size = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
                                           blk_ptr->pred_mode == INTRA_MODE_4x4)
                             ? 0
-                            : blk_geom->txsize[blk_ptr->tx_depth]
-                                              [0]; // inherit tx_size from 1st transform block;
+                            : blk_geom->txsize[blk_ptr->tx_depth]; // inherit tx_size from 1st transform block;
 #endif
                         svt_av1_tokenize_color_map(
                             frame_context,
