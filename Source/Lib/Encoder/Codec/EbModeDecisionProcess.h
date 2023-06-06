@@ -470,9 +470,9 @@ typedef struct NsqPsqTxsCtrls {
 #endif
 #if OPT_NSQ_PSQ_MODE
 typedef struct NsqPsqPredCtrls {
-    uint8_t  enabled;
-    uint32_t cost_th;
-    uint8_t  coef_th;
+    uint8_t  enabled; 
+    uint32_t cost_th; // The intra/new-cost-to-mvp cost deviation beyond wich NSQ is skipped when the SQ is MVP
+    uint8_t  coef_th; // The perc of SQ nz-coeff beyond wich the the NSQ skip is not allowed
 } NsqPsqPredCtrls;
 #endif
 typedef struct RdoqCtrls {
