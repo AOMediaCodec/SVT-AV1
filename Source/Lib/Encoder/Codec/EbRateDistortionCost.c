@@ -771,10 +771,7 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         assert(intra_mode < INTRA_MODES);
         // Luma and chroma distortion
         uint64_t      total_distortion;
-#if CLN_REMOVE_NEIGH_ARRAYS_2
-        const uint8_t above_ctx = ctx->intra_luma_top_ctx;
-        const uint8_t left_ctx  = ctx->intra_luma_left_ctx;
-#else
+#if !CLN_REMOVE_NEIGH_ARRAYS_2
         const int32_t above_ctx = intra_mode_context[top_neighbor_mode];
         const int32_t left_ctx  = intra_mode_context[left_neighbor_mode];
 #endif
@@ -794,10 +791,17 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
                      ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
                      : ZERO_COST;
 #endif
+#if CLN_REMOVE_NEIGH_ARRAYS_2
+        // Estimate luma nominal intra mode bits for key frame
+        intra_luma_mode_bits_num = pcs->slice_type == I_SLICE
+            ? (uint64_t)ctx->md_rate_est_ctx->y_mode_fac_bits[ctx->intra_luma_top_ctx][ctx->intra_luma_left_ctx][intra_mode]
+            : ZERO_COST;
+#else
         // Estimate luma nominal intra mode bits
         intra_luma_mode_bits_num = pcs->slice_type == I_SLICE
             ? (uint64_t)ctx->md_rate_est_ctx->y_mode_fac_bits[above_ctx][left_ctx][intra_mode]
             : ZERO_COST;
+#endif
         // Estimate luma angular mode bits
         if (blk_geom->bsize >= BLOCK_8X8 && av1_is_directional_mode(cand->pred_mode)) {
             assert((intra_mode - V_PRED) < 8);
@@ -2399,7 +2403,9 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
 #if !FIX_SKIP_NEIGH_ARRAY
         MacroBlockD *xd = blk_ptr->av1xd;
 #endif
-        svt_aom_get_kf_y_mode_ctx(xd, &ctx->intra_luma_top_ctx, &ctx->intra_luma_left_ctx);
+        if (pcs->slice_type == I_SLICE) {
+            svt_aom_get_kf_y_mode_ctx(xd, &ctx->intra_luma_top_ctx, &ctx->intra_luma_left_ctx);
+        }
         ctx->is_inter_ctx  = svt_av1_get_intra_inter_context(xd);
         ctx->skip_mode_ctx = av1_get_skip_mode_context(xd);
     }

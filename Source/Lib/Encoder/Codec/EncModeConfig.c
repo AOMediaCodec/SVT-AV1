@@ -39,12 +39,19 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off
     uint8_t             gm_level = 0;
     const EncMode       enc_mode = pcs->enc_mode;
     const uint8_t       is_base  = pcs->temporal_layer_index == 0;
+#if GM_REFINFO
+    const uint8_t       is_islice = pcs->slice_type == I_SLICE;
+#endif
     // disable global motion when reference scaling enabled,
     // even if current pic is not scaled, because its reference
     // pics might be scaled in different size
     // super-res is ok for its reference pics are always upscaled
     // to original size
+#if GM_REFINFO
+    if (scs->enable_global_motion == TRUE && super_res_off && !is_islice) {
+#else
     if (scs->enable_global_motion == TRUE && super_res_off) {
+#endif
 #if TUNE_GM_LEVELS
         if (pcs->enc_mode <= ENC_M1)
             gm_level = 2;

@@ -2018,9 +2018,9 @@ static bool perform_ind_uv_search_last_mds(struct ModeDecisionContext *  ctx,
                                buffer_ptr_array[id]->cand->use_intrabc);
 #if CLN_CFL_SIGNALLING
         // If independent chroma search is to be skipped when there is only UV_DC_PRED modes, don't count UV_DC_PRED
-        const bool count_dc = !ctx->uv_ctrls.skip_ind_uv_if_only_dc ||
-            buffer_ptr_array[id]->cand->intra_chroma_mode != UV_DC_PRED;
-        mds3_intra_count += !is_inter && count_dc ? 1 : 0;
+        mds3_intra_count += !is_inter &&
+            (!ctx->uv_ctrls.skip_ind_uv_if_only_dc || buffer_ptr_array[id]->cand->intra_chroma_mode != UV_DC_PRED)
+            ? 1 : 0;
 #else
         mds3_intra_count += !is_inter ? 1 : 0;
 #endif
@@ -5592,7 +5592,6 @@ static void tx_reset_neighbor_arrays(PictureControlSet *pcs, ModeDecisionContext
 static void copy_txt_data(ModeDecisionCandidateBuffer *cand_bf, ModeDecisionContext *ctx,
                           uint32_t txb_origin_index, TxType best_tx_type) {
     uint8_t  tx_depth      = ctx->tx_depth;
-    uint8_t  txb_itr       = ctx->txb_itr;
     uint32_t txb_1d_offset = ctx->txb_1d_offset;
     uint8_t  tx_width      = ctx->blk_geom->tx_width[tx_depth];
     uint8_t  tx_height     = ctx->blk_geom->tx_height[tx_depth];
@@ -5760,7 +5759,7 @@ static void perform_tx_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ct
 // Return true if DCT_DCT is the only TX type to search
 static INLINE Bool search_dct_dct_only(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                        ModeDecisionCandidateBuffer *cand_bf, uint8_t tx_depth,
-                                       uint8_t txb_itr, uint8_t is_inter) {
+                                       uint8_t is_inter) {
     if (ctx->mds_txt_level == 0)
         return 1;
 
@@ -5835,7 +5834,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
            : FALSE;
     // Do not turn ON TXT search beyond this point
     const uint8_t only_dct_dct = search_dct_dct_only(
-                                     pcs, ctx, cand_bf, ctx->tx_depth, ctx->txb_itr, is_inter) ||
+                                     pcs, ctx, cand_bf, ctx->tx_depth, is_inter) ||
         tx_search_skip_flag;
 #if !FIX_TXT
     const TxSize    max_tx_size       = ctx->blk_geom->txsize[0][0];
@@ -8424,7 +8423,6 @@ static void full_loop_core(PictureControlSet *pcs,
                             ctx,
                             cand_bf,
                             0 /*tx_depth*/,
-                            0 /*txb_itr*/,
                             is_inter)) { // TXT off
 
         uint8_t tx_search_skip_flag = 0;

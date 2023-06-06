@@ -1416,14 +1416,14 @@ void svt_aom_get_kf_y_mode_ctx(const MacroBlockD *xd, uint8_t *above_ctx, uint8_
     PredictionMode intra_luma_top_mode  = DC_PRED;
     if (xd->left_available) {
         // When called for key frame, neighbouring mode should be intra
-        //assert(!is_inter_block(&xd->mi[-1]->mbmi.block_mi) ||
-        //    is_intrabc_block(&xd->mi[-1]->mbmi.block_mi));
+        assert(!is_inter_block(&xd->mi[-1]->mbmi.block_mi) ||
+            is_intrabc_block(&xd->mi[-1]->mbmi.block_mi));
         intra_luma_left_mode = xd->mi[-1]->mbmi.block_mi.mode;
     }
     if (xd->up_available) {
         // When called for key frame, neighbouring mode should be intra
-        //assert(!is_inter_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi) ||
-        //    is_intrabc_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi));
+        assert(!is_inter_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi) ||
+            is_intrabc_block(&xd->mi[-xd->mi_stride]->mbmi.block_mi));
         intra_luma_top_mode = xd->mi[-xd->mi_stride]->mbmi.block_mi.mode;
     }
 
