@@ -182,6 +182,7 @@ typedef struct MdcSbData {
     uint8_t       refined_split_flag[BLOCK_MAX_COUNT_SB_128];
 } MdcSbData;
 
+#if !CLN_UNUSED_DEFNS
 /**************************************
  * MD Segment Control
  **************************************/
@@ -194,12 +195,14 @@ typedef struct MdSegmentCtrl {
     Bool     in_progress;
     uint32_t current_row_idx;
 } MdSegmentCtrl;
-
+#endif
 /**************************************
  * Picture Control Set
  **************************************/
+#if !CLN_UNUSED_DEFNS
 struct CodedTreeblock_s;
 struct SuperBlock;
+#endif
 #define MAX_MESH_STEP 4
 
 typedef struct MeshPattern {
@@ -214,19 +217,20 @@ typedef struct CdfControls {
     uint8_t update_coef; // cdf update for coeffs
 } CdfControls;
 typedef struct SpeedFeatures {
+#if !CLN_UNUSED_DEFNS
     // This allows us to use motion search at other sizes as a starting
     // point for this motion search and limits the search range around it.
     int adaptive_motion_search;
 
     // Flag for allowing some use of exhaustive searches;
     int allow_exhaustive_searches;
-
+#endif
     // Threshold for allowing exhaistive motion search.
     int exhaustive_searches_thresh;
-
+#if !CLN_UNUSED_DEFNS
     // Maximum number of exhaustive searches for a frame.
     int max_exaustive_pct;
-
+#endif
     // Pattern to be used for any exhaustive mesh searches.
     MeshPattern mesh_patterns[MAX_MESH_STEP];
 
