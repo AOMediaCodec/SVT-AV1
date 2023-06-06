@@ -2136,8 +2136,12 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_ref, uint8_t is_16bit,
     return dlf_level;
 }
 
+#if ENABLE_LD_DLF_RA
+static void svt_aom_set_dlf_controls(PictureParentControlSet* pcs, uint8_t dlf_level) {
+#else
 static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_level,
                                      uint8_t bit_depth) {
+#endif
     DlfCtrls *ctrls = &pcs->dlf_ctrls;
 
     switch (dlf_level) {
@@ -2147,64 +2151,98 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet *pcs, uint8_t dlf_l
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 0;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 0;
+#endif
 #endif
         break;
     case 1:
         ctrls->enabled                = 1;
         ctrls->sb_based_dlf           = 0;
+#if !ENABLE_LD_DLF_RA
         ctrls->min_filter_level       = 0;
+#endif
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 0;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 0;
+#endif
 #endif
         break;
     case 2:
         ctrls->enabled                = 1;
         ctrls->sb_based_dlf           = 0;
+#if !ENABLE_LD_DLF_RA
         ctrls->min_filter_level       = 0;
+#endif
         ctrls->dlf_avg                = 1;
         ctrls->dlf_avg_uv             = 1;
         ctrls->early_exit_convergence = 1;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 0;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 0;
+#endif
 #endif
         break;
     case 3:
         ctrls->enabled          = 1;
         ctrls->sb_based_dlf     = 1;
+#if !ENABLE_LD_DLF_RA
         ctrls->min_filter_level = 0;
+#endif
 
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 1;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 1;
+#endif
 #endif
         break;
     case 4:
         ctrls->enabled                = 1;
         ctrls->sb_based_dlf           = 1;
+#if !ENABLE_LD_DLF_RA
         ctrls->min_filter_level       = (bit_depth == EB_EIGHT_BIT) ? 4 : 16;
+#endif
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 2;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 2;
+#endif
 #endif
         break;
     case 5:
         ctrls->enabled                = 1;
         ctrls->sb_based_dlf           = 1;
+#if !ENABLE_LD_DLF_RA
         ctrls->min_filter_level       = (bit_depth == EB_EIGHT_BIT) ? 16 : 32;
+#endif
         ctrls->dlf_avg                = 0;
         ctrls->dlf_avg_uv             = 0;
         ctrls->early_exit_convergence = 0;
+#if ENABLE_LD_DLF_RA
+        ctrls->zero_filter_strength_lvl = 3;
+#else
 #if OPT_LD_DLF
         ctrls->ld_zero_filter_strength_lvl = 3;
+#endif
 #endif
         break;
     default: assert(0); break;
@@ -2463,7 +2501,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     frm_hdr->allow_screen_content_tools = sc_class1 && pcs->palette_level > 0 ? 1 : 0;
 #endif
 
+#if ENABLE_LD_DLF_RA
+    svt_aom_set_dlf_controls(pcs, dlf_level);
+#else
     svt_aom_set_dlf_controls(pcs, dlf_level, bit_depth);
+#endif
 
     // Set CDEF controls
     if (scs->seq_header.cdef_level && frm_hdr->allow_intrabc == 0) {
@@ -3116,7 +3158,11 @@ void svt_aom_first_pass_sig_deriv_multi_processes(SequenceControlSet      *scs,
     frm_hdr->allow_intrabc              = 0;
     pcs->palette_level                  = 0;
 
+#if ENABLE_LD_DLF_RA
+    svt_aom_set_dlf_controls(pcs, 0);
+#else
     svt_aom_set_dlf_controls(pcs, 0, scs->static_config.encoder_bit_depth);
+#endif
 
     pcs->cdef_level = 0;
 
@@ -8954,6 +9000,13 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx,
 #if OPT_DEPTH_REFIN
 static void set_lpd0_ctrls(ModeDecisionContext *ctx, uint8_t lpd0_lvl) {
     Lpd0Ctrls *ctrls = &ctx->lpd0_ctrls;
+#if OPT_LPD0_8BIT_ONLY
+    // Light-PD0 only compatible with 8bit MD
+    if (ctx->hbd_md) {
+        ctx->lpd0_ctrls.pd0_level = REGULAR_PD0;
+        return;
+    }
+#endif
     switch (lpd0_lvl) {
     case 0:
         ctrls->pd0_level = REGULAR_PD0; // Light-PD0 path not used

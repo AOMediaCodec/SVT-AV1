@@ -702,16 +702,23 @@ typedef struct DlfCtrls {
     // when DLF filter level is selected from QP, if the filter level is less than or equal to this
     // TH, the filter level is set to 0
     uint8_t sb_based_dlf;
+#if !ENABLE_LD_DLF_RA
     uint8_t min_filter_level;
+#endif
     // Start search from average DLF instead of 0
     bool dlf_avg;
     // Use average DLF as a starting point for qp based filter strength selection for Chroma planes
     bool dlf_avg_uv;
     // Number of convergence points before exiting the filter search, 1 = exit on first convergence point, 2 = exit on second, 0 = off
     uint8_t early_exit_convergence;
+#if ENABLE_LD_DLF_RA
+    // Threshold used when sb_based_dlf is used to use filter strength zero, there are four levels of thresholds [0..3], 0 = off
+    uint8_t zero_filter_strength_lvl;
+#else
 #if OPT_LD_DLF
     // Threshold used when sb_based_dlf is used to use filter strength zero, there are four levels of thresholds [0..3], 0 = off
     uint8_t ld_zero_filter_strength_lvl;
+#endif
 #endif
 } DlfCtrls;
 typedef struct IntraBCCtrls {

@@ -1230,9 +1230,15 @@ void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int3
     if (pcs->rtc_tune) {
 #endif
         if (pcs->slice_type != I_SLICE) {
+#if ENABLE_LD_DLF_RA
+            const uint32_t use_zero_strength_th =
+                disable_dlf_th[pcs->ppcs->dlf_ctrls.zero_filter_strength_lvl][in_res] *
+                (pcs->temporal_layer_index + 1);
+#else
             const uint32_t use_zero_strength_th =
                 disable_dlf_th[pcs->ppcs->dlf_ctrls.ld_zero_filter_strength_lvl][in_res] *
                 (pcs->temporal_layer_index + 1);
+#endif
             if (use_zero_strength_th) {
                 uint32_t total_me_sad = 0;
                 for (uint16_t b64_index = 0; b64_index < pcs->b64_total_count; ++b64_index) {

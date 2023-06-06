@@ -3787,11 +3787,6 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                             // Input : mdc_blk_ptr built @ mdc process (up to 4421)
                             // Output: md_blk_arr_nsq reduced set of block(s)
                             ed_ctx->md_ctx->pd_pass = PD_PASS_0;
-#if OPT_LPD0_8BIT_ONLY
-                            // Light-PD0 only compatible with 8bit MD
-                            if (md_ctx->hbd_md)
-                                md_ctx->lpd0_ctrls.pd0_level = REGULAR_PD0;
-#endif
                             // skip_intra much be TRUE for non-I_SLICE pictures to use light_pd0 path
                             if (md_ctx->lpd0_ctrls.pd0_level > REGULAR_PD0) {
                                 // [PD_PASS_0] Signal(s) derivation
