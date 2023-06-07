@@ -38,6 +38,10 @@
 #define SSE_LAMBDA_HDRES 1 // Used by mv_cost_err_fn
 // #define SAD_LAMBDA_HDRES 8 // Used by mvsad_err_cost during full pixel search
 
+#if OPT_SPEL
+#define MAX_U32 0xFFFFFFFF
+#endif
+
 // Returns the cost of using the current mv during the motion search. This is
 // used when var is used as the error metric.
 #define PIXEL_TRANSFORM_ERROR_SCALE 4
@@ -812,7 +816,7 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
         if (ctx->pd_pass == PD_PASS_1 && ctx->md_subpel_me_ctrls.mvp_th > 0) {
             SUBPEL_MOTION_SEARCH_PARAMS par_tmp = *ms_params;
             par_tmp.mv_cost_params.mv_cost_type = MV_COST_NONE;
-            unsigned int best_mvperr            = 0xFFFFFFFF;
+            unsigned int best_mvperr            = MAX_U32;
             for (int8_t mvp = 0; mvp < ctx->mvp_count[par_tmp.list_idx][par_tmp.ref_idx]; mvp++) {
                 unsigned int mvpdist;
                 unsigned int mvperr = svt_upsampled_setup_center_error(

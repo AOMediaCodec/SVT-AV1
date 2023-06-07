@@ -3347,7 +3347,7 @@ void read_refine_me_mvs_light_pd1(PictureControlSet *pcs, EbPictureBufferDesc *i
                             ~0x07;
                     ctx->post_subpel_me_mv_cost[list_idx][ref_idx] = (uint32_t)md_subpel_search(
 #if OPT_SPEL
-                        0, //0:ME  1:PME
+                        SPEL_ME,
 #endif
                         pcs,
                         ctx,
@@ -3531,7 +3531,7 @@ void read_refine_me_mvs(PictureControlSet *pcs, ModeDecisionContext *ctx,
 #endif
                     ctx->post_subpel_me_mv_cost[list_idx][ref_idx] = (uint32_t)md_subpel_search(
 #if OPT_SPEL
-                        0, //0:ME  1:PME
+                        SPEL_ME,
 #endif
                         pcs,
                         ctx,
@@ -4183,7 +4183,7 @@ static void pme_search(PictureControlSet *pcs, ModeDecisionContext *ctx,
             if (ctx->md_subpel_pme_ctrls.enabled) {
                 post_subpel_pme_mv_cost = (uint32_t)md_subpel_search(
 #if OPT_SPEL
-                    1, //0:ME  1:PME
+                    SPEL_PME,
 #endif
                     pcs,
                     ctx,

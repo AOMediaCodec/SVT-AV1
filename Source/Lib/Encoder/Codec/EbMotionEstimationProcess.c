@@ -71,13 +71,6 @@ static void motion_estimation_context_dctor(EbPtr p) {
     EB_FREE_ARRAY(obj);
 }
 
-#if GM_PP
-void gm_pre_processor(
-    PictureParentControlSet  *pcs,
-    PictureParentControlSet **pcs_list
-);
-#endif
-
 /************************************************
  * Motion Analysis Context Constructor
  ************************************************/
@@ -343,7 +336,7 @@ void *svt_aom_motion_estimation_kernel(void *input_ptr) {
 #if GM_PP
             //gm pre-processing for only base B
             if (pcs->gm_ctrls.pp_enabled && pcs->gm_pp_enabled && in_results_ptr->segment_index==0)
-                gm_pre_processor(
+                svt_aom_gm_pre_processor(
                     pcs,
                     pcs->temp_filt_pcs_list);
 #endif
