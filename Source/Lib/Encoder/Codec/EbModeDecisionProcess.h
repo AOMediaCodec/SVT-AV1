@@ -467,7 +467,7 @@ typedef struct NsqPsqTxsCtrls {
         hv_to_sq_th; // Skip NSQ if min(H0-nz,H1-nz) is higher than hv_to_sq_th * sq-nz, and min(V0-nz,V1-nz) is higher than hv_to_sq_th * sq-nz
     uint32_t
         h_to_v_th; // Skip H/V if min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than min(V0-nz,V1-nz)/min(H0-nz,H1-nz),
-        // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
+    // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
 } NsqPsqTxsCtrls;
 #endif
 #if OPT_NSQ_PSQ_MODE

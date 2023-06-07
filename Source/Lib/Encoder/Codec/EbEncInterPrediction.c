@@ -6452,8 +6452,8 @@ EbErrorType svt_aom_inter_pu_prediction_av1(uint8_t hbd_md, ModeDecisionContext 
 #if OPT_WM_UV_ONLY
                                          component_mask,
 #else
-                                          ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 &&
-                                              ctx->mds_skip_uv_pred == FALSE,
+                                         ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 &&
+                                             ctx->mds_skip_uv_pred == FALSE,
 #endif
                                          FALSE);
 

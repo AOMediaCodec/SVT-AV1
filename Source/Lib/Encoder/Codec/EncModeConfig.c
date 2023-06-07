@@ -1182,10 +1182,10 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->enable = 1;
         tpl_ctrls->compute_rate = 0;
         tpl_ctrls->enable_tpl_qps = 0;
-        tpl_ctrls->disable_intra_pred_nref      = 1;
-        tpl_ctrls->intra_mode_end               = DC_PRED;
-        tpl_ctrls->reduced_tpl_group            = -1;
-        tpl_ctrls->pf_shape                     = DEFAULT_SHAPE;
+        tpl_ctrls->disable_intra_pred_nref = 1;
+        tpl_ctrls->intra_mode_end = DC_PRED;
+        tpl_ctrls->reduced_tpl_group = -1;
+        tpl_ctrls->pf_shape = DEFAULT_SHAPE;
         tpl_ctrls->use_pred_sad_in_intra_search = 0;
         tpl_ctrls->use_pred_sad_in_inter_search = 0;
         tpl_ctrls->dispenser_search_level = 0;
@@ -2936,14 +2936,14 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
     case 2:
         gm_ctrls->enabled = 1;
         gm_ctrls->identiy_exit = 1;
-        gm_ctrls->rotzoom_model_only           = 0;
-        gm_ctrls->bipred_only                  = 0;
-        gm_ctrls->bypass_based_on_me           = 0;
-        gm_ctrls->use_stationary_block         = 0;
+        gm_ctrls->rotzoom_model_only = 0;
+        gm_ctrls->bipred_only = 0;
+        gm_ctrls->bypass_based_on_me = 0;
+        gm_ctrls->use_stationary_block = 0;
         gm_ctrls->use_distance_based_active_th = 0;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_FULL;
-        gm_ctrls->corners                      = 4;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_FULL;
+        gm_ctrls->corners = 4;
         gm_ctrls->chess_rfn = 0;
         gm_ctrls->match_sz = 13;
         gm_ctrls->inj_psq_glb = FALSE;
@@ -2954,15 +2954,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 3:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 0;
-        gm_ctrls->bypass_based_on_me           = 0;
-        gm_ctrls->use_stationary_block         = 0;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 0;
+        gm_ctrls->bypass_based_on_me = 0;
+        gm_ctrls->use_stationary_block = 0;
         gm_ctrls->use_distance_based_active_th = 0;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_FULL;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_FULL;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 0;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = FALSE;
@@ -2973,15 +2973,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 4:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 0;
-        gm_ctrls->bypass_based_on_me           = 1;
-        gm_ctrls->use_stationary_block         = 0;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 0;
+        gm_ctrls->bypass_based_on_me = 1;
+        gm_ctrls->use_stationary_block = 0;
         gm_ctrls->use_distance_based_active_th = 0;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_ADAPT_0;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_ADAPT_0;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 0;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = TRUE;
@@ -2992,15 +2992,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 5:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 0;
-        gm_ctrls->bypass_based_on_me           = 1;
-        gm_ctrls->use_stationary_block         = 0;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 0;
+        gm_ctrls->bypass_based_on_me = 1;
+        gm_ctrls->use_stationary_block = 0;
         gm_ctrls->use_distance_based_active_th = 0;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_ADAPT_1;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_ADAPT_1;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 1;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = TRUE;
@@ -3011,15 +3011,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 6:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 1;
-        gm_ctrls->bypass_based_on_me           = 1;
-        gm_ctrls->use_stationary_block         = 0;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 1;
+        gm_ctrls->bypass_based_on_me = 1;
+        gm_ctrls->use_stationary_block = 0;
         gm_ctrls->use_distance_based_active_th = 0;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_DOWN16;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_DOWN16;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 1;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = TRUE;
@@ -3030,15 +3030,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 7:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 1;
-        gm_ctrls->bypass_based_on_me           = 1;
-        gm_ctrls->use_stationary_block         = 1;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 1;
+        gm_ctrls->bypass_based_on_me = 1;
+        gm_ctrls->use_stationary_block = 1;
         gm_ctrls->use_distance_based_active_th = 1;
-        gm_ctrls->params_refinement_steps      = 5;
-        gm_ctrls->downsample_level             = GM_DOWN16;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 5;
+        gm_ctrls->downsample_level = GM_DOWN16;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 1;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = TRUE;
@@ -3049,15 +3049,15 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         break;
     case 8:
         gm_ctrls->enabled = 1;
-        gm_ctrls->identiy_exit                 = 1;
-        gm_ctrls->rotzoom_model_only           = 1;
-        gm_ctrls->bipred_only                  = 1;
-        gm_ctrls->bypass_based_on_me           = 1;
-        gm_ctrls->use_stationary_block         = 1;
+        gm_ctrls->identiy_exit = 1;
+        gm_ctrls->rotzoom_model_only = 1;
+        gm_ctrls->bipred_only = 1;
+        gm_ctrls->bypass_based_on_me = 1;
+        gm_ctrls->use_stationary_block = 1;
         gm_ctrls->use_distance_based_active_th = 1;
-        gm_ctrls->params_refinement_steps      = 1;
-        gm_ctrls->downsample_level             = GM_DOWN16;
-        gm_ctrls->corners                      = 2;
+        gm_ctrls->params_refinement_steps = 1;
+        gm_ctrls->downsample_level = GM_DOWN16;
+        gm_ctrls->corners = 2;
         gm_ctrls->chess_rfn = 1;
         gm_ctrls->match_sz = 7;
         gm_ctrls->inj_psq_glb = TRUE;
@@ -3601,7 +3601,7 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         scs->compound_mode = scs->compound_level;
     if (scs->compound_mode) {
         scs->seq_header.order_hint_info.enable_jnt_comp = 1; //DISTANCE
-        scs->seq_header.enable_masked_compound          = 1; //DIFF+WEDGE
+        scs->seq_header.enable_masked_compound = 1; //DIFF+WEDGE
     } else {
         scs->seq_header.order_hint_info.enable_jnt_comp = 0;
         scs->seq_header.enable_masked_compound = 0;
@@ -5517,118 +5517,118 @@ static void set_parent_sq_coeff_area_based_cycles_reduction_ctrls(ModeDecisionCo
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = resolution <= INPUT_SIZE_360p_RANGE
-               ? UNUSED_HIGH_FREQ_BAND_TH
-               : 90;
+        cycle_red_ctrls->high_freq_band1_th = resolution <= INPUT_SIZE_360p_RANGE
+            ? UNUSED_HIGH_FREQ_BAND_TH
+            : 90;
         cycle_red_ctrls->high_freq_band1_level = 3;
-        cycle_red_ctrls->high_freq_band2_th    = resolution <= INPUT_SIZE_360p_RANGE
-               ? UNUSED_HIGH_FREQ_BAND_TH
-               : 70;
+        cycle_red_ctrls->high_freq_band2_th = resolution <= INPUT_SIZE_360p_RANGE
+            ? UNUSED_HIGH_FREQ_BAND_TH
+            : 70;
         cycle_red_ctrls->high_freq_band2_level = 2;
-        cycle_red_ctrls->high_freq_band3_th    = UNUSED_HIGH_FREQ_BAND_TH;
+        cycle_red_ctrls->high_freq_band3_th = UNUSED_HIGH_FREQ_BAND_TH;
         cycle_red_ctrls->high_freq_band3_level = 0;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 1;
-        cycle_red_ctrls->enable_one_coeff_action  = 0;
-        cycle_red_ctrls->one_coeff_action         = 0;
+        cycle_red_ctrls->zero_coeff_action = 1;
+        cycle_red_ctrls->enable_one_coeff_action = 0;
+        cycle_red_ctrls->one_coeff_action = 0;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     case 2:
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = resolution <= INPUT_SIZE_360p_RANGE
-               ? UNUSED_HIGH_FREQ_BAND_TH
-               : 90;
+        cycle_red_ctrls->high_freq_band1_th = resolution <= INPUT_SIZE_360p_RANGE
+            ? UNUSED_HIGH_FREQ_BAND_TH
+            : 90;
         cycle_red_ctrls->high_freq_band1_level = 3;
-        cycle_red_ctrls->high_freq_band2_th    = resolution <= INPUT_SIZE_360p_RANGE
-               ? UNUSED_HIGH_FREQ_BAND_TH
-               : 70;
+        cycle_red_ctrls->high_freq_band2_th = resolution <= INPUT_SIZE_360p_RANGE
+            ? UNUSED_HIGH_FREQ_BAND_TH
+            : 70;
         cycle_red_ctrls->high_freq_band2_level = 2;
-        cycle_red_ctrls->high_freq_band3_th    = UNUSED_HIGH_FREQ_BAND_TH;
+        cycle_red_ctrls->high_freq_band3_th = UNUSED_HIGH_FREQ_BAND_TH;
         cycle_red_ctrls->high_freq_band3_level = 0;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 2;
-        cycle_red_ctrls->enable_one_coeff_action  = 0;
-        cycle_red_ctrls->one_coeff_action         = 0;
+        cycle_red_ctrls->zero_coeff_action = 2;
+        cycle_red_ctrls->enable_one_coeff_action = 0;
+        cycle_red_ctrls->one_coeff_action = 0;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     case 3:
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = 90;
+        cycle_red_ctrls->high_freq_band1_th = 90;
         cycle_red_ctrls->high_freq_band1_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : 3;
-        cycle_red_ctrls->high_freq_band2_th    = 70;
+        cycle_red_ctrls->high_freq_band2_th = 70;
         cycle_red_ctrls->high_freq_band2_level = resolution <= INPUT_SIZE_360p_RANGE ? 1 : 3;
-        cycle_red_ctrls->high_freq_band3_th    = UNUSED_HIGH_FREQ_BAND_TH;
+        cycle_red_ctrls->high_freq_band3_th = UNUSED_HIGH_FREQ_BAND_TH;
         cycle_red_ctrls->high_freq_band3_level = 0;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 2;
-        cycle_red_ctrls->enable_one_coeff_action  = 0;
-        cycle_red_ctrls->one_coeff_action         = 0;
+        cycle_red_ctrls->zero_coeff_action = 2;
+        cycle_red_ctrls->enable_one_coeff_action = 0;
+        cycle_red_ctrls->one_coeff_action = 0;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     case 4:
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = 90;
+        cycle_red_ctrls->high_freq_band1_th = 90;
         cycle_red_ctrls->high_freq_band1_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : 3;
-        cycle_red_ctrls->high_freq_band2_th    = 70;
+        cycle_red_ctrls->high_freq_band2_th = 70;
         cycle_red_ctrls->high_freq_band2_level = resolution <= INPUT_SIZE_360p_RANGE ? 1 : 3;
-        cycle_red_ctrls->high_freq_band3_th    = UNUSED_HIGH_FREQ_BAND_TH;
+        cycle_red_ctrls->high_freq_band3_th = UNUSED_HIGH_FREQ_BAND_TH;
         cycle_red_ctrls->high_freq_band3_level = 0;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 3;
-        cycle_red_ctrls->enable_one_coeff_action  = 1;
-        cycle_red_ctrls->one_coeff_action         = 1;
+        cycle_red_ctrls->zero_coeff_action = 3;
+        cycle_red_ctrls->enable_one_coeff_action = 1;
+        cycle_red_ctrls->one_coeff_action = 1;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     case 5:
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = 90;
+        cycle_red_ctrls->high_freq_band1_th = 90;
         cycle_red_ctrls->high_freq_band1_level = 3;
-        cycle_red_ctrls->high_freq_band2_th    = 70;
+        cycle_red_ctrls->high_freq_band2_th = 70;
         cycle_red_ctrls->high_freq_band2_level = 2;
-        cycle_red_ctrls->high_freq_band3_th    = 50;
+        cycle_red_ctrls->high_freq_band3_th = 50;
         cycle_red_ctrls->high_freq_band3_level = 1;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 2;
-        cycle_red_ctrls->enable_one_coeff_action  = 0;
-        cycle_red_ctrls->one_coeff_action         = 0;
+        cycle_red_ctrls->zero_coeff_action = 2;
+        cycle_red_ctrls->enable_one_coeff_action = 0;
+        cycle_red_ctrls->one_coeff_action = 0;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     case 6:

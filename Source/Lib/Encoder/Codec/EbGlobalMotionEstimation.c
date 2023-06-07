@@ -28,7 +28,7 @@
 
 #if GM_PP
 //gm pre-processing pass, is an analysis pass done at the same time TF to detect any GM activity in
-//the clip. in case of detection in this pre-processing phase, a second GM detection pass is invoked. 
+//the clip. in case of detection in this pre-processing phase, a second GM detection pass is invoked.
 void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControlSet **pcs_list) {
     uint8_t              detect_refn_scale_factor;
     EbPictureBufferDesc *input_detection, *ref_detection, *input_refinement, *ref_refinement;

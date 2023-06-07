@@ -905,7 +905,7 @@ static void av1_perform_inverse_transform_recon(PictureControlSet *pcs, ModeDeci
         uint32_t rec_cb_offset   = ((((txb_origin_x >> 3) << 3) +
                                    ((txb_origin_y >> 3) << 3) * cand_bf->recon->stride_cb) >>
                                   1);
-        uint32_t rec_cr_offset            = ((((txb_origin_x >> 3) << 3) +
+        uint32_t rec_cr_offset   = ((((txb_origin_x >> 3) << 3) +
                                    ((txb_origin_y >> 3) << 3) * cand_bf->recon->stride_cr) >>
                                   1);
         uint32_t txb_origin_index         = txb_origin_x + txb_origin_y * cand_bf->pred->stride_y;
@@ -3255,8 +3255,8 @@ static int md_subpel_search(
         pcs->picture_qp,
         ctx->blk_geom->bsize,
         early_exit);
-    *me_mv_x    = best_mv.as_mv.col;
-    *me_mv_y    = best_mv.as_mv.row;
+    *me_mv_x = best_mv.as_mv.col;
+    *me_mv_y = best_mv.as_mv.row;
 
     return besterr;
 }
