@@ -5635,22 +5635,22 @@ static void set_parent_sq_coeff_area_based_cycles_reduction_ctrls(ModeDecisionCo
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = 90;
+        cycle_red_ctrls->high_freq_band1_th = 90;
         cycle_red_ctrls->high_freq_band1_level = resolution <= INPUT_SIZE_360p_RANGE ? 2 : 3;
-        cycle_red_ctrls->high_freq_band2_th    = 70;
+        cycle_red_ctrls->high_freq_band2_th = 70;
         cycle_red_ctrls->high_freq_band2_level = resolution <= INPUT_SIZE_360p_RANGE ? 1 : 3;
-        cycle_red_ctrls->high_freq_band3_th    = UNUSED_HIGH_FREQ_BAND_TH;
+        cycle_red_ctrls->high_freq_band3_th = UNUSED_HIGH_FREQ_BAND_TH;
         cycle_red_ctrls->high_freq_band3_level = 0;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 0;
-        cycle_red_ctrls->enable_one_coeff_action  = 1;
-        cycle_red_ctrls->one_coeff_action         = 1;
+        cycle_red_ctrls->zero_coeff_action = 0;
+        cycle_red_ctrls->enable_one_coeff_action = 1;
+        cycle_red_ctrls->one_coeff_action = 1;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
 
@@ -5658,22 +5658,22 @@ static void set_parent_sq_coeff_area_based_cycles_reduction_ctrls(ModeDecisionCo
         cycle_red_ctrls->enabled = 1;
 
         // High frequency band THs/actions
-        cycle_red_ctrls->high_freq_band1_th    = 90;
+        cycle_red_ctrls->high_freq_band1_th = 90;
         cycle_red_ctrls->high_freq_band1_level = 0;
-        cycle_red_ctrls->high_freq_band2_th    = 70;
+        cycle_red_ctrls->high_freq_band2_th = 70;
         cycle_red_ctrls->high_freq_band2_level = 3;
-        cycle_red_ctrls->high_freq_band3_th    = 50;
+        cycle_red_ctrls->high_freq_band3_th = 50;
         cycle_red_ctrls->high_freq_band3_level = 2;
 
         // Low frequency band THs/actions
         cycle_red_ctrls->enable_zero_coeff_action = 1;
-        cycle_red_ctrls->zero_coeff_action        = 0;
-        cycle_red_ctrls->enable_one_coeff_action  = 1;
-        cycle_red_ctrls->one_coeff_action         = 1;
+        cycle_red_ctrls->zero_coeff_action = 0;
+        cycle_red_ctrls->enable_one_coeff_action = 1;
+        cycle_red_ctrls->one_coeff_action = 1;
 
-        cycle_red_ctrls->low_freq_band1_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band1_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band1_level = 0;
-        cycle_red_ctrls->low_freq_band2_th    = UNUSED_LOW_FREQ_BAND_TH;
+        cycle_red_ctrls->low_freq_band2_th = UNUSED_LOW_FREQ_BAND_TH;
         cycle_red_ctrls->low_freq_band2_level = 0;
         break;
     default: assert(0); break;
