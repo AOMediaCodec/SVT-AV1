@@ -38,10 +38,6 @@
 #define SSE_LAMBDA_HDRES 1 // Used by mv_cost_err_fn
 // #define SAD_LAMBDA_HDRES 8 // Used by mvsad_err_cost during full pixel search
 
-#if OPT_SPEL
-#define MAX_U32 0xFFFFFFFF
-#endif
-
 // Returns the cost of using the current mv during the motion search. This is
 // used when var is used as the error metric.
 #define PIXEL_TRANSFORM_ERROR_SCALE 4

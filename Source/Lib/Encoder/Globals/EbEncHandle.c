@@ -1693,7 +1693,9 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
             input_data.input_resolution = enc_handle_ptr->scs_instance_array[instance_index]->scs->input_resolution;
             input_data.is_scale = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.superres_mode > SUPERRES_NONE ||
                                   enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.resize_mode > RESIZE_NONE;
-
+#if FIX_GM_CI
+            input_data.static_config = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config;
+#endif
             EB_NEW(
                 enc_handle_ptr->enc_dec_pool_ptr_array[instance_index],
                 svt_system_resource_ctor,

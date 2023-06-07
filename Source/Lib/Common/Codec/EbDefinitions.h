@@ -2761,6 +2761,8 @@ typedef enum IntrabcMotionDirection
 typedef struct _EbEncHandle EbEncHandle;
 typedef struct _EbThreadContext EbThreadContext;
 
+#define MAX_U32 0xFFFFFFFF
+
 #ifdef __cplusplus
 }
 #endif
