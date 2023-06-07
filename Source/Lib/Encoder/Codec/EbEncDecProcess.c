@@ -43,8 +43,8 @@ void svt_av1_add_film_grain(EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
 
 void svt_av1_loop_restoration_save_boundary_lines(const Yv12BufferConfig *frame, Av1Common *cm,
                                                   int32_t after_cdef);
-void svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
-                                           int32_t optimized_lr);
+void        svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
+                                                  int32_t optimized_lr);
 extern void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr,
                                   Bool is_highbd);
 #endif
