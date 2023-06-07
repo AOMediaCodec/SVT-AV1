@@ -98,6 +98,8 @@ extern "C" {
 #define HIGH_SPATIAL_MV_TH      2048
 #define MEDIUM_SPATIAL_MV_TH    512
 #define LOW_SPATIAL_MV_TH       256
+
+#define MAX_U32 0xFFFFFFFF
 // Interpolation Filters
     static const int32_t me_if_coeff[3][4] = {
         { -4, 54, 16, -2 }, // F0

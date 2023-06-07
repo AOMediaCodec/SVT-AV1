@@ -77,8 +77,8 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off
     // to original size
 #if FIX_GM_CI
 #if GM_REFINFO
-    if (!is_islice)
-        gm_level = svt_aom_get_gm_core_level(pcs->enc_mode, is_base, super_res_off);
+    if (scs->enable_global_motion && !is_islice)
+        gm_level = svt_aom_get_gm_core_level(enc_mode, is_base, super_res_off);
     return gm_level;
 #else
     gm_level = svt_aom_get_gm_core_level(pcs->enc_mode, is_base, super_res_off);
