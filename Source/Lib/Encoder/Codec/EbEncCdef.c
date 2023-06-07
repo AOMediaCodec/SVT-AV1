@@ -446,7 +446,7 @@ void svt_av1_cdef_frame(SequenceControlSet *scs, PictureControlSet *pcs) {
                 const uint32_t    lr      = MI_SIZE_64X64 * fbr;
                 ModeInfo        **mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
                 const MbModeInfo *mbmi    = &mi[0]->mbmi;
-                const BlockSize   bsize = mbmi->block_mi.bsize;
+                const BlockSize   bsize   = mbmi->block_mi.bsize;
                 if (((fbc & 1) && (bsize == BLOCK_128X128 || bsize == BLOCK_128X64)) ||
                     ((fbr & 1) && (bsize == BLOCK_128X128 || bsize == BLOCK_64X128)))
                     dirinit = 0;
@@ -904,11 +904,9 @@ void finish_cdef_search(PictureControlSet *pcs) {
             const MbModeInfo *mbmi = &mi[0]->mbmi;
 
             if (((fbc & 1) &&
-                 (mbmi->block_mi.bsize == BLOCK_128X128 ||
-                  mbmi->block_mi.bsize == BLOCK_128X64)) ||
+                 (mbmi->block_mi.bsize == BLOCK_128X128 || mbmi->block_mi.bsize == BLOCK_128X64)) ||
                 ((fbr & 1) &&
-                 (mbmi->block_mi.bsize == BLOCK_128X128 ||
-                  mbmi->block_mi.bsize == BLOCK_64X128))) {
+                 (mbmi->block_mi.bsize == BLOCK_128X128 || mbmi->block_mi.bsize == BLOCK_64X128))) {
                 continue;
             }
 

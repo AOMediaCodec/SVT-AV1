@@ -1445,14 +1445,14 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
     } else {
         mbmi->palette_mode_info.palette_size = 0;
     }
-   
+
 #if CLN_MISC_CLEANUPS
     block_mi->bsize = blk_geom->bsize;
 #else
-    block_mi->bsize      = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
-                         blk_ptr->pred_mode == INTRA_MODE_4x4)
-             ? BLOCK_4X4
-             : blk_geom->bsize;
+    block_mi->bsize = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
+                       blk_ptr->pred_mode == INTRA_MODE_4x4)
+        ? BLOCK_4X4
+        : blk_geom->bsize;
 #endif
     block_mi->mode         = blk_ptr->pred_mode;
     block_mi->skip         = (blk_ptr->block_has_coeff) ? FALSE : TRUE;

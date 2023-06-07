@@ -779,11 +779,8 @@ static int read_inter_segment_id(EbDecHandle *dec_handle, ParseCtxt *parse_ctxt,
         mbmi->seg_id_predicted = svt_read_symbol(r, segp->pred_cdf[ctx], 2, ACCT_STR);
         if (mbmi->seg_id_predicted) {
             segment_id = dec_handle->cm.last_frame_seg_map
-                ? svt_aom_get_segment_id(frame_header,
-                                         dec_handle->cm.last_frame_seg_map,
-                                         mbmi->bsize,
-                                         mi_row,
-                                         mi_col)
+                ? svt_aom_get_segment_id(
+                      frame_header, dec_handle->cm.last_frame_seg_map, mbmi->bsize, mi_row, mi_col)
                 : 0;
         } else
             segment_id = read_segment_id(dec_handle, parse_ctxt, xd, 0);

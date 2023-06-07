@@ -344,14 +344,17 @@ enum {
 #if INCREASE_REF_PICS
 #define TF_MAX_EXTENSION 7 // Max additional tf pics after modulation per side
 #define TF_MAX_BASE_REF_PICS_6L 8 // Max additional tf pics at each side for BASE for 6L hierarchy
-#define TF_MAX_BASE_REF_PICS_SUB_6L 8 // Max additional tf pics at each side for BASE for sub-6L hierarchy
+#define TF_MAX_BASE_REF_PICS_SUB_6L \
+    8 // Max additional tf pics at each side for BASE for sub-6L hierarchy
 #else
 #define TF_MAX_EXTENSION 5 // Max additional tf pics after modulation per side
 #define TF_MAX_BASE_REF_PICS_6L 6 // Max additional tf pics at each side for BASE for 6L hierarchy
-#define TF_MAX_BASE_REF_PICS_SUB_6L 6 // Max additional tf pics at each side for BASE for sub-6L hierarchy
+#define TF_MAX_BASE_REF_PICS_SUB_6L \
+    6 // Max additional tf pics at each side for BASE for sub-6L hierarchy
 #endif
 #define TF_MAX_L1_REF_PICS_6L 2 // Max additional tf pics at each side for L1 for 6L hierarchy
-#define TF_MAX_L1_REF_PICS_SUB_6L 1 // Max additional tf pics at each side for L1 for sub-6L hierarchy
+#define TF_MAX_L1_REF_PICS_SUB_6L \
+    1 // Max additional tf pics at each side for L1 for sub-6L hierarchy
 #endif
 //  Delta QP support
 #define ADD_DELTA_QP_SUPPORT 1 // Add delta QP support
@@ -691,10 +694,10 @@ typedef enum PdPass {
 typedef enum ATTRIBUTE_PACKED {
     REGULAR_PD0 =
         -1, // The regular PD0 path; negative so that LPD1 can start at 0 (easy for indexing arrays in lpd0_ctrls)
-    LPD0_LVL_0     = 0,
-    LPD0_LVL_1     = 1,
-    LPD0_LVL_2     = 2,
-    LPD0_LVL_3     = 3,
+    LPD0_LVL_0 = 0,
+    LPD0_LVL_1 = 1,
+    LPD0_LVL_2 = 2,
+    LPD0_LVL_3 = 3,
 #if OPT_DEPTH_REFIN
     LPD0_LVL_4     = 4,
     VERY_LIGHT_PD0 = 5, // Lightest PD0 path, doesn't perform TX

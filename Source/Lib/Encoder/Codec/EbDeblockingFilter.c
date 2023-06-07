@@ -229,7 +229,7 @@ static TxSize set_lpf_parameters(Av1DeblockingParameters *const params, const ui
 
         // prepare outer edge parameters. deblock the edge if it's an edge of a TU
         {
-            uint32_t       curr_level; // Added to address 4x4 problem
+            uint32_t curr_level; // Added to address 4x4 problem
 #if CLN_MISC_CLEANUPS
             PredictionMode mode = mbmi->block_mi.mode;
 #else
@@ -1235,9 +1235,9 @@ void svt_av1_pick_filter_level_by_q(PictureControlSet *pcs, uint8_t qindex, int3
                 disable_dlf_th[pcs->ppcs->dlf_ctrls.zero_filter_strength_lvl][in_res] *
                 (pcs->temporal_layer_index + 1);
 #else
-            const uint32_t use_zero_strength_th =
-                disable_dlf_th[pcs->ppcs->dlf_ctrls.ld_zero_filter_strength_lvl][in_res] *
-                (pcs->temporal_layer_index + 1);
+        const uint32_t use_zero_strength_th =
+            disable_dlf_th[pcs->ppcs->dlf_ctrls.ld_zero_filter_strength_lvl][in_res] *
+            (pcs->temporal_layer_index + 1);
 #endif
             if (use_zero_strength_th) {
                 uint32_t total_me_sad = 0;

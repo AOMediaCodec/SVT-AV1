@@ -585,7 +585,7 @@ static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MbModeIn
     assert(above < 13);
     assert(left < 13);
     const int above_ctx = intra_mode_context[above];
-    const int left_ctx  = intra_mode_context[left];
+    const int left_ctx = intra_mode_context[left];
 #endif
     return tile_ctx->kf_y_cdf[above_ctx][left_ctx];
 }
@@ -675,7 +675,7 @@ int svt_av1_get_intra_inter_context(const MacroBlockD *xd) {
     }
 }
 #endif
-int32_t    svt_aom_partition_cdf_length(BlockSize bsize);
+int32_t svt_aom_partition_cdf_length(BlockSize bsize);
 #if !CLN_IFS_PATH
 static int av1_get_pred_context_switchable_interp(const MacroBlockD *xd, int dir) {
     const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;

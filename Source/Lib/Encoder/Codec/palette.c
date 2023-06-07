@@ -463,7 +463,7 @@ typedef struct {
     ColorCost color_cost;
 } Av1ColorMapParam;
 #if OPT_CHILD_PCS
-static void get_palette_params(FRAME_CONTEXT* frame_context, EcBlkStruct* blk_ptr, int plane,
+static void get_palette_params(FRAME_CONTEXT *frame_context, EcBlkStruct *blk_ptr, int plane,
 #else
 static void get_palette_params(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr, int plane,
 #endif
@@ -478,7 +478,7 @@ static void get_palette_params(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr,
         bsize, plane, xd, &params->plane_width, NULL, &params->rows, &params->cols);
 }
 #if OPT_CHILD_PCS
-static void get_color_map_params(FRAME_CONTEXT* frame_context, EcBlkStruct* blk_ptr, int plane,
+static void get_color_map_params(FRAME_CONTEXT *frame_context, EcBlkStruct *blk_ptr, int plane,
 #else
 static void get_color_map_params(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr, int plane,
 #endif
@@ -566,9 +566,9 @@ void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, EcBlkStruct *blk_p
                                 TOKENEXTRA **t, BlockSize bsize, TxSize tx_size,
                                 COLOR_MAP_TYPE type, int allow_update_cdf) {
 #else
-void svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr, int plane,
-                                TOKENEXTRA **t, BlockSize bsize, TxSize tx_size,
-                                COLOR_MAP_TYPE type, int allow_update_cdf) {
+void        svt_av1_tokenize_color_map(FRAME_CONTEXT *frame_context, BlkStruct *blk_ptr, int plane,
+                                       TOKENEXTRA **t, BlockSize bsize, TxSize tx_size,
+                                       COLOR_MAP_TYPE type, int allow_update_cdf) {
 #endif
     assert(plane == 0 || plane == 1);
     Av1ColorMapParam color_map_params;

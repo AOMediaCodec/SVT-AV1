@@ -60,7 +60,7 @@ static Bool check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift) {
     return TRUE;
 }
 #else
-Bool                 check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
+Bool            check_mv_validity(int16_t x_mv, int16_t y_mv, uint8_t need_shift);
 #endif
 
 static INLINE int32_t derive_rmv_setting(const SequenceControlSet      *scs,
@@ -133,7 +133,7 @@ uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_of
 #if CLN_FUNC_DECL
 static Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 #else
-Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
+Bool            warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 #endif
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
     return frm_hdr->allow_warped_motion && has_overlappable_candidates(ctx->blk_ptr) &&
@@ -2590,9 +2590,9 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
     uint32_t full_lambda   = ctx->full_lambda_md[EB_8_BIT_MD]; // 8bit only
     int      error_per_bit = full_lambda >> RD_EPB_SHIFT;
     error_per_bit += (error_per_bit == 0);
-    cand_bf->cand                  = cand;
+    cand_bf->cand = cand;
 #if !CLN_OBMC_WARP
-    EbPictureBufferDesc *pred      = cand_bf->pred;
+    EbPictureBufferDesc *pred = cand_bf->pred;
 #endif
     uint32_t blk_origin_index      = ctx->blk_geom->org_x + ctx->blk_geom->org_y * ctx->sb_size;
     EbPictureBufferDesc *input_pic = ppcs->enhanced_pic; // 10BIT not supported
@@ -2603,7 +2603,7 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
 #if !CLN_OBMC_WARP
     uint8_t *pred_y = pred->buffer_y + blk_origin_index;
 #endif
-    uint8_t                *src_y  = input_pic->buffer_y + input_origin_index;
+    uint8_t *src_y = input_pic->buffer_y + input_origin_index;
 
     int mv_prec_shift    = ppcs->frm_hdr.allow_high_precision_mv ? 0 : 1;
     int best_cost        = INT_MAX;
@@ -2660,9 +2660,9 @@ uint8_t svt_aom_wm_motion_refinement(PictureControlSet *pcs, ModeDecisionContext
             if (!local_warp_valid)
                 continue;
 #if CLN_OBMC_WARP
-            EbPictureBufferDesc *        ref_pic_list0 = (EbPictureBufferDesc *)NULL;
-            EbPictureBufferDesc *        ref_pic_list1 = (EbPictureBufferDesc *)NULL;
-            MvReferenceFrame             rf[2];
+            EbPictureBufferDesc *ref_pic_list0 = (EbPictureBufferDesc *)NULL;
+            EbPictureBufferDesc *ref_pic_list1 = (EbPictureBufferDesc *)NULL;
+            MvReferenceFrame     rf[2];
             av1_set_ref_frame(rf, cand_bf->cand->ref_frame_type);
             int8_t  ref_idx_l0 = get_ref_frame_idx(rf[0]);
             int8_t  ref_idx_l1 = rf[1] == NONE_FRAME ? get_ref_frame_idx(rf[0])

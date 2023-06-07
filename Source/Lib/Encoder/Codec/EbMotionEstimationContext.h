@@ -285,11 +285,13 @@ typedef struct MeHmeRefPruneCtrls {
     uint16_t prune_ref_if_me_sad_dev_bigger_than_th;
     Bool     protect_closest_refs; // if true, do not prune closest ref frames
 #if OPT_ZZ_REF_PRUNE
-    uint32_t zz_sad_th; // enable zz based ref pruning if zz sad < this threshold. set to zero to disable.
+    uint32_t
+        zz_sad_th; // enable zz based ref pruning if zz sad < this threshold. set to zero to disable.
     uint16_t zz_sad_pct; // prune the ref that has sad-deviation-to-best > th_percentage
 #endif
 #if OPT_PHME_PRUNE
-    uint32_t phme_sad_th; // enable preHme based ref pruning if prehme sad < this threshold. set to zero to disable.
+    uint32_t
+        phme_sad_th; // enable preHme based ref pruning if prehme sad < this threshold. set to zero to disable.
     uint16_t phme_sad_pct; // prune the ref that has sad-deviation-to-best > th_percentage
 #endif
 } MeHmeRefPruneCtrls;
@@ -412,7 +414,7 @@ typedef struct MeContext {
 #if FTR_ME_COST_VAR
     Me8x8VarCtrls me_8x8_var_ctrls;
 #endif
-    uint8_t            max_hme_sr_area_multipler;
+    uint8_t max_hme_sr_area_multipler;
     // ME
     uint8_t          best_list_idx;
     uint8_t          best_ref_idx;
@@ -461,7 +463,7 @@ typedef struct MeContext {
     uint16_t adj_search_area_width;
     uint16_t adj_search_area_height;
 #endif
-    void    *alt_ref_reference_ptr;
+    void *alt_ref_reference_ptr;
     // Open Loop ME
     EbMeType                    me_type;
     EbDownScaledBufDescPtrArray mctf_ref_desc_ptr_array;

@@ -1049,7 +1049,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr,
                 NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK,
             },
 #endif
-            // Entropy Coding Neighbor Arrays
+        // Entropy Coding Neighbor Arrays
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
             {
                 &object_ptr->mode_type_na[tile_idx],
@@ -1611,7 +1611,8 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
 #if GM_REFINFO
 
 #if FIX_GM_CI
-    if(svt_aom_need_gm_ref_info(init_data_ptr->enc_mode, true, init_data_ptr->static_config.resize_mode == RESIZE_NONE))
+    if (svt_aom_need_gm_ref_info(
+            init_data_ptr->enc_mode, true, init_data_ptr->static_config.resize_mode == RESIZE_NONE))
 #endif
     {
         EbPictureBufferDescInitData input_pic_buf_desc_init_data;

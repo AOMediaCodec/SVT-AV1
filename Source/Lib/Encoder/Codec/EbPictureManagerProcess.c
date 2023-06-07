@@ -620,7 +620,7 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         child_pcs->enc_mode             = entry_ppcs->enc_mode;
                         child_pcs->b64_total_count      = entry_ppcs->b64_total_count;
 
-                        child_pcs->enc_dec_coded_sb_count   = 0;
+                        child_pcs->enc_dec_coded_sb_count = 0;
 #if !MEM_SG
                         child_pcs->ppcs->av1_cm->rst_tmpbuf = child_pcs->rst_tmpbuf;
 #endif

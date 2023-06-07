@@ -175,11 +175,12 @@ typedef struct MdcSbData {
     EbMdcLeafData leaf_data_array[BLOCK_MAX_COUNT_SB_128];
     Bool          split_flag[BLOCK_MAX_COUNT_SB_128];
 #if TAG_SUB_PRED_NSQ
-    uint8_t consider_block[BLOCK_MAX_COUNT_SB_128]; // 0: do not encode, 1: current or parent depth(s), 2: child depth(s)
+    uint8_t consider_block
+        [BLOCK_MAX_COUNT_SB_128]; // 0: do not encode, 1: current or parent depth(s), 2: child depth(s)
 #else
     uint8_t consider_block[BLOCK_MAX_COUNT_SB_128];
 #endif
-    uint8_t       refined_split_flag[BLOCK_MAX_COUNT_SB_128];
+    uint8_t refined_split_flag[BLOCK_MAX_COUNT_SB_128];
 } MdcSbData;
 
 #if !CLN_UNUSED_DEFNS
@@ -324,7 +325,7 @@ typedef struct PictureControlSet {
     uint32_t    *sb_count_nz_coeffs;
     // qindex per 64x64 using ME distortions (to be used for lambda modulation only; not at Q/Q-1)
     // Mode Decision Neighbor Arrays
-    uint8_t            *b64_me_qindex;
+    uint8_t *b64_me_qindex;
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
     NeighborArrayUnit **md_intra_luma_mode_na[NA_TOT_CNT];
     NeighborArrayUnit **md_skip_flag_na[NA_TOT_CNT];
@@ -351,7 +352,7 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **md_skip_coeff_na[NA_TOT_CNT];
 #endif
 #if !CLN_IFS_PATH
-    NeighborArrayUnit **  md_ref_frame_type_na[NA_TOT_CNT];
+    NeighborArrayUnit   **md_ref_frame_type_na[NA_TOT_CNT];
     NeighborArrayUnit32 **md_interpolation_type_na[NA_TOT_CNT];
 #endif
     NeighborArrayUnit **mdleaf_partition_na[NA_TOT_CNT];
@@ -401,10 +402,10 @@ typedef struct PictureControlSet {
     NeighborArrayUnit **cr_dc_sign_level_coeff_na;
     // Stored per 4x4. 8 bit: lower 6 bits(COEFF_CONTEXT_BITS), shows if there is at least one Coef.
     // Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
-    NeighborArrayUnit   **cb_dc_sign_level_coeff_na;
-    NeighborArrayUnit   **txfm_context_array;
+    NeighborArrayUnit **cb_dc_sign_level_coeff_na;
+    NeighborArrayUnit **txfm_context_array;
 #if !CLN_IFS_PATH
-    NeighborArrayUnit **  ref_frame_type_na;
+    NeighborArrayUnit   **ref_frame_type_na;
     NeighborArrayUnit32 **interpolation_type_na;
 #endif
 
@@ -436,7 +437,7 @@ typedef struct PictureControlSet {
 #if !CLN_SKIP_HV4
     uint32_t skip_hv4_on_best_part;
 #endif
-    uint8_t inter_intra_level;
+    uint8_t  inter_intra_level;
     uint8_t  txs_level;
     uint8_t  nic_level;
     uint8_t  md_sq_mv_search_level;
@@ -450,9 +451,9 @@ typedef struct PictureControlSet {
     uint8_t pic_depth_removal_level;
     uint8_t pic_depth_removal_level_rtc;
     // block_based_depth_refinement_level signal set at the picture level
-    uint8_t          pic_block_based_depth_refinement_level;
+    uint8_t pic_block_based_depth_refinement_level;
 #if !FIX_DEPTH_EXIT_CHECK
-    uint8_t          pic_depth_early_exit_lvl;
+    uint8_t pic_depth_early_exit_lvl;
 #endif
     uint8_t          pic_lpd0_lvl; // lpd0_lvl signal set at the picture level
     uint8_t          pic_lpd1_lvl; // lpd1_lvl signal set at the picture level
@@ -1050,7 +1051,7 @@ typedef struct PictureParentControlSet {
     struct PictureParentControlSet *alt_ref_ppcs_ptr;
     int32_t                         noise_levels_log1p_fp16[MAX_MB_PLANE];
 #if !CLN_TF
-    double                          noise_levels[MAX_MB_PLANE];
+    double noise_levels[MAX_MB_PLANE];
 #endif
     int32_t                         pic_decision_reorder_queue_idx;
     struct PictureParentControlSet *temp_filt_pcs_list[ALTREF_MAX_NFRAMES];
@@ -1144,8 +1145,8 @@ typedef struct PictureParentControlSet {
     GmControls   gm_ctrls;
     GM_LEVEL     gm_downsample_level;
 #if GM_PP
-    bool         gm_pp_enabled;
-    bool         gm_pp_detected; //gm detection enabled at the pre-processing level
+    bool gm_pp_enabled;
+    bool gm_pp_detected; //gm detection enabled at the pre-processing level
 #endif
     CdefControls cdef_ctrls;
     // RC related variables

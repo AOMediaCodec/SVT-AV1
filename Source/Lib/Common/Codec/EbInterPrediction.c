@@ -26,11 +26,11 @@
 #if CLN_FUNC_DECL
 void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride,
 #else
-extern void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride,
+extern void svt_aom_pack_block(
+    uint8_t *in8_bit_buffer, uint32_t in8_stride,
 #endif
-                               uint8_t *inn_bit_buffer, uint32_t inn_stride,
-                               uint16_t *out16_bit_buffer, uint32_t out_stride, uint32_t width,
-                               uint32_t height) {
+                        uint8_t *inn_bit_buffer, uint32_t inn_stride, uint16_t *out16_bit_buffer,
+                        uint32_t out_stride, uint32_t width, uint32_t height) {
     svt_aom_pack2d_src(in8_bit_buffer,
                        in8_stride,
                        inn_bit_buffer,
@@ -2190,12 +2190,9 @@ int svt_aom_is_interintra_wedge_used(BlockSize bsize) {
     return wedge_params_lookup[bsize].bits > 0;
 }
 
-int32_t svt_aom_get_wedge_bits_lookup(BlockSize bsize) {
-    return wedge_params_lookup[bsize].bits;
-}
+int32_t svt_aom_get_wedge_bits_lookup(BlockSize bsize) { return wedge_params_lookup[bsize].bits; }
 
-const uint8_t *svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign,
-                                                BlockSize bsize) {
+const uint8_t *svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign, BlockSize bsize) {
     return wedge_params_lookup[bsize].masks[wedge_sign][wedge_index];
 }
 

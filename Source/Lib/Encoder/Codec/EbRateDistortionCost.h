@@ -78,10 +78,10 @@ uint64_t svt_aom_get_intra_uv_fast_rate(PictureControlSet *pcs, struct ModeDecis
                                         bool                         use_accurate_cfl);
 #endif
 #if CLN_FAST_COST_FUNCS
-uint64_t svt_aom_intra_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+uint64_t svt_aom_intra_fast_cost(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                                  uint64_t luma_distortion, uint64_t chroma_distortion);
-uint64_t svt_aom_inter_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                                  uint64_t luma_distortion, uint64_t chroma_distortion);
 #else
@@ -93,18 +93,18 @@ extern uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStru
                                         uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
                                         uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
 
-extern uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
-                                        ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
-                                        uint64_t luma_distortion, uint64_t chroma_distortion,
-                                        uint64_t lambda, PictureControlSet *pcs,
-                                        CandidateMv *ref_mv_stack, const BlockGeom *blk_geom,
-                                        uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
-                                        uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
+extern uint64_t    svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
+                                           ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
+                                           uint64_t luma_distortion, uint64_t chroma_distortion,
+                                           uint64_t lambda, PictureControlSet *pcs,
+                                           CandidateMv *ref_mv_stack, const BlockGeom *blk_geom,
+                                           uint32_t miRow, uint32_t miCol, uint8_t enable_inter_intra,
+                                           uint32_t left_neighbor_mode, uint32_t top_neighbor_mode);
 #endif
-EbErrorType        svt_aom_full_cost_light_pd0(ModeDecisionContext                *ctx,
-                                               struct ModeDecisionCandidateBuffer *cand_bf,
-                                               uint64_t *y_distortion, uint64_t lambda,
-                                               uint64_t *y_coeff_bits);
+EbErrorType svt_aom_full_cost_light_pd0(ModeDecisionContext                *ctx,
+                                        struct ModeDecisionCandidateBuffer *cand_bf,
+                                        uint64_t *y_distortion, uint64_t lambda,
+                                        uint64_t *y_coeff_bits);
 #if FIX_SKIP_COST
 void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx,
                        struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
@@ -133,12 +133,12 @@ uint64_t svt_aom_tx_size_bits(MdRateEstimationContext *md_rate_est_ctx, MacroBlo
                               BlockSize bsize, uint8_t skip, FRAME_CONTEXT *ec_ctx,
                               uint8_t allow_update_cdf);
 
-uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer* candidateBuffer,
+uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
 #else
 extern uint64_t    svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
 #endif
-                                            ModeDecisionContext *ctx, PictureControlSet *pcs,
-                                            uint8_t tx_depth, Bool block_has_coeff);
+                                  ModeDecisionContext *ctx, PictureControlSet *pcs,
+                                  uint8_t tx_depth, Bool block_has_coeff);
 
 MvJointType svt_av1_get_mv_joint(const MV *mv);
 #if CLN_FUNC_DECL

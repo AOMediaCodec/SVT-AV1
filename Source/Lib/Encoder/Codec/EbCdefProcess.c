@@ -199,7 +199,7 @@ static void cdef_seg_search(PictureControlSet *pcs, SequenceControlSet *scs,
             BlockSize         bs      = BLOCK_64X64;
             ModeInfo        **mi      = pcs->mi_grid_base + lr * cm->mi_stride + lc;
             const MbModeInfo *mbmi    = &mi[0]->mbmi;
-            const BlockSize   bsize = mbmi->block_mi.bsize;
+            const BlockSize   bsize   = mbmi->block_mi.bsize;
             if (((fbc & 1) && (bsize == BLOCK_128X128 || bsize == BLOCK_128X64)) ||
                 ((fbr & 1) && (bsize == BLOCK_128X128 || bsize == BLOCK_64X128)))
                 continue;

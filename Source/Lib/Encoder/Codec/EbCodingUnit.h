@@ -300,7 +300,7 @@ typedef struct MacroBlockD {
 #if !CLN_UNUSED_DEFNS
     struct macroblockd_plane plane[MAX_MB_PLANE];
 #endif
-    BlockSize                bsize;
+    BlockSize bsize;
 } MacroBlockD;
 
 typedef struct Macroblock {
@@ -411,11 +411,11 @@ typedef struct BlkStruct {
 typedef struct EcBlkStruct {
     EcTransformUnit          txb_array[TRANSFORM_UNIT_MAX_COUNT]; // ec
     EcPredictionUnit         prediction_unit_array[MAX_NUM_OF_PU_PER_CU]; // ec
-    EcPaletteInfo *          palette_info; // ec
+    EcPaletteInfo           *palette_info; // ec
     uint8_t                  palette_mem; // status of palette info alloc
     uint8_t                  palette_size[2];
     IntMv                    predmv[2]; // ec
-    MacroBlockD *            av1xd;
+    MacroBlockD             *av1xd;
     EcInterInterCompoundData interinter_comp; // ec
 #if !CLN_MBMI_5
     uint32_t interp_filters; // ec

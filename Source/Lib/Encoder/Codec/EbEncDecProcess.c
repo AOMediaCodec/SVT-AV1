@@ -43,14 +43,14 @@ void svt_av1_add_film_grain(EbPictureBufferDesc *src, EbPictureBufferDesc *dst,
 
 void svt_av1_loop_restoration_save_boundary_lines(const Yv12BufferConfig *frame, Av1Common *cm,
                                                   int32_t after_cdef);
-void svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
-                                           int32_t optimized_lr);
+void        svt_av1_loop_restoration_filter_frame(Yv12BufferConfig *frame, Av1Common *cm,
+                                                  int32_t optimized_lr);
 extern void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr,
                                   Bool is_highbd);
 #endif
-void        svt_c_unpack_compressed_10bit(const uint8_t *inn_bit_buffer, uint32_t inn_stride,
-                                          uint8_t *in_compn_bit_buffer, uint32_t out_stride,
-                                          uint32_t height);
+void svt_c_unpack_compressed_10bit(const uint8_t *inn_bit_buffer, uint32_t inn_stride,
+                                   uint8_t *in_compn_bit_buffer, uint32_t out_stride,
+                                   uint32_t height);
 
 static void enc_dec_context_dctor(EbPtr p) {
     EbThreadContext *thread_ctx = (EbThreadContext *)p;
@@ -1922,10 +1922,10 @@ void pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs) {
 
         if (gm_need_full) {
             EbPictureBufferDesc *inp = pcs->ppcs->enhanced_pic;
-            uint8_t *            src = inp->buffer_y + inp->org_x + inp->org_y * inp->stride_y;
+            uint8_t             *src = inp->buffer_y + inp->org_x + inp->org_y * inp->stride_y;
 
             EbPictureBufferDesc *ref = ref_object->input_picture;
-            uint8_t *            dst = ref->buffer_y + ref->org_x + ref->org_y * ref->stride_y;
+            uint8_t             *dst = ref->buffer_y + ref->org_x + ref->org_y * ref->stride_y;
 
             svt_aom_assert_err(inp->max_height == ref->max_height, "ERR BUF");
             svt_aom_assert_err(inp->max_width == ref->max_width, "ERR BUF");
@@ -1974,8 +1974,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 1:
-        depth_refinement_ctrls->enabled                         = 1;
+    case 1: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
@@ -1991,8 +1990,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 2:
-        depth_refinement_ctrls->enabled = 1;
+    case 2: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
@@ -2013,8 +2011,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 3:
-        depth_refinement_ctrls->enabled = 1;
+    case 3: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
@@ -2032,11 +2029,10 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         break;
 #if OPT_DEPTH_REFIN
     case 5:
-        depth_refinement_ctrls->enabled                         = 1;
-        depth_refinement_ctrls->prune_child_if_not_avail        = 1;
+        depth_refinement_ctrls->enabled                  = 1;
+        depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 4:
-        depth_refinement_ctrls->enabled                         = 1;
+    case 4: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 25;
         depth_refinement_ctrls->sub_to_current_th               = 25;
@@ -2057,8 +2053,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 5:
-        depth_refinement_ctrls->enabled = 1;
+    case 5: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 20;
         depth_refinement_ctrls->sub_to_current_th               = 20;
@@ -2079,8 +2074,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 6:
-        depth_refinement_ctrls->enabled = 1;
+    case 6: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 15;
         depth_refinement_ctrls->sub_to_current_th               = 15;
@@ -2101,8 +2095,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 7:
-        depth_refinement_ctrls->enabled = 1;
+    case 7: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 10;
         depth_refinement_ctrls->sub_to_current_th               = 10;
@@ -2123,8 +2116,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 8:
-        depth_refinement_ctrls->enabled = 1;
+    case 8: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = 5;
@@ -2145,8 +2137,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 9:
-        depth_refinement_ctrls->enabled = 1;
+    case 9: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = 5;
@@ -2167,8 +2158,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 10:
-        depth_refinement_ctrls->enabled = 1;
+    case 10: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = -50;
@@ -2189,8 +2179,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->enabled                  = 1;
         depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
-    case 11:
-        depth_refinement_ctrls->enabled = 1;
+    case 11: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = -25;
         depth_refinement_ctrls->sub_to_current_th               = -50;
@@ -2206,16 +2195,15 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
         depth_refinement_ctrls->sub_to_current_pd0_coeff_th     = 20;
         depth_refinement_ctrls->sub_to_current_pd0_coeff_offset = 20;
         break;
-    // Pred_Only
+        // Pred_Only
 #if OPT_DEPTH_REFIN
         // Pred_Only
     case 13:
-        depth_refinement_ctrls->enabled                         = 1;
-        depth_refinement_ctrls->prune_child_if_not_avail        = 1;
+        depth_refinement_ctrls->enabled                  = 1;
+        depth_refinement_ctrls->prune_child_if_not_avail = 1;
 #else
     // Pred_Only
-    case 12:
-        depth_refinement_ctrls->enabled                         = 1;
+    case 12: depth_refinement_ctrls->enabled = 1;
 #endif
         depth_refinement_ctrls->parent_to_current_th            = MIN_SIGNED_VALUE;
         depth_refinement_ctrls->sub_to_current_th               = MIN_SIGNED_VALUE;
@@ -2241,9 +2229,9 @@ static void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecision
                            NEIGHBOR_ARRAY_UNIT_FULL_MASK);
 }
 #else
-void     copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                                         uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
-                                         uint32_t sb_org_x, uint32_t sb_org_y);
+void copy_neighbour_arrays_light_pd0(PictureControlSet *pcs, ModeDecisionContext *ctx,
+                                     uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
+                                     uint32_t sb_org_x, uint32_t sb_org_y);
 #endif
 void     svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                        uint32_t src_idx, uint32_t dst_idx, uint32_t blk_mds,
@@ -2287,7 +2275,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
                                        uint32_t sb_index, int32_t sb_size, int8_t pred_depth,
                                        uint8_t pred_sq_idx, int8_t depth_step,
                                        const uint8_t disallow_nsq) {
-    const BlockGeom *blk_geom      = get_blk_geom_mds(blk_index);
+    const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
 #if OPT_DEPTH_REFIN
     // 4x4 blocks have no children
     if (blk_geom->sq_size <= 4 || (blk_geom->sq_size == 8 && ctx->disallow_4x4))
@@ -2314,7 +2302,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
             return;
     }
 #endif
-    unsigned int     tot_d1_blocks = get_default_tot_d1_blocks(ctx, blk_geom, disallow_nsq);
+    unsigned int tot_d1_blocks = get_default_tot_d1_blocks(ctx, blk_geom, disallow_nsq);
 
     if (blk_geom->svt_aom_geom_idx == GEOM_0)
         tot_d1_blocks = 1;
@@ -2336,7 +2324,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
 #if !OPT_DEPTH_REFIN
         uint32_t child_block_idx_1 = blk_index + blk_geom->d1_depth_offset;
 #endif
-        const BlockGeom *child1_blk_geom   = get_blk_geom_mds(child_block_idx_1);
+        const BlockGeom *child1_blk_geom = get_blk_geom_mds(child_block_idx_1);
 
         // All child blocks are same sq_size, so will share the same tot_d1_blocks
         const unsigned int child_default_tot_d1_blocks = get_default_tot_d1_blocks(
@@ -2346,20 +2334,20 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
             ? 1
             : child_default_tot_d1_blocks;
 #else
-        const unsigned int child_tot_d1_blocks = (!ctx->nsq_ctrls.enabled ||
+    const unsigned int child_tot_d1_blocks = (!ctx->nsq_ctrls.enabled ||
 #if OPT_NSQ_ONLY_PRED_DEPTH
-                                                  !ctx->nsq_ctrls.allow_nsq_in_child_depths)
+                                              !ctx->nsq_ctrls.allow_nsq_in_child_depths)
 #else
-                                                  !depth_ctrls->allow_nsq_in_child_depths)
+                                              !depth_ctrls->allow_nsq_in_child_depths)
 #endif
-            ? 1
-            : child_default_tot_d1_blocks;
+        ? 1
+        : child_default_tot_d1_blocks;
 #endif
         for (unsigned block_1d_idx = 0; block_1d_idx < child_tot_d1_blocks; block_1d_idx++) {
 #if TAG_SUB_PRED_NSQ
             results_ptr->consider_block[child_block_idx_1 + block_1d_idx] = 2;
 #else
-            results_ptr->consider_block[child_block_idx_1 + block_1d_idx] = 1;
+        results_ptr->consider_block[child_block_idx_1 + block_1d_idx] = 1;
 #endif
             results_ptr->refined_split_flag[child_block_idx_1 + block_1d_idx] = FALSE;
         }
@@ -2375,7 +2363,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
                                        pred_sq_idx,
                                        depth_step > 1 ? depth_step - 1 : 1,
                                        disallow_nsq);
-        //Set second child to be considered
+            //Set second child to be considered
 #if !OPT_DEPTH_REFIN
         uint32_t child_block_idx_2 = child_block_idx_1 +
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
@@ -2384,7 +2372,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
 #if TAG_SUB_PRED_NSQ
             results_ptr->consider_block[child_block_idx_2 + block_1d_idx] = 2;
 #else
-            results_ptr->consider_block[child_block_idx_2 + block_1d_idx] = 1;
+        results_ptr->consider_block[child_block_idx_2 + block_1d_idx] = 1;
 #endif
             results_ptr->refined_split_flag[child_block_idx_2 + block_1d_idx] = FALSE;
         }
@@ -2400,7 +2388,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
                                        pred_sq_idx,
                                        depth_step > 1 ? depth_step - 1 : 1,
                                        disallow_nsq);
-        //Set third child to be considered
+            //Set third child to be considered
 #if !OPT_DEPTH_REFIN
         uint32_t child_block_idx_3 = child_block_idx_2 +
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
@@ -2409,7 +2397,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
 #if TAG_SUB_PRED_NSQ
             results_ptr->consider_block[child_block_idx_3 + block_1d_idx] = 2;
 #else
-            results_ptr->consider_block[child_block_idx_3 + block_1d_idx] = 1;
+        results_ptr->consider_block[child_block_idx_3 + block_1d_idx] = 1;
 #endif
             results_ptr->refined_split_flag[child_block_idx_3 + block_1d_idx] = FALSE;
         }
@@ -2426,7 +2414,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
                                        pred_sq_idx,
                                        depth_step > 1 ? depth_step - 1 : 1,
                                        disallow_nsq);
-        //Set forth child to be considered
+            //Set forth child to be considered
 #if !OPT_DEPTH_REFIN
         uint32_t child_block_idx_4 = child_block_idx_3 +
             ns_depth_offset[blk_geom->svt_aom_geom_idx][blk_geom->depth + 1];
@@ -2435,7 +2423,7 @@ static void set_child_to_be_considered(PictureControlSet *pcs, ModeDecisionConte
 #if TAG_SUB_PRED_NSQ
             results_ptr->consider_block[child_block_idx_4 + block_1d_idx] = 2;
 #else
-            results_ptr->consider_block[child_block_idx_4 + block_1d_idx] = 1;
+        results_ptr->consider_block[child_block_idx_4 + block_1d_idx] = 1;
 #endif
             results_ptr->refined_split_flag[child_block_idx_4 + block_1d_idx] = FALSE;
         }

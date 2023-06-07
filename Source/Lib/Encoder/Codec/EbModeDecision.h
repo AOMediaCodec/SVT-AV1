@@ -50,7 +50,7 @@ typedef struct ModeDecisionCandidate {
     TxType                 transform_type_uv;
     uint16_t               num_proj_ref;
 #if FIX_UV_INTRA_MODE_RATE
-    uint8_t                palette_size[PLANE_TYPES];
+    uint8_t palette_size[PLANE_TYPES];
 #else
     uint8_t palette_size[2];
 #endif
@@ -88,9 +88,9 @@ typedef EbErrorType (*EbPredictionFunc)(uint8_t hbd_md, struct ModeDecisionConte
                                         PictureControlSet                  *pcs,
                                         struct ModeDecisionCandidateBuffer *cand_bf);
 #if CLN_FAST_COST_FUNCS
-typedef uint64_t(*EbFastCostFunc)(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
-                                 struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
-                                 uint64_t luma_distortion, uint64_t chroma_distortion);
+typedef uint64_t (*EbFastCostFunc)(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
+                                   struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
+                                   uint64_t luma_distortion, uint64_t chroma_distortion);
 #else
 typedef uint64_t (*EbFastCostFunc)(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
                                    struct ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
@@ -196,10 +196,10 @@ void generate_md_stage_0_cand_light_pd1(struct ModeDecisionContext *ctx,
 #else
 void generate_md_stage_0_cand_light_pd1(SuperBlock *sb_ptr, struct ModeDecisionContext *ctx,
 #endif
-                                        uint32_t *         fast_candidate_total_count,
+                                        uint32_t          *fast_candidate_total_count,
                                         PictureControlSet *pcs);
 EbErrorType generate_md_stage_0_cand_light_pd0(struct ModeDecisionContext *ctx,
-                                               uint32_t *         fast_candidate_total_count,
+                                               uint32_t          *fast_candidate_total_count,
                                                PictureControlSet *pcs);
 
 static INLINE int svt_aom_is_interintra_allowed_bsize(const BlockSize bsize) {

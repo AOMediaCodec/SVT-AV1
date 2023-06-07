@@ -70,7 +70,7 @@ typedef struct Av1Common {
 #if !CLN_IFS_PATH
     InterpFilter interp_filter;
 #endif
-    int32_t      mi_stride;
+    int32_t mi_stride;
 
     // Marks if we need to use 16bit frame buffers (1: yes, 0: no).
     int32_t                   use_highbitdepth;

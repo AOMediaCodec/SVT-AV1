@@ -85,9 +85,9 @@ typedef struct MdBlkStruct {
     EbWarpedMotionParams wm_params_l0;
     EbWarpedMotionParams wm_params_l1;
     // txb
-    uint8_t  u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t  v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t  y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
 #if OPT_NON_NORMATIVE_TXS
     uint16_t min_nz_h;
     uint16_t min_nz_v;
@@ -462,17 +462,20 @@ typedef struct ParentSqCmplxCtrls {
 } ParentSqCmplxCtrls;
 #if OPT_NON_NORMATIVE_TXS
 typedef struct NsqPsqTxsCtrls {
-    uint8_t  enabled;
-    uint32_t hv_to_sq_th; // Skip NSQ if min(H0-nz,H1-nz) is higher than hv_to_sq_th * sq-nz, and min(V0-nz,V1-nz) is higher than hv_to_sq_th * sq-nz
-    uint32_t h_to_v_th;   // Skip H/V if min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than min(V0-nz,V1-nz)/min(H0-nz,H1-nz),  
-                          // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
+    uint8_t enabled;
+    uint32_t
+        hv_to_sq_th; // Skip NSQ if min(H0-nz,H1-nz) is higher than hv_to_sq_th * sq-nz, and min(V0-nz,V1-nz) is higher than hv_to_sq_th * sq-nz
+    uint32_t
+        h_to_v_th; // Skip H/V if min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than min(V0-nz,V1-nz)/min(H0-nz,H1-nz),
+        // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
 } NsqPsqTxsCtrls;
 #endif
 #if OPT_NSQ_PSQ_MODE
 typedef struct NsqPsqPredCtrls {
-    uint8_t  enabled; 
-    uint32_t cost_th; // The intra/new-cost-to-mvp cost deviation beyond wich NSQ is skipped when the SQ is MVP
-    uint8_t  coef_th; // The perc of SQ nz-coeff beyond wich the the NSQ skip is not allowed
+    uint8_t enabled;
+    uint32_t
+        cost_th; // The intra/new-cost-to-mvp cost deviation beyond wich NSQ is skipped when the SQ is MVP
+    uint8_t coef_th; // The perc of SQ nz-coeff beyond wich the the NSQ skip is not allowed
 } NsqPsqPredCtrls;
 #endif
 typedef struct RdoqCtrls {
@@ -724,7 +727,7 @@ typedef struct UvCtrls {
 #else
     // Non-direct chroma search 0: pre chroma search is used, 1: chroma search at last md_stage is
     // used
-    uint8_t nd_uv_serach_mode;
+    uint8_t          nd_uv_serach_mode;
 #endif
 #endif
     // Scaling numerator for independent chroma NICS: <x>/16
@@ -973,9 +976,9 @@ typedef struct ModeDecisionContext {
     BlkStruct                    *md_blk_arr_nsq;
     uint8_t                      *avail_blk_flag;
     // tells whether this CU is tested in MD.
-    uint8_t         *tested_blk_flag;
+    uint8_t *tested_blk_flag;
 #if !OPT_SUB_DEPTH_ALL_EXIT
-    uint8_t         *do_not_process_blk;
+    uint8_t *do_not_process_blk;
 #endif
     MdcSbData       *mdc_sb_array;
     MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
@@ -1010,9 +1013,9 @@ typedef struct ModeDecisionContext {
     NeighborArrayUnit *cr_dc_sign_level_coeff_na;
     // Stored per 4x4. 8 bit: lower 6 bits(COEFF_CONTEXT_BITS), shows if there is at least one Coef.
     // Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
-    NeighborArrayUnit    *cb_dc_sign_level_coeff_na;
-    NeighborArrayUnit    *txfm_context_array;
-    NeighborArrayUnit    *leaf_partition_na;
+    NeighborArrayUnit *cb_dc_sign_level_coeff_na;
+    NeighborArrayUnit *txfm_context_array;
+    NeighborArrayUnit *leaf_partition_na;
 #if !FIX_SKIP_NEIGH_ARRAY
     NeighborArrayUnit *skip_coeff_na;
 #endif
@@ -1032,10 +1035,10 @@ typedef struct ModeDecisionContext {
     BlkStruct       *blk_ptr;
     const BlockGeom *blk_geom;
 #if !CLN_MISC_CLEANUPS
-    PredictionUnit  *pu_ptr;
+    PredictionUnit *pu_ptr;
 #endif
-    PALETTE_BUFFER   palette_buffer;
-    PaletteInfo      palette_cand_array[MAX_PAL_CAND];
+    PALETTE_BUFFER palette_buffer;
+    PaletteInfo    palette_cand_array[MAX_PAL_CAND];
     // MD palette search
     uint8_t *palette_size_array_0;
 #if !FIX_UV_INTRA_MODE_RATE
@@ -1068,11 +1071,11 @@ typedef struct ModeDecisionContext {
 #endif
 #else
 #if CLN_IND_UV_SEARCH
-    Bool             ind_uv_avail; // True if independent chroma search data is available
+    Bool ind_uv_avail; // True if independent chroma search data is available
     UvPredictionMode best_uv_mode[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
-    int8_t           best_uv_angle[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
-    uint64_t         best_uv_cost[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
-    uint64_t         fast_chroma_rate[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    int8_t best_uv_angle[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    uint64_t best_uv_cost[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
+    uint64_t fast_chroma_rate[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
 #else
     UvPredictionMode best_uv_mode[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
     int32_t          best_uv_angle[UV_PAETH_PRED + 1][(MAX_ANGLE_DELTA << 1) + 1];
@@ -1209,13 +1212,13 @@ typedef struct ModeDecisionContext {
     DECLARE_ALIGNED(16, int32_t, mask_buf[MAX_SB_SQUARE]);
     unsigned int pred_sse[REF_FRAMES];
 #endif
-    uint8_t     *above_txfm_context;
-    uint8_t     *left_txfm_context;
+    uint8_t *above_txfm_context;
+    uint8_t *left_txfm_context;
 #if !CLN_SKIP_HV4
     // if true, skip H4/V4 shapes when best partition so far is not H/V
     uint32_t skip_hv4_on_best_part;
 #endif
-    IntraCtrls intra_ctrls;
+    IntraCtrls     intra_ctrls;
     MdRateEstCtrls rate_est_ctrls;
     // use coeff rate and slipt flag rate only (no MVP derivation)
     uint8_t shut_fast_rate;
@@ -1233,9 +1236,9 @@ typedef struct ModeDecisionContext {
     DepthCtrls           depth_ctrls;
     DepthRefinementCtrls depth_refinement_ctrls;
 #if OPT_SUB_DEPTH_ALL_EXIT
-    SkipSubDepthCtrls    skip_sub_depth_ctrls;
+    SkipSubDepthCtrls skip_sub_depth_ctrls;
 #else
-    Skip4x4DepthCtrls    skip_4x4_depth_ctrls;
+    Skip4x4DepthCtrls skip_4x4_depth_ctrls;
 #endif
     int64_t              parent_to_current_deviation;
     int64_t              child_to_current_deviation;
@@ -1274,7 +1277,7 @@ typedef struct ModeDecisionContext {
     bool d1_skip_flag[25];
 #endif
     // was parent_sq_coeff_area_based_cycles_reduction_ctrls
-    ParentSqCmplxCtrls   psq_cplx_ctrls;
+    ParentSqCmplxCtrls psq_cplx_ctrls;
 #if OPT_NON_NORMATIVE_TXS
     NsqPsqTxsCtrls nsq_psq_txs_ctrls;
 #endif
@@ -1358,10 +1361,10 @@ typedef struct ModeDecisionContext {
     // be removed)
     uint8_t approx_inter_rate;
     // Enable pSad
-    uint8_t     enable_psad;
-    uint32_t    inter_depth_bias;
+    uint8_t  enable_psad;
+    uint32_t inter_depth_bias;
 #if OPT_BIAS_PARENT
-    uint32_t    d2_parent_bias;
+    uint32_t d2_parent_bias;
 #endif
     uint8_t     bipred_available;
     uint8_t     is_intra_bordered;
@@ -1381,11 +1384,11 @@ typedef struct ModeDecisionContext {
     uint8_t        corrupted_mv_check;
     uint8_t        skip_pd0;
     // when MD is done on 8bit, scale palette colors to 10bit (valid when bypass is 1)
-    uint8_t  scale_palette;
+    uint8_t scale_palette;
 #if !CLN_MISC_CLEANUPS
     uint32_t b32_satd[4];
 #endif
-    uint8_t  high_freq_present;
+    uint8_t high_freq_present;
     // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
     uint8_t rtc_use_N4_dct_dct_shortcut;
 } ModeDecisionContext;

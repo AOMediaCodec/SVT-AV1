@@ -264,7 +264,6 @@ void TemporalFilterTestPlanewise::RunTest(int width, int height,
     struct MeContext context1, context2, *me_ctx;
     TemporalFilterFillMeContexts(&context1, &context2);
 
-
     if (run_times <= 100) {
         for (int j = 0; j < run_times; j++) {
             GenRandomData(width, height, MAX_STRIDE, MAX_STRIDE);
@@ -467,7 +466,6 @@ INSTANTIATE_TEST_CASE_P(
                           svt_av1_apply_temporal_filter_planewise_medium_avx2),
         ::testing::Values(1)));
 
-
 class TemporalFilterTestPlanewiseHbd
     : public ::testing::TestWithParam<TemporalFilterWithParamHbd> {
   public:
@@ -595,7 +593,6 @@ void TemporalFilterTestPlanewiseHbd::RunTest(int width, int height,
                                              int run_times) {
     struct MeContext context1, context2, *me_ctx;
     TemporalFilterFillMeContexts(&context1, &context2);
-
 
     if (run_times <= 100) {
         for (int j = 0; j < run_times; j++) {
@@ -941,7 +938,6 @@ TEST_P(TemporalFilterTestPlanewiseHbd, DISABLED_Speed) {
         RunTest(height, height, 100000);
     }
 }
-
 
 INSTANTIATE_TEST_CASE_P(
     AVX2_medium, TemporalFilterTestPlanewiseHbd,

@@ -156,7 +156,7 @@ static AOM_FORCE_INLINE TxSize dec_set_lpf_parameters(
             return ts;
         /*prepare outer edge parameters. deblock the edge if it's an edge of a TU*/
         {
-            uint32_t       curr_level; // Added to address 4x4 problem
+            uint32_t curr_level; // Added to address 4x4 problem
 #if CLN_MISC_CLEANUPS
             PredictionMode mode = mi_cur->mode;
 #else

@@ -55,7 +55,7 @@ static MeshPattern intrabc_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
 #if !CLN_UNUSED_DEFNS
 static uint8_t intrabc_max_mesh_pct[MAX_MESH_SPEED + 1] = {100, 100, 100, 25, 25, 10};
 #endif
-void           set_global_motion_field(PictureControlSet *pcs) {
+void set_global_motion_field(PictureControlSet *pcs) {
     // Init Global Motion Vector
     uint8_t frame_index;
     for (frame_index = INTRA_FRAME; frame_index <= ALTREF_FRAME; ++frame_index) {
@@ -686,8 +686,8 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         }
         if (frm_hdr->allow_intrabc) {
             int            i;
-            int            speed          = 1;
-            SpeedFeatures *sf             = &pcs->sf;
+            int            speed = 1;
+            SpeedFeatures *sf    = &pcs->sf;
 #if !CLN_UNUSED_DEFNS
             sf->allow_exhaustive_searches = 1;
 #endif

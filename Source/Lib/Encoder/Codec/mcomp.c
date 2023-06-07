@@ -691,7 +691,7 @@ int svt_av1_find_best_sub_pixel_tree_pruned(MacroBlockD *xd, const struct AV1Com
                                             MV start_mv, MV *bestmv, int *distortion,
                                             unsigned int *sse1, int qp, BlockSize bsize,
                                             uint8_t early_neigh_check_exit) {
- #endif
+#endif
     (void)cm;
     const int                       allow_hp       = ms_params->allow_hp;
     const int                       forced_stop    = ms_params->forced_stop;
@@ -789,8 +789,8 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
 #else
     const MV_COST_PARAMS *mv_cost_params = &ms_params->mv_cost_params;
 #endif
-    const SUBPEL_SEARCH_VAR_PARAMS *var_params     = &ms_params->var_params;
-    const SubpelMvLimits           *mv_limits      = &ms_params->mv_limits;
+    const SUBPEL_SEARCH_VAR_PARAMS *var_params = &ms_params->var_params;
+    const SubpelMvLimits           *mv_limits  = &ms_params->mv_limits;
 
     // How many steps to take. A round of 0 means fullpel search only, 1 means
     // half-pel, and so on.
@@ -799,7 +799,7 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
 #else
     const int             round          = AOMMIN(FULL_PEL - forced_stop, 3 - !allow_hp);
 #endif
-    int       hstep = INIT_SUBPEL_STEP_SIZE; // Step size, initialized to 4/8=1/2 pel
+    int hstep = INIT_SUBPEL_STEP_SIZE; // Step size, initialized to 4/8=1/2 pel
 
     unsigned int besterr;
 

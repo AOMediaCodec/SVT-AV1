@@ -173,7 +173,7 @@ int64_t svt_av1_refine_integerized_param(EbWarpedMotionParams *wm, Transformatio
 #if GM_PP
     step = 1 << (5 - 1); //initial step=16
 #else
-    step       = 1 << (n_refinements - 1);
+    step = 1 << (n_refinements - 1);
 #endif
     for (i = 0; i < n_refinements; i++, step >>= 1) {
         for (p = 0; p < n_params; ++p) {

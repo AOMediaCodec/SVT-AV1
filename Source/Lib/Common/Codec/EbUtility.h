@@ -50,12 +50,12 @@ typedef enum GeomIndex {
 void svt_aom_build_blk_geom(GeomIndex geom);
 
 typedef struct BlockGeom {
-    Part      shape; // P_N..P_V4 . P_S is not used.
-    uint8_t   org_x; // orgin x from topleft of sb
-    uint8_t   org_y; // orgin x from topleft of sb
+    Part    shape; // P_N..P_V4 . P_S is not used.
+    uint8_t org_x; // orgin x from topleft of sb
+    uint8_t org_y; // orgin x from topleft of sb
 
-    uint8_t   has_uv;
-    uint8_t   sq_size; // size of parent square
+    uint8_t has_uv;
+    uint8_t sq_size; // size of parent square
 
     uint8_t   bwidth; // block width
     uint8_t   bheight; // block height
@@ -72,8 +72,8 @@ typedef struct BlockGeom {
     uint8_t   tx_height_uv[MAX_VARTX_DEPTH + 1]; //tx_size_high
 
     //origin is SB - separate tables for INTRA (idx 0) and INTER (idx 1)
-    uint8_t   tx_org_x[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
-    uint8_t   tx_org_y[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
+    uint8_t tx_org_x[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
+    uint8_t tx_org_y[2][MAX_VARTX_DEPTH + 1][MAX_TXB_COUNT];
 
     uint16_t blkidx_mds; // block index in md scan
     // index of the block in d1 dimension 0..24  (0 is parent square, 1 top half of H , ...., 24:last quarter of V4)
@@ -84,11 +84,11 @@ typedef struct BlockGeom {
     uint8_t     totns;
     uint8_t     nsi; // non square index within a partition  0..totns-1
     uint8_t     quadi; // parent square is in which quadrant 0..3
-    GeomIndex svt_aom_geom_idx; //type of geom this block belongs
-    uint8_t   depth; // depth of the block
-    uint16_t d1_depth_offset; // offset to the next d1 sq block
-    uint16_t ns_depth_offset; // offset to the next nsq block (skip remaining d2 blocks)
-    uint8_t  is_last_quadrant; // only for square bloks, is this the fourth quadrant block?
+    GeomIndex   svt_aom_geom_idx; //type of geom this block belongs
+    uint8_t     depth; // depth of the block
+    uint16_t    d1_depth_offset; // offset to the next d1 sq block
+    uint16_t    ns_depth_offset; // offset to the next nsq block (skip remaining d2 blocks)
+    uint8_t     is_last_quadrant; // only for square bloks, is this the fourth quadrant block?
     uint8_t     redund; // 1: means that this block is redundant to another
     BlockList_t redund_list; // the list where the block is redundant
 } BlockGeom;
@@ -187,7 +187,7 @@ static const uint32_t d1_depth_offset[GEOM_TOT][6] = {{1, 1, 1, 1, 1, NOT_USED_V
                                                       {25, 25, 25, 5, 1, NOT_USED_VALUE},
                                                       {17, 25, 25, 25, 5, 1}};
 #endif
-extern BlockGeom      svt_aom_blk_geom_mds[MAX_NUM_BLOCKS_ALLOC];
+extern BlockGeom svt_aom_blk_geom_mds[MAX_NUM_BLOCKS_ALLOC];
 
 static INLINE const BlockGeom* get_blk_geom_mds(uint32_t bidx_mds) {
     return &svt_aom_blk_geom_mds[bidx_mds];

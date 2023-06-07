@@ -210,11 +210,11 @@ static INLINE int32_t get_eob_pos_token(const int32_t eob, int32_t *const extra)
 #if FIX_EOB_RATE_UPDATE
 void svt_av1_update_eob_context(int eob, TxSize tx_size, TxClass tx_class, PlaneType plane,
 #else
-void svt_av1_update_eob_context(int eob, TX_SIZE tx_size, TxClass tx_class, PlaneType plane,
+void     svt_av1_update_eob_context(int eob, TX_SIZE tx_size, TxClass tx_class, PlaneType plane,
 #endif
                                 FRAME_CONTEXT *ec_ctx, uint8_t allow_update_cdf) {
     int       eob_extra;
-    const int eob_pt  = get_eob_pos_token(eob, &eob_extra);
+    const int eob_pt = get_eob_pos_token(eob, &eob_extra);
 #if FIX_EOB_RATE_UPDATE
     const TxSize txs_ctx = (TxSize)((txsize_sqr_map[tx_size] + txsize_sqr_up_map[tx_size] + 1) >>
                                     1);
@@ -678,21 +678,20 @@ uint64_t svt_aom_get_intra_uv_fast_rate(PictureControlSet *pcs, struct ModeDecis
 }
 #endif
 #if CLN_FAST_COST_FUNCS
-uint64_t svt_aom_intra_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+uint64_t svt_aom_intra_fast_cost(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                                  uint64_t luma_distortion, uint64_t chroma_distortion) {
-
-    const BlockGeom* blk_geom = ctx->blk_geom;
-    BlkStruct* blk_ptr = ctx->blk_ptr;
-    ModeDecisionCandidate *cand = cand_bf->cand;
+    const BlockGeom       *blk_geom = ctx->blk_geom;
+    BlkStruct             *blk_ptr  = ctx->blk_ptr;
+    ModeDecisionCandidate *cand     = cand_bf->cand;
 #else
 uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk_ptr,
-                                 ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
-                                 uint64_t luma_distortion, uint64_t chroma_distortion,
-                                 uint64_t lambda, PictureControlSet *pcs, CandidateMv *ref_mv_stack,
-                                 const BlockGeom *blk_geom, uint32_t miRow, uint32_t miCol,
-                                 uint8_t enable_inter_intra, uint32_t left_neighbor_mode,
-                                 uint32_t top_neighbor_mode)
+                                     ModeDecisionCandidateBuffer *cand_bf, uint32_t qp,
+                                     uint64_t luma_distortion, uint64_t chroma_distortion,
+                                     uint64_t lambda, PictureControlSet *pcs, CandidateMv *ref_mv_stack,
+                                     const BlockGeom *blk_geom, uint32_t miRow, uint32_t miCol,
+                                     uint8_t enable_inter_intra, uint32_t left_neighbor_mode,
+                                     uint32_t top_neighbor_mode)
 
 {
     ModeDecisionCandidate *cand = cand_bf->cand;
@@ -733,7 +732,7 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         return (RDCOST(lambda, rate, total_distortion));
     } else {
 #if !FIX_UV_INTRA_MODE_RATE
-        Bool is_cfl_allowed     = (blk_geom->bwidth <= 32 && blk_geom->bheight <= 32) ? 1 : 0;
+        Bool is_cfl_allowed = (blk_geom->bwidth <= 32 && blk_geom->bheight <= 32) ? 1 : 0;
 #endif
 #if !CLN_IND_UV_SEARCH
         SequenceControlSet *scs = pcs->scs;
@@ -747,19 +746,19 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
                                                                       : cand->intra_chroma_mode;
 #endif
         // Number of bits for each synatax element
-        uint64_t intra_mode_bits_num            = 0;
-        uint64_t intra_luma_mode_bits_num       = 0;
-        uint64_t intra_luma_ang_mode_bits_num   = 0;
-        uint64_t intra_filter_mode_bits_num     = 0;
+        uint64_t intra_mode_bits_num          = 0;
+        uint64_t intra_luma_mode_bits_num     = 0;
+        uint64_t intra_luma_ang_mode_bits_num = 0;
+        uint64_t intra_filter_mode_bits_num   = 0;
 #if !FIX_UV_INTRA_MODE_RATE
         uint64_t intra_chroma_mode_bits_num     = 0;
         uint64_t intra_chroma_ang_mode_bits_num = 0;
 #endif
-        uint64_t skip_mode_rate                 = 0;
+        uint64_t skip_mode_rate = 0;
 #if CLN_REMOVE_NEIGH_ARRAYS_2
         const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
 #else
-        uint8_t  skip_mode_ctx =
+        uint8_t skip_mode_ctx =
             blk_ptr->skip_flag_context; // NM - Harcoded to 1 until the skip_mode context is added.
 #endif
         PredictionMode intra_mode = (PredictionMode)cand->pred_mode;
@@ -770,15 +769,15 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
         uint64_t luma_sad, chromasad_;
         assert(intra_mode < INTRA_MODES);
         // Luma and chroma distortion
-        uint64_t      total_distortion;
+        uint64_t total_distortion;
 #if !CLN_REMOVE_NEIGH_ARRAYS_2
         const int32_t above_ctx = intra_mode_context[top_neighbor_mode];
         const int32_t left_ctx  = intra_mode_context[left_neighbor_mode];
 #endif
-        intra_mode_bits_num     = pcs->slice_type != I_SLICE
-                ? (uint64_t)ctx->md_rate_est_ctx
+        intra_mode_bits_num = pcs->slice_type != I_SLICE
+            ? (uint64_t)ctx->md_rate_est_ctx
                   ->mb_mode_fac_bits[size_group_lookup[blk_geom->bsize]][intra_mode]
-                : ZERO_COST;
+            : ZERO_COST;
 
 #if FIX_SKIP_MODE_RATE
         skip_mode_rate = pcs->slice_type != I_SLICE &&
@@ -787,14 +786,15 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
             ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
             : ZERO_COST;
 #else
-        skip_mode_rate          = pcs->slice_type != I_SLICE
-                     ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
-                     : ZERO_COST;
+        skip_mode_rate = pcs->slice_type != I_SLICE
+            ? (uint64_t)ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][0]
+            : ZERO_COST;
 #endif
 #if CLN_REMOVE_NEIGH_ARRAYS_2
         // Estimate luma nominal intra mode bits for key frame
         intra_luma_mode_bits_num = pcs->slice_type == I_SLICE
-            ? (uint64_t)ctx->md_rate_est_ctx->y_mode_fac_bits[ctx->intra_luma_top_ctx][ctx->intra_luma_left_ctx][intra_mode]
+            ? (uint64_t)ctx->md_rate_est_ctx
+                  ->y_mode_fac_bits[ctx->intra_luma_top_ctx][ctx->intra_luma_left_ctx][intra_mode]
             : ZERO_COST;
 #else
         // Estimate luma nominal intra mode bits
@@ -929,7 +929,7 @@ uint64_t svt_aom_intra_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
     }
 }
 #if !CLN_FUNC_DECL
-extern int32_t    svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
+extern int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
 #endif
 static INLINE int svt_aom_has_second_ref(const MbModeInfo *mbmi) {
     return mbmi->block_mi.ref_frame[1] > INTRA_FRAME;
@@ -1196,20 +1196,20 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     const uint8_t        have_nearmv         = have_nearmv_in_inter_mode(inter_mode);
     uint64_t             inter_mode_bits_num = 0;
 #if CLN_REMOVE_NEIGH_ARRAYS_2
-    const uint8_t  skip_mode_ctx = ctx->skip_mode_ctx;
+    const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
 #else
-    const uint8_t        skip_mode_ctx       = blk_ptr->skip_flag_context;
+    const uint8_t  skip_mode_ctx = blk_ptr->skip_flag_context;
 #endif
-    MvReferenceFrame     rf[2];
+    MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
-    const uint8_t  is_compound  = is_inter_compound_mode(cand->pred_mode);
+    const uint8_t is_compound = is_inter_compound_mode(cand->pred_mode);
 #if CLN_MBMI_12
     const uint32_t mode_context = svt_aom_mode_context_analyzer(
         blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
 #else
-    const uint32_t mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+    const uint32_t mode_context  = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
 #endif
-    uint64_t       reference_picture_bits_num = 0;
+    uint64_t reference_picture_bits_num = 0;
     reference_picture_bits_num = ctx->svt_aom_estimate_ref_frames_num_bits[cand->ref_frame_type];
     if (is_compound) {
         assert(INTER_COMPOUND_OFFSET(inter_mode) < INTER_COMPOUND_MODES);
@@ -1336,7 +1336,7 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
 #if CLN_REMOVE_NEIGH_ARRAYS_2
     uint32_t is_inter_rate = r->intra_inter_fac_bits[ctx->is_inter_ctx][1];
 #else
-    uint32_t is_inter_rate = r->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
+    uint32_t       is_inter_rate = r->intra_inter_fac_bits[blk_ptr->is_inter_ctx][1];
 #endif
 
 #if FIX_SKIP_MODE_RATE
@@ -1374,15 +1374,14 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     return (RDCOST(lambda, rate, total_distortion));
 }
 #if CLN_FAST_COST_FUNCS
-uint64_t svt_aom_inter_fast_cost(PictureControlSet* pcs, struct ModeDecisionContext *ctx,
+uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                                  uint64_t luma_distortion, uint64_t chroma_distortion) {
-
-    const BlockGeom* blk_geom = ctx->blk_geom;
-    BlkStruct* blk_ptr = ctx->blk_ptr;
-    ModeDecisionCandidate *cand = cand_bf->cand;
-    CandidateMv* ref_mv_stack =
-        &(ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[cand->ref_frame_type][0]);
+    const BlockGeom       *blk_geom     = ctx->blk_geom;
+    BlkStruct             *blk_ptr      = ctx->blk_ptr;
+    ModeDecisionCandidate *cand         = cand_bf->cand;
+    CandidateMv           *ref_mv_stack = &(
+        ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[cand->ref_frame_type][0]);
 
     if (ctx->approx_inter_rate)
         return av1_inter_fast_cost_light(
@@ -1426,18 +1425,18 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
 #if CLN_REMOVE_NEIGH_ARRAYS_2
     const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
 #else
-    uint8_t          skip_mode_ctx = blk_ptr->skip_flag_context;
+    uint8_t  skip_mode_ctx = blk_ptr->skip_flag_context;
 #endif
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
-    const uint8_t is_compound  = is_inter_compound_mode(cand->pred_mode);
+    const uint8_t is_compound = is_inter_compound_mode(cand->pred_mode);
 #if CLN_MBMI_12
     uint32_t mode_context = svt_aom_mode_context_analyzer(
         blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
 #else
-    uint32_t      mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+    uint32_t mode_context  = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
 #endif
-    uint64_t      reference_picture_bits_num = 0;
+    uint64_t reference_picture_bits_num = 0;
 
     //Reference Type and Mode Bit estimation
     reference_picture_bits_num = ctx->svt_aom_estimate_ref_frames_num_bits[cand->ref_frame_type];
@@ -1622,7 +1621,7 @@ uint64_t svt_aom_inter_fast_cost(struct ModeDecisionContext *ctx, BlkStruct *blk
             rf[1],
             inter_mode);
 #else
-        MotionMode last_motion_mode_allowed            = svt_aom_motion_mode_allowed(
+        MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
             pcs, blk_ptr, bsize, rf[0], rf[1], inter_mode);
 #endif
         switch (last_motion_mode_allowed) {
@@ -2381,7 +2380,7 @@ EbErrorType svt_aom_inter_full_cost(PictureControlSet *pcs, ModeDecisionContext 
  ************************************************************/
 #if FIX_SKIP_NEIGH_ARRAY
 void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx) {
-    BlkStruct *        blk_ptr           = ctx->blk_ptr;
+    BlkStruct         *blk_ptr           = ctx->blk_ptr;
     uint32_t           blk_org_x         = ctx->blk_org_x;
     uint32_t           blk_org_y         = ctx->blk_org_y;
     NeighborArrayUnit *leaf_partition_na = ctx->leaf_partition_na;
@@ -2458,7 +2457,7 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
     if (pcs->slice_type != I_SLICE || pcs->ppcs->frm_hdr.allow_intrabc)
         svt_aom_collect_neighbors_ref_counts_new(blk_ptr->av1xd);
 
-    // Skip Coeff Context
+        // Skip Coeff Context
 #if FIX_SKIP_NEIGH_ARRAY
     ctx->skip_coeff_ctx = ctx->rate_est_ctrls.update_skip_coeff_ctx ? av1_get_skip_context(xd) : 0;
 #else
@@ -2669,8 +2668,8 @@ static INLINE int tx_size_to_depth(TxSize tx_size, BlockSize bsize) {
 // left of the entries corresponding to real blocks.
 // The prediction flags in these dummy entries are initialized to 0.
 static INLINE int get_tx_size_context(const MacroBlockD *xd) {
-    const ModeInfo *        mi          = xd->mi[0];
-    const MbModeInfo *      mbmi        = &mi->mbmi;
+    const ModeInfo         *mi          = xd->mi[0];
+    const MbModeInfo       *mbmi        = &mi->mbmi;
     const MbModeInfo *const above_mbmi  = xd->above_mbmi;
     const MbModeInfo *const left_mbmi   = xd->left_mbmi;
     const TxSize            max_tx_size = max_txsize_rect_lookup[mbmi->block_mi.bsize];
@@ -2699,7 +2698,7 @@ static INLINE int get_tx_size_context(const MacroBlockD *xd) {
     else
         return 0;
 }
-static uint64_t cost_selected_tx_size(const MacroBlockD *      xd,
+static uint64_t cost_selected_tx_size(const MacroBlockD       *xd,
                                       MdRateEstimationContext *md_rate_est_ctx, TxSize tx_size,
                                       FRAME_CONTEXT *ec_ctx, uint8_t allow_update_cdf) {
     const ModeInfo *const   mi    = xd->mi[0];
@@ -2779,7 +2778,7 @@ uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
     TxMode       tx_mode = pcs->ppcs->frm_hdr.tx_mode;
     MacroBlockD *xd      = ctx->blk_ptr->av1xd;
     BlockSize    bsize   = ctx->blk_geom->bsize;
-    MbModeInfo * mbmi    = &xd->mi[0]->mbmi;
+    MbModeInfo  *mbmi    = &xd->mi[0]->mbmi;
 
     svt_memcpy(ctx->above_txfm_context,
                &(txfm_context_array->top_array[txfm_context_above_index]),
@@ -2790,7 +2789,7 @@ uint64_t svt_aom_get_tx_size_bits(ModeDecisionCandidateBuffer *candidateBuffer,
 
     xd->above_txfm_context      = ctx->above_txfm_context;
     xd->left_txfm_context       = ctx->left_txfm_context;
-    mbmi->block_mi.bsize      = ctx->blk_geom->bsize;
+    mbmi->block_mi.bsize        = ctx->blk_geom->bsize;
     mbmi->block_mi.use_intrabc  = candidateBuffer->cand->use_intrabc;
     mbmi->block_mi.ref_frame[0] = candidateBuffer->cand->ref_frame_type;
     mbmi->block_mi.tx_depth     = tx_depth;

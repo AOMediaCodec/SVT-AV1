@@ -17,8 +17,8 @@
 #include "EbRateControlProcess.h"
 #include "EncModeConfig.h"
 
-void        set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
-                                                      uint8_t block_based_depth_refinement_level);
+void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx,
+                                               uint8_t block_based_depth_refinement_level);
 #if !CLN_FUNC_DECL
 int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
 #endif
@@ -167,7 +167,7 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
     for (uint8_t is_base = 0; is_base < 2; is_base++) {
         uint8_t nic_level = svt_aom_get_nic_level(enc_mode, is_base, hierarchical_levels, rtc_tune);
         uint8_t nic_scaling_level = svt_aom_set_nic_controls(NULL, nic_level);
-        min_nic_scaling_level     = MIN(min_nic_scaling_level, nic_scaling_level);
+        min_nic_scaling_level = MIN(min_nic_scaling_level, nic_scaling_level);
     }
 #endif
     uint8_t stage1_scaling_num = MD_STAGE_NICS_SCAL_NUM[min_nic_scaling_level][MD_STAGE_1];

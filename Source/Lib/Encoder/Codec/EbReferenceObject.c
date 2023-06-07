@@ -145,8 +145,10 @@ EbErrorType svt_reference_object_ctor(EbReferenceObject *ref_object, EbPtr objec
     ref_object->input_picture = NULL;
 #if GM_REFINFO
 #if FIX_GM_CI
-    const bool gm_ref_info = svt_aom_need_gm_ref_info(ref_init_ptr->static_config->enc_mode,
-        true, ref_init_ptr->static_config->resize_mode == RESIZE_NONE);
+    const bool gm_ref_info = svt_aom_need_gm_ref_info(
+        ref_init_ptr->static_config->enc_mode,
+        true,
+        ref_init_ptr->static_config->resize_mode == RESIZE_NONE);
     if (gm_ref_info)
 #endif
         EB_NEW(ref_object->input_picture,
