@@ -925,7 +925,7 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             enc_ctx->sc_frame_out++;
             svt_release_mutex(enc_ctx->sc_buffer_mutex);
         }
-#if !OPT_LD_LATENCY2
+#if !FIX_DEADLOCK
         // Post Rate Control Taks
         svt_post_full_object(rate_control_tasks_wrapper_ptr);
 #endif
@@ -938,7 +938,7 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
         // Release the Parent PCS then the Child PCS
         assert(entropy_coding_results_ptr->pcs_wrapper->live_count == 1);
         svt_release_object(entropy_coding_results_ptr->pcs_wrapper); // Child
-#if OPT_LD_LATENCY2
+#if FIX_DEADLOCK
         // Post Rate Control Task. Be done at the end as RC might release ppcs
         svt_post_full_object(rate_control_tasks_wrapper_ptr);
 #endif

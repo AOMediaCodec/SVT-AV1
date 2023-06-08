@@ -670,7 +670,7 @@ static void set_eos_terminating_signals(PictureParentControlSet *pcs) {
         svt_get_empty_object(scs->enc_ctx->stream_output_fifo_ptr, &tmp_out_str_wrp);
         EbBufferHeaderType *tmp_out_str = (EbBufferHeaderType *)tmp_out_str_wrp->object_ptr;
 
-        tmp_out_str->flags = EB_BUFFERFLAG_EOS;
+        tmp_out_str->flags        = EB_BUFFERFLAG_EOS;
         tmp_out_str->n_filled_len = 0;
 
         svt_post_full_object(tmp_out_str_wrp);
