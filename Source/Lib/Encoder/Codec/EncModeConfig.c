@@ -271,6 +271,58 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
                                                                                           : false;
     // Set the min and max ME search area
     if (rtc_tune) {
+#if OPT_LD_SC_ME
+        if (pcs->sc_class1) {
+            if (pcs->enc_mode <= ENC_M9) {
+                me_ctx->me_sa.sa_min = (SearchArea) { 32, 32 };
+                me_ctx->me_sa.sa_max = (SearchArea) { 96, 96 };
+            }
+            else if (pcs->enc_mode <= ENC_M11) {
+                if (input_resolution < INPUT_SIZE_1080p_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){16, 16};
+                    me_ctx->me_sa.sa_max = (SearchArea){32, 16};
+                } else {
+                    me_ctx->me_sa.sa_min = (SearchArea){24, 24};
+                    me_ctx->me_sa.sa_max = (SearchArea){24, 24};
+                }
+            }
+            else {
+                if (input_resolution < INPUT_SIZE_1080p_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){16, 16};
+                    me_ctx->me_sa.sa_max = (SearchArea){32, 16};
+                } else {
+                    me_ctx->me_sa.sa_min = (SearchArea){16, 6};
+                    me_ctx->me_sa.sa_max = (SearchArea){16, 9};
+                }
+            }
+        }
+        else {
+            if (pcs->enc_mode <= ENC_M10) {
+                if (input_resolution < INPUT_SIZE_1080p_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){16, 16};
+                    me_ctx->me_sa.sa_max = (SearchArea){32, 16};
+                } else {
+                    me_ctx->me_sa.sa_min = (SearchArea){16, 6};
+                    me_ctx->me_sa.sa_max = (SearchArea){16, 9};
+                }
+            }
+            else {
+                if (input_resolution < INPUT_SIZE_720p_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){8, 3};
+                    me_ctx->me_sa.sa_max = (SearchArea){16, 9};
+                } else if (input_resolution < INPUT_SIZE_1080p_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){8, 1};
+                    me_ctx->me_sa.sa_max = (SearchArea){16, 7};
+                } else if (input_resolution < INPUT_SIZE_4K_RANGE) {
+                    me_ctx->me_sa.sa_min = (SearchArea){8, 1};
+                    me_ctx->me_sa.sa_max = (SearchArea){8, 7};
+                } else {
+                    me_ctx->me_sa.sa_min = (SearchArea){8, 1};
+                    me_ctx->me_sa.sa_max = (SearchArea){8, 1};
+                }
+            }
+        }
+#else
         if (pcs->sc_class1 && pcs->enc_mode <= ENC_M9) {
             me_ctx->me_sa.sa_min = (SearchArea){32, 32};
             me_ctx->me_sa.sa_max = (SearchArea){96, 96};
@@ -305,7 +357,7 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
                 me_ctx->me_sa.sa_max = (SearchArea){8, 1};
             }
         }
-
+#endif
     } else if (pcs->sc_class1) {
         if (pcs->enc_mode <= ENC_M2) {
             me_ctx->me_sa.sa_min = (SearchArea){175, 175};
@@ -1026,7 +1078,13 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     me_ctx->use_best_unipred_cand_only = pcs->use_best_me_unipred_cand_only;
 #if OPT_LD_M12
     if (rtc_tune) {
+#if OPT_LD_SC_ME
+        if (pcs->sc_class1)
+            me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64;
+        else if (enc_mode <= ENC_M11)
+#else
         if (enc_mode <= ENC_M11)
+#endif
             me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
         else
             me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
@@ -1054,11 +1112,20 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
 #endif
     me_ctx->skip_frame                  = 0;
     me_ctx->prev_me_stage_based_exit_th = 0;
+#if OPT_LD_SC_ME
+    if (rtc_tune && pcs->sc_class1) {
+        me_ctx->prev_me_stage_based_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 4;
+    }
+    else {
+        me_ctx->prev_me_stage_based_exit_th = 0;
+    }
+#else
     if (enc_mode <= ENC_M12) {
         me_ctx->prev_me_stage_based_exit_th = 0;
     } else if (rtc_tune && pcs->sc_class1) {
         me_ctx->prev_me_stage_based_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
     }
+#endif
 };
 /******************************************************
 * Derive ME Settings for OQ for Altref Temporal Filtering
