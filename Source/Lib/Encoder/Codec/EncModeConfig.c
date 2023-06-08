@@ -1051,7 +1051,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     // Set hme-based me sr adjustment level
     if (pcs->sc_class1)
 #if OPT_LD_M9_SC
-        if (enc_mode <= ENC_M8)
+        if ((!rtc_tune && enc_mode <= ENC_M9) ||(rtc_tune && enc_mode <= ENC_M8))
 #else
         if (enc_mode <= ENC_M9)
 #endif
