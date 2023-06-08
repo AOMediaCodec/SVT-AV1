@@ -2697,7 +2697,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
 #if TUNE_CHROMA_SSIM
     pcs->tune_tpl_for_chroma = 1;
 #else
-    pcs->tune_tpl_for_chroma                      = 0;
+    pcs->tune_tpl_for_chroma = 0;
 #endif
     uint8_t list0_only_base = 0;
 #if TUNE_M5_2
