@@ -6288,7 +6288,11 @@ EbErrorType svt_av1_init_temporal_filtering(
             if (is_highbd && i != centre_pcs->past_altref_nframes) {
                 EB_MALLOC_ARRAY(pcs_list[i]->altref_buffer_highbd[C_Y],
                                 central_picture_ptr->luma_size);
+#if OPT_LD_TF
+                if (centre_pcs->tf_ctrls.chroma_lvl) {
+#else
                 if (me_context_ptr->me_ctx->tf_chroma) {
+#endif
                     EB_MALLOC_ARRAY(pcs_list[i]->altref_buffer_highbd[C_U],
                                     central_picture_ptr->chroma_size);
                     EB_MALLOC_ARRAY(pcs_list[i]->altref_buffer_highbd[C_V],
@@ -6417,7 +6421,11 @@ EbErrorType svt_av1_init_temporal_filtering(
                               ss_y,
                               TRUE);
             EB_FREE_ARRAY(centre_pcs->altref_buffer_highbd[C_Y]);
+#if OPT_LD_TF
+            if (centre_pcs->tf_ctrls.chroma_lvl) {
+#else
             if (me_context_ptr->me_ctx->tf_chroma) {
+#endif
                 EB_FREE_ARRAY(centre_pcs->altref_buffer_highbd[C_U]);
                 EB_FREE_ARRAY(centre_pcs->altref_buffer_highbd[C_V]);
             }
@@ -6425,8 +6433,13 @@ EbErrorType svt_av1_init_temporal_filtering(
                                  centre_pcs->future_altref_nframes + 1);
                  i++) {
                 if (i != centre_pcs->past_altref_nframes) {
+
                     EB_FREE_ARRAY(pcs_list[i]->altref_buffer_highbd[C_Y]);
+#if OPT_LD_TF
+                    if (centre_pcs->tf_ctrls.chroma_lvl) {
+#else
                     if (me_context_ptr->me_ctx->tf_chroma) {
+#endif
                         EB_FREE_ARRAY(pcs_list[i]->altref_buffer_highbd[C_U]);
                         EB_FREE_ARRAY(pcs_list[i]->altref_buffer_highbd[C_V]);
                     }
