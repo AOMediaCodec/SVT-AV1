@@ -1692,11 +1692,20 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
  *   @param lambda(input)
  *       lambda is the Lagrange multiplier
  **********************************************************************************/
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+static EbErrorType av1_merge_skip_full_cost(
+    PictureControlSet *pcs, ModeDecisionContext *ctx, struct ModeDecisionCandidateBuffer *cand_bf,
+    BlkStruct *blk_ptr, uint64_t y_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
+    uint64_t cb_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
+    uint64_t cr_distortion[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t lambda, uint64_t *y_coeff_bits,
+    uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits, BlockSize bsize) {
+#else
 static EbErrorType av1_merge_skip_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                             struct ModeDecisionCandidateBuffer *cand_bf, BlkStruct *blk_ptr,
                                             uint64_t *y_distortion, uint64_t *cb_distortion, uint64_t *cr_distortion,
                                             uint64_t lambda, uint64_t *y_coeff_bits, uint64_t *cb_coeff_bits,
                                             uint64_t *cr_coeff_bits, BlockSize bsize) {
+#endif
     UNUSED(bsize);
     UNUSED(pcs);
 
@@ -1723,16 +1732,37 @@ static EbErrorType av1_merge_skip_full_cost(PictureControlSet *pcs, ModeDecision
     uint64_t skip_luma_sse;
     uint64_t skip_chroma_sse;
     uint64_t skip_mode_rate = ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][1];
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    uint64_t ssim_merge_distortion;
+    uint64_t ssim_skip_distortion;
+#endif
 
     // Coeff rate
     coeff_rate = (*y_coeff_bits + *cb_coeff_bits + *cr_coeff_bits);
 
     // Compute Merge Cost
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    merge_luma_sse   = y_distortion[DIST_SSD][0] << AV1_COST_PRECISION;
+    merge_chroma_sse = (cb_distortion[DIST_SSD][0] + cr_distortion[DIST_SSD][0])
+        << AV1_COST_PRECISION;
+
+    skip_luma_sse   = y_distortion[DIST_SSD][1] << AV1_COST_PRECISION;
+    skip_chroma_sse = (cb_distortion[DIST_SSD][1] + cr_distortion[DIST_SSD][1])
+        << AV1_COST_PRECISION;
+
+    ssim_merge_distortion = (y_distortion[DIST_SSIM][0] << AV1_COST_PRECISION) +
+            ((cb_distortion[DIST_SSIM][0] + cr_distortion[DIST_SSIM][0])
+        << AV1_COST_PRECISION);
+    ssim_skip_distortion = (y_distortion[DIST_SSIM][1] << AV1_COST_PRECISION) +
+            ((cb_distortion[DIST_SSIM][1] + cr_distortion[DIST_SSIM][1])
+        << AV1_COST_PRECISION);
+#else
     merge_luma_sse   = y_distortion[0] << AV1_COST_PRECISION;
     merge_chroma_sse = (cb_distortion[0] + cr_distortion[0]) << AV1_COST_PRECISION;
 
     skip_luma_sse   = y_distortion[1] << AV1_COST_PRECISION;
     skip_chroma_sse = (cb_distortion[1] + cr_distortion[1]) << AV1_COST_PRECISION;
+#endif
 
     // *Note - As in JCTVC-G1102, the JCT-VC uses the Mode Decision forumula where the chroma_sse
     // has been weighted
@@ -1824,6 +1854,13 @@ static EbErrorType av1_merge_skip_full_cost(PictureControlSet *pcs, ModeDecision
     // CHKN:  skip_flag context is not accurate as MD does not keep skip info in sync with EncDec.
     cand_bf->total_rate = (skip_cost <= merge_cost) ? skip_rate : merge_rate;
     cand_bf->full_dist  = (skip_cost <= merge_cost) ? (uint32_t)skip_distortion : (uint32_t)merge_distortion;
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    if (skip_cost <= merge_cost) {
+        *(cand_bf->full_cost_ssim) = RDCOST(lambda, skip_rate, ssim_skip_distortion);
+    } else {
+        *(cand_bf->full_cost_ssim) = RDCOST(lambda, merge_rate, ssim_merge_distortion);
+    }
+#endif
     return return_error;
 }
 /*********************************************************************************
@@ -1908,21 +1945,6 @@ EbErrorType svt_aom_inter_full_cost(PictureControlSet *pcs, ModeDecisionContext 
     EbErrorType return_error = EB_ErrorNone;
 
     if (cand_bf->cand->skip_mode_allowed == TRUE) {
-#if TUNE_SSIM_FULL_SPACIAL_DIST
-        av1_merge_skip_full_cost(pcs,
-                                 ctx,
-                                 cand_bf,
-                                 blk_ptr,
-                                 y_distortion[DIST_SSD],
-                                 cb_distortion[DIST_SSD],
-                                 cr_distortion[DIST_SSD],
-                                 lambda,
-                                 y_coeff_bits,
-                                 cb_coeff_bits,
-                                 cr_coeff_bits,
-                                 bsize);
-#else
-
         av1_merge_skip_full_cost(pcs,
                                  ctx,
                                  cand_bf,
@@ -1935,8 +1957,6 @@ EbErrorType svt_aom_inter_full_cost(PictureControlSet *pcs, ModeDecisionContext 
                                  cb_coeff_bits,
                                  cr_coeff_bits,
                                  bsize);
-#endif
-        >>>>>>> 3b2c5a552b (Add tune SSIM option to improve SSIM BDR)
     } else {
         coeff_rate = ctx->md_rate_est_ctx->skip_fac_bits[skip_coeff_ctx][1] + skip_tx_size_bits;
     }

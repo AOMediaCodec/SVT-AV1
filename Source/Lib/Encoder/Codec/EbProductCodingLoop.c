@@ -4520,6 +4520,11 @@ static int32_t av1_txt_rate_est(struct ModeDecisionContext *ctx, struct ModeDeci
     return 0;
 }
 #if TUNE_SSIM_FULL_SPACIAL_DIST
+static double derive_ssim_threshold_factor_for_tx_type_search(SequenceControlSet *scs) {
+    return scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.06 : 1.05;
+}
+#endif
+#if TUNE_SSIM_FULL_SPACIAL_DIST
 static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, ModeDecisionCandidateBuffer *cand_bf,
                            uint32_t qindex, uint8_t tx_search_skip_flag, uint32_t *y_count_non_zero_coeffs,
                            uint64_t *y_coeff_bits, uint64_t y_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL]) {
@@ -4630,13 +4635,11 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     uint32_t y_count_non_zero_coeffs_txt[TX_TYPES] = {0};
     uint64_t y_txb_coeff_bits_txt[TX_TYPES]        = {0};
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    uint64_t      txb_full_distortion_txt[DIST_TOTAL][TX_TYPES][DIST_CALC_TOTAL] = {{{0}}};
-    int32_t       candidate_num                                                  = 0;
-    TxType        tx_type_candidate[MAX_TX_TYPE_GROUP * TX_TYPES]                = {0};
-    const uint8_t ssim_level            = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1)
-                   ? 0 // only allow in MD stage 3, PD pass 1
-                   : ctx->tune_ssim_level;
-    const double  cost_threshold_factor = pcs->scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.06 : 1.05;
+    uint64_t        txb_full_distortion_txt[DIST_TOTAL][TX_TYPES][DIST_CALC_TOTAL] = {{{0}}};
+    int32_t         candidate_num                                                  = 0;
+    TxType          tx_type_candidate[MAX_TX_TYPE_GROUP * TX_TYPES]                = {0};
+    const SsimLevel ssim_level                                                     = ctx->tune_ssim_level;
+    const double    cost_threshold_factor = derive_ssim_threshold_factor_for_tx_type_search(pcs->scs);
 #else
     uint64_t txb_full_distortion_txt[TX_TYPES][DIST_CALC_TOTAL] = {{0}};
 #endif
@@ -4919,7 +4922,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
 
             // Skip remaining TX types based on absolute cost TH and absolute # of coeffs TH
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-            if (ssim_level <= 1 && !only_dct_dct) {
+            if (ssim_level <= SSIM_LVL_1 && !only_dct_dct) {
 #else
             if (!only_dct_dct) {
 #endif
@@ -4941,7 +4944,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
     const uint64_t ssd_cost_threshold = (uint64_t)(cost_threshold_factor * best_cost_tx_search);
-    if (ssim_level > 1) {
+    if (ssim_level > SSIM_LVL_1) {
         uint64_t best_ssim_cost_tx_search = (uint64_t)~0;
         for (int i = 0; i < candidate_num; ++i) {
             tx_type           = tx_type_candidate[i];
@@ -4996,7 +4999,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     // update with best_tx_type data
     (*y_coeff_bits) += y_txb_coeff_bits_txt[best_tx_type];
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    if (ssim_level == 1) {
+    if (ssim_level == SSIM_LVL_1) {
         EbPictureBufferDesc *recon_ptr      = (best_tx_type == DCT_DCT) ? cand_bf->recon : ctx->recon_ptr[best_tx_type];
         uint64_t             ssim_pred_dist = svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_y,
                                                                           input_txb_origin_index,
@@ -5021,7 +5024,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
 
         y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] += ssim_pred_dist;
         y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] += ssim_residual_dist;
-    } else if (ssim_level == 2) {
+    } else if (ssim_level == SSIM_LVL_2) {
         uint64_t ssim_pred_dist = svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_y,
                                                                           input_txb_origin_index,
                                                                           input_pic->stride_y,
@@ -5717,9 +5720,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     // Perform T-1 if mds_spatial_sse (assumes TX depth is 0 b/c TXS is assumed off)
     if (ctx->mds_spatial_sse) {
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-        const uint8_t ssim_level = (ctx->md_stage != MD_STAGE_3 || ctx->pd_pass != PD_PASS_1)
-            ? 0 // only allow in MD stage 3, PD pass 1
-            : ctx->tune_ssim_level;
+        const SsimLevel ssim_level = ctx->tune_ssim_level;
 #endif
         if (y_count_non_zero_coeffs_txt)
             svt_aom_inv_transform_recon_wrapper(cand_bf->pred->buffer_y,
@@ -5756,7 +5757,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
         EbSpatialFullDistType spatial_full_dist_type_fun = ctx->hbd_md ? svt_full_distortion_kernel16_bits
                                                                        : svt_spatial_full_distortion_kernel;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-        if (ssim_level > 0) {
+        if (ssim_level > SSIM_LVL_0) {
             y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] = svt_spatial_full_distortion_ssim_kernel(
                 input_pic->buffer_y,
                 input_txb_origin_index,
@@ -7146,6 +7147,9 @@ static void md_stage_3(PictureControlSet *pcs, ModeDecisionContext *ctx, EbPictu
     ctx->end_plane = (ctx->blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 && !ctx->mds_skip_uv_pred)
         ? (int)MAX_MB_PLANE
         : 1;
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_2 : SSIM_LVL_0;
+#endif
     for (uint32_t full_loop_candidate_index = 0; full_loop_candidate_index < fullCandidateTotalCount;
          ++full_loop_candidate_index) {
         uint32_t cand_index = ctx->best_candidate_index_array[full_loop_candidate_index];

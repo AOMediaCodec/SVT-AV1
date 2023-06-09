@@ -489,7 +489,7 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
     }
 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    ctx->tune_ssim_level = 0;
+    ctx->tune_ssim_level = SSIM_LVL_0;
 #endif
     return EB_ErrorNone;
 }

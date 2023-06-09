@@ -1206,10 +1206,10 @@ typedef struct ModeDecisionContext {
     // used to signal when the N4 shortcut can be used for rtc, works in conjunction with use_tx_shortcuts_mds3 flag
     uint8_t rtc_use_N4_dct_dct_shortcut;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    // 0: off
-    // 1: use ssim cost to find best candidate in product_full_mode_decision()
-    // 2: addition to level 1, also use ssim cost to find best tx type in tx_type_search()
-    uint8_t tune_ssim_level;
+    // SSIM_LVL_0: off
+    // SSIM_LVL_1: use ssim cost to find best candidate in product_full_mode_decision()
+    // SSIM_LVL_2: addition to level 1, also use ssim cost to find best tx type in tx_type_search()
+    SsimLevel tune_ssim_level;
 #endif
 } ModeDecisionContext;
 

@@ -4764,6 +4764,11 @@ void svt_aom_product_full_mode_decision_light_pd1(
         ctx->coded_area_sb_uv += bwidth_uv * bheight_uv;
     }
 }
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+static double derive_ssim_threshold_factor_for_full_md(SequenceControlSet *scs) {
+    return scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.02 : 1.03;
+}
+#endif
 /***************************************
 * Full Mode Decision
 ***************************************/
@@ -4779,7 +4784,7 @@ uint32_t svt_aom_product_full_mode_decision(
     SequenceControlSet *scs = pcs->scs;
     uint32_t lowest_cost_index = best_candidate_index_array[0];
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    const uint32_t use_ssim_full_cost = ctx->tune_ssim_level > 0 && ctx->pd_pass == PD_PASS_1 ? TRUE : FALSE;
+    const bool use_ssim_full_cost = ctx->tune_ssim_level > SSIM_LVL_0 ? true : false;
 #endif
 
     // Find the candidate with the lowest cost
@@ -4792,11 +4797,6 @@ uint32_t svt_aom_product_full_mode_decision(
             for (uint32_t i = 0; i < candidate_total_count; ++i) {
                 uint32_t cand_index = best_candidate_index_array[i];
                 uint64_t cost = *(buffer_ptr_array[cand_index]->full_cost);
-                if (scs->vq_ctrls.sharpness_ctrls.unipred_bias && pcs->ppcs->is_noise_level &&
-                    is_inter_singleref_mode(buffer_ptr_array[cand_index]->cand->pred_mode)) {
-                    cost = (cost * uni_psy_bias[pcs->picture_qp]) / 100;
-                }
-
                 if (cost < ssd_lowest_cost) {
                     lowest_cost_index = cand_index;
                     ssd_lowest_cost = cost;
@@ -4804,8 +4804,8 @@ uint32_t svt_aom_product_full_mode_decision(
             }
 
             // Pass two: among the candidates with SSD cost not greater than the threshold, find the one with the lowest SSIM cost
-            const double threshold_factor = scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.02 : 1.03;
-            uint64_t ssd_cost_threshold = (uint64_t)(threshold_factor * ssd_lowest_cost);
+            const double threshold_factor = derive_ssim_threshold_factor_for_full_md(scs);
+            const uint64_t ssd_cost_threshold = (uint64_t)(threshold_factor * ssd_lowest_cost);
             uint64_t ssim_lowest_cost = 0xFFFFFFFFFFFFFFFFull;
             for (uint32_t i = 0; i < candidate_total_count; ++i) {
                 uint32_t cand_index = best_candidate_index_array[i];
