@@ -1751,11 +1751,9 @@ static EbErrorType av1_merge_skip_full_cost(PictureControlSet *pcs, ModeDecision
         << AV1_COST_PRECISION;
 
     ssim_merge_distortion = (y_distortion[DIST_SSIM][0] << AV1_COST_PRECISION) +
-            ((cb_distortion[DIST_SSIM][0] + cr_distortion[DIST_SSIM][0])
-        << AV1_COST_PRECISION);
+        ((cb_distortion[DIST_SSIM][0] + cr_distortion[DIST_SSIM][0]) << AV1_COST_PRECISION);
     ssim_skip_distortion = (y_distortion[DIST_SSIM][1] << AV1_COST_PRECISION) +
-            ((cb_distortion[DIST_SSIM][1] + cr_distortion[DIST_SSIM][1])
-        << AV1_COST_PRECISION);
+        ((cb_distortion[DIST_SSIM][1] + cr_distortion[DIST_SSIM][1]) << AV1_COST_PRECISION);
 #else
     merge_luma_sse   = y_distortion[0] << AV1_COST_PRECISION;
     merge_chroma_sse = (cb_distortion[0] + cr_distortion[0]) << AV1_COST_PRECISION;
