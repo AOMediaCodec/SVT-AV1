@@ -4812,12 +4812,6 @@ uint32_t svt_aom_product_full_mode_decision(
 
                 uint64_t ssim_cost = *(buffer_ptr_array[cand_index]->full_cost_ssim);
                 uint64_t ssd_cost = *(buffer_ptr_array[cand_index]->full_cost);
-                if (scs->vq_ctrls.sharpness_ctrls.unipred_bias && pcs->ppcs->is_noise_level &&
-                    is_inter_singleref_mode(buffer_ptr_array[cand_index]->cand->pred_mode)) {
-                    ssim_cost = (ssim_cost * uni_psy_bias[pcs->picture_qp]) / 100;
-                    ssd_cost = (ssd_cost * uni_psy_bias[pcs->picture_qp]) / 100;
-                }
-
                 if (ssim_cost < ssim_lowest_cost) {
                     if (ssd_cost <= ssd_cost_threshold) {
                         lowest_cost_index = cand_index;
