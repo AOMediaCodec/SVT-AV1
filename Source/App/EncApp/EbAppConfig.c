@@ -187,9 +187,7 @@
 
 #define STARTUP_MG_SIZE_TOKEN "--startup-mg-size"
 
-#if FTR_ROI
 #define ROI_MAP_FILE_TOKEN "--roi-map-file"
-#endif
 
 static EbErrorType validate_error(EbErrorType err, const char *token, const char *value) {
     switch (err) {
@@ -382,11 +380,9 @@ static EbErrorType set_cfg_qp_file(EbConfig *cfg, const char *token, const char 
 static EbErrorType set_cfg_stat_file(EbConfig *cfg, const char *token, const char *value) {
     return open_file(&cfg->stat_file, token, value, "wb");
 }
-#if FTR_ROI
 static EbErrorType set_cfg_roi_map_file(EbConfig *cfg, const char *token, const char *value) {
     return open_file(&cfg->roi_map_file, token, value, "r");
 }
-#endif
 
 static EbErrorType set_two_pass_stats(EbConfig *cfg, const char *token, const char *value) {
     return str_to_str(value, (char **)&cfg->stats, token);
@@ -945,12 +941,10 @@ ConfigEntry config_entry_rc[] = {
      MAX_QM_LEVEL_TOKEN,
      "Max quant matrix flatness, default is 15 [0-15]",
      set_cfg_generic_token},
-#if FTR_ROI
     {SINGLE_INPUT,
      ROI_MAP_FILE_TOKEN,
      "Enable Region Of Interest and specify a picture based QP Offset map file, default is off",
      set_cfg_roi_map_file},
-#endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
@@ -1389,10 +1383,8 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, MIN_QM_LEVEL_TOKEN, "MinQmLevel", set_cfg_generic_token},
     {SINGLE_INPUT, MAX_QM_LEVEL_TOKEN, "MaxQmLevel", set_cfg_generic_token},
 
-#if FTR_ROI
     // ROI
     {SINGLE_INPUT, ROI_MAP_FILE_TOKEN, "RoiMapFile", set_cfg_roi_map_file},
-#endif
 
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
@@ -1408,9 +1400,7 @@ EbConfig *svt_config_ctor() {
     app_cfg->buffered_input      = -1;
     app_cfg->progress            = 1;
     app_cfg->injector_frame_rate = 60;
-#if FTR_ROI
     app_cfg->roi_map_file = NULL;
-#endif
     return app_cfg;
 }
 
@@ -1459,12 +1449,10 @@ void svt_config_dtor(EbConfig *app_cfg) {
         app_cfg->output_stat_file = (FILE *)NULL;
     }
 
-#if FTR_ROI
     if (app_cfg->roi_map_file) {
         fclose(app_cfg->roi_map_file);
         app_cfg->roi_map_file = (FILE *)NULL;
     }
-#endif
 
     for (size_t i = 0; i < app_cfg->forced_keyframes.count; ++i)
         free(app_cfg->forced_keyframes.specifiers[i]);

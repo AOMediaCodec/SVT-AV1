@@ -18,9 +18,7 @@
 #include "EbLog.h"
 #include <inttypes.h>
 #endif
-#if FTR_ROI
 #include "EbDeblockingFilter.h"
-#endif
 
 static uint16_t get_variance_for_cu(const BlockGeom *blk_geom, uint16_t *variance_ptr) {
     int index0, index1;
@@ -85,7 +83,6 @@ static uint16_t get_variance_for_cu(const BlockGeom *blk_geom, uint16_t *varianc
     return (variance_ptr[index0] + variance_ptr[index1]) >> 1;
 }
 
-#if FTR_ROI
 static void roi_map_apply_segmentation_based_quantization(const BlockGeom   *blk_geom,
                                                           PictureControlSet *pcs,
                                                           SuperBlock *sb_ptr, BlkStruct *blk_ptr) {
@@ -133,17 +130,14 @@ static void roi_map_apply_segmentation_based_quantization(const BlockGeom   *blk
                segmentation_params->feature_data[blk_ptr->segment_id][SEG_LVL_ALT_Q] >
            0);
 }
-#endif
 
 void svt_aom_apply_segmentation_based_quantization(const BlockGeom   *blk_geom,
                                                    PictureControlSet *pcs, SuperBlock *sb_ptr,
                                                    BlkStruct *blk_ptr) {
-#if FTR_ROI
     if (pcs->ppcs->roi_map_evt != NULL) {
         roi_map_apply_segmentation_based_quantization(blk_geom, pcs, sb_ptr, blk_ptr);
         return;
     }
-#endif
     uint16_t           *variance_ptr        = pcs->ppcs->variance[sb_ptr->index];
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     uint16_t            variance            = get_variance_for_cu(blk_geom, variance_ptr);
@@ -162,7 +156,6 @@ void svt_aom_apply_segmentation_based_quantization(const BlockGeom   *blk_geom,
     }
 }
 
-#if FTR_ROI
 static void roi_map_setup_segmentation(PictureControlSet *pcs, SequenceControlSet *scs) {
     UNUSED(scs);
     SvtAv1RoiMapEvt    *roi_map                       = pcs->ppcs->roi_map_evt;
@@ -235,15 +228,12 @@ static void roi_map_setup_segmentation(PictureControlSet *pcs, SequenceControlSe
 #endif
     calculate_segmentation_data(segmentation_params);
 }
-#endif
 
 void svt_aom_setup_segmentation(PictureControlSet *pcs, SequenceControlSet *scs) {
-#if FTR_ROI
     if (pcs->ppcs->roi_map_evt != NULL) {
         roi_map_setup_segmentation(pcs, scs);
         return;
     }
-#endif
     SegmentationParams *segmentation_params = &pcs->ppcs->frm_hdr.segmentation_params;
     segmentation_params->segmentation_enabled =
         (Bool)(scs->static_config.enable_adaptive_quantization == 1);

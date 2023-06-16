@@ -112,12 +112,6 @@ typedef struct WedgeParamsType {
 void svt_inter_predictor_light_pd0(const uint8_t *src, int32_t src_stride, uint8_t *dst,
                                    int32_t dst_stride, int32_t w, int32_t h,
                                    SubpelParams *subpel_params, ConvolveParams *conv_params);
-#if !OPT_LPD0_8BIT_ONLY
-void svt_highbd_inter_predictor_light_pd0(uint8_t *src, uint8_t *src_ptr_2b, int32_t src_stride,
-                                          uint16_t *dst, int32_t dst_stride, int32_t w, int32_t h,
-                                          SubpelParams *subpel_params, ConvolveParams *conv_params,
-                                          int32_t bd);
-#endif
 void svt_inter_predictor_light_pd1(uint8_t *src, uint8_t *src_2b, int32_t src_stride, uint8_t *dst,
                                    int32_t dst_stride, int32_t w, int32_t h,
                                    InterpFilterParams *filter_x, InterpFilterParams *filter_y,
@@ -200,11 +194,9 @@ static INLINE int valid_ref_frame_size(int ref_width, int ref_height, int this_w
         this_width <= 16 * ref_width && this_height <= 16 * ref_height;
 }
 MV32 svt_av1_scale_mv(const MV *mvq4, int x, int y, const ScaleFactors *sf);
-#if CLN_FUNC_DECL
 void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride, uint8_t *inn_bit_buffer,
                         uint32_t inn_stride, uint16_t *out16_bit_buffer, uint32_t out_stride,
                         uint32_t width, uint32_t height);
-#endif
 void build_smooth_interintra_mask(uint8_t *mask, int stride, BlockSize plane_bsize,
                                   InterIntraMode mode);
 
@@ -577,12 +569,7 @@ static INLINE PredDirection av1_get_pred_dir(int8_t ref_frame_type) {
 }
 int svt_av1_skip_u4x4_pred_in_obmc(BlockSize bsize, int dir, int subsampling_x, int subsampling_y);
 int svt_aom_get_relative_dist_enc(SeqHeader *seq_header, int ref_hint, int order_hint);
-#if CLN_MBMI_12
 int16_t svt_aom_mode_context_analyzer(int16_t mode_context, const MvReferenceFrame *const rf);
-#else
-int16_t svt_aom_mode_context_analyzer(const int16_t *const          mode_context,
-                                      const MvReferenceFrame *const rf);
-#endif
 
 #ifdef __cplusplus
 }

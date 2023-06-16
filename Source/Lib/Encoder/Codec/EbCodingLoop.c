@@ -31,21 +31,14 @@
 #include "EbEncInterPrediction.h"
 
 void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
-#if !CLN_FUNC_DECL
-int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
-#endif
 uint32_t svt_aom_get_tot_1d_blks(struct ModeDecisionContext *ctx, const int32_t sq_size,
                                  const uint8_t disallow_nsq);
-#if OPT_CHILD_PCS
 static EbErrorType ec_rtime_alloc_palette_info(EcBlkStruct *md_blk_arr_nsq) {
     EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info, 1);
     EB_MALLOC_ARRAY(md_blk_arr_nsq->palette_info->color_idx_map, MAX_PALETTE_SQUARE);
 
     return EB_ErrorNone;
 }
-#else
-void svt_aom_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq);
-#endif
 /*******************************************
 * set Penalize Skip Flag
 *
@@ -100,81 +93,6 @@ void svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t inp
     }
 }
 
-#if !CLN_REMOVE_NEIGH_ARRAYS
-/***************************************************
- * Update Intra Mode Neighbor Arrays
- ***************************************************/
-static void encode_pass_update_intra_mode_neighbor_arrays(
-    NeighborArrayUnit *mode_type_na, NeighborArrayUnit *intra_luma_mode_na,
-    NeighborArrayUnit *intra_chroma_mode_neighbor_array, uint8_t luma_mode, uint8_t chroma_mode,
-    uint32_t org_x, uint32_t org_y, uint32_t width, uint32_t height, uint32_t width_uv,
-    uint32_t height_uv, uint32_t component_mask) {
-    uint8_t mode_type = INTRA_MODE;
-
-    if (component_mask & PICTURE_BUFFER_DESC_LUMA_MASK) {
-        // Mode Type Update
-        svt_aom_neighbor_array_unit_mode_write(
-            mode_type_na, &mode_type, org_x, org_y, width, height, NEIGHBOR_ARRAY_UNIT_FULL_MASK);
-
-        // Intra Luma Mode Update
-        svt_aom_neighbor_array_unit_mode_write(intra_luma_mode_na,
-                                               &luma_mode,
-                                               org_x,
-                                               org_y,
-                                               width,
-                                               height,
-                                               NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-    }
-    if (component_mask & PICTURE_BUFFER_DESC_CHROMA_MASK) {
-        // Intra Luma Mode Update
-        svt_aom_neighbor_array_unit_mode_write(intra_chroma_mode_neighbor_array,
-                                               &chroma_mode,
-                                               ((org_x >> 3) << 3) / 2,
-                                               ((org_y >> 3) << 3) / 2,
-                                               width_uv,
-                                               height_uv,
-                                               NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-    }
-
-    return;
-}
-
-/***************************************************
- * Update Inter Mode Neighbor Arrays
- ***************************************************/
-static void encode_pass_update_inter_mode_neighbor_arrays(NeighborArrayUnit *mode_type_na,
-                                                          NeighborArrayUnit *mv_neighbor_array,
-                                                          NeighborArrayUnit *skipNeighborArray,
-                                                          MvUnit *mv_unit, uint8_t *skip_flag,
-                                                          uint32_t org_x, uint32_t org_y,
-                                                          uint32_t bwidth, uint32_t bheight) {
-    uint8_t mode_type = INTER_MODE;
-
-    // Mode Type Update
-    svt_aom_neighbor_array_unit_mode_write(
-        mode_type_na, &mode_type, org_x, org_y, bwidth, bheight, NEIGHBOR_ARRAY_UNIT_FULL_MASK);
-
-    // Motion Vector Unit
-    svt_aom_neighbor_array_unit_mode_write(mv_neighbor_array,
-                                           (uint8_t *)mv_unit,
-                                           org_x,
-                                           org_y,
-                                           bwidth,
-                                           bheight,
-                                           NEIGHBOR_ARRAY_UNIT_FULL_MASK);
-
-    // Skip Flag
-    svt_aom_neighbor_array_unit_mode_write(skipNeighborArray,
-                                           skip_flag,
-                                           org_x,
-                                           org_y,
-                                           bwidth,
-                                           bheight,
-                                           NEIGHBOR_ARRAY_UNIT_TOP_AND_LEFT_ONLY_MASK);
-
-    return;
-}
-#endif
 
 /***************************************************
 * Update Recon Samples Neighbor Arrays
@@ -1274,12 +1192,8 @@ void svt_aom_store16bit_input_src(EbPictureBufferDesc *input_sample16bit_buffer,
                    from_ptr + row_it * input_sample16bit_buffer->stride_cr,
                    sb_w * 2);
 }
-#if FTR_ROI
 void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx,
                                    PictureControlSet *pcs);
-#else
-void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx);
-#endif
 static void perform_intra_coding_loop(PictureControlSet *pcs, SuperBlock *sb_ptr, uint32_t sb_addr, BlkStruct *blk_ptr,
                                       PredictionUnit *pu_ptr, EncDecContext *ed_ctx) {
     Bool                 is_16bit  = ed_ctx->is_16bit;
@@ -2024,11 +1938,7 @@ static void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet
             &md_ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].wm_params_l0,
             &md_ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].wm_params_l1,
             (uint8_t)scs->static_config.encoder_bit_depth,
-#if OPT_WM_UV_ONLY
             PICTURE_BUFFER_DESC_FULL_MASK,
-#else
-            TRUE,
-#endif
             TRUE);
     } else {
         svt_aom_inter_prediction(scs,
@@ -2393,21 +2303,12 @@ EB_EXTERN void svt_aom_encode_decode(SequenceControlSet *scs, PictureControlSet 
     EncodeContext *enc_ctx = pcs->scs->enc_ctx;
     // Dereferencing early
     uint16_t tile_idx = ctx->tile_index;
-#if !CLN_REMOVE_NEIGH_ARRAYS
-    NeighborArrayUnit *ep_mode_type_na         = pcs->ep_mode_type_na[tile_idx];
-    NeighborArrayUnit *ep_intra_luma_mode_na   = pcs->ep_intra_luma_mode_na[tile_idx];
-    NeighborArrayUnit *ep_intra_chroma_mode_na = pcs->ep_intra_chroma_mode_na[tile_idx];
-    NeighborArrayUnit *ep_mv_na                = pcs->ep_mv_na[tile_idx];
-#endif
     NeighborArrayUnit *ep_luma_recon_na = is_16bit ? pcs->ep_luma_recon_na_16bit[tile_idx]
                                                    : pcs->ep_luma_recon_na[tile_idx];
     NeighborArrayUnit *ep_cb_recon_na   = is_16bit ? pcs->ep_cb_recon_na_16bit[tile_idx]
                                                    : pcs->ep_cb_recon_na[tile_idx];
     NeighborArrayUnit *ep_cr_recon_na   = is_16bit ? pcs->ep_cr_recon_na_16bit[tile_idx]
                                                    : pcs->ep_cr_recon_na[tile_idx];
-#if !CLN_REMOVE_NEIGH_ARRAYS
-    NeighborArrayUnit *ep_skip_flag_na = pcs->ep_skip_flag_na[tile_idx];
-#endif
 
     svt_aom_get_recon_pic(pcs, &recon_buffer, is_16bit);
     // Pad/Pack/compress the input picture
@@ -2486,39 +2387,9 @@ EB_EXTERN void svt_aom_encode_decode(SequenceControlSet *scs, PictureControlSet 
                                               : PICTURE_BUFFER_DESC_LUMA_MASK,
                         is_16bit);
                 }
-#if !CLN_REMOVE_NEIGH_ARRAYS
-                // Update the Intra-specific Neighbor Arrays
-                encode_pass_update_intra_mode_neighbor_arrays(ep_mode_type_na,
-                                                              ep_intra_luma_mode_na,
-                                                              ep_intra_chroma_mode_na,
-                                                              (uint8_t)blk_ptr->pred_mode,
-                                                              (uint8_t)pu_ptr->intra_chroma_mode,
-                                                              ctx->blk_org_x,
-                                                              ctx->blk_org_y,
-                                                              ctx->blk_geom->bwidth,
-                                                              ctx->blk_geom->bheight,
-                                                              ctx->blk_geom->bwidth_uv,
-                                                              ctx->blk_geom->bheight_uv,
-                                                              blk_geom->has_uv
-                                                                  ? PICTURE_BUFFER_DESC_FULL_MASK
-                                                                  : PICTURE_BUFFER_DESC_LUMA_MASK);
-#endif
             } else if (blk_ptr->prediction_mode_flag == INTER_MODE) {
                 ctx->is_inter = TRUE;
                 perform_inter_coding_loop(scs, pcs, ctx, sb_ptr, sb_addr);
-#if !CLN_REMOVE_NEIGH_ARRAYS
-                // Update Neighbor Arrays (Mode Type, mvs, SKIP)
-                uint8_t skip_flag = (uint8_t)blk_ptr->skip_mode;
-                encode_pass_update_inter_mode_neighbor_arrays(ep_mode_type_na,
-                                                              ep_mv_na,
-                                                              ep_skip_flag_na,
-                                                              &ctx->mv_unit,
-                                                              &skip_flag,
-                                                              ctx->blk_org_x,
-                                                              ctx->blk_org_y,
-                                                              blk_geom->bwidth,
-                                                              blk_geom->bheight);
-#endif
                 // Update Recon Samples Neighbor Arrays -INTER-
                 encode_pass_update_recon_sample_neighbour_arrays(
                     ep_luma_recon_na,
@@ -2847,11 +2718,7 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                         // Rate estimation function uses the values from CandidatePtr. The right values are copied from blk_ptr to CandidatePtr
                         cand_bf->cand->pred_mode         = blk_ptr->pred_mode;
                         cand_bf->cand->filter_intra_mode = blk_ptr->filter_intra_mode;
-#if FIX_COEF_RATE_UPDATE
                         if (blk_ptr->block_has_coeff)
-#else
-                        if (blk_ptr->skip_mode != TRUE)
-#endif
                             svt_aom_txb_estimate_coeff_bits(
                                 md_ctx,
                                 1, //allow_update_cdf,
@@ -2933,17 +2800,12 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                             blk_geom->tx_height_uv[blk_ptr->tx_depth];
                 }
             }
-#if FTR_ROI
             if (!md_ctx->bypass_encdec) {
                 md_ctx->blk_org_x = ctx->blk_org_x;
                 md_ctx->blk_org_y = ctx->blk_org_y;
                 md_ctx->blk_geom  = ctx->blk_geom;
                 svt_aom_update_mi_map_enc_dec(blk_ptr, md_ctx, pcs);
             }
-#else
-            if (!md_ctx->bypass_encdec)
-                svt_aom_update_mi_map_enc_dec(blk_ptr, md_ctx);
-#endif
             if (pcs->cdf_ctrl.update_se) {
                 // Update the partition Neighbor Array
                 PartitionContext partition;
@@ -2960,7 +2822,6 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
 
                 // Update the CDFs based on the current block
                 blk_ptr->av1xd->tile_ctx = &pcs->ec_ctx_array[sb_addr];
-#if FIX_TXS_RATE_UPDATE
                 uint32_t txfm_context_left_index = get_neighbor_array_unit_left_index(
                     pcs->ep_txfm_context_na[tile_idx], ctx->blk_org_y);
                 uint32_t txfm_context_above_index = get_neighbor_array_unit_top_index(
@@ -2978,7 +2839,6 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                                      !blk_ptr->block_has_coeff,
                                      &pcs->ec_ctx_array[sb_addr],
                                      1 /*allow_update_cdf*/);
-#endif
                 svt_aom_update_stats(
                     pcs, blk_ptr, ctx->blk_org_y >> MI_SIZE_LOG2, ctx->blk_org_x >> MI_SIZE_LOG2);
             }
@@ -2989,20 +2849,12 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
             // ENCDEC palette info buffer
             {
                 if (svt_av1_allow_palette(pcs->ppcs->palette_level, blk_geom->bsize))
-#if OPT_CHILD_PCS
                     ec_rtime_alloc_palette_info(&sb_ptr->final_blk_arr[final_blk_itr]);
-#else
-                    svt_aom_rtime_alloc_palette_info(&sb_ptr->final_blk_arr[final_blk_itr]);
-#endif
                 else
                     sb_ptr->final_blk_arr[final_blk_itr].palette_info = NULL;
             }
             BlkStruct *src_cu = &md_ctx->md_blk_arr_nsq[d1_itr];
-#if OPT_CHILD_PCS
             EcBlkStruct *dst_cu = &sb_ptr->final_blk_arr[final_blk_itr];
-#else
-            BlkStruct *dst_cu = &sb_ptr->final_blk_arr[final_blk_itr];
-#endif
             svt_aom_move_blk_data(pcs, ctx, src_cu, dst_cu);
             sb_ptr->final_blk_arr[final_blk_itr++].av1xd = sb_ptr->av1xd;
             // MFMV Update

@@ -26,7 +26,6 @@
 #define GMV_ME_SAD_TH_2 10
 #define GMV_PIC_VAR_TH 750
 
-#if GM_PP
 //gm pre-processing pass, is an analysis pass done at the same time TF to detect any GM activity in
 //the clip. in case of detection in this pre-processing phase, a second GM detection pass is invoked.
 void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControlSet **pcs_list) {
@@ -49,10 +48,8 @@ void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControl
     pcs->gm_ctrls.chess_rfn                    = 1;
     pcs->gm_ctrls.match_sz                     = 7;
     pcs->gm_ctrls.inj_psq_glb                  = TRUE;
-#if FIX_GM_PP
     pcs->gm_ctrls.use_ref_info = 0;
     pcs->gm_ctrls.layer_offset = 0;
-#endif
 
     PictureParentControlSet *ref_pcs_list[2];
     PictureParentControlSet *cur_pcs   = pcs_list[0];
@@ -77,7 +74,6 @@ void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControl
         input_refinement = input_pic;
     }
 
-#if OPT_GM_CORNER
     int frm_corners[2 * MAX_CORNERS];
     int num_frm_corners = svt_av1_fast_corner_detect(
         input_detection->buffer_y + input_detection->org_x +
@@ -87,7 +83,6 @@ void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControl
         input_detection->stride_y,
         frm_corners,
         MAX_CORNERS);
-#endif
 
     for (uint32_t ref_idx = 0; ref_idx < 2; ++ref_idx) {
         if (ref_pcs_list[ref_idx] == NULL || ref_pcs_list[ref_idx] == pcs /*as curr might have TF underway*/)
@@ -112,10 +107,8 @@ void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControl
         }
 
         compute_global_motion(pcs,
-#if OPT_GM_CORNER
                               frm_corners,
                               num_frm_corners,
-#endif
                               input_detection,
                               ref_detection,
                               input_refinement,
@@ -131,7 +124,6 @@ void svt_aom_gm_pre_processor(PictureParentControlSet *pcs, PictureParentControl
         }
     }
 }
-#endif
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                       EbPictureBufferDesc     *input_pic) {
     // Get downsampled pictures with a downsampling factor of 2 in each dimension
@@ -145,14 +137,12 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                               pa_reference_object->quarter_downsampled_picture_ptr;
     sixteenth_picture_ptr = (EbPictureBufferDesc *)
                                 pa_reference_object->sixteenth_downsampled_picture_ptr;
-#if GM_REFINFO
     PictureControlSet *cpcs;
     cpcs = pcs->child_pcs;
     if (pcs->gm_ctrls.use_ref_info) {
         quarter_picture_ptr   = pcs->quarter_src_pic;
         sixteenth_picture_ptr = pcs->sixteenth_src_pic;
     }
-#endif
     uint32_t num_of_list_to_search =
         (pcs->slice_type == P_SLICE) ? 1 /*List 0 only*/ : 2 /*List 0 + 1*/;
     // Initilize global motion to be OFF for all references frames.
@@ -213,7 +203,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                          100)))) // if more than 5% of SB(s) have stationary block(s) then shut gm
             global_motion_estimation_level = 0;
     }
-#if GM_REFINFO
 
     if (pcs->gm_ctrls.use_ref_info) {
         svt_aom_assert_err(pcs->gm_ctrls.layer_offset < 4, "gm_layer_invalid");
@@ -243,8 +232,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                 global_motion_estimation_level = 0;
         }
     }
-#endif
-#if OPT_GM_CORNER
     if (global_motion_estimation_level) {
         EbPictureBufferDesc *input_detection, *input_refinement;
         if (pcs->gm_downsample_level == GM_DOWN16) {
@@ -267,9 +254,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
             input_detection->stride_y,
             frm_corners,
             MAX_CORNERS);
-#else
-    if (global_motion_estimation_level)
-#endif
         for (uint32_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
             uint32_t num_of_ref_pic_to_search;
             num_of_ref_pic_to_search = pcs->slice_type == P_SLICE ? pcs->ref_list0_count_try
@@ -290,14 +274,8 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                                  ->object_ptr;
 
                 uint8_t detect_refine_scale_factor;
-#if OPT_GM_CORNER
                 EbPictureBufferDesc *ref_detection, *ref_refinement;
-#else
-                EbPictureBufferDesc *inp_detection, *ref_detection, *inp_refinement,
-                    *ref_refinement;
-#endif
                 uint8_t chess_refn;
-#if GM_REFINFO
                 if (pcs->gm_ctrls.use_ref_info) {
                     cpcs                       = pcs->child_pcs;
                     EbReferenceObject *ref_obj = (EbReferenceObject *)cpcs
@@ -338,7 +316,6 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                     }
 
                 } else {
-#endif
                     ref_picture_ptr       = ref_object->input_padded_pic;
                     quarter_ref_pic_ptr   = ref_object->quarter_downsampled_picture_ptr;
                     sixteenth_ref_pic_ptr = ref_object->sixteenth_downsampled_picture_ptr;
@@ -371,15 +348,11 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                         detect_refine_scale_factor = 1;
                         chess_refn                 = pcs->gm_ctrls.chess_rfn;
                     }
-#if GM_REFINFO
                 }
-#endif
                 compute_global_motion(
                     pcs,
-#if OPT_GM_CORNER
                     frm_corners,
                     num_frm_corners,
-#endif
                     input_detection,
                     ref_detection,
                     input_refinement,
@@ -398,13 +371,9 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
                 }
             }
         }
-#if OPT_GM_CORNER
     }
-#endif
 
-#if OPT_CMP
     pcs->is_gm_on = 0;
-#endif
     for (uint32_t list_index = REF_LIST_0; list_index < num_of_list_to_search; ++list_index) {
         uint32_t num_of_ref_pic_to_search = pcs->slice_type == P_SLICE ? pcs->ref_list0_count
             : list_index == REF_LIST_0                                 ? pcs->ref_list0_count
@@ -414,18 +383,12 @@ void svt_aom_global_motion_estimation(PictureParentControlSet *pcs,
         for (uint32_t ref_pic_index = 0; ref_pic_index < num_of_ref_pic_to_search;
              ++ref_pic_index) {
             pcs->is_global_motion[list_index][ref_pic_index] = FALSE;
-#if OPT_CMP
             if (pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index].wmtype >
                 TRANSLATION) {
                 pcs->is_global_motion[list_index][ref_pic_index] = TRUE;
 
                 pcs->is_gm_on = 1;
             }
-#else
-            if (pcs->svt_aom_global_motion_estimation[list_index][ref_pic_index].wmtype >
-                TRANSLATION)
-                pcs->is_global_motion[list_index][ref_pic_index] = TRUE;
-#endif
         }
     }
 }
@@ -445,9 +408,7 @@ void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_fa
     }
 }
 void compute_global_motion(PictureParentControlSet *pcs,
-#if OPT_GM_CORNER
                            int *frm_corners, int num_frm_corners,
-#endif
                            EbPictureBufferDesc *det_input_pic, //src frame for detection
                            EbPictureBufferDesc *det_ref_pic, //ref frame for detection
                            EbPictureBufferDesc *input_pic, //src frame for refinement
@@ -486,20 +447,8 @@ void compute_global_motion(PictureParentControlSet *pcs,
     const EbWarpedMotionParams *ref_params = &default_warp_params;
 
     {
-#if OPT_GM_CORNER
         int inliers_by_motion[RANSAC_NUM_MOTIONS];
 
-#else
-        int frm_corners[2 * MAX_CORNERS], inliers_by_motion[RANSAC_NUM_MOTIONS];
-        // compute interest points using FAST features
-
-        int num_frm_corners = svt_av1_fast_corner_detect(det_frm_buffer,
-                                                         det_input_pic->width,
-                                                         det_input_pic->height,
-                                                         det_input_pic->stride_y,
-                                                         frm_corners,
-                                                         MAX_CORNERS);
-#endif
         num_frm_corners = num_frm_corners * pcs->gm_ctrls.corners / 4;
 
         TransformationType   model;

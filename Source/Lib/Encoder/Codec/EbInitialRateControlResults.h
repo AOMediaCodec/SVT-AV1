@@ -22,9 +22,7 @@
 typedef struct InitialRateControlResults {
     EbDctor          dctor;
     EbObjectWrapper *pcs_wrapper;
-#if !FIX_ISSUE_2064
     Bool superres_recode;
-#endif
 } InitialRateControlResults;
 
 typedef struct InitialRateControlResultInitData {

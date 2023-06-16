@@ -2558,12 +2558,8 @@ uint32_t svt_aom_d2_inter_depth_block_decision(SequenceControlSet *scs, PictureC
             if (ctx->inter_depth_bias) {
                 current_depth_cost = (current_depth_cost * ctx->inter_depth_bias) / 1000;
             }
-#if OPT_BIAS_PARENT
             int parent_bias = parent_depth_cost != MAX_MODE_COST ? ctx->d2_parent_bias : 1000;
             if (((parent_bias * parent_depth_cost) / 1000) <= current_depth_cost) {
-#else
-            if (parent_depth_cost <= current_depth_cost) {
-#endif
                 ctx->md_blk_arr_nsq[parent_depth_idx_mds].split_flag = FALSE;
                 ctx->md_local_blk_unit[parent_depth_idx_mds].cost    = parent_depth_cost;
                 last_blk_index                                       = parent_depth_idx_mds;

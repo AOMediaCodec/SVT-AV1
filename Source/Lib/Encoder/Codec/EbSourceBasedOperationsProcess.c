@@ -526,9 +526,7 @@ static void tpl_subpel_search(SequenceControlSet *scs, PictureParentControlSet *
     uint8_t early_exit              = 0;
 
     subpel_search_method(
-#if OPT_SPEL
         NULL,
-#endif
         xd,
         (const struct AV1Common *const)cm,
         ms_params,
@@ -2196,13 +2194,6 @@ void *svt_aom_tpl_disp_kernel(void *input_ptr) {
 static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr,
                                  PictureParentControlSet *pcs, Bool superres_recode) {
     EbObjectWrapper *out_results_wrapper;
-#if !FIX_ISSUE_2064_ALT
-    SequenceControlSet *scs = pcs->scs;
-    // NB: overlay frames should be non-ref
-    // Before sending pics out to pic mgr, ensure that pic mgr can handle them
-    if (pcs->is_ref && !superres_recode)
-        svt_block_on_semaphore(scs->ref_buffer_available_semaphore);
-#endif
 
     // Get Empty Results Object
     svt_get_empty_object(context_ptr->picture_demux_results_output_fifo_ptr, &out_results_wrapper);
@@ -2235,7 +2226,6 @@ void *svt_aom_source_based_operations_kernel(void *input_ptr) {
         PictureParentControlSet *pcs = (PictureParentControlSet *)
                                            in_results_ptr->pcs_wrapper->object_ptr;
         SequenceControlSet *scs = pcs->scs;
-#if !FIX_ISSUE_2064
         if (in_results_ptr->superres_recode) {
             sbo_send_picture_out(context_ptr, pcs, TRUE);
 
@@ -2243,7 +2233,6 @@ void *svt_aom_source_based_operations_kernel(void *input_ptr) {
             svt_release_object(in_results_wrapper_ptr);
             continue;
         }
-#endif
 
         // Get TPL ME
         if (pcs->tpl_ctrls.enable) {

@@ -678,20 +678,12 @@ static AOM_FORCE_INLINE void two_level_checks_fast(
         }
 }
 extern const uint8_t svt_aom_eb_av1_var_offs[MAX_SB_SIZE];
-#if OPT_SPEL
 int svt_av1_find_best_sub_pixel_tree_pruned(void *ictx, MacroBlockD *xd,
                                             const struct AV1Common *const cm,
                                             SUBPEL_MOTION_SEARCH_PARAMS *ms_params, MV start_mv,
                                             MV *bestmv, int *distortion, unsigned int *sse1, int qp,
                                             BlockSize bsize, uint8_t early_neigh_check_exit) {
     (void)ictx;
-#else
-int svt_av1_find_best_sub_pixel_tree_pruned(MacroBlockD *xd, const struct AV1Common *const cm,
-                                            const SUBPEL_MOTION_SEARCH_PARAMS *ms_params,
-                                            MV start_mv, MV *bestmv, int *distortion,
-                                            unsigned int *sse1, int qp, BlockSize bsize,
-                                            uint8_t early_neigh_check_exit) {
-#endif
     (void)cm;
     const int                       allow_hp       = ms_params->allow_hp;
     const int                       forced_stop    = ms_params->forced_stop;
@@ -766,39 +758,22 @@ int svt_av1_find_best_sub_pixel_tree_pruned(MacroBlockD *xd, const struct AV1Com
     return besterr;
 }
 
-#if OPT_SPEL
 int svt_av1_find_best_sub_pixel_tree(void *ictx, MacroBlockD *xd, const struct AV1Common *const cm,
                                      SUBPEL_MOTION_SEARCH_PARAMS *ms_params, MV start_mv,
                                      MV *bestmv, int *distortion, unsigned int *sse1, int qp,
                                      BlockSize bsize, uint8_t early_neigh_check_exit) {
-#else
-int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *const cm,
-                                     const SUBPEL_MOTION_SEARCH_PARAMS *ms_params, MV start_mv,
-                                     MV *bestmv, int *distortion, unsigned int *sse1, int qp,
-                                     BlockSize bsize, uint8_t early_neigh_check_exit) {
-#endif
-#if OPT_SPEL
     ModeDecisionContext *ctx = (ModeDecisionContext *)ictx;
-#endif
     const int allow_hp       = ms_params->allow_hp;
     const int forced_stop    = ms_params->forced_stop;
     const int iters_per_step = ms_params->iters_per_step;
 
-#if OPT_SPEL
     MV_COST_PARAMS *mv_cost_params = &ms_params->mv_cost_params;
-#else
-    const MV_COST_PARAMS *mv_cost_params = &ms_params->mv_cost_params;
-#endif
     const SUBPEL_SEARCH_VAR_PARAMS *var_params = &ms_params->var_params;
     const SubpelMvLimits           *mv_limits  = &ms_params->mv_limits;
 
     // How many steps to take. A round of 0 means fullpel search only, 1 means
     // half-pel, and so on.
-#if OPT_SPEL
     int round = AOMMIN(FULL_PEL - forced_stop, 3 - !allow_hp);
-#else
-    const int             round          = AOMMIN(FULL_PEL - forced_stop, 3 - !allow_hp);
-#endif
     int hstep = INIT_SUBPEL_STEP_SIZE; // Step size, initialized to 4/8=1/2 pel
 
     unsigned int besterr;
@@ -807,7 +782,6 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
     const int is_scaled = 0;
     besterr             = svt_upsampled_setup_center_error(
         bestmv, var_params, mv_cost_params, (unsigned int *)distortion);
-#if OPT_SPEL
     if (ctx != NULL && ms_params->search_stage == 0 && bsize < BLOCK_64X64) {
         if (ctx->pd_pass == PD_PASS_1 && ctx->md_subpel_me_ctrls.mvp_th > 0) {
             SUBPEL_MOTION_SEARCH_PARAMS par_tmp = *ms_params;
@@ -830,7 +804,6 @@ int svt_av1_find_best_sub_pixel_tree(MacroBlockD *xd, const struct AV1Common *co
                 round = 1;
         }
     }
-#endif
     if (early_neigh_check_exit)
         return besterr;
     // Exit subpel search if the variance of the full-pel predicted samples is low (i.e. where likely interpolation will not modify the integer samples)

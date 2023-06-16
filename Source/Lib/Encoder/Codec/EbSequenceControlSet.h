@@ -292,12 +292,6 @@ typedef struct SequenceControlSet {
     *
     * Default is 1. */
     Bool enable_global_motion;
-#if !CLN_MISC_CLEANUPS
-    /* inter intra compound
-    *
-    * Default is -1. */
-    int inter_intra_compound;
-#endif
     /* enable paeth
     *
     * Default is -1. */
@@ -339,27 +333,6 @@ typedef struct SequenceControlSet {
     *
     * Default is -1. */
     int compound_level;
-#if !CLN_IND_UV_SEARCH
-    /* Disable chroma from luma (CFL)
-    *
-    * Default is -1 (auto) */
-    int disable_cfl_flag;
-#endif
-#if !CLN_MISC_CLEANUPS
-    /* obmc_level specifies the level of the OBMC feature that would be
-    * considered when the level is specified in the command line instruction (CLI).
-    * The meaning of the feature level in the CLI is different from that for
-    * the default settings. See description of pic_obmc_level for the full details.
-    *
-    * The table below specifies the meaning of obmc_level when specified in the CLI.
-    *     obmc_level   | Command Line Settings
-    *        -1        | Default settings (auto)
-    *         0        | OFF everywhere in encoder
-    *         1        | ON
-    *
-    * Default is -1 (auto). */
-    int8_t obmc_level;
-#endif
     /* RDOQ
     *
     * -1: Default, 0: OFF, 1: ON. */

@@ -46,9 +46,6 @@ typedef struct EntropyCodingContext {
     uint32_t        sb_origin_x;
     uint32_t        sb_origin_y;
     uint32_t        pu_itr;
-#if !OPT_CHILD_PCS
-    PredictionUnit *pu_ptr;
-#endif
     uint32_t        pu_origin_x;
     uint32_t        pu_origin_y;
     uint32_t        pu_width;
@@ -65,9 +62,7 @@ typedef struct EntropyCodingContext {
     int32_t     coded_area_sb;
     int32_t     coded_area_sb_uv;
     TOKENEXTRA *tok;
-#if CLN_MBMI
     MbModeInfo *mbmi;
-#endif
 } EntropyCodingContext;
 
 /**************************************

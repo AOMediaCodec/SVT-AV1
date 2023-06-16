@@ -23,12 +23,7 @@
 #define SCALE_SUBPEL_MASK (SCALE_SUBPEL_SHIFTS - 1)
 #define SCALE_EXTRA_BITS (SCALE_SUBPEL_BITS - SUBPEL_BITS)
 
-#if CLN_FUNC_DECL
 void svt_aom_pack_block(uint8_t *in8_bit_buffer, uint32_t in8_stride,
-#else
-extern void svt_aom_pack_block(
-    uint8_t *in8_bit_buffer, uint32_t in8_stride,
-#endif
                         uint8_t *inn_bit_buffer, uint32_t inn_stride, uint16_t *out16_bit_buffer,
                         uint32_t out_stride, uint32_t width, uint32_t height) {
     svt_aom_pack2d_src(in8_bit_buffer,
@@ -1378,70 +1373,6 @@ void svt_inter_predictor_light_pd0(const uint8_t *src, int32_t src_stride, uint8
             src, src_stride, dst, dst_stride, w, h, 0, 0, 0, 0, conv_params);
     }
 }
-#if !OPT_LPD0_8BIT_ONLY
-void svt_highbd_inter_predictor_light_pd0(uint8_t *src, uint8_t *src_ptr_2b, int32_t src_stride,
-                                          uint16_t *dst, int32_t dst_stride, int32_t w, int32_t h,
-                                          SubpelParams *subpel_params, ConvolveParams *conv_params,
-                                          int32_t bd) {
-    const int32_t is_scaled = has_scale(subpel_params->xs, subpel_params->ys);
-    // for super-res, the reference frame block might be 2x than predictor in maximum
-    // for reference scaling, it might be 4x since both width and height is scaled 2x
-    // should pack enough buffer for scaled reference
-    DECLARE_ALIGNED(16, uint16_t, src16[PACKED_BUFFER_SIZE * 4]);
-    int32_t src_stride16;
-    // pack the reference into temp 16bit buffer
-    uint8_t  offset       = INTERPOLATION_OFFSET;
-    uint32_t width_scale  = 1;
-    uint32_t height_scale = 1;
-    if (is_scaled) {
-        width_scale  = subpel_params->xs != SCALE_SUBPEL_SHIFTS ? 2 : 1;
-        height_scale = subpel_params->ys != SCALE_SUBPEL_SHIFTS ? 2 : 1;
-    }
-    // optimize stride from MAX_SB_SIZE to bwidth to minimum the block buffer size
-    src_stride16 = w * width_scale + (offset << 1);
-    // 16-byte align of src16
-    if (src_stride16 % 8)
-        src_stride16 = ALIGN_POWER_OF_TWO(src_stride16, 3);
-
-    svt_aom_pack_block(src - offset - (offset * src_stride),
-                       src_stride,
-                       src_ptr_2b - offset - (offset * src_stride),
-                       src_stride,
-                       src16,
-                       src_stride16,
-                       w * width_scale + (offset << 1),
-                       h * height_scale + (offset << 1));
-    uint16_t *src_10b = src16 + offset + (offset * src_stride16);
-    uint16_t *dst16   = (uint16_t *)dst;
-
-    if (is_scaled) {
-        InterpFilterParams filter_params_x, filter_params_y;
-        av1_get_convolve_filter_params(av1_make_interp_filters(EIGHTTAP_REGULAR, EIGHTTAP_REGULAR),
-                                       &filter_params_x,
-                                       &filter_params_y,
-                                       w,
-                                       h);
-        svt_av1_highbd_convolve_2d_scale(src_10b,
-                                         src_stride16,
-                                         dst16,
-                                         dst_stride,
-                                         w,
-                                         h,
-                                         &filter_params_x,
-                                         &filter_params_y,
-                                         subpel_params->subpel_x,
-                                         subpel_params->xs,
-                                         subpel_params->subpel_y,
-                                         subpel_params->ys,
-                                         conv_params,
-                                         bd);
-    } else {
-        UNUSED(subpel_params);
-        svt_aom_convolveHbd[0][0][conv_params->is_compound](
-            src_10b, src_stride16, dst16, dst_stride, w, h, 0, 0, 0, 0, conv_params, bd);
-    }
-}
-#endif
 void svt_inter_predictor_light_pd1(uint8_t *src, uint8_t *src_2b, int32_t src_stride, uint8_t *dst,
                                    int32_t dst_stride, int32_t w, int32_t h,
                                    InterpFilterParams *filter_x, InterpFilterParams *filter_y,
@@ -2722,7 +2653,6 @@ const uint8_t *svt_av1_get_obmc_mask(int length) {
     default: assert(0); return NULL;
     }
 }
-#if CLN_MBMI_12
 int16_t svt_aom_mode_context_analyzer(int16_t mode_context, const MvReferenceFrame *const rf) {
     static unsigned svt_aom_compound_mode_ctx_map[3][COMP_NEWMV_CTXS] = {
         {0, 1, 1, 1, 1},
@@ -2740,24 +2670,3 @@ int16_t svt_aom_mode_context_analyzer(int16_t mode_context, const MvReferenceFra
         svt_aom_compound_mode_ctx_map[refmv_ctx >> 1][AOMMIN(newmv_ctx, COMP_NEWMV_CTXS - 1)];
     return comp_ctx;
 }
-#else
-int16_t svt_aom_mode_context_analyzer(const int16_t *const          mode_context,
-                                      const MvReferenceFrame *const rf) {
-    static unsigned svt_aom_compound_mode_ctx_map[3][COMP_NEWMV_CTXS] = {
-        {0, 1, 1, 1, 1},
-        {1, 2, 3, 4, 4},
-        {4, 4, 5, 6, 7},
-    };
-    const int ref_frame = av1_ref_frame_type(rf);
-
-    if (rf[1] <= INTRA_FRAME)
-        return mode_context[ref_frame];
-
-    const unsigned newmv_ctx = mode_context[ref_frame] & NEWMV_CTX_MASK;
-    const unsigned refmv_ctx = (mode_context[ref_frame] >> REFMV_OFFSET) & REFMV_CTX_MASK;
-    assert((refmv_ctx >> 1) < 3);
-    const unsigned comp_ctx =
-        svt_aom_compound_mode_ctx_map[refmv_ctx >> 1][AOMMIN(newmv_ctx, COMP_NEWMV_CTXS - 1)];
-    return comp_ctx;
-}
-#endif

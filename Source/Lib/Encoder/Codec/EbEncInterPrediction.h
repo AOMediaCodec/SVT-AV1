@@ -41,13 +41,8 @@ EbErrorType svt_aom_simple_luma_unipred(SequenceControlSet *scs, ScaleFactors sf
                                         EbPictureBufferDesc *prediction_ptr, uint16_t dst_origin_x,
                                         uint16_t dst_origin_y, uint8_t bit_depth,
                                         uint8_t subsampling_shift);
-#if CLN_IFS_PATH
 void av1_inter_prediction_light_pd1(
     SequenceControlSet *scs, MvUnit *mv_unit, uint32_t interp_filter,
-#else
-EbErrorType av1_inter_prediction_light_pd1(
-    SequenceControlSet *scs, MvUnit *mv_unit,
-#endif
     struct ModeDecisionContext *ctx, uint16_t pu_origin_x, uint16_t pu_origin_y, uint8_t bwidth,
     uint8_t bheight, EbPictureBufferDesc *ref_pic_list0, EbPictureBufferDesc *ref_pic_list1,
     EbPictureBufferDesc *pred_pic, uint16_t dst_origin_x, uint16_t dst_origin_y,
@@ -63,13 +58,6 @@ EbErrorType svt_aom_inter_prediction(
     uint8_t bheight, EbPictureBufferDesc *ref_pic_list0, EbPictureBufferDesc *ref_pic_list1,
     EbPictureBufferDesc *prediction_ptr, uint16_t dst_origin_x, uint16_t dst_origin_y,
     uint32_t component_mask, uint8_t bit_depth, uint8_t is_16bit_pipeline);
-#if !OPT_LPD0_8BIT_ONLY
-void av1_inter_prediction_light_pd0(
-    SequenceControlSet *scs, MvUnit *mv_unit, struct ModeDecisionContext *ctx, uint16_t pu_origin_x,
-    uint16_t pu_origin_y, uint8_t bwidth, uint8_t bheight, EbPictureBufferDesc *ref_pic_list0,
-    EbPictureBufferDesc *ref_pic_list1, EbPictureBufferDesc *prediction_ptr, uint16_t dst_origin_x,
-    uint16_t dst_origin_y, uint8_t bit_depth, ScaleFactors *sf0, ScaleFactors *sf1);
-#endif
 void svt_aom_search_compound_diff_wedge(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                         ModeDecisionCandidate *cand);
 Bool svt_aom_calc_pred_masked_compound(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
@@ -95,13 +83,8 @@ EbErrorType svt_aom_warped_motion_prediction(
     uint16_t dst_origin_y, NeighborArrayUnit *recon_neigh_y, NeighborArrayUnit *recon_neigh_cb,
     NeighborArrayUnit *recon_neigh_cr, ModeDecisionCandidate *cand,
     EbWarpedMotionParams *wm_params_l0, EbWarpedMotionParams *wm_params_l1, uint8_t bit_depth,
-#if OPT_WM_UV_ONLY
     uint32_t component_mask, Bool is_encode_pass);
-#else
-    Bool perform_chroma, Bool is_encode_pass);
-#endif
 
-#if CLN_FUNC_DECL
 void svt_aom_precompute_obmc_data(PictureControlSet *pcs, struct ModeDecisionContext *ctx);
 
 int64_t pick_wedge_fixed_sign(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
@@ -115,7 +98,6 @@ void model_rd_for_sb_with_curvfit(PictureControlSet *pcs, struct ModeDecisionCon
                                   int plane_from, int plane_to, int mi_row, int mi_col,
                                   int *out_rate_sum, int64_t *out_dist_sum, int *plane_rate,
                                   int64_t *plane_sse, int64_t *plane_dist);
-#endif
 const uint8_t *svt_av1_get_obmc_mask(int length);
 
 void model_rd_from_sse(BlockSize bsize, int16_t quantizer, uint8_t bit_depth, uint64_t sse,

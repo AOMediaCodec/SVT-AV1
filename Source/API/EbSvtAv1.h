@@ -299,9 +299,7 @@ typedef enum {
     PRIVATE_DATA, // data to be passed through and written to the bitstream
     //FILM_GRAIN_PARAM,        // passing film grain parameters per picture
     REF_FRAME_SCALING_EVENT, // reference frame scaling data per picture
-#if FTR_ROI
     ROI_MAP_EVENT, // ROI map data per picture
-#endif
     PRIVATE_DATA_TYPES // end of private data types
 } PrivDataType;
 typedef struct EbPrivDataNode {
@@ -315,7 +313,6 @@ typedef struct EbRefFrameScale {
     uint32_t scale_denom; // scaling denominator for non-key frame, from 8~16
     uint32_t scale_kf_denom; // scaling denominator for key frame, from 8~16
 } EbRefFrameScale;
-#if FTR_ROI
 typedef struct SvtAv1RoiMapEvt {
     uint64_t                start_picture_number;
     uint8_t                *b64_seg_map;
@@ -330,7 +327,6 @@ typedef struct SvtAv1RoiMap {
     int16_t         *qp_map;
     char            *buf;
 } SvtAv1RoiMap;
-#endif
 /**
 CPU FLAGS
 */

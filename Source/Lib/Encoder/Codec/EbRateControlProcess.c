@@ -105,11 +105,7 @@ static void get_ref_skip_percentage(PictureControlSet *pcs, uint8_t *skip_area) 
 static void free_private_data_list(EbBufferHeaderType *p) {
     EbPrivDataNode *p_node = (EbPrivDataNode *)p->p_app_private;
     while (p_node) {
-#if FTR_ROI
         if ((p_node->node_type != PRIVATE_DATA) && (p_node->node_type != ROI_MAP_EVENT))
-#else
-        if (p_node->node_type != PRIVATE_DATA)
-#endif
             EB_FREE(p_node->data);
         EbPrivDataNode *p_tmp = p_node;
         p_node                = p_node->next;
@@ -808,13 +804,6 @@ static int svt_av1_get_q_index_from_qstep_ratio(int leaf_qindex, double qstep_ra
     return qindex;
 }
 static const double r0_weight[3] = {0.75 /* I_SLICE */, 0.9 /* BASE */, 1 /* NON-BASE */};
-#if !OPT_STARTUP_MG
-static const double r0_weight_startup_mg[3][3] = {
-    {0.5 /* I_SLICE */, 0.6 /* BASE */, 1 /* NON-BASE */}, // HL2
-    {0.5 /* I_SLICE */, 0.6 /* BASE */, 1 /* NON-BASE */}, // HL3
-    {0.75 /* I_SLICE */, 0.5 /* BASE */, 1 /* NON-BASE */} // HL4
-};
-#endif
 /******************************************************
  * crf_qindex_calc
  * Assign the q_index per frame.
@@ -886,23 +875,6 @@ static int crf_qindex_calc(PictureControlSet *pcs, RATE_CONTROL *rc, int qindex)
         const unsigned int r0_weight_idx = !frame_is_intra_only(ppcs) + !!temporal_layer;
         assert(r0_weight_idx <= 2);
         double weight = r0_weight[r0_weight_idx];
-#if !OPT_STARTUP_MG
-        if (pcs->scs->static_config.startup_mg_size > 0) {
-            assert(pcs->scs->static_config.startup_mg_size >= 2 &&
-                   pcs->scs->static_config.startup_mg_size <= 4);
-            if (frame_is_intra_only(ppcs)) {
-                weight = r0_weight_startup_mg[pcs->scs->static_config.startup_mg_size - 2]
-                                             [r0_weight_idx];
-            } else {
-                // base layer weight
-                const uint32_t startup_mg_size = 1 << pcs->scs->static_config.startup_mg_size;
-                if (ppcs->last_idr_picture + startup_mg_size == pcs->picture_number) {
-                    weight = r0_weight_startup_mg[pcs->scs->static_config.startup_mg_size - 2]
-                                                 [r0_weight_idx];
-                }
-            }
-        }
-#endif
         // adjust the weight for base layer frames with shorter minigops
         if (scs->lad_mg && !frame_is_intra_only(ppcs) &&
             (ppcs->tpl_group_size < (uint32_t)(2 << pcs->ppcs->hierarchical_levels)))
@@ -1332,10 +1304,8 @@ void svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
     cr->percent_refresh = 20;
     if (ppcs->picture_number > (uint64_t)(4 * (1 << scs->max_heirachical_level) * 100 / 20))
         cr->percent_refresh = 15;
-#if OPT_LD_SC_RC
     if (ppcs->sc_class1)
         cr->percent_refresh += 5;
-#endif
 
     if (cr->apply_cyclic_refresh) {
         cr->sb_start            = scs->enc_ctx->cr_sb_end;
@@ -1353,10 +1323,8 @@ void svt_aom_cyclic_refresh_init(PictureParentControlSet *ppcs) {
         cr->rate_ratio_qdelta = 2;
     else
         cr->rate_ratio_qdelta = 3;
-#if OPT_LD_SC_RC
     if (ppcs->sc_class1)
         cr->rate_ratio_qdelta += 0.5;
-#endif
 }
 /*
 * Derives a qindex per 64x64 using ME distortions (to be used for lambda modulation only; not at Q/Q-1)
@@ -3474,14 +3442,10 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                         svt_aom_init_resize_picture(scs, pcs->ppcs);
                         if (pcs->ppcs->frame_superres_enabled || pcs->ppcs->frame_resize_enabled) {
                             // reset gm based on super-res on/off
-#if FIX_GM_PP
                             bool super_res_off = pcs->ppcs->frame_superres_enabled == FALSE &&
                                 scs->static_config.resize_mode == RESIZE_NONE;
                             svt_aom_set_gm_controls(
                                 pcs->ppcs, svt_aom_derive_gm_level(pcs->ppcs, super_res_off));
-#else
-                            svt_aom_set_gm_controls(pcs->ppcs, svt_aom_derive_gm_level(pcs->ppcs));
-#endif
                             // Initialize Segments as picture decision process
                             pcs->ppcs->me_segments_completion_count = 0;
                             pcs->ppcs->me_processed_b64_count       = 0;

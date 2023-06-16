@@ -19,9 +19,7 @@
 void svt_aom_global_motion_estimation(PictureParentControlSet *pcs, EbPictureBufferDesc *input_pic);
 
 void compute_global_motion(PictureParentControlSet *pcs,
-#if OPT_GM_CORNER
                            int *frm_corners, int num_frm_corners,
-#endif
                            EbPictureBufferDesc *det_input_pic, //src frame for detection
                            EbPictureBufferDesc *det_ref_pic, //ref frame for detection
                            EbPictureBufferDesc *input_pic, //src frame for refinement
@@ -31,7 +29,5 @@ void compute_global_motion(PictureParentControlSet *pcs,
                            int allow_high_precision_mv);
 
 void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_factor);
-#if GM_REFINFO
 extern MvReferenceFrame svt_get_ref_frame_type(uint8_t list, uint8_t ref_idx);
-#endif
 #endif // EbGlobalMotionEstimation_h

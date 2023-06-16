@@ -571,13 +571,9 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                     svt_aom_init_resize_picture(scs, ppcs);
 
                     // reset gm based on super-res on/off
-#if FIX_GM_PP
                     bool super_res_off = ppcs->frame_superres_enabled == FALSE &&
                         scs->static_config.resize_mode == RESIZE_NONE;
                     svt_aom_set_gm_controls(ppcs, svt_aom_derive_gm_level(ppcs, super_res_off));
-#else
-                    svt_aom_set_gm_controls(ppcs, svt_aom_derive_gm_level(ppcs));
-#endif
                     // Initialize Segments as picture decision process
                     ppcs->me_segments_completion_count = 0;
                     ppcs->me_processed_b64_count       = 0;
@@ -705,10 +701,8 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
                     EB_FREE_ARRAY(pcs->tile_tok[0][0]);
             }
         }
-#if OPT_TF_REF_PICS
         else if (!scs->static_config.stat_report)
             free_temporal_filtering_buffer(pcs, scs);
-#endif
         //****************************************************
         // Input Entropy Results into Reordering Queue
         //****************************************************
@@ -925,17 +919,11 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             enc_ctx->sc_frame_out++;
             svt_release_mutex(enc_ctx->sc_buffer_mutex);
         }
-#if !FIX_DEADLOCK
-        // Post Rate Control Taks
-        svt_post_full_object(rate_control_tasks_wrapper_ptr);
-#endif
         if (scs->enable_dec_order || (pcs->ppcs->is_ref == TRUE && pcs->ppcs->ref_pic_wrapper))
             // Post the Full Results Object
             svt_post_full_object(picture_manager_results_wrapper_ptr);
-#if FIX_DEADLOCK
         // Post Rate Control Task. Be done after postig to PM as RC might release ppcs
         svt_post_full_object(rate_control_tasks_wrapper_ptr);
-#endif
         if (pcs->ppcs->frm_hdr.allow_intrabc)
             svt_av1_hash_table_destroy(&pcs->hash_table);
         svt_release_object(pcs->ppcs->enc_dec_ptr->enc_dec_wrapper); // Child

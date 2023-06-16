@@ -64,9 +64,6 @@ void svt_aom_get_syntax_rate_from_cdf(int32_t *costs, const AomCdfProb *cdf,
             break;
     }
 }
-#if !CLN_FUNC_DECL
-int svt_aom_filter_intra_allowed_bsize(uint8_t enable_filter_intra, BlockSize bs);
-#endif
 /*************************************************************
  * svt_aom_estimate_syntax_rate()
  * Estimate the rate for each syntax elements and for
@@ -182,18 +179,10 @@ void svt_aom_estimate_syntax_rate(MdRateEstimationContext *md_rate_est_ctx, Bool
         if (CFL_SIGN_V(joint_sign) == CFL_SIGN_ZERO)
             memset(fac_bits_v, 0, CFL_ALPHABET_SIZE * sizeof(*fac_bits_v));
         else {
-#if CLN_CFL_SIGNALLING
             assert((CFL_CONTEXT_V(joint_sign) < CFL_ALPHA_CONTEXTS) &&
                    (CFL_CONTEXT_V(joint_sign) >= 0));
             const AomCdfProb *cdf_v = fc->cfl_alpha_cdf[CFL_CONTEXT_V(joint_sign)];
             svt_aom_get_syntax_rate_from_cdf(fac_bits_v, cdf_v, NULL);
-#else
-            int32_t cdf_index = CFL_CONTEXT_V(joint_sign);
-            if ((cdf_index < CFL_ALPHA_CONTEXTS) && (cdf_index >= 0)) {
-                const AomCdfProb *cdf_v = fc->cfl_alpha_cdf[cdf_index];
-                svt_aom_get_syntax_rate_from_cdf(fac_bits_v, cdf_v, NULL);
-            }
-#endif
         }
         for (int32_t u = 0; u < CFL_ALPHABET_SIZE; u++) fac_bits_u[u] += sign_fac_bits[joint_sign];
     }
@@ -555,38 +544,9 @@ void svt_aom_estimate_coefficients_rate(MdRateEstimationContext *md_rate_est_ctx
         }
     }
 }
-#if !CLN_REMOVE_NEIGH_ARRAYS_2
-static INLINE int av1_get_skip_mode_context(const MacroBlockD *xd) {
-    const MbModeInfo *const above_mi        = xd->above_mbmi;
-    const MbModeInfo *const left_mi         = xd->left_mbmi;
-    const int               above_skip_mode = above_mi ? above_mi->block_mi.skip_mode : 0;
-    const int               left_skip_mode  = left_mi ? left_mi->block_mi.skip_mode : 0;
-    return above_skip_mode + left_skip_mode;
-}
-#endif
-#if !FIX_SKIP_NEIGH_ARRAY
-static INLINE int av1_get_skip_context(const MacroBlockD *xd) {
-    const MbModeInfo *const above_mi   = xd->above_mbmi;
-    const MbModeInfo *const left_mi    = xd->left_mbmi;
-    const int               above_skip = above_mi ? above_mi->block_mi.skip : 0;
-    const int               left_skip  = left_mi ? left_mi->block_mi.skip : 0;
-    return above_skip + left_skip;
-}
-#endif
-#if CLN_REMOVE_NEIGH_ARRAYS_2
 static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MacroBlockD *xd) {
     uint8_t above_ctx, left_ctx;
     svt_aom_get_kf_y_mode_ctx(xd, &above_ctx, &left_ctx);
-#else
-static INLINE AomCdfProb *get_y_mode_cdf(FRAME_CONTEXT *tile_ctx, const MbModeInfo *above_mi,
-                                         const MbModeInfo *left_mi) {
-    const PredictionMode above = above_mi ? above_mi->block_mi.mode : DC_PRED;
-    const PredictionMode left  = left_mi ? left_mi->block_mi.mode : DC_PRED;
-    assert(above < 13);
-    assert(left < 13);
-    const int above_ctx = intra_mode_context[above];
-    const int left_ctx = intra_mode_context[left];
-#endif
     return tile_ctx->kf_y_cdf[above_ctx][left_ctx];
 }
 int         svt_aom_has_second_ref(const MbModeInfo *mbmi);
@@ -613,28 +573,7 @@ int         svt_aom_is_interintra_allowed_ref(const MvReferenceFrame rf[2]);
 int         svt_aom_is_interintra_allowed(const MbModeInfo *mbmi);
 int         svt_aom_get_comp_group_idx_context_enc(const MacroBlockD *xd);
 
-#if !CLN_IFS_PATH
-int32_t svt_aom_is_nontrans_global_motion_ec(MvReferenceFrame rf0, MvReferenceFrame rf1,
-                                             BlkStruct *blk_ptr, BlockSize bsize,
-                                             PictureParentControlSet *pcs);
-#endif
-#if !CLN_FUNC_DECL
-int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
-#endif
-#if !CLN_IFS_PATH
-//Returns a context number for the given MB prediction signal
-/*static*/ InterpFilter svt_aom_get_ref_filter_type(const BlockModeInfoEnc *ref_mbmi, int dir,
-                                                    MvReferenceFrame ref_frame) {
-    return ((ref_mbmi->ref_frame[0] == ref_frame || ref_mbmi->ref_frame[1] == ref_frame)
-                ? av1_extract_interp_filter(ref_mbmi->interp_filters, dir & 0x01)
-                : SWITCHABLE_FILTERS);
-}
-#endif
 extern int svt_aom_allow_intrabc(const FrameHeader *frm_hdr, SliceType slice_type);
-#if !CLN_FUNC_DECL
-int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, uint8_t palette_size,
-                                 uint32_t mode);
-#endif
 
 INLINE int32_t is_chroma_reference(int32_t mi_row, int32_t mi_col, BlockSize bsize,
                                    int32_t subsampling_x, int32_t subsampling_y);
@@ -648,88 +587,16 @@ int svt_aom_get_palette_bsize_ctx(BlockSize bsize);
 int svt_aom_get_palette_mode_ctx(const MacroBlockD *xd);
 
 static INLINE InterpFilter av1_extract_interp_filter(InterpFilters filters, int32_t x_filter);
-#if !CLN_REMOVE_NEIGH_ARRAYS_2
-/*******************************************************************************
-* The mode info data structure has a one element border above and to the
-* left of the entries corresponding to real macroblocks.
-* The prediction flags in these dummy entries are initialized to 0.
-* 0 - inter/inter, inter/--, --/inter, --/--
-* 1 - intra/inter, inter/intra
-* 2 - intra/--, --/intra
-* 3 - intra/intra
- ******************************************************************************/
-int svt_av1_get_intra_inter_context(const MacroBlockD *xd) {
-    const MbModeInfo *const above_mbmi = xd->above_mbmi;
-    const MbModeInfo *const left_mbmi  = xd->left_mbmi;
-    const int               has_above  = xd->up_available;
-    const int               has_left   = xd->left_available;
-
-    if (has_above && has_left) { // both edges available
-        const int above_intra = !is_inter_block(&above_mbmi->block_mi);
-        const int left_intra  = !is_inter_block(&left_mbmi->block_mi);
-        return left_intra && above_intra ? 3 : left_intra || above_intra;
-    } else if (has_above || has_left) { // one edge available
-        return 2 * !is_inter_block(has_above ? &above_mbmi->block_mi : &left_mbmi->block_mi);
-    } else {
-        return 0;
-    }
-}
-#endif
 int32_t svt_aom_partition_cdf_length(BlockSize bsize);
-#if !CLN_IFS_PATH
-static int av1_get_pred_context_switchable_interp(const MacroBlockD *xd, int dir) {
-    const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;
-    const int ctx_offset = (mbmi->block_mi.ref_frame[1] > INTRA_FRAME) * INTER_FILTER_COMP_OFFSET;
-    assert(dir == 0 || dir == 1);
-    const MvReferenceFrame ref_frame = mbmi->block_mi.ref_frame[0];
-    // Note:
-    // The mode info data structure has a one element border above and to the
-    // left of the entries corresponding to real macroblocks.
-    // The prediction flags in these dummy entries are initialized to 0.
-    int filter_type_ctx = ctx_offset + (dir & 0x01) * INTER_FILTER_DIR_OFFSET;
-    int left_type       = SWITCHABLE_FILTERS;
-    int above_type      = SWITCHABLE_FILTERS;
-
-    if (xd->left_available)
-        left_type = svt_aom_get_ref_filter_type(&xd->mi[-1]->mbmi.block_mi, dir, ref_frame);
-
-    if (xd->up_available)
-        above_type = svt_aom_get_ref_filter_type(
-            &xd->mi[-xd->mi_stride]->mbmi.block_mi, dir, ref_frame);
-
-    if (left_type == above_type) {
-        filter_type_ctx += left_type;
-    } else if (left_type == SWITCHABLE_FILTERS) {
-        assert(above_type != SWITCHABLE_FILTERS);
-        filter_type_ctx += above_type;
-    } else if (above_type == SWITCHABLE_FILTERS) {
-        assert(left_type != SWITCHABLE_FILTERS);
-        filter_type_ctx += left_type;
-    } else {
-        filter_type_ctx += SWITCHABLE_FILTERS;
-    }
-    return filter_type_ctx;
-}
-#endif
 /*******************************************************************************
  * Updates all the filter type stats/CDF for the current block
  ******************************************************************************/
-#if FIX_IFS_RATE_UPDATE
 static AOM_INLINE void update_filter_type_cdf(MacroBlockD *xd, const MbModeInfo *const mbmi,
                                               const bool enable_dual_filter) {
     const int max_dir = enable_dual_filter ? 2 : 1;
     for (int dir = 0; dir < max_dir; ++dir) {
-#else
-static AOM_INLINE void update_filter_type_cdf(MacroBlockD *xd, const MbModeInfo *const mbmi) {
-    int dir;
-    for (dir = 0; dir < 2; ++dir) {
-#endif
-#if CLN_IFS_PATH
         const int ctx = svt_aom_get_pred_context_switchable_interp(
             xd->mi[0]->mbmi.block_mi.ref_frame[0], xd->mi[0]->mbmi.block_mi.ref_frame[1], xd, dir);
-#else
-        const int ctx = av1_get_pred_context_switchable_interp(xd, dir);
-#endif
         InterpFilter filter = av1_extract_interp_filter(mbmi->block_mi.interp_filters, dir);
         update_cdf(xd->tile_ctx->switchable_interp_cdf[ctx], filter, SWITCHABLE_FILTERS);
     }
@@ -850,9 +717,6 @@ static AOM_INLINE void update_palette_cdf(MacroBlockD *xd, const MbModeInfo *con
  * Updates all the Intra stats/CDF for the current block
  ******************************************************************************/
 static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_ptr,
-#if !CLN_REMOVE_NEIGH_ARRAYS_2
-                                       const MbModeInfo *above_mi, const MbModeInfo *left_mi,
-#endif
                                        const int intraonly, const int mi_row, const int mi_col) {
     MacroBlockD            *xd       = blk_ptr->av1xd;
     const MbModeInfo *const mbmi     = &xd->mi[0]->mbmi;
@@ -864,11 +728,7 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
     assert(y_mode < 13);
 
     if (intraonly) {
-#if CLN_REMOVE_NEIGH_ARRAYS_2
         update_cdf(get_y_mode_cdf(fc, xd), y_mode, INTRA_MODES);
-#else
-        update_cdf(get_y_mode_cdf(fc, above_mi, left_mi), y_mode, INTRA_MODES);
-#endif
     } else {
         update_cdf(fc->y_mode_cdf[size_group_lookup[bsize]], y_mode, INTRA_MODES);
     }
@@ -927,9 +787,7 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
  ******************************************************************************/
 void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row, int mi_col) {
     //    const AV1_COMMON *const cm   = pcs->ppcs->av1_cm;
-#if CLN_IFS_PATH
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
-#endif
     MacroBlockD            *xd   = blk_ptr->av1xd;
     const MbModeInfo *const mbmi = &xd->mi[0]->mbmi;
 
@@ -953,10 +811,6 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
     if (!is_inter_block(&mbmi->block_mi)) {
         sum_intra_stats(pcs,
                         blk_ptr,
-#if !CLN_REMOVE_NEIGH_ARRAYS_2
-                        xd->above_mbmi,
-                        xd->left_mbmi,
-#endif
                         frame_is_intra_only(pcs->ppcs),
                         mi_row,
                         mi_col);
@@ -1053,7 +907,6 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
                     update_cdf(fc->interintra_cdf[bsize_group], 0, 2);
                 }
             }
-#if OPT_CHILD_PCS
             const MotionMode motion_allowed = pcs->ppcs->frm_hdr.is_motion_mode_switchable
                 ? svt_aom_motion_mode_allowed(
                       pcs,
@@ -1064,16 +917,6 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
                       mbmi->block_mi.ref_frame[1],
                       mbmi->block_mi.mode)
                 : SIMPLE_TRANSLATION;
-#else
-            const MotionMode motion_allowed = pcs->ppcs->frm_hdr.is_motion_mode_switchable
-                ? svt_aom_motion_mode_allowed(pcs,
-                                              blk_ptr,
-                                              bsize,
-                                              mbmi->block_mi.ref_frame[0],
-                                              mbmi->block_mi.ref_frame[1],
-                                              mbmi->block_mi.mode)
-                : SIMPLE_TRANSLATION;
-#endif
             if (mbmi->block_mi.ref_frame[1] != INTRA_FRAME) {
                 if (motion_allowed == WARPED_CAUSAL) {
                     update_cdf(fc->motion_mode_cdf[bsize],
@@ -1123,38 +966,21 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
             }
         }
     }
-#if CLN_IFS_PATH
     if (inter_block && frm_hdr->interpolation_filter == SWITCHABLE &&
-#else
-    if (inter_block && pcs->ppcs->av1_cm->interp_filter == SWITCHABLE &&
-#endif
         blk_ptr->prediction_unit_array[0].motion_mode != WARPED_CAUSAL &&
-#if OPT_CHILD_PCS
         !svt_aom_is_nontrans_global_motion_ec(mbmi->block_mi.ref_frame[0],
                                               mbmi->block_mi.ref_frame[1],
                                               blk_ptr->pred_mode,
                                               bsize,
                                               pcs->ppcs)) {
-#else
-        !svt_aom_is_nontrans_global_motion_ec(
-            mbmi->block_mi.ref_frame[0], mbmi->block_mi.ref_frame[1], blk_ptr, bsize, pcs->ppcs)) {
-#endif
-#if FIX_IFS_RATE_UPDATE
         update_filter_type_cdf(xd, mbmi, pcs->scs->seq_header.enable_dual_filter);
-#else
-        update_filter_type_cdf(xd, mbmi);
-#endif
     }
     if (inter_block && !seg_ref_active) {
         const PredictionMode mode = mbmi->block_mi.mode;
         MvReferenceFrame     rf[2];
         av1_set_ref_frame(rf, blk_ptr->prediction_unit_array[0].ref_frame_type);
-#if CLN_MBMI_12
         const int16_t mode_ctx = svt_aom_mode_context_analyzer(
             blk_ptr->inter_mode_ctx[blk_ptr->prediction_unit_array[0].ref_frame_type], rf);
-#else
-        const int16_t mode_ctx = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
-#endif
         if (svt_aom_has_second_ref(mbmi)) {
             update_cdf(fc->inter_compound_mode_cdf[mode_ctx],
                        INTER_COMPOUND_OFFSET(mode),

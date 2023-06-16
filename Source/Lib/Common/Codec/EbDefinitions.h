@@ -132,50 +132,19 @@ typedef struct MrpCtrls {
 typedef struct TfControls {
     // Filtering set
     uint8_t enabled; // Specifies whether the current input will be filtered or not (0: OFF, 1: ON)
-#if OPT_LD_TF
     // Specifies whether the U& V planes will be filered or not (0: OFF (filter plane Y only)
     // 1: ON (filter all planes) 2: filter Y and decide to filter U and V based on the noise level)
     uint8_t chroma_lvl;
-#else
-    // Specifies whether the U& V planes will be filered or not (0: filter all planes, 1 : filter Y
-    // plane only)
-    uint8_t do_chroma;
-#endif
-#if !CLN_TF
-    // Specifies whether the weights generation will use approximations or not (0: do not use
-    // approximations, 1: per-block weights derivation, use an approximated exponential & log, use
-    // an approximated noise level)
-    uint8_t use_medium_filter;
-#endif
-#if OPT_LD_TF
     // Specifies whether the motion esimation is used or (0, 0) MVs are used (0: use motion estimation
     // 1: skip motion estimation search and use (0, 0) MVs
     uint8_t use_zz_based_filter;
-#endif
-#if !CLN_TF
-    // Specifies whether the weights derivation will use the distance factor(MV - based correction)
-    // and the 5x5 window error or not (0: OFF, 1 : ON)
-    uint8_t use_fast_filter;
-    // Specifies noise-level-estimation and filtering precision (0: use float/double precision, 1:
-    // use fixed point precision)
-    uint8_t use_fixed_point;
-#endif
     // Number of reference frame(s) set
     uint8_t num_past_pics; // Specifies the default number of frame(s) from past
     uint8_t num_future_pics; // Specifies the default number of frame(s) from future
-#if OPT_TF_REF_PICS
     // Specifies whether the number of reference frame(s) will be modified or not
     // For INTRA, the modulation uses the noise level
     // For BASE and L1, the modulation uses the filt_INTRA-to-unfilterd_INTRA distortion range
     uint8_t modulate_pics;
-#else
-    // Specifies whether num_past_pics will be incremented or not based on the noise level of the
-    // central frame(0: OFF or 1 : ON)
-    uint8_t noise_adjust_past_pics;
-    // Specifies whether num_future_pics will be incremented or not based on the noise level of the
-    // central frame(0: OFF or 1 : ON)
-    uint8_t noise_adjust_future_pics;
-#endif
     // Specifies whether to use the key- rame noise level for all inputs or to re - compute the
     // noise level for each input
     uint8_t use_intra_for_noise_est;
@@ -217,7 +186,6 @@ typedef struct TfControls {
     // block(s) is bypassed
     uint64_t pred_error_32x32_th;
 
-#if CLN_TF
     // Specifies whether to exit ME after HME or not (0: perform both HME and Full-Pel search, else
     // if the HME distortion is less than me_exit_th then exit after HME(i.e. do not perform the
     // Full-Pel search)
@@ -227,24 +195,10 @@ typedef struct TfControls {
     // deviation between the 64x64 ME distortion and the sum of the 4 32x32 ME distortions is less
     // than use_pred_64x64_only_th then perform Sub - Pel search for only the 64x64 block
     uint8_t use_pred_64x64_only_th;
-#else
-    // Specifies whether to exit ME after HME or not (0: perform both HME and Full-Pel search, else
-    // if the HME distortion is less than me_exit_th then exit after HME(i.e. do not perform the
-    // Full-Pel search), NA if use_fast_filter is set 0)
-    uint32_t me_exit_th;
-    // Specifies whether to perform Sub-Pel search for only the 64x64 block or to use default
-    // size(s) (32x32 or/ and 16x16) (∞: perform Sub-Pel search for default size(s), else if the
-    // deviation between the 64x64 ME distortion and the sum of the 4 32x32 ME distortions is less
-    // than use_pred_64x64_only_th then perform Sub - Pel search for only the 64x64 block, NA if
-    // use_fast_filter is set 0)
-    uint8_t use_pred_64x64_only_th;
-#endif
     // Specifies whether to early exit the Sub-Pel search based on a pred-error-th or not
     uint8_t subpel_early_exit;
-#if ENHANCE_KEY_FRAME
     // Specifies whether to skip reference frame e.g. 1 = use all frames, 2 = use every other frame, 4 = use 1/4 frames, etc.
     uint8_t ref_frame_factor;
-#endif
 } TfControls;
 typedef enum GM_LEVEL {
     GM_FULL   = 0, // Exhaustive search mode.
@@ -340,22 +294,13 @@ enum {
 #define NSQ_TAB_SIZE 8
 #define NUMBER_OF_DEPTH 6
 #define NUMBER_OF_SHAPES 10
-#if OPT_TF_REF_PICS
-#if INCREASE_REF_PICS
 #define TF_MAX_EXTENSION 7 // Max additional tf pics after modulation per side
 #define TF_MAX_BASE_REF_PICS_6L 8 // Max additional tf pics at each side for BASE for 6L hierarchy
 #define TF_MAX_BASE_REF_PICS_SUB_6L \
     8 // Max additional tf pics at each side for BASE for sub-6L hierarchy
-#else
-#define TF_MAX_EXTENSION 5 // Max additional tf pics after modulation per side
-#define TF_MAX_BASE_REF_PICS_6L 6 // Max additional tf pics at each side for BASE for 6L hierarchy
-#define TF_MAX_BASE_REF_PICS_SUB_6L \
-    6 // Max additional tf pics at each side for BASE for sub-6L hierarchy
-#endif
 #define TF_MAX_L1_REF_PICS_6L 2 // Max additional tf pics at each side for L1 for 6L hierarchy
 #define TF_MAX_L1_REF_PICS_SUB_6L \
     1 // Max additional tf pics at each side for L1 for sub-6L hierarchy
-#endif
 //  Delta QP support
 #define ADD_DELTA_QP_SUPPORT 1 // Add delta QP support
 #define BLOCK_MAX_COUNT_SB_128 4421
@@ -698,12 +643,8 @@ typedef enum ATTRIBUTE_PACKED {
     LPD0_LVL_1 = 1,
     LPD0_LVL_2 = 2,
     LPD0_LVL_3 = 3,
-#if OPT_DEPTH_REFIN
     LPD0_LVL_4     = 4,
     VERY_LIGHT_PD0 = 5, // Lightest PD0 path, doesn't perform TX
-#else
-    VERY_LIGHT_PD0 = 4, // Lightest PD0 path, doesn't perform TX
-#endif
     LPD0_LEVELS // Number of light-PD0 paths (regular PD0 isn't a light-PD0 path)
 } Pd0Level;
 
@@ -791,12 +732,10 @@ typedef enum {
 } InterpFilter;
 
 #define AV1_COMMON Av1Common
-#if OPT_SPEL
 enum {
     SPEL_ME, //ME
     SPEL_PME, //PME
 } UENUM1BYTE(SUBPEL_STAGE);
-#endif
 enum {
     USE_2_TAPS_ORIG = 0, // This is used in temporal filtering.
     USE_2_TAPS,
@@ -1234,9 +1173,6 @@ typedef enum ATTRIBUTE_PACKED {
     COMP_INTER_MODE_NUM     = COMP_INTER_MODE_END - COMP_INTER_MODE_START,
     INTRA_MODES             = PAETH_PRED + 1, // PAETH_PRED has to be the last intra mode.
     INTRA_INVALID           = MB_MODE_COUNT, // For uv_mode in inter blocks
-#if !CLN_MISC_CLEANUPS
-    INTRA_MODE_4x4
-#endif
 } PredictionMode;
 
 #define MAX_UPSAMPLE_SZ 16
@@ -1346,7 +1282,6 @@ typedef enum ATTRIBUTE_PACKED {
     FILTER_PAETH_PRED,
     FILTER_INTRA_MODES,
 } FilterIntraMode;
-#if OPT_CHILD_PCS
 typedef struct {
     /*!< Specifies how the two predictions should be blended together. */
     CompoundType type;
@@ -1359,12 +1294,7 @@ typedef struct {
 
     /*!< Specifies the type of mask to be used during blending. */
     DIFFWTD_MASK_TYPE mask_type;
-#if !SHUT_SEG_MASK
-    // Temp buffer used for inter prediction
-    uint8_t *seg_mask;
-#endif
 } EcInterInterCompoundData;
-#endif
 static const PredictionMode fimode_to_intramode[FILTER_INTRA_MODES] = {
     DC_PRED, V_PRED, H_PRED, D157_PRED, PAETH_PRED};
 #define DIRECTIONAL_MODES 8
@@ -1607,15 +1537,9 @@ typedef enum AomCodecErr
 
 //**********************************************************************************************************************//
 // Common_data.h
-#if CLN_REMOVE_NEIGH_ARRAYS_2
 static const uint8_t intra_mode_context[INTRA_MODES] = {
     0, 1, 2, 3, 4, 4, 4, 4, 3, 0, 1, 2, 0,
 };
-#else
-static const int32_t intra_mode_context[INTRA_MODES] = {
-    0, 1, 2, 3, 4, 4, 4, 4, 3, 0, 1, 2, 0,
-};
-#endif
 
 static const TxSize txsize_sqr_map[TX_SIZES_ALL] = {
     TX_4X4,    // TX_4X4
@@ -2284,12 +2208,10 @@ typedef struct {
     PaletteModeInfo pmi;
     uint8_t  *color_idx_map;
 } PaletteInfo;
-#if OPT_CHILD_PCS
 typedef struct {
     PaletteModeInfo pmi;
     uint8_t* color_idx_map;
 } EcPaletteInfo;
-#endif
 /** The EbHandle type is used to define OS object handles for threads,
 semaphores, mutexs, etc.
 */

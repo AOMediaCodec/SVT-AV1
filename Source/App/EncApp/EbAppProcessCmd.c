@@ -272,7 +272,6 @@ bool process_skip(EbConfig *app_cfg, EbBufferHeaderType *header_ptr) {
     return true;
 }
 
-#if FTR_ROI
 static EbErrorType retrieve_roi_map_event(SvtAv1RoiMap *roi_map, uint64_t pic_num,
                                           EbBufferHeaderType *header_ptr) {
     if (roi_map == NULL || roi_map->evt_list == NULL) {
@@ -323,7 +322,6 @@ static void free_private_data_list(void *node_head) {
         free(node);
     };
 }
-#endif
 
 //************************************/
 // process_input_buffer
@@ -386,15 +384,11 @@ void process_input_buffer(EncChannel *channel) {
 
             header_ptr->flags    = 0;
             header_ptr->metadata = NULL;
-#if FTR_ROI
             retrieve_roi_map_event(app_cfg->roi_map, header_ptr->pts, header_ptr);
-#endif
             // Send the picture
             svt_av1_enc_send_picture(component_handle, header_ptr);
-#if FTR_ROI
             // p_app_private is deep copied so it's safe to free it now
             free_private_data_list(header_ptr->p_app_private);
-#endif
 
             if (app_cfg->mmap.enable)
                 release_memory_mapped_file(app_cfg, is_16bit, header_ptr);

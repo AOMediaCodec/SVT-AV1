@@ -21,22 +21,14 @@
 #include "EbInterPrediction.h"
 #include "aom_dsp_rtcd.h"
 
-#if !CLN_FUNC_DECL
-int svt_av1_allow_palette(int allow_palette, BlockSize bsize);
-#endif
-#if FTR_ROI
 int  svt_av1_get_spatial_seg_prediction(PictureControlSet *pcs, MacroBlockD *xd, uint32_t blk_org_x,
                                         uint32_t blk_org_y, int *cdf_index);
 void svt_av1_update_segmentation_map(PictureControlSet *pcs, BlockSize bsize, uint32_t blk_org_x,
                                      uint32_t blk_org_y, uint8_t segment_id);
-#endif
 
 #define MVREF_ROWS 3
 #define MVREF_COLS 3
 
-#if !CLN_FUNC_DECL
-extern int32_t svt_aom_have_newmv_in_inter_mode(PredictionMode mode);
-#endif
 
 typedef struct position {
     int32_t row;
@@ -1315,18 +1307,13 @@ void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr,
         }
     }
 }
-#if FTR_ROI
 void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx,
                                    PictureControlSet *pcs) {
-#else
-void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx) {
-#endif
     // Update only the data in the top left block of the partition, because all other mi_blocks
     // point to the top left mi block of the partition
     blk_ptr->av1xd->mi[0]->mbmi.block_mi.skip      = blk_ptr->block_has_coeff ? FALSE : TRUE;
     blk_ptr->av1xd->mi[0]->mbmi.block_mi.skip_mode = (int8_t)blk_ptr->skip_mode;
 
-#if FTR_ROI
     if (pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled) {
         int blk_org_x = ctx->blk_org_x;
         int blk_org_y = ctx->blk_org_y;
@@ -1342,7 +1329,6 @@ void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx)
             pcs, ctx->blk_geom->bsize, blk_org_x, blk_org_y, blk_ptr->segment_id);
         blk_ptr->av1xd->mi[0]->mbmi.block_mi.segment_id = blk_ptr->segment_id;
     }
-#endif
 
     // update palette_colors mi map when input bit depth is 10bit and hbd mode decision is 0 (8bit MD)
     // palette_colors were scaled to 10bit in svt_aom_encode_decode so here we need to update mi map for entropy coding
@@ -1383,7 +1369,6 @@ void svt_copy_mi_map_grid_c(ModeInfo **mi_grid_ptr, uint32_t mi_stride, uint8_t 
         }
     }
 }
-#if CLN_MBMI
 MbModeInfo *get_mbmi(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t blk_org_y) {
     uint32_t mi_stride = pcs->mi_stride;
     int32_t  mi_row    = blk_org_y >> MI_SIZE_LOG2;
@@ -1404,15 +1389,9 @@ MbModeInfo *get_mbmi(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t blk_or
 
     return mbmi;
 }
-#endif
-#if FTR_ROI
 void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
                            const BlockGeom *blk_geom, PictureControlSet *pcs,
                            ModeDecisionContext *ctx) {
-#else
-void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_org_y,
-                           const BlockGeom *blk_geom, PictureControlSet *pcs) {
-#endif
     uint32_t mi_stride = pcs->mi_stride;
     int32_t  mi_row    = blk_org_y >> MI_SIZE_LOG2;
     int32_t  mi_col    = blk_org_x >> MI_SIZE_LOG2;
@@ -1446,14 +1425,7 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
         mbmi->palette_mode_info.palette_size = 0;
     }
 
-#if CLN_MISC_CLEANUPS
     block_mi->bsize = blk_geom->bsize;
-#else
-    block_mi->bsize = (blk_ptr->prediction_mode_flag == INTRA_MODE &&
-                       blk_ptr->pred_mode == INTRA_MODE_4x4)
-        ? BLOCK_4X4
-        : blk_geom->bsize;
-#endif
     block_mi->mode         = blk_ptr->pred_mode;
     block_mi->skip         = (blk_ptr->block_has_coeff) ? FALSE : TRUE;
     block_mi->partition    = from_shape_to_part[blk_geom->shape];
@@ -1479,7 +1451,6 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
         block_mi->compound_idx   = blk_ptr->compound_idx;
         block_mi->interp_filters = blk_ptr->interp_filters;
     }
-#if FTR_ROI
     if (ctx->bypass_encdec && pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled) {
         if (!blk_ptr->block_has_coeff) {
             // predict and update segment id if current coding block has no ceoff
@@ -1492,7 +1463,6 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
             pcs, blk_geom->bsize, blk_org_x, blk_org_y, blk_ptr->segment_id);
         block_mi->segment_id = blk_ptr->segment_id;
     }
-#endif
     // The data copied into each mi block is the same; therefore, copy the data from the blk_ptr only for the first block_mi
     // then use change the mi block pointers of the remaining blocks ot point to the first block_mi. All data that
     // is used from block_mi should be updated above.
