@@ -253,7 +253,6 @@ extern "C" {
 #define CLN_UNUSED_DEFNS                          1 // Remove unused definitions
 #define FIX_GM_CI                                 1 // Clean Up GM code
 
-#define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define FIX_DEADLOCK            1 // Deadlock Fix
 #define OPT_LD_M12_SC           1
 #define OPT_LD_M8_SC            1
@@ -263,6 +262,7 @@ extern "C" {
 #define OPT_LD_SC_ME            1
 
 //FOR DEBUGGING - Do not remove
+#define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
 #define DEBUG_TPL               0 // Prints to debug TPL
