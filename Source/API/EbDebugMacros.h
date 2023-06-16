@@ -261,6 +261,8 @@ extern "C" {
 #define OPT_LD_SC_RC            1
 #define OPT_LD_SC_ME            1
 
+#define REORDER_5L_REFS         0
+
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
