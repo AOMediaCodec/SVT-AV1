@@ -137,25 +137,25 @@ typedef struct SequenceControlSet {
     uint8_t compound_mode;
 
     /*!< Sequence resolution parameters */
-    uint32_t chroma_format_idc;
-    uint16_t subsampling_x; // add chroma subsampling parameters
-    uint16_t subsampling_y;
-    uint16_t max_input_luma_width; // input luma width aligned to 8, this is used during encoding
-    uint16_t max_input_luma_height; // input luma height aligned to 8, this is used during encoding
-    uint16_t max_input_chroma_width;
-    uint16_t max_input_chroma_height;
-    uint16_t max_input_pad_bottom;
-    uint16_t max_input_pad_right;
-    uint32_t chroma_width;
-    uint32_t chroma_height;
-    uint32_t pad_right;
-    uint32_t pad_bottom;
-    uint16_t left_padding;
-    uint16_t top_padding;
-    uint16_t right_padding;
-    uint16_t bot_padding;
-    uint32_t frame_rate; //stored in Q16
-    uint32_t encoder_bit_depth;
+    uint32_t          chroma_format_idc;
+    uint16_t          subsampling_x; // add chroma subsampling parameters
+    uint16_t          subsampling_y;
+    uint16_t          max_input_luma_width; // input luma width aligned to 8, this is used during encoding
+    uint16_t          max_input_luma_height; // input luma height aligned to 8, this is used during encoding
+    uint16_t          max_input_chroma_width;
+    uint16_t          max_input_chroma_height;
+    uint16_t          max_input_pad_bottom;
+    uint16_t          max_input_pad_right;
+    uint32_t          chroma_width;
+    uint32_t          chroma_height;
+    uint32_t          pad_right;
+    uint32_t          pad_bottom;
+    uint16_t          left_padding;
+    uint16_t          top_padding;
+    uint16_t          right_padding;
+    uint16_t          bot_padding;
+    uint32_t          frame_rate; //stored in Q16
+    uint32_t          encoder_bit_depth;
     EbInputResolution input_resolution;
 
     /*!< Super block parameters set for the stream */
@@ -416,8 +416,7 @@ extern EbErrorType svt_sequence_control_set_instance_ctor(EbSequenceControlSetIn
 
 extern EbErrorType svt_aom_b64_geom_init(SequenceControlSet *scs);
 
-extern EbErrorType svt_aom_derive_input_resolution(EbInputResolution *input_resolution,
-                                                   uint32_t           input_size);
+extern EbErrorType svt_aom_derive_input_resolution(EbInputResolution *input_resolution, uint32_t input_size);
 
 EbErrorType svt_aom_sb_geom_init(SequenceControlSet *scs);
 

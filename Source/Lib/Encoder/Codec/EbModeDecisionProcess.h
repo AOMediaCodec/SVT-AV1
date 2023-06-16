@@ -38,8 +38,7 @@ extern "C" {
  * Macros
  **************************************/
 
-#define GROUP_OF_4_8x8_BLOCKS(org_x, org_y) \
-    (((org_x >> 3) & 0x1) && ((org_y >> 3) & 0x1) ? TRUE : FALSE)
+#define GROUP_OF_4_8x8_BLOCKS(org_x, org_y) (((org_x >> 3) & 0x1) && ((org_y >> 3) & 0x1) ? TRUE : FALSE)
 #define GROUP_OF_4_16x16_BLOCKS(org_x, org_y) \
     (((((org_x >> 3) & 0x2) == 0x2) && (((org_y >> 3) & 0x2) == 0x2)) ? TRUE : FALSE)
 #define GROUP_OF_4_32x32_BLOCKS(org_x, org_y) \
@@ -83,9 +82,9 @@ typedef struct MdBlkStruct {
     EbWarpedMotionParams wm_params_l0;
     EbWarpedMotionParams wm_params_l1;
     // txb
-    uint8_t u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
-    uint8_t y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t  u_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t  v_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
+    uint8_t  y_has_coeff[TRANSFORM_UNIT_MAX_COUNT];
     uint16_t min_nz_h;
     uint16_t min_nz_v;
 } MdBlkStruct;
@@ -441,10 +440,9 @@ typedef struct NsqPsqTxsCtrls {
     // and min(H0-nz,H1-nz)/min(V0-nz,V1-nz) is higher than h_to_v_th * sq-nz
 } NsqPsqTxsCtrls;
 typedef struct NsqPsqPredCtrls {
-    uint8_t enabled;
-    uint32_t
-        cost_th; // The intra/new-cost-to-mvp cost deviation beyond wich NSQ is skipped when the SQ is MVP
-    uint8_t coef_th; // The perc of SQ nz-coeff beyond wich the the NSQ skip is not allowed
+    uint8_t  enabled;
+    uint32_t cost_th; // The intra/new-cost-to-mvp cost deviation beyond wich NSQ is skipped when the SQ is MVP
+    uint8_t  coef_th; // The perc of SQ nz-coeff beyond wich the the NSQ skip is not allowed
 } NsqPsqPredCtrls;
 typedef struct RdoqCtrls {
     uint8_t enabled;
@@ -882,11 +880,10 @@ typedef struct ModeDecisionContext {
     BlkStruct                    *md_blk_arr_nsq;
     uint8_t                      *avail_blk_flag;
     // tells whether this CU is tested in MD.
-    uint8_t *tested_blk_flag;
+    uint8_t         *tested_blk_flag;
     MdcSbData       *mdc_sb_array;
     MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
     uint8_t          tot_ref_frame_types;
-
 
     NeighborArrayUnit *recon_neigh_y;
     NeighborArrayUnit *recon_neigh_cb;
@@ -907,9 +904,9 @@ typedef struct ModeDecisionContext {
     NeighborArrayUnit *cr_dc_sign_level_coeff_na;
     // Stored per 4x4. 8 bit: lower 6 bits(COEFF_CONTEXT_BITS), shows if there is at least one Coef.
     // Top 2 bit store the sign of DC as follow: 0->0,1->-1,2-> 1
-    NeighborArrayUnit *cb_dc_sign_level_coeff_na;
-    NeighborArrayUnit *txfm_context_array;
-    NeighborArrayUnit *leaf_partition_na;
+    NeighborArrayUnit    *cb_dc_sign_level_coeff_na;
+    NeighborArrayUnit    *txfm_context_array;
+    NeighborArrayUnit    *leaf_partition_na;
     struct EncDecContext *ed_ctx;
 
     uint64_t *fast_cost_array;
@@ -925,8 +922,8 @@ typedef struct ModeDecisionContext {
     SuperBlock      *sb_ptr;
     BlkStruct       *blk_ptr;
     const BlockGeom *blk_geom;
-    PALETTE_BUFFER palette_buffer;
-    PaletteInfo    palette_cand_array[MAX_PAL_CAND];
+    PALETTE_BUFFER   palette_buffer;
+    PaletteInfo      palette_cand_array[MAX_PAL_CAND];
     // MD palette search
     uint8_t *palette_size_array_0;
     // simple geometry 64x64SB, Sq only, no 4xN
@@ -1007,10 +1004,10 @@ typedef struct ModeDecisionContext {
     uint8_t  hbd_pack_done;
     uint16_t tile_index;
     // Store buffers for inter-inter compound search
-    uint8_t *pred0;
-    uint8_t *pred1;
-    int16_t *residual1;
-    int16_t *diff10;
+    uint8_t  *pred0;
+    uint8_t  *pred1;
+    int16_t  *residual1;
+    int16_t  *diff10;
     MdStage   md_stage;
     uint32_t *cand_buff_indices[CAND_CLASS_TOTAL];
     uint8_t   bypass_md_stage_1;
@@ -1043,12 +1040,12 @@ typedef struct ModeDecisionContext {
     // Store intra prediction for inter-intra
     uint8_t **intrapred_buf;
     // Store OBMC pre-computed data
-    uint8_t *obmc_buff_0;
-    uint8_t *obmc_buff_1;
-    int32_t *wsrc_buf;
-    int32_t *mask_buf;
-    uint8_t *above_txfm_context;
-    uint8_t *left_txfm_context;
+    uint8_t       *obmc_buff_0;
+    uint8_t       *obmc_buff_1;
+    int32_t       *wsrc_buf;
+    int32_t       *mask_buf;
+    uint8_t       *above_txfm_context;
+    uint8_t       *left_txfm_context;
     IntraCtrls     intra_ctrls;
     MdRateEstCtrls rate_est_ctrls;
     // use coeff rate and slipt flag rate only (no MVP derivation)
@@ -1066,7 +1063,7 @@ typedef struct ModeDecisionContext {
     // control which depths can be considered in PD1
     DepthCtrls           depth_ctrls;
     DepthRefinementCtrls depth_refinement_ctrls;
-    SkipSubDepthCtrls skip_sub_depth_ctrls;
+    SkipSubDepthCtrls    skip_sub_depth_ctrls;
     int64_t              parent_to_current_deviation;
     int64_t              child_to_current_deviation;
     SubresCtrls          subres_ctrls;
@@ -1084,8 +1081,8 @@ typedef struct ModeDecisionContext {
     ObmcControls           obmc_ctrls;
     InterCompCtrls         inter_comp_ctrls;
     InterIntraCompCtrls    inter_intra_comp_ctrls;
-    RefResults ref_filtering_res[TOT_INTER_GROUP][MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
-    RefPruningControls ref_pruning_ctrls;
+    RefResults             ref_filtering_res[TOT_INTER_GROUP][MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
+    RefPruningControls     ref_pruning_ctrls;
     // Signal to control initial and final pass PD setting(s)
     PdPass              pd_pass;
     CflCtrls            cfl_ctrls;
@@ -1097,12 +1094,12 @@ typedef struct ModeDecisionContext {
     RdoqCtrls           rdoq_ctrls;
     uint8_t             disallow_4x4;
     uint8_t             md_disallow_nsq;
-    uint8_t params_status; // specifies the status of MD parameters; 0: default, 1: modified
-    bool d1_skip_flag[25];
+    uint8_t             params_status; // specifies the status of MD parameters; 0: default, 1: modified
+    bool                d1_skip_flag[25];
     // was parent_sq_coeff_area_based_cycles_reduction_ctrls
-    ParentSqCmplxCtrls psq_cplx_ctrls;
-    NsqPsqTxsCtrls nsq_psq_txs_ctrls;
-    NsqPsqPredCtrls nsq_psq_pred_ctrls;
+    ParentSqCmplxCtrls   psq_cplx_ctrls;
+    NsqPsqTxsCtrls       nsq_psq_txs_ctrls;
+    NsqPsqPredCtrls      nsq_psq_pred_ctrls;
     uint8_t              sb_size;
     EbPictureBufferDesc *recon_coeff_ptr[TX_TYPES];
     EbPictureBufferDesc *recon_ptr[TX_TYPES];
@@ -1180,9 +1177,9 @@ typedef struct ModeDecisionContext {
     // be removed)
     uint8_t approx_inter_rate;
     // Enable pSad
-    uint8_t  enable_psad;
-    uint32_t inter_depth_bias;
-    uint32_t d2_parent_bias;
+    uint8_t     enable_psad;
+    uint32_t    inter_depth_bias;
+    uint32_t    d2_parent_bias;
     uint8_t     bipred_available;
     uint8_t     is_intra_bordered;
     uint8_t     updated_enable_pme;
@@ -1207,45 +1204,40 @@ typedef struct ModeDecisionContext {
     uint8_t rtc_use_N4_dct_dct_shortcut;
 } ModeDecisionContext;
 
-typedef void (*EbAv1LambdaAssignFunc)(PictureControlSet *pcs, uint32_t *fast_lambda,
-                                      uint32_t *full_lambda, uint8_t bit_depth, uint16_t qp_index,
-                                      Bool multiply_lambda);
+typedef void (*EbAv1LambdaAssignFunc)(PictureControlSet *pcs, uint32_t *fast_lambda, uint32_t *full_lambda,
+                                      uint8_t bit_depth, uint16_t qp_index, Bool multiply_lambda);
 
 /**************************************
  * Extern Function Declarations
  **************************************/
 extern EbErrorType svt_aom_mode_decision_context_ctor(
-    ModeDecisionContext *ctx, EbColorFormat color_format, uint8_t sb_size, EncMode enc_mode,
-    uint16_t max_block_cnt, uint32_t encoder_bit_depth,
-    EbFifo *mode_decision_configuration_input_fifo_ptr, EbFifo *mode_decision_output_fifo_ptr,
-    uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, bool rtc_tune);
+    ModeDecisionContext *ctx, EbColorFormat color_format, uint8_t sb_size, EncMode enc_mode, uint16_t max_block_cnt,
+    uint32_t encoder_bit_depth, EbFifo *mode_decision_configuration_input_fifo_ptr,
+    EbFifo *mode_decision_output_fifo_ptr, uint8_t enable_hbd_mode_decision, uint8_t cfg_palette, bool rtc_tune);
 
 extern const EbAv1LambdaAssignFunc svt_aom_av1_lambda_assignment_function_table[4];
 
 // Table that converts 0-63 Q-range values passed in outside to the Qindex
 // range used internally.
 static const uint8_t quantizer_to_qindex[] = {
-    0,   4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,  56,  60,
-    64,  68,  72,  76,  80,  84,  88,  92,  96,  100, 104, 108, 112, 116, 120, 124,
-    128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188,
-    192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 249, 255};
+    0,   4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,  56,  60,  64,  68,  72,  76,  80,  84,
+    88,  92,  96,  100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172,
+    176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 249, 255};
 
 #define FIXED_QP_OFFSET_COUNT 6
 static const int percents[2][FIXED_QP_OFFSET_COUNT] = {
     {75, 70, 60, 20, 15, 0}, {76, 60, 30, 15, 8, 4} // libaom offsets
 };
 static const uint8_t uni_psy_bias[] = {
-    85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,
-    95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
-    95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
-    100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    85, 85, 85, 85, 85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  85,  95,  95,  95,  95,  95, 95,
+    95, 95, 95, 95, 95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95, 95,
+    95, 95, 95, 95, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
 };
-extern void svt_aom_reset_mode_decision(SequenceControlSet *scs, ModeDecisionContext *ctx,
-                                        PictureControlSet *pcs, uint16_t tile_row_idx,
-                                        uint32_t segment_index);
+extern void svt_aom_reset_mode_decision(SequenceControlSet *scs, ModeDecisionContext *ctx, PictureControlSet *pcs,
+                                        uint16_t tile_row_idx, uint32_t segment_index);
 
-extern void svt_aom_mode_decision_configure_sb(ModeDecisionContext *ctx, PictureControlSet *pcs,
-                                               uint8_t sb_qp, uint8_t me_sb_qp);
+extern void svt_aom_mode_decision_configure_sb(ModeDecisionContext *ctx, PictureControlSet *pcs, uint8_t sb_qp,
+                                               uint8_t me_sb_qp);
 #ifdef __cplusplus
 }
 #endif

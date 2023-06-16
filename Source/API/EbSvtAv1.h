@@ -27,11 +27,9 @@ struct SvtMetadataArray;
 #define SVT_AV1_VERSION_MINOR 5
 #define SVT_AV1_VERSION_PATCHLEVEL 0
 
-#define SVT_AV1_CHECK_VERSION(major, minor, patch)                            \
-    (SVT_AV1_VERSION_MAJOR > (major) ||                                       \
-     (SVT_AV1_VERSION_MAJOR == (major) && SVT_AV1_VERSION_MINOR > (minor)) || \
-     (SVT_AV1_VERSION_MAJOR == (major) && SVT_AV1_VERSION_MINOR == (minor) && \
-      SVT_AV1_VERSION_PATCHLEVEL >= (patch)))
+#define SVT_AV1_CHECK_VERSION(major, minor, patch)                                                               \
+    (SVT_AV1_VERSION_MAJOR > (major) || (SVT_AV1_VERSION_MAJOR == (major) && SVT_AV1_VERSION_MINOR > (minor)) || \
+     (SVT_AV1_VERSION_MAJOR == (major) && SVT_AV1_VERSION_MINOR == (minor) && SVT_AV1_VERSION_PATCHLEVEL >= (patch)))
 
 #if defined(_WIN32)
 #define EB_HELPER_EXPORT __declspec(dllexport)
@@ -147,11 +145,7 @@ typedef enum EbErrorType {
 } EbErrorType;
 
 /* AV1 bistream profile (seq_profile syntax element) */
-typedef enum EbAv1SeqProfile {
-    MAIN_PROFILE         = 0,
-    HIGH_PROFILE         = 1,
-    PROFESSIONAL_PROFILE = 2
-} EbAv1SeqProfile;
+typedef enum EbAv1SeqProfile { MAIN_PROFILE = 0, HIGH_PROFILE = 1, PROFESSIONAL_PROFILE = 2 } EbAv1SeqProfile;
 
 // For 8-bit and 10-bit packed inputs and outputs, the luma, cb, and cr fields should be used
 //   for the three input picture planes.  However, for 10-bit unpacked planes the

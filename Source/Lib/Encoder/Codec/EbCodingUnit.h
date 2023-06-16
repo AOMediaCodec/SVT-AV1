@@ -35,8 +35,7 @@ extern "C" {
 
 // Macros for deblocking filter
 #define MAX_CU_COST (0xFFFFFFFFFFFFFFFFull >> 1)
-#define MAX_MODE_COST \
-    (13754408443200 * 8) // RDCOST(6544618, 128 * 128 * 255 * 255, 128 * 128 * 255 * 255) * 8;
+#define MAX_MODE_COST (13754408443200 * 8) // RDCOST(6544618, 128 * 128 * 255 * 255, 128 * 128 * 255 * 255) * 8;
 
 static const uint32_t intra_luma_to_chroma[INTRA_MODES] = // EB_INTRA_PLANAR
     {
@@ -115,21 +114,21 @@ typedef struct MacroBlockD {
     ModeInfo **mi;
 
     /* Distance of MB away from frame edges in subpixels (1/8th pixel)  */
-    int32_t                  mb_to_left_edge;
-    int32_t                  mb_to_right_edge;
-    int32_t                  mb_to_top_edge;
-    int32_t                  mb_to_bottom_edge;
-    int                      mi_row; // Row position in mi units
-    int                      mi_col; // Column position in mi units
-    uint8_t                  neighbors_ref_counts[TOTAL_REFS_PER_FRAME];
-    MbModeInfo              *above_mbmi;
-    MbModeInfo              *left_mbmi;
-    MbModeInfo              *chroma_above_mbmi;
-    MbModeInfo              *chroma_left_mbmi;
-    FRAME_CONTEXT           *tile_ctx;
-    TXFM_CONTEXT            *above_txfm_context;
-    TXFM_CONTEXT            *left_txfm_context;
-    BlockSize bsize;
+    int32_t        mb_to_left_edge;
+    int32_t        mb_to_right_edge;
+    int32_t        mb_to_top_edge;
+    int32_t        mb_to_bottom_edge;
+    int            mi_row; // Row position in mi units
+    int            mi_col; // Column position in mi units
+    uint8_t        neighbors_ref_counts[TOTAL_REFS_PER_FRAME];
+    MbModeInfo    *above_mbmi;
+    MbModeInfo    *left_mbmi;
+    MbModeInfo    *chroma_above_mbmi;
+    MbModeInfo    *chroma_left_mbmi;
+    FRAME_CONTEXT *tile_ctx;
+    TXFM_CONTEXT  *above_txfm_context;
+    TXFM_CONTEXT  *left_txfm_context;
+    BlockSize      bsize;
 } MacroBlockD;
 
 typedef struct Macroblock {
@@ -187,9 +186,9 @@ typedef struct BlkStruct {
     // on a case by case basis.
     uint16_t mds_idx;
     // txb
-    uint8_t tx_depth; // ec
-    uint8_t compound_idx; // ec
-    uint8_t comp_group_idx; // ec
+    uint8_t  tx_depth; // ec
+    uint8_t  compound_idx; // ec
+    uint8_t  comp_group_idx; // ec
     unsigned prediction_mode_flag : 2; // ec
     // ec; skip coeff only. as defined in section 6.10.11 of the av1 text
     unsigned block_has_coeff : 1;
@@ -229,18 +228,14 @@ typedef struct EcBlkStruct {
     IntMv                    predmv[2]; // ec
     MacroBlockD             *av1xd;
     EcInterInterCompoundData interinter_comp; // ec
-    uint8_t interintra_wedge_index; // ec
+    uint8_t                  interintra_wedge_index; // ec
 
     int16_t inter_mode_ctx;
     // equivalent of leaf_index in the nscu context. we will keep both for now and use the right one
     // on a case by case basis.
     uint16_t mds_idx;
 
-
-
     uint8_t qindex; // ec
-
-
 
     uint8_t drl_index; // ec
     // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
@@ -248,8 +243,7 @@ typedef struct EcBlkStruct {
     // Store the drl ctx in coding loop to avoid storing final_ref_mv_stack and ref_mv_count for EC
     int8_t drl_ctx_near[2];
 
-
-    uint8_t segment_id; // ec
+    uint8_t        segment_id; // ec
     InterIntraMode interintra_mode; // ec
     uint8_t        is_interintra_used; // ec
     uint8_t        use_wedge_interintra; // ec
@@ -279,7 +273,7 @@ typedef struct TplSrcStats {
 typedef struct SuperBlock {
     EbDctor                   dctor;
     struct PictureControlSet *pcs;
-    EcBlkStruct *final_blk_arr;
+    EcBlkStruct              *final_blk_arr;
     //for memory free only
     MacroBlockD   *av1xd;
     PartitionType *cu_partition_array;
@@ -291,9 +285,8 @@ typedef struct SuperBlock {
     uint16_t       final_blk_cnt; // number of block(s) posted from EncDec to EC
 } SuperBlock;
 
-extern EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock *larget_coding_unit_ptr,
-                                                    uint8_t sb_size, uint16_t sb_origin_x,
-                                                    uint16_t sb_origin_y, uint16_t sb_index,
+extern EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock *larget_coding_unit_ptr, uint8_t sb_size,
+                                                    uint16_t sb_origin_x, uint16_t sb_origin_y, uint16_t sb_index,
                                                     EncMode enc_mode, uint16_t max_block_cnt,
 
                                                     struct PictureControlSet *picture_control_set);
