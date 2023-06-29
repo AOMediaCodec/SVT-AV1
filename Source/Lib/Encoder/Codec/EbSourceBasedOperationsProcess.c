@@ -2061,15 +2061,13 @@ static void sbo_send_picture_out(SourceBasedOperationsContext *context_ptr, Pict
 // Eventually this should be replaced by custom no-reference routines,
 //  which will be faster.
 const uint8_t AV1_VAR_OFFS[MAX_SB_SIZE] = {
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
-    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128};
-static unsigned int aom_av1_get_perpixel_variance(const uint8_t *buf, uint32_t stride,
-                                                  const int block_size) {
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+    128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128};
+static unsigned int aom_av1_get_perpixel_variance(const uint8_t *buf, uint32_t stride, const int block_size) {
     unsigned int            var, sse;
     const AomVarianceFnPtr *fn_ptr = &svt_aom_mefn_ptr[block_size];
     var                            = fn_ptr->vf(buf, stride, AV1_VAR_OFFS, 0, &sse);
@@ -2078,9 +2076,8 @@ static unsigned int aom_av1_get_perpixel_variance(const uint8_t *buf, uint32_t s
 static void aom_av1_set_mb_ssim_rdmult_scaling(PictureParentControlSet *pcs) {
     Av1Common *cm       = pcs->av1_cm;
     const int  y_stride = pcs->enhanced_pic->stride_y;
-    uint8_t   *y_buffer = pcs->enhanced_pic->buffer_y + pcs->enhanced_pic->org_x +
-        pcs->enhanced_pic->org_y * y_stride;
-    const int block_size = BLOCK_16X16;
+    uint8_t   *y_buffer = pcs->enhanced_pic->buffer_y + pcs->enhanced_pic->org_x + pcs->enhanced_pic->org_y * y_stride;
+    const int  block_size = BLOCK_16X16;
 
     const int num_mi_w = mi_size_wide[block_size];
     const int num_mi_h = mi_size_high[block_size];
@@ -2108,11 +2105,8 @@ static void aom_av1_set_mb_ssim_rdmult_scaling(PictureParentControlSet *pcs) {
             const int index = row * num_cols + col;
 
             // Loop through each 8x8 block.
-            for (int mi_row = row * num_mi_h; mi_row < cm->mi_rows && mi_row < (row + 1) * num_mi_h;
-                 mi_row += 2) {
-                for (int mi_col = col * num_mi_w;
-                     mi_col < cm->mi_cols && mi_col < (col + 1) * num_mi_w;
-                     mi_col += 2) {
+            for (int mi_row = row * num_mi_h; mi_row < cm->mi_rows && mi_row < (row + 1) * num_mi_h; mi_row += 2) {
+                for (int mi_col = col * num_mi_w; mi_col < cm->mi_cols && mi_col < (col + 1) * num_mi_w; mi_col += 2) {
                     const int row_offset_y = mi_row << 2;
                     const int col_offset_y = mi_col << 2;
 
@@ -2126,8 +2120,8 @@ static void aom_av1_set_mb_ssim_rdmult_scaling(PictureParentControlSet *pcs) {
 
             // Curve fitting with an exponential model on all 16x16 blocks from the
             // midres dataset.
-            double var_backup = var;
-            var               = factor_a * (1 - exp(factor_b * var)) + factor_c;
+            double var_backup                                   = var;
+            var                                                 = factor_a * (1 - exp(factor_b * var)) + factor_c;
             pcs->pa_me_data->ssim_rdmult_scaling_factors[index] = var;
             log_sum += log(var);
             if (do_print) {

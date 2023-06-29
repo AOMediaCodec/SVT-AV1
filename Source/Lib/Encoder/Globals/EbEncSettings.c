@@ -542,8 +542,7 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
         return_error = EB_ErrorBadParameter;
     }
     if (config->tune == 2) {
-        if (config->rate_control_mode != 0 ||
-            config->pred_structure != SVT_AV1_PRED_RANDOM_ACCESS) {
+        if (config->rate_control_mode != 0 || config->pred_structure != SVT_AV1_PRED_RANDOM_ACCESS) {
             SVT_ERROR("Instance %u: tune SSIM only supports CRF rate control mode currently\n",
                       channel_number + 1,
                       config->tune);
