@@ -1538,6 +1538,9 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
                        uint64_t *y_coeff_bits, uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits) {
 #endif
     const uint8_t skip_coeff_ctx = ctx->skip_coeff_ctx;
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    const bool update_full_cost_ssim = ctx->tune_ssim_level > SSIM_LVL_0 ? true : false;
+#endif
 
     // Get the TX size rate for skip and non-skip block. Need both to make non-skip decision
     uint64_t non_skip_tx_size_bits = 0, skip_tx_size_bits = 0;
@@ -1619,8 +1622,9 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
     uint64_t mode_rate = cand_bf->fast_luma_rate + cand_bf->fast_chroma_rate + coeff_rate;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
     uint64_t mode_distortion      = y_distortion[DIST_SSD][0] + cb_distortion[DIST_SSD][0] + cr_distortion[DIST_SSD][0];
-    uint64_t mode_ssim_distortion = y_distortion[DIST_SSIM][0] + cb_distortion[DIST_SSIM][0] +
-        cr_distortion[DIST_SSIM][0];
+    uint64_t mode_ssim_distortion = update_full_cost_ssim
+        ? y_distortion[DIST_SSIM][0] + cb_distortion[DIST_SSIM][0] + cr_distortion[DIST_SSIM][0]
+        : 0;
 #else
     uint64_t mode_distortion = y_distortion[0] + cb_distortion[0] + cr_distortion[0];
 #endif
@@ -1635,8 +1639,9 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
         const uint64_t skip_mode_distortion = y_distortion[DIST_SSD][1] + cb_distortion[DIST_SSD][1] +
             cr_distortion[DIST_SSD][1];
-        const uint64_t skip_mode_ssim_distortion = y_distortion[DIST_SSIM][1] + cb_distortion[DIST_SSIM][1] +
-            cr_distortion[DIST_SSIM][1];
+        const uint64_t skip_mode_ssim_distortion = update_full_cost_ssim
+            ? y_distortion[DIST_SSIM][1] + cb_distortion[DIST_SSIM][1] + cr_distortion[DIST_SSIM][1]
+            : 0;
 #else
         const uint64_t skip_mode_distortion = y_distortion[1] + cb_distortion[1] + cr_distortion[1];
 #endif
@@ -1672,7 +1677,11 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
     cand_bf->total_rate   = mode_rate;
     cand_bf->full_dist    = (uint32_t)mode_distortion;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    *(cand_bf->full_cost_ssim) = RDCOST(lambda, mode_rate, mode_ssim_distortion);
+    if (update_full_cost_ssim) {
+        assert(ctx->pd_pass == PD_PASS_1);
+        assert(ctx->md_stage == MD_STAGE_3);
+        *(cand_bf->full_cost_ssim) = RDCOST(lambda, mode_rate, mode_ssim_distortion);
+    }
 #endif
     return;
 }

@@ -1360,8 +1360,12 @@ static EbErrorType me_ctor(MotionEstimationData *object_ptr, EbPtr object_init_d
         uint16_t       adaptive_picture_width_in_mb  = (uint16_t)((init_data_ptr->picture_width + 15) / 16);
         uint16_t       adaptive_picture_height_in_mb = (uint16_t)((init_data_ptr->picture_height + 15) / 16);
 #if TUNE_SSIM_LIBAOM_APPROACH
-        EB_MALLOC_ARRAY(object_ptr->ssim_rdmult_scaling_factors,
-                        adaptive_picture_width_in_mb * adaptive_picture_height_in_mb);
+        if (init_data_ptr->static_config.tune == 2) {
+            EB_MALLOC_ARRAY(object_ptr->ssim_rdmult_scaling_factors,
+                            adaptive_picture_width_in_mb * adaptive_picture_height_in_mb);
+        } else {
+            object_ptr->ssim_rdmult_scaling_factors = NULL;
+        }
 #endif
 
         if (init_data_ptr->tpl_synth_size == 8) {

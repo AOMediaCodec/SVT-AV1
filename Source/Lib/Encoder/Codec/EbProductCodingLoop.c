@@ -3619,10 +3619,10 @@ static uint64_t md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandida
 
                     const int32_t alpha_rate = ctx->md_rate_est_ctx->cfl_alpha_fac_bits[joint_sign][plane][c];
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-                    int64_t this_rd = RDCOST(
+                    uint64_t this_rd = RDCOST(
                         full_lambda, coeff_bits + alpha_rate, full_dist[DIST_SSD][DIST_CALC_RESIDUAL]);
 #else
-                    int64_t this_rd = RDCOST(full_lambda, coeff_bits + alpha_rate, full_dist[DIST_CALC_RESIDUAL]);
+                    uint64_t this_rd = RDCOST(full_lambda, coeff_bits + alpha_rate, full_dist[DIST_CALC_RESIDUAL]);
 #endif
                     if (this_rd >= best_rd_uv[joint_sign][plane])
                         continue;
@@ -4532,7 +4532,7 @@ static int32_t av1_txt_rate_est(struct ModeDecisionContext *ctx, struct ModeDeci
     return 0;
 }
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-static double derive_ssim_threshold_factor_for_tx_type_search(SequenceControlSet *scs) {
+static INLINE double derive_ssim_threshold_factor_for_tx_type_search(SequenceControlSet *scs) {
     return scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.06 : 1.05;
 }
 #endif
@@ -4651,7 +4651,11 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     int32_t         candidate_num                                                  = 0;
     TxType          tx_type_candidate[MAX_TX_TYPE_GROUP * TX_TYPES]                = {0};
     const SsimLevel ssim_level                                                     = ctx->tune_ssim_level;
-    const double    cost_threshold_factor = derive_ssim_threshold_factor_for_tx_type_search(pcs->scs);
+    if (ssim_level > SSIM_LVL_0) {
+        assert(ctx->pd_pass == PD_PASS_1);
+        assert(ctx->md_stage == MD_STAGE_3);
+    }
+    const double cost_threshold_factor = derive_ssim_threshold_factor_for_tx_type_search(pcs->scs);
 #else
     uint64_t txb_full_distortion_txt[TX_TYPES][DIST_CALC_TOTAL] = {{0}};
 #endif
@@ -4955,9 +4959,9 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     }
 
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    const uint64_t ssd_cost_threshold = (uint64_t)(cost_threshold_factor * best_cost_tx_search);
     if (ssim_level > SSIM_LVL_1) {
-        uint64_t best_ssim_cost_tx_search = (uint64_t)~0;
+        const uint64_t ssd_cost_threshold       = (uint64_t)(cost_threshold_factor * best_cost_tx_search);
+        uint64_t       best_ssim_cost_tx_search = (uint64_t)~0;
         for (int i = 0; i < candidate_num; ++i) {
             tx_type           = tx_type_candidate[i];
             uint64_t ssd_cost = RDCOST(full_lambda,
@@ -5734,6 +5738,10 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
     if (ctx->mds_spatial_sse) {
 #if TUNE_SSIM_FULL_SPACIAL_DIST
         const SsimLevel ssim_level = ctx->tune_ssim_level;
+        if (ssim_level > SSIM_LVL_0) {
+            assert(ctx->pd_pass == PD_PASS_1);
+            assert(ctx->md_stage == MD_STAGE_3);
+        }
 #endif
         if (y_count_non_zero_coeffs_txt)
             svt_aom_inv_transform_recon_wrapper(cand_bf->pred->buffer_y,
@@ -7161,9 +7169,6 @@ static void md_stage_3(PictureControlSet *pcs, ModeDecisionContext *ctx, EbPictu
     ctx->end_plane = (ctx->blk_geom->has_uv && ctx->uv_ctrls.uv_mode <= CHROMA_MODE_1 && !ctx->mds_skip_uv_pred)
         ? (int)MAX_MB_PLANE
         : 1;
-#if TUNE_SSIM_FULL_SPACIAL_DIST
-    ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_2 : SSIM_LVL_0;
-#endif
     for (uint32_t full_loop_candidate_index = 0; full_loop_candidate_index < fullCandidateTotalCount;
          ++full_loop_candidate_index) {
         uint32_t                     cand_index = ctx->best_candidate_index_array[full_loop_candidate_index];
@@ -9352,6 +9357,9 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     BlkStruct *blk_ptr          = ctx->blk_ptr;
     cand_bf_ptr_array           = &(cand_bf_ptr_array_base[0]);
     ctx->blk_lambda_tuning      = pcs->ppcs->blk_lambda_tuning;
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    ctx->tune_ssim_level = SSIM_LVL_0;
+#endif
     if (pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled) {
         SuperBlock *sb_ptr = ctx->sb_ptr;
         svt_aom_apply_segmentation_based_quantization(blk_geom, pcs, sb_ptr, blk_ptr);
@@ -9640,6 +9648,9 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     }
     // 3rd Full-Loop
     ctx->md_stage = MD_STAGE_3;
+#if TUNE_SSIM_FULL_SPACIAL_DIST
+    ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_2 : SSIM_LVL_0;
+#endif
     md_stage_3(pcs,
                ctx,
                input_pic,

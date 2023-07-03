@@ -1955,6 +1955,10 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
 #if TUNE_SSIM_FULL_SPACIAL_DIST
     EB_ALIGN(16) uint64_t txb_full_distortion[DIST_TOTAL][3][DIST_CALC_TOTAL];
     const SsimLevel       ssim_level = ctx->tune_ssim_level;
+    if (ssim_level > SSIM_LVL_0) {
+        assert(ctx->pd_pass == PD_PASS_1);
+        assert(ctx->md_stage == MD_STAGE_3);
+    }
 #else
     EB_ALIGN(16) uint64_t txb_full_distortion[3][DIST_CALC_TOTAL];
 #endif

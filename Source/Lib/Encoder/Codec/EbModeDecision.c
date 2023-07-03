@@ -4765,7 +4765,7 @@ void svt_aom_product_full_mode_decision_light_pd1(
     }
 }
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-static double derive_ssim_threshold_factor_for_full_md(SequenceControlSet *scs) {
+static INLINE double derive_ssim_threshold_factor_for_full_md(SequenceControlSet *scs) {
     return scs->input_resolution >= INPUT_SIZE_1080p_RANGE ? 1.02 : 1.03;
 }
 #endif
