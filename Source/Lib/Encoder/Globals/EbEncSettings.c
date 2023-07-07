@@ -547,6 +547,11 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
                       channel_number + 1,
                       config->tune);
             return_error = EB_ErrorBadParameter;
+        } else {
+            SVT_WARN(
+                "Instance %u: tune ssim (2) is supported for testing and debugging purposes."
+                "This configuration should not be used for any benchmarking analysis at this stage\n",
+                channel_number + 1);
         }
     }
 #else

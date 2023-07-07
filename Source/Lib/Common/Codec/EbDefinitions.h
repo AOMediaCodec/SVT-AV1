@@ -2659,7 +2659,8 @@ typedef enum {
     // level of using SSIM based function to calculate distortion in MD
     SSIM_LVL_0 = 0,  // default, feature off
     SSIM_LVL_1 = 1,  // use ssim cost to find best candidate in product_full_mode_decision()
-    SSIM_LVL_2 = 2,  // addition to previous level, also use ssim cost to find best tx type in tx_type_search()
+    SSIM_LVL_2 = 2,  // use ssim cost to find best tx type in tx_type_search()
+    SSIM_LVL_3 = 3   // for both product_full_mode_decision() and tx_type_search()
 } SsimLevel;
 #endif
 

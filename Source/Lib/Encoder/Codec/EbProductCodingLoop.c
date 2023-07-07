@@ -5040,7 +5040,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
 
         y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] += ssim_pred_dist;
         y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] += ssim_residual_dist;
-    } else if (ssim_level == SSIM_LVL_2) {
+    } else if (ssim_level == SSIM_LVL_3) {
         uint64_t ssim_pred_dist = svt_spatial_full_distortion_ssim_kernel(input_pic->buffer_y,
                                                                           input_txb_origin_index,
                                                                           input_pic->stride_y,
@@ -5055,6 +5055,8 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
         y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] +=
             txb_full_distortion_txt[DIST_SSIM][best_tx_type][DIST_CALC_RESIDUAL];
         y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] += ssim_pred_dist;
+    } else if (ssim_level == SSIM_LVL_2) {
+        // it doesn't need to update y_full_distortion[DIST_SSIM] since ssim is only used to select best tx type
     }
 
     y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] +=
@@ -5778,7 +5780,7 @@ static void perform_dct_dct_tx(PictureControlSet *pcs, ModeDecisionContext *ctx,
         EbSpatialFullDistType spatial_full_dist_type_fun = ctx->hbd_md ? svt_full_distortion_kernel16_bits
                                                                        : svt_spatial_full_distortion_kernel;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-        if (ssim_level > SSIM_LVL_0) {
+        if (ssim_level == SSIM_LVL_1 || ssim_level == SSIM_LVL_3) {
             y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] = svt_spatial_full_distortion_ssim_kernel(
                 input_pic->buffer_y,
                 input_txb_origin_index,
@@ -9649,7 +9651,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     // 3rd Full-Loop
     ctx->md_stage = MD_STAGE_3;
 #if TUNE_SSIM_FULL_SPACIAL_DIST
-    ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_2 : SSIM_LVL_0;
+    ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_3 : SSIM_LVL_0;
 #endif
     md_stage_3(pcs,
                ctx,

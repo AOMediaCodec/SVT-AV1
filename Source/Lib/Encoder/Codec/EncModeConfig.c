@@ -7820,9 +7820,6 @@ that use 8x8 blocks will lose significant BD-Rate as the parent 16x16 me data wi
         ctx->pd1_lvl_refinement = 2;
     // 1st call to avoid using invalid settings at the construction of the block(s) queue of PD1 when regular PD0 is not called
     svt_aom_set_nsq_ctrls(ctx, pcs->nsq_level, NULL, NULL, NULL);
-#if TUNE_SSIM_FULL_SPACIAL_DIST
-    ctx->tune_ssim_level = SSIM_LVL_0;
-#endif
 }
 static void set_depth_early_exit_ctrls(ModeDecisionContext *ctx, uint8_t early_exit_level) {
     DepthEarlyExitCtrls *ctrls = &ctx->depth_early_exit_ctrls;
