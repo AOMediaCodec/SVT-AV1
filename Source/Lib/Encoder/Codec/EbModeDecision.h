@@ -86,7 +86,6 @@ typedef uint64_t (*EbFastCostFunc)(PictureControlSet *pcs, struct ModeDecisionCo
                                    struct ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda,
                                    uint64_t luma_distortion, uint64_t chroma_distortion);
 
-#if TUNE_SSIM_FULL_SPACIAL_DIST
 typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                          struct ModeDecisionCandidateBuffer *cand_bf, BlkStruct *blk_ptr,
                                          uint64_t y_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
@@ -94,13 +93,6 @@ typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDeci
                                          uint64_t cr_distortion[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t lambda,
                                          uint64_t *y_coeff_bits, uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits,
                                          BlockSize bsize);
-#else
-typedef EbErrorType (*EbAv1FullCostFunc)(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
-                                         struct ModeDecisionCandidateBuffer *cand_bf, BlkStruct *blk_ptr,
-                                         uint64_t *y_distortion, uint64_t *cb_distortion, uint64_t *cr_distortion,
-                                         uint64_t lambda, uint64_t *y_coeff_bits, uint64_t *cb_coeff_bits,
-                                         uint64_t *cr_coeff_bits, BlockSize bsize);
-#endif
 /**************************************
     * Mode Decision Candidate Buffer
     **************************************/
@@ -132,9 +124,7 @@ typedef struct ModeDecisionCandidateBuffer {
     // Costs
     uint64_t *fast_cost;
     uint64_t *full_cost;
-#if TUNE_SSIM_FULL_SPACIAL_DIST
     uint64_t *full_cost_ssim;
-#endif
     uint64_t fast_luma_rate;
     uint64_t fast_chroma_rate;
     uint64_t total_rate;
@@ -154,19 +144,11 @@ typedef struct ModeDecisionCandidateBuffer {
 /**************************************
     * Extern Function Declarations
     **************************************/
-#if TUNE_SSIM_FULL_SPACIAL_DIST
 extern EbErrorType svt_aom_mode_decision_cand_bf_ctor(ModeDecisionCandidateBuffer *buffer_ptr, EbBitDepth max_bitdepth,
                                                       uint8_t sb_size, uint32_t buffer_mask,
                                                       EbPictureBufferDesc *temp_residual,
                                                       EbPictureBufferDesc *temp_recon_ptr, uint64_t *fast_cost,
                                                       uint64_t *full_cost, uint64_t *full_cost_ssim_ptr);
-#else
-extern EbErrorType svt_aom_mode_decision_cand_bf_ctor(ModeDecisionCandidateBuffer *buffer_ptr, EbBitDepth max_bitdepth,
-                                                      uint8_t sb_size, uint32_t buffer_mask,
-                                                      EbPictureBufferDesc *temp_residual,
-                                                      EbPictureBufferDesc *temp_recon_ptr, uint64_t *fast_cost,
-                                                      uint64_t *full_cost);
-#endif
 
 extern EbErrorType svt_aom_mode_decision_scratch_cand_bf_ctor(ModeDecisionCandidateBuffer *buffer_ptr, uint8_t sb_size,
                                                               EbBitDepth max_bitdepth);
