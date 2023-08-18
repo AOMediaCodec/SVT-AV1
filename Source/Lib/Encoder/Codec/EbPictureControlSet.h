@@ -503,8 +503,8 @@ typedef struct TplControls {
     EB_TRANS_COEFF_SHAPE pf_shape;
     // Use SAD as a distortion metric when searching the best mode (based on src pic). If false, will use SATD
     uint8_t use_sad_in_src_search;
-    int8_t reduced_tpl_group;
-    double r0_adjust_factor;
+    int8_t  reduced_tpl_group;
+    double  r0_adjust_factor;
     // 0: use 16x16 block(s), 1: use 32x32 block(s), 2: use 64x64 block(s)  (for incomplete 64x64,
     // dispenser_search_level is set to 0)
     uint8_t dispenser_search_level;
@@ -1064,7 +1064,7 @@ typedef struct PictureParentControlSet {
     uint8_t                         first_frame_in_minigop;
     TplControls                     tpl_ctrls;
     uint8_t                         tpl_is_valid;
-    EbHandle tpl_disp_mutex;
+    EbHandle                        tpl_disp_mutex;
     // uint32_t         input_type;
     int16_t  enc_dec_segment_row;
     uint16_t tile_group_index;
@@ -1120,7 +1120,7 @@ typedef struct PictureParentControlSet {
     uint32_t tf_ahd_error_to_central;
     // Average absolute histogram deviation of all frames in the TF window to the current (central) frame
     uint32_t tf_avg_ahd_error;
-    bool tf_active_region_present;
+    bool     tf_active_region_present;
 } PictureParentControlSet;
 
 typedef struct TplDispResults {

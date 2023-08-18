@@ -570,8 +570,8 @@ EbErrorType svt_aom_mode_decision_cand_bf_ctor(ModeDecisionCandidateBuffer *buff
     buffer_ptr->recon = temp_recon_ptr;
 
     // Costs
-    buffer_ptr->fast_cost = fast_cost;
-    buffer_ptr->full_cost = full_cost;
+    buffer_ptr->fast_cost      = fast_cost;
+    buffer_ptr->full_cost      = full_cost;
     buffer_ptr->full_cost_ssim = full_cost_ssim;
     return EB_ErrorNone;
 }

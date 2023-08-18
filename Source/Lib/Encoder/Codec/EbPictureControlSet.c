@@ -1281,8 +1281,7 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet *obje
         : 0;
     EB_NEW(object_ptr->dg_detector, svt_aom_dg_detector_seg_ctor);
 
-    if (svt_aom_need_gm_ref_info(
-            init_data_ptr->enc_mode, init_data_ptr->static_config.resize_mode == RESIZE_NONE)) {
+    if (svt_aom_need_gm_ref_info(init_data_ptr->enc_mode, init_data_ptr->static_config.resize_mode == RESIZE_NONE)) {
         EbPictureBufferDescInitData input_pic_buf_desc_init_data;
         input_pic_buf_desc_init_data.max_width          = init_data_ptr->picture_width >> 1;
         input_pic_buf_desc_init_data.max_height         = init_data_ptr->picture_height >> 1;
@@ -1393,7 +1392,7 @@ static EbErrorType me_ctor(MotionEstimationData *object_ptr, EbPtr object_init_d
         object_ptr->tpl_rdmult_scaling_factors    = NULL;
         object_ptr->tpl_sb_rdmult_scaling_factors = NULL;
         object_ptr->tpl_src_stats_buffer          = NULL;
-        object_ptr->ssim_rdmult_scaling_factors = NULL;
+        object_ptr->ssim_rdmult_scaling_factors   = NULL;
     }
     return return_error;
 }

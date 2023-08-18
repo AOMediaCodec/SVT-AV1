@@ -40,8 +40,7 @@ void svt_aom_inv_transform_recon_wrapper(uint8_t *pred_buffer, uint32_t pred_off
                                          int32_t *rec_coeff_buffer, uint32_t coeff_offset, Bool hbd, TxSize txsize,
                                          TxType transform_type, PlaneType component_type, uint32_t eob);
 
-uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs,
-                                               ModeDecisionContext *ctx, uint32_t blk_mds);
+uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs, ModeDecisionContext *ctx, uint32_t blk_mds);
 // compute the cost of curr depth, and the depth above
 extern void svt_aom_compute_depth_costs_md_skip(ModeDecisionContext *ctx, PictureParentControlSet *pcs,
                                                 uint32_t above_depth_mds, uint32_t step, uint64_t *above_depth_cost,

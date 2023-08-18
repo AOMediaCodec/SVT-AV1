@@ -1503,7 +1503,7 @@ static void sub_sample_luma_generate_pixel_intensity_histogram_bins(SequenceCont
                                              scs->picture_analysis_number_of_regions_per_height - 1)
                 ? input_pic->height - (scs->picture_analysis_number_of_regions_per_height * region_height)
                 : 0;
-            uint8_t decim_step = scs->static_config.scene_change_detection ? 1 : 4;
+            uint8_t  decim_step           = scs->static_config.scene_change_detection ? 1 : 4;
             // Y Histogram
             calculate_histogram(
                 &input_pic->buffer_y[(input_pic->org_x + region_in_picture_width_index * region_width) +

@@ -884,10 +884,10 @@ typedef struct ModeDecisionContext {
     MdBlkStruct                  *md_local_blk_unit;
     BlkStruct                    *md_blk_arr_nsq;
     uint8_t                      *avail_blk_flag;
-    uint8_t *cost_avail;
-    MdcSbData       *mdc_sb_array;
-    MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
-    uint8_t          tot_ref_frame_types;
+    uint8_t                      *cost_avail;
+    MdcSbData                    *mdc_sb_array;
+    MvReferenceFrame              ref_frame_type_arr[MODE_CTX_REF_FRAMES];
+    uint8_t                       tot_ref_frame_types;
 
     NeighborArrayUnit *recon_neigh_y;
     NeighborArrayUnit *recon_neigh_cb;

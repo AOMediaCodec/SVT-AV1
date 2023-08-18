@@ -47,17 +47,17 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
     return gm_level;
 }
 bool svt_aom_need_gm_ref_info(EncMode enc_mode, bool super_res_off) {
-    uint8_t gm_lvl = svt_aom_get_gm_core_level(enc_mode, super_res_off);
+    uint8_t                 gm_lvl = svt_aom_get_gm_core_level(enc_mode, super_res_off);
     PictureParentControlSet pcs_tmp;
     svt_aom_set_gm_controls(&pcs_tmp, gm_lvl);
     return pcs_tmp.gm_ctrls.use_ref_info;
 }
 
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off) {
-    SequenceControlSet *scs      = pcs->scs;
-    uint8_t             gm_level = 0;
-    const EncMode       enc_mode = pcs->enc_mode;
-    const uint8_t is_islice = pcs->slice_type == I_SLICE;
+    SequenceControlSet *scs       = pcs->scs;
+    uint8_t             gm_level  = 0;
+    const EncMode       enc_mode  = pcs->enc_mode;
+    const uint8_t       is_islice = pcs->slice_type == I_SLICE;
     // disable global motion when reference scaling enabled,
     // even if current pic is not scaled, because its reference
     // pics might be scaled in different size
@@ -491,39 +491,47 @@ static void svt_aom_set_prehme_ctrls(MeContext *me_ctx, uint8_t level) {
  ************************************************/
 static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *pcs) {
     switch (pcs->tf_ctrls.hme_me_level) {
-    case 0: me_ctx->num_hme_sa_w = 2; me_ctx->num_hme_sa_h = 2;
+    case 0:
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){30, 30};
         me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){60, 60};
-        me_ctx->hme_l1_sa    = (SearchArea){16, 16};
-        me_ctx->hme_l2_sa    = (SearchArea){16, 16};
-        me_ctx->me_sa.sa_min = (SearchArea){60, 60};
-        me_ctx->me_sa.sa_max = (SearchArea){120, 120};
+        me_ctx->hme_l1_sa                   = (SearchArea){16, 16};
+        me_ctx->hme_l2_sa                   = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_min                = (SearchArea){60, 60};
+        me_ctx->me_sa.sa_max                = (SearchArea){120, 120};
         break;
 
-    case 1: me_ctx->num_hme_sa_w = 2; me_ctx->num_hme_sa_h = 2;
+    case 1:
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){16, 16};
         me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){32, 32};
-        me_ctx->hme_l1_sa    = (SearchArea){16, 16};
-        me_ctx->hme_l2_sa    = (SearchArea){16, 16};
-        me_ctx->me_sa.sa_min = (SearchArea){16, 16};
-        me_ctx->me_sa.sa_max = (SearchArea){32, 32};
+        me_ctx->hme_l1_sa                   = (SearchArea){16, 16};
+        me_ctx->hme_l2_sa                   = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_min                = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_max                = (SearchArea){32, 32};
         break;
 
-    case 2: me_ctx->num_hme_sa_w = 2; me_ctx->num_hme_sa_h = 2;
+    case 2:
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){8, 8};
         me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){16, 16};
-        me_ctx->hme_l1_sa    = (SearchArea){16, 16};
-        me_ctx->hme_l2_sa    = (SearchArea){16, 16};
-        me_ctx->me_sa.sa_min = (SearchArea){8, 4};
-        me_ctx->me_sa.sa_max = (SearchArea){16, 8};
+        me_ctx->hme_l1_sa                   = (SearchArea){16, 16};
+        me_ctx->hme_l2_sa                   = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_min                = (SearchArea){8, 4};
+        me_ctx->me_sa.sa_max                = (SearchArea){16, 8};
         break;
-    case 3: me_ctx->num_hme_sa_w = 2; me_ctx->num_hme_sa_h = 2;
+    case 3:
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){4, 4};
         me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){4, 4};
-        me_ctx->hme_l1_sa        = (SearchArea){8, 8};
-        me_ctx->hme_l2_sa        = (SearchArea){8, 8};
-        me_ctx->me_sa.sa_min     = (SearchArea){8, 8};
-        me_ctx->me_sa.sa_max     = (SearchArea){8, 8};
+        me_ctx->hme_l1_sa                   = (SearchArea){8, 8};
+        me_ctx->hme_l2_sa                   = (SearchArea){8, 8};
+        me_ctx->me_sa.sa_min                = (SearchArea){8, 8};
+        me_ctx->me_sa.sa_max                = (SearchArea){8, 8};
         break;
 
     default: assert(0); break;
@@ -700,13 +708,13 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     svt_aom_set_me_sr_adjustment_ctrls(me_ctx, 0);
 
     svt_aom_set_me_8x8_var_ctrls(me_ctx, 0);
-    me_ctx->me_early_exit_th = enc_mode <= ENC_M6 || resolution <= INPUT_SIZE_720p_RANGE
-        ? 0
-        : BLOCK_SIZE_64 * BLOCK_SIZE_64 * 4;
-    me_ctx->me_safe_limit_zz_th = 0;
-    me_ctx->reduce_hme_l0_sr_th_min = 0;
-    me_ctx->reduce_hme_l0_sr_th_max = 0;
-    me_ctx->skip_frame              = 0;
+    me_ctx->me_early_exit_th            = enc_mode <= ENC_M6 || resolution <= INPUT_SIZE_720p_RANGE
+                   ? 0
+                   : BLOCK_SIZE_64 * BLOCK_SIZE_64 * 4;
+    me_ctx->me_safe_limit_zz_th         = 0;
+    me_ctx->reduce_hme_l0_sr_th_min     = 0;
+    me_ctx->reduce_hme_l0_sr_th_max     = 0;
+    me_ctx->skip_frame                  = 0;
     me_ctx->prev_me_stage_based_exit_th = enc_mode <= ENC_M6 || resolution <= INPUT_SIZE_720p_RANGE
         ? 0
         : BLOCK_SIZE_64 * BLOCK_SIZE_64 * 4;
@@ -734,30 +742,30 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
 
     switch (tpl_level) {
     case 0:
-        tpl_ctrls->enable                       = 0;
-        tpl_ctrls->compute_rate                 = 0;
-        tpl_ctrls->enable_tpl_qps               = 0;
-        tpl_ctrls->disable_intra_pred_nref      = 0;
-        tpl_ctrls->intra_mode_end               = DC_PRED;
-        tpl_ctrls->reduced_tpl_group            = -1;
-        tpl_ctrls->pf_shape                     = DEFAULT_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 0;
-        tpl_ctrls->dispenser_search_level = 0;
-        tpl_ctrls->subsample_tx           = 0;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->enable                  = 0;
+        tpl_ctrls->compute_rate            = 0;
+        tpl_ctrls->enable_tpl_qps          = 0;
+        tpl_ctrls->disable_intra_pred_nref = 0;
+        tpl_ctrls->intra_mode_end          = DC_PRED;
+        tpl_ctrls->reduced_tpl_group       = -1;
+        tpl_ctrls->pf_shape                = DEFAULT_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 0;
+        tpl_ctrls->dispenser_search_level  = 0;
+        tpl_ctrls->subsample_tx            = 0;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 1:
-        tpl_ctrls->enable                       = 1;
-        tpl_ctrls->compute_rate                 = 1;
-        tpl_ctrls->enable_tpl_qps               = 1;
-        tpl_ctrls->disable_intra_pred_nref      = 0;
-        tpl_ctrls->intra_mode_end               = PAETH_PRED;
-        tpl_ctrls->reduced_tpl_group            = -1;
-        tpl_ctrls->pf_shape                     = DEFAULT_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 0;
-        tpl_ctrls->dispenser_search_level = 0;
-        tpl_ctrls->subsample_tx           = 0;
-        tpl_ctrls->subpel_depth           = QUARTER_PEL;
+        tpl_ctrls->enable                  = 1;
+        tpl_ctrls->compute_rate            = 1;
+        tpl_ctrls->enable_tpl_qps          = 1;
+        tpl_ctrls->disable_intra_pred_nref = 0;
+        tpl_ctrls->intra_mode_end          = PAETH_PRED;
+        tpl_ctrls->reduced_tpl_group       = -1;
+        tpl_ctrls->pf_shape                = DEFAULT_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 0;
+        tpl_ctrls->dispenser_search_level  = 0;
+        tpl_ctrls->subsample_tx            = 0;
+        tpl_ctrls->subpel_depth            = QUARTER_PEL;
         break;
     case 2:
         tpl_ctrls->enable                  = 1;
@@ -773,17 +781,17 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->subpel_depth            = QUARTER_PEL;
         break;
     case 3:
-        tpl_ctrls->enable                       = 1;
-        tpl_ctrls->compute_rate                 = 0;
-        tpl_ctrls->enable_tpl_qps               = 0;
-        tpl_ctrls->disable_intra_pred_nref      = 1;
-        tpl_ctrls->intra_mode_end               = DC_PRED;
-        tpl_ctrls->reduced_tpl_group            = is_islice ? -1 : (pcs->hierarchical_levels == 5 ? 4 : 3);
-        tpl_ctrls->pf_shape                     = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 1;
-        tpl_ctrls->dispenser_search_level = 0;
-        tpl_ctrls->subsample_tx           = 0;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->enable                  = 1;
+        tpl_ctrls->compute_rate            = 0;
+        tpl_ctrls->enable_tpl_qps          = 0;
+        tpl_ctrls->disable_intra_pred_nref = 1;
+        tpl_ctrls->intra_mode_end          = DC_PRED;
+        tpl_ctrls->reduced_tpl_group       = is_islice ? -1 : (pcs->hierarchical_levels == 5 ? 4 : 3);
+        tpl_ctrls->pf_shape                = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 1;
+        tpl_ctrls->dispenser_search_level  = 0;
+        tpl_ctrls->subsample_tx            = 0;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 4:
         tpl_ctrls->enable                  = 1;
@@ -793,26 +801,26 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->intra_mode_end          = DC_PRED;
         tpl_ctrls->reduced_tpl_group       = pcs->hierarchical_levels == 5 ? (is_islice ? 4 : 3) : (is_islice ? 3 : 2);
         tpl_ctrls->pf_shape                = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 1;
-        tpl_ctrls->dispenser_search_level = 0;
-        tpl_ctrls->subsample_tx           = 0;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->use_sad_in_src_search   = 1;
+        tpl_ctrls->dispenser_search_level  = 0;
+        tpl_ctrls->subsample_tx            = 0;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 5:
-        tpl_ctrls->enable                       = 1;
-        tpl_ctrls->compute_rate                 = 0;
-        tpl_ctrls->enable_tpl_qps               = 0;
-        tpl_ctrls->disable_intra_pred_nref      = 1;
-        tpl_ctrls->intra_mode_end               = DC_PRED;
-        tpl_ctrls->reduced_tpl_group            = pcs->hierarchical_levels == 5
-                       ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 2)
-                       : is_islice ? 3
-                                   : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1);
-        tpl_ctrls->pf_shape                     = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 1;
-        tpl_ctrls->dispenser_search_level = 0;
-        tpl_ctrls->subsample_tx           = 1;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->enable                  = 1;
+        tpl_ctrls->compute_rate            = 0;
+        tpl_ctrls->enable_tpl_qps          = 0;
+        tpl_ctrls->disable_intra_pred_nref = 1;
+        tpl_ctrls->intra_mode_end          = DC_PRED;
+        tpl_ctrls->reduced_tpl_group       = pcs->hierarchical_levels == 5
+                  ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 2)
+                  : is_islice ? 3
+                              : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1);
+        tpl_ctrls->pf_shape                = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 1;
+        tpl_ctrls->dispenser_search_level  = 0;
+        tpl_ctrls->subsample_tx            = 1;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 6:
         tpl_ctrls->enable                  = 1;
@@ -820,16 +828,16 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->enable_tpl_qps          = 0;
         tpl_ctrls->disable_intra_pred_nref = 1;
         tpl_ctrls->intra_mode_end          = DC_PRED;
-        tpl_ctrls->reduced_tpl_group = pcs->hierarchical_levels == 5
-            ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 2)
-            : pcs->hierarchical_levels == 4 ? is_islice ? 3 : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1)
-            : is_islice                     ? 3
-                                            : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 0);
-        tpl_ctrls->pf_shape = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 1;
-        tpl_ctrls->dispenser_search_level = 1;
-        tpl_ctrls->subsample_tx           = 2;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->reduced_tpl_group       = pcs->hierarchical_levels == 5
+                  ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 2)
+                  : pcs->hierarchical_levels == 4 ? is_islice ? 3 : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1)
+                  : is_islice                     ? 3
+                                                  : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 0);
+        tpl_ctrls->pf_shape                = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 1;
+        tpl_ctrls->dispenser_search_level  = 1;
+        tpl_ctrls->subsample_tx            = 2;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 7:
         tpl_ctrls->enable                  = 1;
@@ -837,16 +845,16 @@ void svt_aom_set_tpl_extended_controls(PictureParentControlSet *pcs, uint8_t tpl
         tpl_ctrls->enable_tpl_qps          = 0;
         tpl_ctrls->disable_intra_pred_nref = 1;
         tpl_ctrls->intra_mode_end          = DC_PRED;
-        tpl_ctrls->reduced_tpl_group = pcs->hierarchical_levels == 5
-            ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 1)
-            : pcs->hierarchical_levels == 4 ? is_islice ? 3 : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1)
-            : is_islice                     ? 3
-                                            : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 0);
-        tpl_ctrls->pf_shape = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
-        tpl_ctrls->use_sad_in_src_search = 1;
-        tpl_ctrls->dispenser_search_level = 1;
-        tpl_ctrls->subsample_tx           = 2;
-        tpl_ctrls->subpel_depth           = FULL_PEL;
+        tpl_ctrls->reduced_tpl_group       = pcs->hierarchical_levels == 5
+                  ? is_islice ? 4 : (resolution <= INPUT_SIZE_480p_RANGE ? 3 : 1)
+                  : pcs->hierarchical_levels == 4 ? is_islice ? 3 : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 1)
+                  : is_islice                     ? 3
+                                                  : (resolution <= INPUT_SIZE_480p_RANGE ? 2 : 0);
+        tpl_ctrls->pf_shape                = resolution <= INPUT_SIZE_480p_RANGE ? N2_SHAPE : N4_SHAPE;
+        tpl_ctrls->use_sad_in_src_search   = 1;
+        tpl_ctrls->dispenser_search_level  = 1;
+        tpl_ctrls->subsample_tx            = 2;
+        tpl_ctrls->subpel_depth            = FULL_PEL;
         break;
     case 8:
         tpl_ctrls->enable                  = 1;
@@ -2157,13 +2165,13 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->params_refinement_steps      = 5;
         gm_ctrls->downsample_level             = GM_FULL;
 
-        gm_ctrls->corners      = 4;
-        gm_ctrls->chess_rfn    = 0;
-        gm_ctrls->match_sz     = 13;
-        gm_ctrls->inj_psq_glb  = FALSE;
-        gm_ctrls->use_ref_info = 0;
-        gm_ctrls->layer_offset = 0;
-        gm_ctrls->pp_enabled   = 0;
+        gm_ctrls->corners       = 4;
+        gm_ctrls->chess_rfn     = 0;
+        gm_ctrls->match_sz      = 13;
+        gm_ctrls->inj_psq_glb   = FALSE;
+        gm_ctrls->use_ref_info  = 0;
+        gm_ctrls->layer_offset  = 0;
+        gm_ctrls->pp_enabled    = 0;
         gm_ctrls->ref_idx0_only = 0;
         break;
     case 2:
@@ -2183,7 +2191,7 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->use_ref_info                 = 0;
         gm_ctrls->layer_offset                 = 0;
         gm_ctrls->pp_enabled                   = 1;
-        gm_ctrls->ref_idx0_only = 0;
+        gm_ctrls->ref_idx0_only                = 0;
         break;
     case 3:
         gm_ctrls->enabled                      = 1;
@@ -2202,7 +2210,7 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->use_ref_info                 = 0;
         gm_ctrls->layer_offset                 = 0;
         gm_ctrls->pp_enabled                   = 1;
-        gm_ctrls->ref_idx0_only = 0;
+        gm_ctrls->ref_idx0_only                = 0;
         break;
     case 4:
         gm_ctrls->enabled                      = 1;
@@ -2221,7 +2229,7 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->use_ref_info                 = 0;
         gm_ctrls->layer_offset                 = 0;
         gm_ctrls->pp_enabled                   = 1;
-        gm_ctrls->ref_idx0_only = 1;
+        gm_ctrls->ref_idx0_only                = 1;
         break;
     case 5:
         gm_ctrls->enabled                      = 1;
@@ -2240,7 +2248,7 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->use_ref_info                 = 0;
         gm_ctrls->layer_offset                 = 0;
         gm_ctrls->pp_enabled                   = 1;
-        gm_ctrls->ref_idx0_only = 1;
+        gm_ctrls->ref_idx0_only                = 1;
         break;
     case 6:
         gm_ctrls->enabled                      = 1;
@@ -2256,10 +2264,10 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->chess_rfn                    = 1;
         gm_ctrls->match_sz                     = 7;
         gm_ctrls->inj_psq_glb                  = TRUE;
-        gm_ctrls->use_ref_info = 0;
-        gm_ctrls->layer_offset = 3;
-        gm_ctrls->pp_enabled   = 0;
-        gm_ctrls->ref_idx0_only = 1;
+        gm_ctrls->use_ref_info                 = 0;
+        gm_ctrls->layer_offset                 = 3;
+        gm_ctrls->pp_enabled                   = 0;
+        gm_ctrls->ref_idx0_only                = 1;
         break;
     case 7:
         gm_ctrls->enabled                      = 1;
@@ -2275,10 +2283,10 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->chess_rfn                    = 1;
         gm_ctrls->match_sz                     = 7;
         gm_ctrls->inj_psq_glb                  = TRUE;
-        gm_ctrls->use_ref_info = 0; //TODO: clean up ref info method
-        gm_ctrls->layer_offset = 3;
-        gm_ctrls->pp_enabled   = 0;
-        gm_ctrls->ref_idx0_only = 1;
+        gm_ctrls->use_ref_info                 = 0; //TODO: clean up ref info method
+        gm_ctrls->layer_offset                 = 3;
+        gm_ctrls->pp_enabled                   = 0;
+        gm_ctrls->ref_idx0_only                = 1;
         break;
     case 8:
         gm_ctrls->enabled                      = 1;
@@ -2294,10 +2302,10 @@ void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level) {
         gm_ctrls->chess_rfn                    = 1;
         gm_ctrls->match_sz                     = 7;
         gm_ctrls->inj_psq_glb                  = TRUE;
-        gm_ctrls->use_ref_info = 0;
-        gm_ctrls->layer_offset = 3;
-        gm_ctrls->pp_enabled   = 0;
-        gm_ctrls->ref_idx0_only = 1;
+        gm_ctrls->use_ref_info                 = 0;
+        gm_ctrls->layer_offset                 = 3;
+        gm_ctrls->pp_enabled                   = 0;
+        gm_ctrls->ref_idx0_only                = 1;
         break;
     default: assert(0); break;
     }
@@ -2338,7 +2346,7 @@ static void *set_first_pass_me_hme_params_oq(MeContext *me_ctx, SequenceControlS
         me_ctx->me_sa.sa_min.width  = (me_ctx->me_sa.sa_min.width * 3) >> 1;
         me_ctx->me_sa.sa_min.height = (me_ctx->me_sa.sa_min.height * 3) >> 1;
     }
-    me_ctx->me_early_exit_th = 0;
+    me_ctx->me_early_exit_th    = 0;
     me_ctx->me_safe_limit_zz_th = 0;
     return NULL;
 };
@@ -4903,8 +4911,7 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
             nic_level = 10;
         else
             nic_level = 12;
-    }
-    else if (enc_mode <= ENC_M6)
+    } else if (enc_mode <= ENC_M6)
         nic_level = 13;
     else if (enc_mode <= ENC_M8)
         nic_level = 14;
@@ -5521,19 +5528,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 1;
 
-        nsq_ctrls->sq_weight                 = (uint32_t)~0;
-        nsq_ctrls->psq_cplx_lvl              = 0;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 0;
-        nsq_ctrls->lower_depth_split_cost_th = 0;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = (uint32_t)~0;
+        nsq_ctrls->psq_cplx_lvl                 = 0;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 0;
+        nsq_ctrls->lower_depth_split_cost_th    = 0;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 0;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 0;
-        nsq_ctrls->hv_weight             = 110;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 0;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 0;
+        nsq_ctrls->hv_weight                    = 110;
         break;
 
     case 2:
@@ -5543,16 +5550,16 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 1;
 
-        nsq_ctrls->sq_weight                 = 105;
-        nsq_ctrls->psq_cplx_lvl              = 0;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 150;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 105;
+        nsq_ctrls->psq_cplx_lvl                 = 0;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 150;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl         = 0;
-        nsq_ctrls->sub_depth_block_lvl = 0;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 0;
 
         nsq_ctrls->psq_pred_lvl          = 0;
         nsq_ctrls->component_multiple_th = 0;
@@ -5566,19 +5573,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 1;
 
-        nsq_ctrls->sq_weight                 = 105;
-        nsq_ctrls->psq_cplx_lvl              = 1;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 150;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 105;
+        nsq_ctrls->psq_cplx_lvl                 = 1;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 150;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 0;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 0;
-        nsq_ctrls->hv_weight             = 110;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 0;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 0;
+        nsq_ctrls->hv_weight                    = 110;
         break;
 
     case 4:
@@ -5588,19 +5595,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 1;
 
-        nsq_ctrls->sq_weight                 = 105;
-        nsq_ctrls->psq_cplx_lvl              = 2;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 150;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 105;
+        nsq_ctrls->psq_cplx_lvl                 = 2;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 150;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 0;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 0;
-        nsq_ctrls->hv_weight             = 110;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 0;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 0;
+        nsq_ctrls->hv_weight                    = 110;
         break;
 
     case 5:
@@ -5610,19 +5617,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 100;
-        nsq_ctrls->psq_cplx_lvl              = 2;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 100;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 100;
+        nsq_ctrls->psq_cplx_lvl                 = 2;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 100;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 80;
-        nsq_ctrls->hv_weight             = 110;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 80;
+        nsq_ctrls->hv_weight                    = 110;
         break;
 
     case 6:
@@ -5632,19 +5639,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 100;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 100;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 100;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 100;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 80;
-        nsq_ctrls->hv_weight             = 110;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 80;
+        nsq_ctrls->hv_weight                    = 110;
         break;
 
     case 7:
@@ -5654,19 +5661,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 2;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 2;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 80;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 80;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 8:
@@ -5676,19 +5683,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 5;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 5;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 80;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 80;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 9:
         nsq_ctrls->enabled = 1;
@@ -5697,19 +5704,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 2;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 2;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 60;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 60;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 10:
@@ -5719,19 +5726,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 60;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 60;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 11:
@@ -5741,19 +5748,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 12:
@@ -5763,19 +5770,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 13:
@@ -5785,19 +5792,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 14:
@@ -5807,19 +5814,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 15:
@@ -5829,19 +5836,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 16:
@@ -5851,19 +5858,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 80;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 80;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 10;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 17:
         nsq_ctrls->enabled = 1;
@@ -5872,19 +5879,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 18:
         nsq_ctrls->enabled = 1;
@@ -5893,19 +5900,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 19:
         nsq_ctrls->enabled = 1;
@@ -5914,19 +5921,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 20:
         nsq_ctrls->enabled = 1;
@@ -5935,19 +5942,19 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 1;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 4;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 4;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 21:
         nsq_ctrls->enabled = 1;
@@ -5956,291 +5963,293 @@ void svt_aom_set_nsq_ctrls(ModeDecisionContext *ctx, uint8_t nsq_level, uint8_t 
         nsq_ctrls->allow_HV4          = 0;
         nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 4;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 4;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
-    case 22: nsq_ctrls->enabled = 1; nsq_ctrls->min_nsq_block_size = 8;
-        nsq_ctrls->allow_HV4 = 0;
-        nsq_ctrls->allow_HVA_HVB = 0;
+    case 22:
+        nsq_ctrls->enabled            = 1;
+        nsq_ctrls->min_nsq_block_size = 8;
+        nsq_ctrls->allow_HV4          = 0;
+        nsq_ctrls->allow_HVA_HVB      = 0;
 
-        nsq_ctrls->sq_weight = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->sub_depth_block_lvl   = 1;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 20;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->sub_depth_block_lvl          = 1;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 20;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 23:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 24:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 25:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl              = 3;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 3;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 26:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 27:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 28:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 8;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 8;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     case 29:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 30:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 31:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 32:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 4;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 4;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 33:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 40;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 40;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 4;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 4;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
 
     case 34:
-        nsq_ctrls->enabled                   = 1;
-        nsq_ctrls->min_nsq_block_size        = 16;
-        nsq_ctrls->allow_HV4                 = 0;
-        nsq_ctrls->allow_HVA_HVB             = 0;
-        nsq_ctrls->sq_weight                 = 95;
-        nsq_ctrls->psq_cplx_lvl = 5;
-        nsq_ctrls->max_part0_to_part1_dev    = 60;
-        nsq_ctrls->nsq_split_cost_th         = 60;
-        nsq_ctrls->lower_depth_split_cost_th = 10;
-        nsq_ctrls->H_vs_V_split_rate_th      = 60;
+        nsq_ctrls->enabled                      = 1;
+        nsq_ctrls->min_nsq_block_size           = 16;
+        nsq_ctrls->allow_HV4                    = 0;
+        nsq_ctrls->allow_HVA_HVB                = 0;
+        nsq_ctrls->sq_weight                    = 95;
+        nsq_ctrls->psq_cplx_lvl                 = 5;
+        nsq_ctrls->max_part0_to_part1_dev       = 60;
+        nsq_ctrls->nsq_split_cost_th            = 60;
+        nsq_ctrls->lower_depth_split_cost_th    = 10;
+        nsq_ctrls->H_vs_V_split_rate_th         = 60;
         nsq_ctrls->non_HV_split_rate_th         = 30;
         nsq_ctrls->non_HV_split_rate_modulation = 1;
-        nsq_ctrls->psq_txs_lvl           = 1;
-        nsq_ctrls->sub_depth_block_lvl   = 2;
-        nsq_ctrls->psq_pred_lvl          = 4;
-        nsq_ctrls->component_multiple_th = 10;
-        nsq_ctrls->hv_weight             = 100;
+        nsq_ctrls->psq_txs_lvl                  = 1;
+        nsq_ctrls->sub_depth_block_lvl          = 2;
+        nsq_ctrls->psq_pred_lvl                 = 4;
+        nsq_ctrls->component_multiple_th        = 10;
+        nsq_ctrls->hv_weight                    = 100;
         break;
     default: assert(0); break;
     }
 
     if (ctx && ctx->pd_pass == PD_PASS_0) {
-        nsq_ctrls->sq_weight                 = (uint32_t)~0;
-        nsq_ctrls->psq_cplx_lvl              = 0;
-        nsq_ctrls->max_part0_to_part1_dev    = 0;
-        nsq_ctrls->nsq_split_cost_th         = 150;
-        nsq_ctrls->lower_depth_split_cost_th = 0;
-        nsq_ctrls->H_vs_V_split_rate_th      = 0;
+        nsq_ctrls->sq_weight                    = (uint32_t)~0;
+        nsq_ctrls->psq_cplx_lvl                 = 0;
+        nsq_ctrls->max_part0_to_part1_dev       = 0;
+        nsq_ctrls->nsq_split_cost_th            = 150;
+        nsq_ctrls->lower_depth_split_cost_th    = 0;
+        nsq_ctrls->H_vs_V_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_th         = 0;
         nsq_ctrls->non_HV_split_rate_modulation = 0;
-        nsq_ctrls->psq_txs_lvl           = 0;
-        nsq_ctrls->psq_pred_lvl          = 0;
-        nsq_ctrls->component_multiple_th = 0;
+        nsq_ctrls->psq_txs_lvl                  = 0;
+        nsq_ctrls->psq_pred_lvl                 = 0;
+        nsq_ctrls->component_multiple_th        = 0;
     }
     // Bypassing EncDec doesn't work if HVA_HVB_HV4 are enabled (for all bit depths; causes non-conformant bitstreams)
     if (ctx && (nsq_ctrls->allow_HV4 || nsq_ctrls->allow_HVA_HVB))
@@ -6281,23 +6290,33 @@ void svt_aom_set_inter_intra_ctrls(ModeDecisionContext *ctx, uint8_t inter_intra
     }
 }
 void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t depth_level) {
-    DepthCtrls *depth_ctrls = &ctx->depth_ctrls;
-    uint8_t me_cplx_modulation = 0;
+    DepthCtrls *depth_ctrls        = &ctx->depth_ctrls;
+    uint8_t     me_cplx_modulation = 0;
 
     switch (depth_level) {
-    case 0: depth_ctrls->s_depth = 0; depth_ctrls->e_depth = 0;
+    case 0:
+        depth_ctrls->s_depth              = 0;
+        depth_ctrls->e_depth              = 0;
         depth_ctrls->limit_max_min_to_pd0 = 0;
         break;
-    case 1: depth_ctrls->s_depth = -2; depth_ctrls->e_depth = 2;
+    case 1:
+        depth_ctrls->s_depth              = -2;
+        depth_ctrls->e_depth              = 2;
         depth_ctrls->limit_max_min_to_pd0 = 0;
         break;
-    case 2: depth_ctrls->s_depth = -1; depth_ctrls->e_depth = 1;
+    case 2:
+        depth_ctrls->s_depth              = -1;
+        depth_ctrls->e_depth              = 1;
         depth_ctrls->limit_max_min_to_pd0 = 0;
         break;
-    case 3: depth_ctrls->s_depth = -1; depth_ctrls->e_depth = 1;
+    case 3:
+        depth_ctrls->s_depth              = -1;
+        depth_ctrls->e_depth              = 1;
         depth_ctrls->limit_max_min_to_pd0 = 1;
         break;
-    case 4: depth_ctrls->s_depth = -1; depth_ctrls->e_depth = 1;
+    case 4:
+        depth_ctrls->s_depth              = -1;
+        depth_ctrls->e_depth              = 1;
         depth_ctrls->limit_max_min_to_pd0 = 1;
         me_cplx_modulation                = 1;
         break;
@@ -7247,7 +7266,7 @@ static Bool get_sb_tpl_intra_stats(PictureControlSet *pcs, ModeDecisionContext *
 
         int            ang_intra_count = 0;
         PredictionMode max_intra       = DC_PRED;
-        int intra_count = 0;
+        int            intra_count     = 0;
 
         // Loop over all blocks in the SB
         for (int i = 0; i < sb_rows; i++) {
@@ -7269,7 +7288,7 @@ static Bool get_sb_tpl_intra_stats(PictureControlSet *pcs, ModeDecisionContext *
 
         *sb_ang_intra_count = ang_intra_count;
         *sb_max_intra       = max_intra;
-        *sb_intra_count = intra_count;
+        *sb_intra_count     = intra_count;
         return 1;
     }
     return 0;
@@ -7304,7 +7323,7 @@ static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         if (ppcs->tpl_ctrls.enable && ppcs->tpl_ctrls.intra_mode_end == PAETH_PRED) {
             int            sb_ang_intra_count;
             PredictionMode sb_max_intra;
-            int sb_intra_count;
+            int            sb_intra_count;
             if (get_sb_tpl_intra_stats(pcs, ctx, &sb_ang_intra_count, &sb_max_intra, &sb_intra_count)) {
                 // if SB has angluar modes, use full search
                 if (sb_ang_intra_count) {
@@ -7324,7 +7343,7 @@ static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         if (ppcs->tpl_ctrls.enable && ppcs->tpl_ctrls.intra_mode_end == PAETH_PRED) {
             int            sb_ang_intra_count;
             PredictionMode sb_max_intra;
-            int sb_intra_count;
+            int            sb_intra_count;
             if (get_sb_tpl_intra_stats(pcs, ctx, &sb_ang_intra_count, &sb_max_intra, &sb_intra_count)) {
                 // if SB has angluar modes, use full search
                 if (sb_ang_intra_count) {
@@ -7345,7 +7364,7 @@ static void set_intra_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         if (ppcs->tpl_ctrls.enable && ppcs->tpl_ctrls.intra_mode_end == PAETH_PRED) {
             int            sb_ang_intra_count;
             PredictionMode sb_max_intra;
-            int sb_intra_count;
+            int            sb_intra_count;
             if (get_sb_tpl_intra_stats(pcs, ctx, &sb_ang_intra_count, &sb_max_intra, &sb_intra_count)) {
                 int tpl_blk_size = ppcs->tpl_ctrls.dispenser_search_level == 0 ? 16
                     : ppcs->tpl_ctrls.dispenser_search_level == 1              ? 32
@@ -7622,8 +7641,7 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = pcs->slice_type == I_SLICE ? 2 : 0;
         else
             depth_level = 0;
-    }
-    else if (enc_mode <= ENC_M5)
+    } else if (enc_mode <= ENC_M5)
         depth_level = pcs->slice_type == I_SLICE ? 1 : 2;
     else if (enc_mode <= ENC_M7) {
         if (pcs->coeff_lvl == LOW_LVL) {
@@ -8371,8 +8389,7 @@ uint8_t svt_aom_get_nsq_level(EncMode enc_mode, uint8_t is_islice, uint8_t is_ba
             nsq_level = is_base ? 19 : 22;
         else // regular
             nsq_level = is_base ? 18 : 21;
-    }
-    else if (enc_mode <= ENC_M7) {
+    } else if (enc_mode <= ENC_M7) {
         if (coeff_lvl == LOW_LVL)
             nsq_level = 29;
         else if (coeff_lvl == HIGH_LVL)
@@ -8620,8 +8637,7 @@ uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t
     return inter_intra_level;
 }
 
-uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode,
-                               EbInputResolution input_resolution) {
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode, EbInputResolution input_resolution) {
     uint8_t obmc_level = 0;
     if (fast_decode == 0 || input_resolution <= INPUT_SIZE_360p_RANGE) {
         if (enc_mode <= ENC_M1)
@@ -8772,7 +8788,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         scs->static_config.resize_mode == RESIZE_NONE;
 
     frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
-    ppcs->pic_obmc_level = svt_aom_get_obmc_level(enc_mode, fast_decode, input_resolution);
+    ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, fast_decode, input_resolution);
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
 

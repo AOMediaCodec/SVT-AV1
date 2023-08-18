@@ -1531,8 +1531,8 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
                        uint64_t cb_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
                        uint64_t cr_distortion[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t *y_coeff_bits,
                        uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits) {
-    const uint8_t skip_coeff_ctx = ctx->skip_coeff_ctx;
-    const bool update_full_cost_ssim = ctx->tune_ssim_level > SSIM_LVL_0 ? true : false;
+    const uint8_t skip_coeff_ctx        = ctx->skip_coeff_ctx;
+    const bool    update_full_cost_ssim = ctx->tune_ssim_level > SSIM_LVL_0 ? true : false;
 
     // Get the TX size rate for skip and non-skip block. Need both to make non-skip decision
     uint64_t non_skip_tx_size_bits = 0, skip_tx_size_bits = 0;
@@ -1570,10 +1570,10 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
             y_distortion[DIST_SSIM][0]  = y_distortion[DIST_SSIM][1];
             cb_distortion[DIST_SSIM][0] = cb_distortion[DIST_SSIM][1];
             cr_distortion[DIST_SSIM][0] = cr_distortion[DIST_SSIM][1];
-            cand_bf->block_has_coeff = 0;
-            cand_bf->y_has_coeff     = 0;
-            cand_bf->u_has_coeff     = 0;
-            cand_bf->v_has_coeff     = 0;
+            cand_bf->block_has_coeff    = 0;
+            cand_bf->y_has_coeff        = 0;
+            cand_bf->u_has_coeff        = 0;
+            cand_bf->v_has_coeff        = 0;
 
             // For inter modes, signalling skip means no TX depth is used and the TX type will be DCT_DCT
             cand_bf->cand->tx_depth          = 0;
@@ -1593,33 +1593,33 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
         coeff_rate = ctx->md_rate_est_ctx->skip_fac_bits[skip_coeff_ctx][1] + skip_tx_size_bits;
     }
 
-    uint64_t mode_rate = cand_bf->fast_luma_rate + cand_bf->fast_chroma_rate + coeff_rate;
+    uint64_t mode_rate            = cand_bf->fast_luma_rate + cand_bf->fast_chroma_rate + coeff_rate;
     uint64_t mode_distortion      = y_distortion[DIST_SSD][0] + cb_distortion[DIST_SSD][0] + cr_distortion[DIST_SSD][0];
     uint64_t mode_ssim_distortion = update_full_cost_ssim
         ? y_distortion[DIST_SSIM][0] + cb_distortion[DIST_SSIM][0] + cr_distortion[DIST_SSIM][0]
         : 0;
-    uint64_t mode_cost = RDCOST(lambda, mode_rate, mode_distortion);
+    uint64_t mode_cost            = RDCOST(lambda, mode_rate, mode_distortion);
 
     // If skip_mode is allowed for this candidate, check cost of skip mode compared to regular cost
     if (cand_bf->cand->skip_mode_allowed == TRUE) {
         const uint8_t skip_mode_ctx = ctx->skip_mode_ctx;
 
         // Skip mode cost
-        const uint64_t skip_mode_rate = ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][1];
+        const uint64_t skip_mode_rate       = ctx->md_rate_est_ctx->skip_mode_fac_bits[skip_mode_ctx][1];
         const uint64_t skip_mode_distortion = y_distortion[DIST_SSD][1] + cb_distortion[DIST_SSD][1] +
             cr_distortion[DIST_SSD][1];
         const uint64_t skip_mode_ssim_distortion = update_full_cost_ssim
             ? y_distortion[DIST_SSIM][1] + cb_distortion[DIST_SSIM][1] + cr_distortion[DIST_SSIM][1]
             : 0;
-        const uint64_t skip_mode_cost = RDCOST(lambda, skip_mode_rate, skip_mode_distortion);
+        const uint64_t skip_mode_cost            = RDCOST(lambda, skip_mode_rate, skip_mode_distortion);
 
         cand_bf->cand->skip_mode = FALSE;
         if (skip_mode_cost <= mode_cost) {
             // Update candidate cost
-            mode_cost       = skip_mode_cost;
-            mode_rate       = skip_mode_rate;
-            mode_distortion = skip_mode_distortion;
-            mode_ssim_distortion = skip_mode_ssim_distortion;
+            mode_cost                = skip_mode_cost;
+            mode_rate                = skip_mode_rate;
+            mode_distortion          = skip_mode_distortion;
+            mode_ssim_distortion     = skip_mode_ssim_distortion;
             cand_bf->cand->skip_mode = TRUE;
 
             // Update signals to correspond to skip_mode values (no coeffs, etc.)

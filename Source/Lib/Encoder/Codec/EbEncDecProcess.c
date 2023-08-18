@@ -1791,7 +1791,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = MAX_SIGNED_VALUE;
         depth_refinement_ctrls->sub_to_current_th               = MAX_SIGNED_VALUE;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 0;
         depth_refinement_ctrls->up_to_2_depth                   = 0;
         depth_refinement_ctrls->limit_4x4_depth                 = 0;
@@ -1803,7 +1803,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 0;
         depth_refinement_ctrls->up_to_2_depth                   = 0;
         depth_refinement_ctrls->limit_4x4_depth                 = 0;
@@ -1816,7 +1816,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1834,7 +1834,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 50;
         depth_refinement_ctrls->sub_to_current_th               = 50;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1852,7 +1852,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 25;
         depth_refinement_ctrls->sub_to_current_th               = 25;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1870,7 +1870,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 20;
         depth_refinement_ctrls->sub_to_current_th               = 20;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 10;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 10;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1888,7 +1888,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 15;
         depth_refinement_ctrls->sub_to_current_th               = 15;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1906,7 +1906,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 10;
         depth_refinement_ctrls->sub_to_current_th               = 10;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1924,7 +1924,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = 5;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 400;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1942,7 +1942,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = 5;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 800;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1960,7 +1960,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = 5;
         depth_refinement_ctrls->sub_to_current_th               = -50;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 800;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1978,7 +1978,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = -25;
         depth_refinement_ctrls->sub_to_current_th               = -50;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 1;
         depth_refinement_ctrls->max_cost_multiplier             = 800;
         depth_refinement_ctrls->max_band_cnt                    = 4;
@@ -1998,7 +1998,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext *ctx, uint8_t
         depth_refinement_ctrls->prune_child_if_not_avail        = 1;
         depth_refinement_ctrls->parent_to_current_th            = MIN_SIGNED_VALUE;
         depth_refinement_ctrls->sub_to_current_th               = MIN_SIGNED_VALUE;
-        depth_refinement_ctrls->parent_max_cost_th_mult = 0;
+        depth_refinement_ctrls->parent_max_cost_th_mult         = 0;
         depth_refinement_ctrls->cost_band_based_modulation      = 0;
         depth_refinement_ctrls->up_to_2_depth                   = 0;
         depth_refinement_ctrls->sub_to_current_pd0_coeff_th     = 20;
@@ -3488,12 +3488,12 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         else
                             // Build the t=0 cand_block_array
                             build_starting_cand_block_array(scs, pcs, ed_ctx->md_ctx);
-                            // [PD_PASS_1] Mode Decision - Obtain the final partitioning decision using more accurate info
-                            // than previous stages.  Reduce the total number of partitions to 1.
-                            // Input : mdc_blk_ptr built @ PD0 refinement
-                            // Output: md_blk_arr_nsq reduced set of block(s)
+                        // [PD_PASS_1] Mode Decision - Obtain the final partitioning decision using more accurate info
+                        // than previous stages.  Reduce the total number of partitions to 1.
+                        // Input : mdc_blk_ptr built @ PD0 refinement
+                        // Output: md_blk_arr_nsq reduced set of block(s)
 
-                            // PD1 MD Tool(s): default MD Tool(s)
+                        // PD1 MD Tool(s): default MD Tool(s)
                         if (md_ctx->lpd1_ctrls.pd1_level > REGULAR_PD1)
                             svt_aom_mode_decision_sb_light_pd1(scs, pcs, ed_ctx->md_ctx, mdc_ptr);
                         else

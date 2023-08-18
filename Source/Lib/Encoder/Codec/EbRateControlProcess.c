@@ -43,7 +43,7 @@
 // Specifies the weights of the ref frame in calculating qindex of non base layer frames
 static const int non_base_qindex_weight_ref[EB_MAX_TEMPORAL_LAYERS] = {100, 100, 100, 100, 100, 100};
 // Specifies the weights of the worst quality in calculating qindex of non base layer frames
-static const int non_base_qindex_weight_wq[EB_MAX_TEMPORAL_LAYERS] = {100, 100, 300, 100, 100, 100};
+static const int    non_base_qindex_weight_wq[EB_MAX_TEMPORAL_LAYERS]    = {100, 100, 300, 100, 100, 100};
 static const double tpl_hl_islice_div_factor[EB_MAX_TEMPORAL_LAYERS]     = {1, 2, 2, 1, 1, 0.7};
 static const double tpl_hl_base_frame_div_factor[EB_MAX_TEMPORAL_LAYERS] = {1, 3, 3, 2, 1, 1};
 #define KB 400
@@ -1304,14 +1304,14 @@ void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
         sb_cnt = ppcs_ptr->b64_total_count;
     if ((pcs->ppcs->frm_hdr.delta_q_params.delta_q_present) && (pcs->ppcs->tpl_is_valid == 1)) {
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb_ptr      = pcs->sb_ptr_array[sb_addr];
-            double beta = ppcs_ptr->pa_me_data->tpl_beta[sb_addr];
-            int offset = svt_av1_get_deltaq_offset(scs->static_config.encoder_bit_depth,
+            sb_ptr         = pcs->sb_ptr_array[sb_addr];
+            double beta    = ppcs_ptr->pa_me_data->tpl_beta[sb_addr];
+            int    offset  = svt_av1_get_deltaq_offset(scs->static_config.encoder_bit_depth,
                                                    ppcs_ptr->frm_hdr.quantization_params.base_q_idx,
                                                    beta,
                                                    pcs->ppcs->slice_type == I_SLICE);
-            offset = AOMMIN(offset, pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
-            offset = AOMMAX(offset, -pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
+            offset         = AOMMIN(offset, pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
+            offset         = AOMMAX(offset, -pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
             sb_ptr->qindex = CLIP3(1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
                                    MAXQ,
                                    ((int16_t)ppcs_ptr->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));

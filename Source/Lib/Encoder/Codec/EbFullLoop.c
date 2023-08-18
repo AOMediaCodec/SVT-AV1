@@ -15,9 +15,9 @@
 #include "EbRateDistortionCost.h"
 #include "aom_dsp_rtcd.h"
 
-void svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride, uint8_t *pred,
-                             uint32_t pred_offset, uint32_t pred_stride, int16_t *residual, uint32_t residual_offset,
-                             uint32_t residual_stride, Bool hbd, uint32_t area_width, uint32_t area_height);
+void     svt_aom_residual_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride, uint8_t *pred,
+                                 uint32_t pred_offset, uint32_t pred_stride, int16_t *residual, uint32_t residual_offset,
+                                 uint32_t residual_stride, Bool hbd, uint32_t area_width, uint32_t area_height);
 uint64_t svt_spatial_full_distortion_ssim_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
                                                  uint8_t *recon, int32_t recon_offset, uint32_t recon_stride,
                                                  uint32_t area_width, uint32_t area_height, bool hbd);
@@ -2406,8 +2406,8 @@ uint64_t svt_aom_d1_non_square_block_decision(PictureControlSet *pcs, ModeDecisi
     uint32_t first_blk_idx = ctx->blk_ptr->mds_idx -
         (ctx->blk_geom->totns - 1); //index of first block in this partition
     uint32_t blk_it;
-    uint32_t full_lambda = ctx->hbd_md ? ctx->full_sb_lambda_md[EB_10_BIT_MD] : ctx->full_sb_lambda_md[EB_8_BIT_MD];
-    uint8_t nsq_cost_avail = 1;
+    uint32_t full_lambda    = ctx->hbd_md ? ctx->full_sb_lambda_md[EB_10_BIT_MD] : ctx->full_sb_lambda_md[EB_8_BIT_MD];
+    uint8_t  nsq_cost_avail = 1;
     for (blk_it = 0; blk_it < ctx->blk_geom->totns; blk_it++) {
         // Don't apply check to first block because nsq_cost_avail must be set to 0 for disallowed blocks
         if (!pcs->ppcs->sb_geom[ctx->sb_index].block_is_allowed[first_blk_idx + blk_it] && blk_it)
@@ -2503,10 +2503,7 @@ static void compute_depth_costs(ModeDecisionContext *ctx, PictureParentControlSe
     }
 
     // Compute above depth cost
-    *above_depth_cost =
-        ctx->cost_avail[above_depth_mds]
-        ? ctx->md_local_blk_unit[above_depth_mds].cost
-        : MAX_MODE_COST;
+    *above_depth_cost = ctx->cost_avail[above_depth_mds] ? ctx->md_local_blk_unit[above_depth_mds].cost : MAX_MODE_COST;
     // 128x128 in ISLICE should not have a cost available
     assert(
         IMPLIES((pcs->slice_type == I_SLICE && above_depth_mds == 0 && pcs->scs->seq_header.sb_size == BLOCK_128X128),
@@ -2518,8 +2515,7 @@ static void compute_depth_costs(ModeDecisionContext *ctx, PictureParentControlSe
  * to reflect chosen partition.  Cost comparison only performed when the all quadrants
  * of a given depth have been evaluted.
  */
-uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs,
-                                               ModeDecisionContext *ctx, uint32_t blk_mds) {
+uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs, ModeDecisionContext *ctx, uint32_t blk_mds) {
     uint64_t         parent_depth_cost = 0, current_depth_cost = 0;
     Bool             last_depth_flag = (ctx->md_blk_arr_nsq[blk_mds].split_flag == FALSE);
     uint32_t         last_blk_index = blk_mds, current_depth_idx_mds = blk_mds;
@@ -2528,13 +2524,13 @@ uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs,
         while (blk_geom->is_last_quadrant) {
             //get parent idx
             uint32_t parent_depth_idx_mds = blk_geom->parent_depth_idx_mds;
-                compute_depth_costs(ctx,
-                                    pcs->ppcs,
-                                    current_depth_idx_mds,
-                                    parent_depth_idx_mds,
-                                    blk_geom->ns_depth_offset,
-                                    &parent_depth_cost,
-                                    &current_depth_cost);
+            compute_depth_costs(ctx,
+                                pcs->ppcs,
+                                current_depth_idx_mds,
+                                parent_depth_idx_mds,
+                                blk_geom->ns_depth_offset,
+                                &parent_depth_cost,
+                                &current_depth_cost);
             if (ctx->inter_depth_bias && current_depth_cost != MAX_MODE_COST) {
                 current_depth_cost = (current_depth_cost * ctx->inter_depth_bias) / 1000;
             }
@@ -2547,13 +2543,13 @@ uint32_t svt_aom_d2_inter_depth_block_decision(PictureControlSet *pcs,
                 ctx->md_blk_arr_nsq[parent_depth_idx_mds].split_flag = FALSE;
                 ctx->md_local_blk_unit[parent_depth_idx_mds].cost    = parent_depth_cost;
                 last_blk_index                                       = parent_depth_idx_mds;
-                ctx->cost_avail[parent_depth_idx_mds] = 1;
+                ctx->cost_avail[parent_depth_idx_mds]                = 1;
                 assert(parent_depth_cost != MAX_MODE_COST);
             } else {
                 ctx->md_local_blk_unit[parent_depth_idx_mds].cost    = current_depth_cost;
                 ctx->md_blk_arr_nsq[parent_depth_idx_mds].part       = PARTITION_SPLIT;
                 ctx->md_blk_arr_nsq[parent_depth_idx_mds].split_flag = TRUE;
-                ctx->cost_avail[parent_depth_idx_mds] = 1;
+                ctx->cost_avail[parent_depth_idx_mds]                = 1;
                 assert(current_depth_cost != MAX_MODE_COST);
             }
 

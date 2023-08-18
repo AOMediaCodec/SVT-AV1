@@ -41,13 +41,13 @@
 #include "EbModeDecision.h"
 #define INIT_BIT_EST 6000
 #define DIVIDE_AND_ROUND(x, y) (((x) + ((y) >> 1)) / (y))
-void svt_aom_apply_segmentation_based_quantization(const BlockGeom *blk_geom, PictureControlSet *pcs,
-                                                   SuperBlock *sb_ptr, BlkStruct *blk_ptr);
+void     svt_aom_apply_segmentation_based_quantization(const BlockGeom *blk_geom, PictureControlSet *pcs,
+                                                       SuperBlock *sb_ptr, BlkStruct *blk_ptr);
 uint64_t svt_spatial_full_distortion_ssim_kernel(uint8_t *input, uint32_t input_offset, uint32_t input_stride,
                                                  uint8_t *recon, int32_t recon_offset, uint32_t recon_stride,
                                                  uint32_t area_width, uint32_t area_height, bool hbd);
-void aom_av1_set_ssim_rdmult(struct ModeDecisionContext *ctx, PictureControlSet *pcs, const int mi_row,
-                             const int mi_col);
+void     aom_av1_set_ssim_rdmult(struct ModeDecisionContext *ctx, PictureControlSet *pcs, const int mi_row,
+                                 const int mi_col);
 
 void             svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 extern IntraSize svt_aom_intra_unit[];
@@ -429,8 +429,8 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
 
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_mds);
 
-    uint32_t blk_org_x = ctx->sb_origin_x + blk_geom->org_x;
-    uint32_t blk_org_y = ctx->sb_origin_y + blk_geom->org_y;
+    uint32_t blk_org_x    = ctx->sb_origin_x + blk_geom->org_x;
+    uint32_t blk_org_y    = ctx->sb_origin_y + blk_geom->org_y;
     uint32_t blk_org_x_uv = (blk_org_x >> 3 << 3) >> 1;
     uint32_t blk_org_y_uv = (blk_org_y >> 3 << 3) >> 1;
     uint32_t bwidth_uv    = blk_geom->bwidth_uv;
@@ -575,9 +575,9 @@ void svt_aom_copy_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *
 
 static void md_update_all_neighbour_arrays(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                            uint32_t last_blk_index_mds) {
-    ctx->blk_geom  = get_blk_geom_mds(last_blk_index_mds);
-    ctx->blk_org_x = ctx->sb_origin_x + ctx->blk_geom->org_x;
-    ctx->blk_org_y = ctx->sb_origin_y + ctx->blk_geom->org_y;
+    ctx->blk_geom       = get_blk_geom_mds(last_blk_index_mds);
+    ctx->blk_org_x      = ctx->sb_origin_x + ctx->blk_geom->org_x;
+    ctx->blk_org_y      = ctx->sb_origin_y + ctx->blk_geom->org_y;
     ctx->round_origin_x = ((ctx->blk_org_x >> 3) << 3);
     ctx->round_origin_y = ((ctx->blk_org_y >> 3) << 3);
 
@@ -3302,10 +3302,10 @@ static void av1_cost_calc_cfl(PictureControlSet *pcs, ModeDecisionCandidateBuffe
                               uint64_t full_dist[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t *coeff_bits, Bool check_dc) {
     ModeDecisionCandidate *cand = cand_bf->cand;
     uint32_t               cnt_nz_coeff[3][MAX_NUM_OF_TU_PER_CU];
-    uint64_t cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
-    uint64_t cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
-    uint32_t chroma_width  = ctx->blk_geom->bwidth_uv;
-    uint32_t chroma_height = ctx->blk_geom->bheight_uv;
+    uint64_t               cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
+    uint64_t               cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
+    uint32_t               chroma_width                                    = ctx->blk_geom->bwidth_uv;
+    uint32_t               chroma_height                                   = ctx->blk_geom->bheight_uv;
     // FullLoop and TU search
     uint16_t cb_qindex = ctx->qp_index;
 
@@ -3313,7 +3313,7 @@ static void av1_cost_calc_cfl(PictureControlSet *pcs, ModeDecisionCandidateBuffe
     full_dist[DIST_SSD][DIST_CALC_PREDICTION]  = 0;
     full_dist[DIST_SSIM][DIST_CALC_RESIDUAL]   = 0;
     full_dist[DIST_SSIM][DIST_CALC_PREDICTION] = 0;
-    *coeff_bits = 0;
+    *coeff_bits                                = 0;
 
     // Loop over alphas and find the best
     if (component_mask == COMPONENT_CHROMA_CB || component_mask == COMPONENT_CHROMA ||
@@ -3327,10 +3327,10 @@ static void av1_cost_calc_cfl(PictureControlSet *pcs, ModeDecisionCandidateBuffe
         cr_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL]   = 0;
         cb_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] = 0;
         cr_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] = 0;
-        uint64_t cb_coeff_bits = 0;
-        uint64_t cr_coeff_bits = 0;
-        int32_t  alpha_q3      = (check_dc) ? 0
-                                            : cfl_idx_to_alpha(cand->cfl_alpha_idx,
+        uint64_t cb_coeff_bits                              = 0;
+        uint64_t cr_coeff_bits                              = 0;
+        int32_t  alpha_q3                                   = (check_dc) ? 0
+                                                                         : cfl_idx_to_alpha(cand->cfl_alpha_idx,
                                                          cand->cfl_alpha_signs,
                                                          CFL_PRED_U); // once for U, once for V
         assert(chroma_width * CFL_BUF_LINE + chroma_height <= CFL_BUF_SQUARE);
@@ -3488,7 +3488,7 @@ static uint64_t md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandida
     int32_t  best_c[CFL_JOINT_SIGNS][CFL_PRED_PLANES];
 
     for (int32_t plane = 0; plane < CFL_PRED_PLANES; plane++) {
-        coeff_bits = 0;
+        coeff_bits                               = 0;
         full_dist[DIST_SSD][DIST_CALC_RESIDUAL]  = 0;
         full_dist[DIST_SSIM][DIST_CALC_RESIDUAL] = 0;
         for (int32_t joint_sign = 0; joint_sign < CFL_JOINT_SIGNS; joint_sign++) {
@@ -3517,7 +3517,7 @@ static uint64_t md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandida
                 if (coeff_bits == INT64_MAX)
                     break;
             }
-            const int32_t alpha_rate = ctx->md_rate_est_ctx->cfl_alpha_fac_bits[joint_sign][plane][0];
+            const int32_t alpha_rate      = ctx->md_rate_est_ctx->cfl_alpha_fac_bits[joint_sign][plane][0];
             best_rd_uv[joint_sign][plane] = RDCOST(
                 full_lambda, coeff_bits + alpha_rate, full_dist[DIST_SSD][DIST_CALC_RESIDUAL]);
         }
@@ -3532,7 +3532,7 @@ static uint64_t md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandida
                 int32_t flag = 0;
                 if (c > ctx->cfl_ctrls.itr_th && progress < c)
                     break;
-                coeff_bits = 0;
+                coeff_bits                               = 0;
                 full_dist[DIST_SSD][DIST_CALC_RESIDUAL]  = 0;
                 full_dist[DIST_SSIM][DIST_CALC_RESIDUAL] = 0;
                 for (int32_t i = 0; i < CFL_SIGNS; i++) {
@@ -3557,7 +3557,7 @@ static uint64_t md_cfl_rd_pick_alpha(PictureControlSet *pcs, ModeDecisionCandida
                     }
 
                     const int32_t alpha_rate = ctx->md_rate_est_ctx->cfl_alpha_fac_bits[joint_sign][plane][c];
-                    uint64_t this_rd = RDCOST(
+                    uint64_t      this_rd    = RDCOST(
                         full_lambda, coeff_bits + alpha_rate, full_dist[DIST_SSD][DIST_CALC_RESIDUAL]);
                     if (this_rd >= best_rd_uv[joint_sign][plane])
                         continue;
@@ -3683,9 +3683,9 @@ static void cfl_prediction(PictureControlSet *pcs, ModeDecisionCandidateBuffer *
         uint32_t cnt_nz_coeff[3][MAX_NUM_OF_TU_PER_CU];
         uint64_t cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
         uint64_t cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
-        uint64_t cb_coeff_bits = 0;
-        uint64_t cr_coeff_bits = 0;
-        uint16_t cb_qindex     = ctx->qp_index;
+        uint64_t cb_coeff_bits                                   = 0;
+        uint64_t cr_coeff_bits                                   = 0;
+        uint16_t cb_qindex                                       = ctx->qp_index;
         svt_aom_full_loop_uv(pcs,
                              ctx,
                              cand_bf,
@@ -3805,7 +3805,7 @@ static void cfl_prediction(PictureControlSet *pcs, ModeDecisionCandidateBuffer *
         }
     }
 }
-int svt_aom_allow_palette(int allow_screen_content_tools, BlockSize bsize);
+int         svt_aom_allow_palette(int allow_screen_content_tools, BlockSize bsize);
 static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDesc *input_pic, ModeDecisionContext *ctx,
                                       uint32_t input_cb_origin_in_index, uint32_t blk_chroma_origin_index,
                                       ModeDecisionCandidateBuffer *cand_bf, uint8_t cb_qindex,
@@ -3818,10 +3818,10 @@ static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDes
     FrameHeader *frm_hdr     = &pcs->ppcs->frm_hdr;
     uint64_t     chroma_rate = svt_aom_get_intra_uv_fast_rate(pcs, ctx, cand_bf, 1);
     int          coeff_rate  = (int)(*cb_coeff_bits + *cr_coeff_bits);
-    int distortion = (int)(cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] +
+    int          distortion  = (int)(cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL] +
                            cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]);
-    int      rate        = (int)(coeff_rate + chroma_rate);
-    uint64_t cfl_uv_cost = RDCOST(full_lambda, rate, distortion);
+    int          rate        = (int)(coeff_rate + chroma_rate);
+    uint64_t     cfl_uv_cost = RDCOST(full_lambda, rate, distortion);
     // The independent chroma cost assumes luma palette is off. If luma palette is on, the rate for the chroma mode
     // may be different than what is stored, so the rate should be updated.
     int64_t ind_palette_cost_diff = 0;
@@ -3853,8 +3853,8 @@ static void check_best_indepedant_cfl(PictureControlSet *pcs, EbPictureBufferDes
         ctx->uv_intra_comp_only = TRUE;
         memset(cand_bf->eob[1], 0, sizeof(uint16_t));
         memset(cand_bf->eob[2], 0, sizeof(uint16_t));
-        cand_bf->u_has_coeff = 0;
-        cand_bf->v_has_coeff = 0;
+        cand_bf->u_has_coeff                               = 0;
+        cand_bf->v_has_coeff                               = 0;
         cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = 0;
         cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = 0;
         cb_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] = 0;
@@ -4539,10 +4539,10 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
                             &ctx->luma_dc_sign_context);
     TxType best_tx_type = DCT_DCT;
     // local variables for all TX types
-    uint16_t eob_txt[TX_TYPES]                     = {0};
-    int32_t  quantized_dc_txt[TX_TYPES]            = {0};
-    uint32_t y_count_non_zero_coeffs_txt[TX_TYPES] = {0};
-    uint64_t y_txb_coeff_bits_txt[TX_TYPES]        = {0};
+    uint16_t        eob_txt[TX_TYPES]                                              = {0};
+    int32_t         quantized_dc_txt[TX_TYPES]                                     = {0};
+    uint32_t        y_count_non_zero_coeffs_txt[TX_TYPES]                          = {0};
+    uint64_t        y_txb_coeff_bits_txt[TX_TYPES]                                 = {0};
     uint64_t        txb_full_distortion_txt[DIST_TOTAL][TX_TYPES][DIST_CALC_TOTAL] = {{{0}}};
     int32_t         candidate_num                                                  = 0;
     TxType          tx_type_candidate[MAX_TX_TYPE_GROUP * TX_TYPES]                = {0};
@@ -4552,7 +4552,7 @@ static void tx_type_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
         assert(ctx->md_stage == MD_STAGE_3);
     }
     const double cost_threshold_factor = derive_ssim_threshold_factor_for_tx_type_search(pcs->scs);
-    int tx_type_tot_group = get_tx_type_group(ctx, cand_bf, only_dct_dct);
+    int          tx_type_tot_group     = get_tx_type_group(ctx, cand_bf, only_dct_dct);
     for (int tx_type_group_idx = 0; tx_type_group_idx < tx_type_tot_group; ++tx_type_group_idx) {
         uint32_t best_tx_non_coeff = 64 * 64;
         for (int tx_type_idx = 0; tx_type_idx < TX_TYPES; ++tx_type_idx) {
@@ -5129,7 +5129,7 @@ static void perform_tx_partitioning(ModeDecisionCandidateBuffer *cand_bf, ModeDe
 
         // Initialize TU Split
         uint32_t tx_y_count_non_zero_coeffs[MAX_NUM_OF_TU_PER_CU];
-        uint64_t tx_y_coeff_bits = 0;
+        uint64_t tx_y_coeff_bits                                   = 0;
         uint64_t tx_y_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
 
         ctx->txb_1d_offset      = 0;
@@ -5202,8 +5202,8 @@ static void perform_tx_partitioning(ModeDecisionCandidateBuffer *cand_bf, ModeDe
             const uint64_t cost = RDCOST(
                 full_lambda, tx_y_coeff_bits + tx_size_bit, tx_y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]);
             if (cost < best_cost_search) {
-                best_cost_search = cost;
-                best_tx_depth    = ctx->tx_depth;
+                best_cost_search                                 = cost;
+                best_tx_depth                                    = ctx->tx_depth;
                 y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL] = tx_y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL];
                 y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] =
                     tx_y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION];
@@ -5224,7 +5224,7 @@ static void perform_tx_partitioning(ModeDecisionCandidateBuffer *cand_bf, ModeDe
 
             y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = tx_y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL];
             y_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] = tx_y_full_distortion[DIST_SSD][DIST_CALC_PREDICTION];
-            *y_coeff_bits = tx_y_coeff_bits;
+            *y_coeff_bits                                     = tx_y_coeff_bits;
             for (ctx->txb_itr = 0; ctx->txb_itr < txb_count; ctx->txb_itr++) {
                 y_count_non_zero_coeffs[ctx->txb_itr] = tx_y_count_non_zero_coeffs[ctx->txb_itr];
             }
@@ -6126,15 +6126,15 @@ static Bool get_perform_tx_flag(PictureControlSet *pcs, ModeDecisionContext *ctx
             uint64_t y_coeff_bits;
             uint64_t cb_coeff_bits;
             uint64_t cr_coeff_bits;
-            cand_bf->eob[0][0]          = 0;
-            cand_bf->eob[1][0]          = 0;
-            cand_bf->eob[2][0]          = 0;
-            cand_bf->quantized_dc[0][0] = 0;
-            cand_bf->quantized_dc[1][0] = 0;
-            cand_bf->quantized_dc[2][0] = 0;
-            cand_bf->y_has_coeff        = 0;
-            cand_bf->u_has_coeff        = 0;
-            cand_bf->v_has_coeff        = 0;
+            cand_bf->eob[0][0]               = 0;
+            cand_bf->eob[1][0]               = 0;
+            cand_bf->eob[2][0]               = 0;
+            cand_bf->quantized_dc[0][0]      = 0;
+            cand_bf->quantized_dc[1][0]      = 0;
+            cand_bf->quantized_dc[2][0]      = 0;
+            cand_bf->y_has_coeff             = 0;
+            cand_bf->u_has_coeff             = 0;
+            cand_bf->v_has_coeff             = 0;
             y_coeff_bits                     = INIT_BIT_EST;
             cb_coeff_bits                    = INIT_BIT_EST;
             cr_coeff_bits                    = INIT_BIT_EST;
@@ -6188,13 +6188,13 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, ModeDecisionContext
     if (perform_tx) {
         perform_dct_dct_tx_light_pd1(pcs, ctx, cand_bf, loc, &y_coeff_bits, y_full_distortion[DIST_SSD]);
     } else {
-        cand_bf->eob[0][0]          = 0;
-        cand_bf->quantized_dc[0][0] = 0;
-        cand_bf->y_has_coeff        = 0;
+        cand_bf->eob[0][0]                                = 0;
+        cand_bf->quantized_dc[0][0]                       = 0;
+        cand_bf->y_has_coeff                              = 0;
         y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = 0;
         y_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] = 0;
-        y_coeff_bits                     = 6000;
-        cand_bf->cand->transform_type[0] = DCT_DCT;
+        y_coeff_bits                                      = 6000;
+        cand_bf->cand->transform_type[0]                  = DCT_DCT;
         // For Inter blocks, transform type of chroma follows luma transfrom type
         if (is_inter_mode(cand_bf->cand->pred_mode))
             cand_bf->cand->transform_type_uv = DCT_DCT;
@@ -6222,15 +6222,15 @@ static void full_loop_core_light_pd1(PictureControlSet *pcs, ModeDecisionContext
         if (chroma_component == COMPONENT_CHROMA_CB) {
             cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = 0;
             cr_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] = 0;
-            cr_coeff_bits        = 0;
-            cand_bf->v_has_coeff = 0;
-            cand_bf->eob[2][0]   = 0;
+            cr_coeff_bits                                      = 0;
+            cand_bf->v_has_coeff                               = 0;
+            cand_bf->eob[2][0]                                 = 0;
         } else if (chroma_component == COMPONENT_CHROMA_CR) {
             cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]   = 0;
             cb_full_distortion[DIST_SSD][DIST_CALC_PREDICTION] = 0;
-            cb_coeff_bits        = 0;
-            cand_bf->u_has_coeff = 0;
-            cand_bf->eob[1][0]   = 0;
+            cb_coeff_bits                                      = 0;
+            cand_bf->u_has_coeff                               = 0;
+            cand_bf->eob[1][0]                                 = 0;
         }
     }
     ctx->lpd1_chroma_comp = recon_needed ? COMPONENT_CHROMA : chroma_component;
@@ -6436,8 +6436,8 @@ static void full_loop_core(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     y_full_distortion[DIST_SSD][DIST_CALC_PREDICTION]  = 0;
     y_full_distortion[DIST_SSIM][DIST_CALC_RESIDUAL]   = 0;
     y_full_distortion[DIST_SSIM][DIST_CALC_PREDICTION] = 0;
-    y_coeff_bits       = 0;
-    cand_bf->full_dist = 0;
+    y_coeff_bits                                       = 0;
+    cand_bf->full_dist                                 = 0;
     // Set Skip Flag
     cand->skip_mode = FALSE;
     if (is_inter_mode(cand->pred_mode)) {
@@ -6566,7 +6566,7 @@ static void full_loop_core(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     uint16_t txb_count    = ctx->blk_geom->txb_count[cand_bf->cand->tx_depth];
     cand_bf->cnt_nz_coeff = 0;
     for (uint8_t txb_itr = 0; txb_itr < txb_count; txb_itr++) cand_bf->cnt_nz_coeff += cnt_nz_coeff[0][txb_itr];
-        //CHROMA
+    //CHROMA
 
     cb_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]    = 0;
     cr_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]    = 0;
@@ -7134,9 +7134,9 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
 
         svt_product_prediction_fun_table[is_inter_mode(cand->pred_mode)](ctx->hbd_md, ctx, pcs, cand_bf);
 
-        uint16_t cb_qindex     = ctx->qp_index;
-        uint64_t cb_coeff_bits = 0;
-        uint64_t cr_coeff_bits = 0;
+        uint16_t cb_qindex                                       = ctx->qp_index;
+        uint64_t cb_coeff_bits                                   = 0;
+        uint64_t cr_coeff_bits                                   = 0;
         uint64_t cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
         uint64_t cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
 
@@ -7451,9 +7451,9 @@ static void search_best_independent_uv_mode(PictureControlSet *pcs, EbPictureBuf
         ModeDecisionCandidate       *cand    = cand_bf->cand =
             &ctx->fast_cand_array[uv_cand_buff_indices[uv_mode_count] - start_full_buffer_index +
                                   start_fast_buffer_index];
-        uint16_t cb_qindex     = ctx->qp_index;
-        uint64_t cb_coeff_bits = 0;
-        uint64_t cr_coeff_bits = 0;
+        uint16_t cb_qindex                                       = ctx->qp_index;
+        uint64_t cb_coeff_bits                                   = 0;
+        uint64_t cr_coeff_bits                                   = 0;
         uint64_t cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
         uint64_t cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL] = {{0}};
 
@@ -7954,7 +7954,7 @@ static void md_encode_block_light_pd0(PictureControlSet *pcs, ModeDecisionContex
     }
 
     ctx->avail_blk_flag[blk_ptr->mds_idx] = TRUE;
-    ctx->cost_avail[blk_ptr->mds_idx] = TRUE;
+    ctx->cost_avail[blk_ptr->mds_idx]     = TRUE;
 }
 
 int svt_aom_get_comp_group_idx_context_enc(const MacroBlockD *xd);
@@ -8590,8 +8590,7 @@ static void md_encode_block_light_pd1(PictureControlSet *pcs, ModeDecisionContex
     //Get the new lambda for current block
     if (pcs->ppcs->blk_lambda_tuning) {
         svt_aom_set_tuned_blk_lambda(ctx, pcs);
-    }
-    else if (pcs->ppcs->scs->static_config.tune == 2) {
+    } else if (pcs->ppcs->scs->static_config.tune == 2) {
         int mi_row = ctx->blk_org_y / 4;
         int mi_col = ctx->blk_org_x / 4;
         aom_av1_set_ssim_rdmult(ctx, pcs, mi_row, mi_col);
@@ -8729,7 +8728,7 @@ static void md_encode_block_light_pd1(PictureControlSet *pcs, ModeDecisionContex
     }
 
     ctx->avail_blk_flag[blk_ptr->mds_idx] = TRUE;
-    ctx->cost_avail[blk_ptr->mds_idx] = TRUE;
+    ctx->cost_avail[blk_ptr->mds_idx]     = TRUE;
 }
 void tx_shortcut_detector(PictureControlSet *pcs, ModeDecisionContext *ctx,
                           ModeDecisionCandidateBuffer **cand_bf_ptr_array) {
@@ -9031,7 +9030,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     BlkStruct *blk_ptr          = ctx->blk_ptr;
     cand_bf_ptr_array           = &(cand_bf_ptr_array_base[0]);
     ctx->blk_lambda_tuning      = pcs->ppcs->blk_lambda_tuning;
-    ctx->tune_ssim_level = SSIM_LVL_0;
+    ctx->tune_ssim_level        = SSIM_LVL_0;
     if (pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled) {
         SuperBlock *sb_ptr = ctx->sb_ptr;
         svt_aom_apply_segmentation_based_quantization(blk_geom, pcs, sb_ptr, blk_ptr);
@@ -9039,8 +9038,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
     //Get the new lambda for current block
     if (pcs->ppcs->blk_lambda_tuning) {
         svt_aom_set_tuned_blk_lambda(ctx, pcs);
-    }
-    else if (pcs->ppcs->scs->static_config.tune == 2) {
+    } else if (pcs->ppcs->scs->static_config.tune == 2) {
         int mi_row = ctx->blk_org_y / 4;
         int mi_col = ctx->blk_org_x / 4;
         aom_av1_set_ssim_rdmult(ctx, pcs, mi_row, mi_col);
@@ -9316,7 +9314,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
         loc.blk_origin_index = blk_geom->org_x + blk_geom->org_y * ctx->sb_size;
     }
     // 3rd Full-Loop
-    ctx->md_stage = MD_STAGE_3;
+    ctx->md_stage        = MD_STAGE_3;
     ctx->tune_ssim_level = (pcs->scs->static_config.tune == 2) && (ctx->pd_pass == PD_PASS_1) ? SSIM_LVL_3 : SSIM_LVL_0;
     md_stage_3(pcs,
                ctx,
@@ -9367,7 +9365,7 @@ static void md_encode_block(PictureControlSet *pcs, ModeDecisionContext *ctx, ui
             ctx, cand_bf_ptr_array, ctx->md_stage_3_total_count, ctx->best_candidate_index_array, cand_bf);
     }
     ctx->avail_blk_flag[blk_ptr->mds_idx] = TRUE;
-    ctx->cost_avail[blk_ptr->mds_idx] = TRUE;
+    ctx->cost_avail[blk_ptr->mds_idx]     = TRUE;
 }
 bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     bool             skip_nsq = false;
@@ -9934,13 +9932,13 @@ static void init_block_data(PictureControlSet *pcs, ModeDecisionContext *ctx, co
     const BlockGeom *blk_geom = ctx->blk_geom;
     BlkStruct       *blk_ptr  = ctx->blk_ptr;
     ctx->scale_palette        = 0;
-    ctx->blk_org_x = ctx->sb_origin_x + blk_geom->org_x;
-    ctx->blk_org_y = ctx->sb_origin_y + blk_geom->org_y;
-    ctx->round_origin_x = ((ctx->blk_org_x >> 3) << 3);
-    ctx->round_origin_y = ((ctx->blk_org_y >> 3) << 3);
-    blk_ptr->mds_idx    = blk_idx_mds;
-    blk_ptr->split_flag = blk_split_flag; //mdc indicates smallest or non valid CUs with split flag=
-    blk_ptr->qindex     = ctx->qp_index;
+    ctx->blk_org_x            = ctx->sb_origin_x + blk_geom->org_x;
+    ctx->blk_org_y            = ctx->sb_origin_y + blk_geom->org_y;
+    ctx->round_origin_x       = ((ctx->blk_org_x >> 3) << 3);
+    ctx->round_origin_y       = ((ctx->blk_org_y >> 3) << 3);
+    blk_ptr->mds_idx          = blk_idx_mds;
+    blk_ptr->split_flag       = blk_split_flag; //mdc indicates smallest or non valid CUs with split flag=
+    blk_ptr->qindex           = ctx->qp_index;
     ctx->md_local_blk_unit[blk_idx_mds].left_neighbor_partition  = INVALID_NEIGHBOR_DATA;
     ctx->md_local_blk_unit[blk_idx_mds].above_neighbor_partition = INVALID_NEIGHBOR_DATA;
     ctx->sb64_sq_no4xn_geom                                      = 0;
@@ -9948,8 +9946,8 @@ static void init_block_data(PictureControlSet *pcs, ModeDecisionContext *ctx, co
         ctx->sb64_sq_no4xn_geom = 1;
 }
 static void check_curr_to_parent_cost_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs,
-                                                ModeDecisionContext *ctx,
-                                                uint32_t *next_non_skip_blk_idx_mds, Bool *md_early_exit_sq) {
+                                                ModeDecisionContext *ctx, uint32_t *next_non_skip_blk_idx_mds,
+                                                Bool *md_early_exit_sq) {
     const BlockGeom *blk_geom = ctx->blk_geom;
     BlkStruct       *blk_ptr  = ctx->blk_ptr;
     // skip until we reach the next block @ the parent block depth
@@ -10053,7 +10051,7 @@ static Bool update_redundant(PictureControlSet *pcs, ModeDecisionContext *ctx) {
         memcpy(
             &ctx->md_local_blk_unit[blk_ptr->mds_idx], &ctx->md_local_blk_unit[redundant_blk_mds], sizeof(MdBlkStruct));
         ctx->avail_blk_flag[dst_cu->mds_idx] = ctx->avail_blk_flag[redundant_blk_mds];
-        ctx->cost_avail[dst_cu->mds_idx] = ctx->cost_avail[redundant_blk_mds];
+        ctx->cost_avail[dst_cu->mds_idx]     = ctx->cost_avail[redundant_blk_mds];
 
         if (!ctx->hbd_md) {
             memcpy(&ctx->md_local_blk_unit[blk_geom->blkidx_mds].neigh_left_recon[0],
@@ -10104,9 +10102,8 @@ static Bool update_redundant(PictureControlSet *pcs, ModeDecisionContext *ctx) {
 */
 static void process_block_light_pd0(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
                                     const uint8_t blk_split_flag, EbPictureBufferDesc *in_pic, uint32_t sb_addr,
-                                    uint32_t blk_idx_mds,
-                                    uint32_t *next_non_skip_blk_idx_mds, Bool *md_early_exit_sq) {
-    ctx->blk_geom = get_blk_geom_mds(blk_idx_mds);
+                                    uint32_t blk_idx_mds, uint32_t *next_non_skip_blk_idx_mds, Bool *md_early_exit_sq) {
+    ctx->blk_geom      = get_blk_geom_mds(blk_idx_mds);
     BlkStruct *blk_ptr = ctx->blk_ptr = &ctx->md_blk_arr_nsq[blk_idx_mds];
     init_block_data(pcs, ctx, blk_split_flag, blk_idx_mds);
     // Check current depth cost; if larger than parent, exit early
@@ -10345,8 +10342,8 @@ static void process_block(SequenceControlSet *scs, PictureControlSet *pcs, ModeD
 /*
  * Update d1 data (including d1 decision) after each processed block, determine if should use early exit.
  */
-static void update_d1_data(PictureControlSet *pcs, ModeDecisionContext *ctx,
-                           uint32_t blk_idx_mds, Bool *skip_next_nsq, uint8_t *d1_blk_count) {
+static void update_d1_data(PictureControlSet *pcs, ModeDecisionContext *ctx, uint32_t blk_idx_mds, Bool *skip_next_nsq,
+                           uint8_t *d1_blk_count) {
     const BlockGeom *blk_geom = ctx->blk_geom;
     BlkStruct       *blk_ptr  = ctx->blk_ptr;
 
@@ -10355,9 +10352,9 @@ static void update_d1_data(PictureControlSet *pcs, ModeDecisionContext *ctx,
         svt_aom_d1_non_square_block_decision(pcs, ctx, *d1_blk_count);
         (*d1_blk_count)++;
     } else if (*d1_blk_count && ctx->cost_avail[blk_geom->sqi_mds]) {
-        uint64_t tot_cost      = 0;
-        uint32_t first_blk_idx = blk_ptr->mds_idx - (blk_geom->nsi); //index of first block in this partition
-        uint8_t nsq_cost_avail = 1;
+        uint64_t tot_cost       = 0;
+        uint32_t first_blk_idx  = blk_ptr->mds_idx - (blk_geom->nsi); //index of first block in this partition
+        uint8_t  nsq_cost_avail = 1;
         for (int blk_it = 0; blk_it < blk_geom->nsi + 1; blk_it++) {
             nsq_cost_avail &= ctx->cost_avail[first_blk_idx + blk_it];
             tot_cost += ctx->md_local_blk_unit[first_blk_idx + blk_it].cost;
@@ -10403,10 +10400,10 @@ static void update_d2_decision_light_pd0(PictureControlSet *pcs, ModeDecisionCon
 
     // only needed to update recon
     if (!ctx->skip_intra && ctx->md_blk_arr_nsq[last_blk_index_mds].split_flag == FALSE) {
-        ctx->blk_geom = get_blk_geom_mds(last_blk_index_mds);
+        ctx->blk_geom  = get_blk_geom_mds(last_blk_index_mds);
         ctx->blk_org_x = ctx->sb_origin_x + ctx->blk_geom->org_x;
         ctx->blk_org_y = ctx->sb_origin_y + ctx->blk_geom->org_y;
-        ctx->blk_ptr = &ctx->md_blk_arr_nsq[last_blk_index_mds];
+        ctx->blk_ptr   = &ctx->md_blk_arr_nsq[last_blk_index_mds];
 
         if (ctx->avail_blk_flag[last_blk_index_mds]) {
             mode_decision_update_neighbor_arrays_light_pd0(ctx);
@@ -10482,7 +10479,6 @@ void svt_aom_mode_decision_sb_light_pd0(SequenceControlSet *scs, PictureControlS
         // Only using SQ, so always at tot_d1_blocks
         update_d2_decision_light_pd0(pcs, ctx);
     }
-
 }
 /*
  * Loop over all passed blocks in an SB and perform mode decision for each block,
@@ -10495,7 +10491,6 @@ void svt_aom_mode_decision_sb_light_pd0(SequenceControlSet *scs, PictureControlS
  */
 void svt_aom_mode_decision_sb_light_pd1(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
                                         const MdcSbData *const mdc_sb_data) {
-
     // Update neighbour arrays for the SB
     update_neighbour_arrays(pcs, ctx);
 
@@ -10573,7 +10568,6 @@ void svt_aom_mode_decision_sb_light_pd1(SequenceControlSet *scs, PictureControlS
  */
 void svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
                               const MdcSbData *const mdc_sb_data) {
-
     // Update neighbour arrays for the SB
     update_neighbour_arrays(pcs, ctx);
 

@@ -5316,8 +5316,8 @@ EB_EXTERN EbErrorType svt_aom_write_sb(EntropyCodingContext *ec_ctx, SuperBlock 
     uint32_t blk_index       = 0;
     uint32_t final_blk_index = 0;
 
-    ec_ctx->coded_area_sb    = 0;
-    ec_ctx->coded_area_sb_uv = 0;
+    ec_ctx->coded_area_sb             = 0;
+    ec_ctx->coded_area_sb_uv          = 0;
     SbGeom    *sb_geom                = &pcs->ppcs->sb_geom[tb_ptr->index];
     const bool check_blk_out_of_bound = !(sb_geom->is_complete_sb);
     do {
