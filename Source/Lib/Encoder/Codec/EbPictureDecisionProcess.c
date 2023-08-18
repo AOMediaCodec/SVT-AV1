@@ -3209,7 +3209,7 @@ static EbErrorType derive_tf_window_params(
             pcs->past_altref_nframes = 0;
             pcs->future_altref_nframes = pic_i;
         }
-        else
+        else {
             if (pcs->idr_flag) {
 
                 //initilize list
@@ -3243,6 +3243,7 @@ static EbErrorType derive_tf_window_params(
                 pcs->past_altref_nframes = 0;
                 pcs->future_altref_nframes = pic_i;
             }
+
             else
             {
                 int num_past_pics = MAX(1,(int) pcs->tf_ctrls.num_past_pics + offset);
@@ -3327,19 +3328,20 @@ static EbErrorType derive_tf_window_params(
                     }
                 }
             }
+        }
 
-            // Calc the avg_ahd_error
-            centre_pcs->tf_avg_ahd_error = 0;
-            if (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes) {
+        // Calc the avg_ahd_error
+        centre_pcs->tf_avg_ahd_error = 0;
+        if (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes) {
 
-                int tot_err = 0;
-                for (int i = 0; i < (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes + 1); i++) {
-                    if (i != centre_pcs->past_altref_nframes)
-                        tot_err += pcs->temp_filt_pcs_list[i]->tf_ahd_error_to_central;
-                }
-
-                centre_pcs->tf_avg_ahd_error = tot_err / (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes);
+            int tot_err = 0;
+            for (int i = 0; i < (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes + 1); i++) {
+                if (i != centre_pcs->past_altref_nframes)
+                    tot_err += pcs->temp_filt_pcs_list[i]->tf_ahd_error_to_central;
             }
+
+            centre_pcs->tf_avg_ahd_error = tot_err / (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes);
+        }
     }
     return EB_ErrorNone;
 }
