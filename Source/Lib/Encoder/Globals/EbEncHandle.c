@@ -501,10 +501,16 @@ static EbErrorType load_default_buffer_configuration_settings(
     scs->tpl_segment_row_count_array = tpl_seg_h;
     scs->tpl_segment_col_count_array = tpl_seg_w;
 
-    scs->cdef_segment_row_count = (core_count == SINGLE_CORE_COUNT) ? 1 :
-        (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 2;
-    scs->cdef_segment_column_count = (core_count == SINGLE_CORE_COUNT) ? 1 :
-        (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 3;
+    if (core_count == SINGLE_CORE_COUNT) {
+        scs->cdef_segment_row_count = 1;
+        scs->cdef_segment_column_count = 1;
+    } else if (core_count >= PARALLEL_LEVEL_16_RANGE) {
+        scs->cdef_segment_row_count = (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 3;
+        scs->cdef_segment_column_count = (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 4;
+    } else {
+        scs->cdef_segment_row_count = (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 2;
+        scs->cdef_segment_column_count = (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 3;
+    }
 
     //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
     //to keep proper processing, segments have to be configured based on chroma resolution.
