@@ -1514,8 +1514,10 @@ static EbErrorType str_to_asm(const char *nptr, EbCpuFlags *out) {
         {"9", (EB_CPU_FLAGS_AVX2 << 1) - 1},
         {"avx512", (EB_CPU_FLAGS_AVX512VL << 1) - 1},
         {"10", (EB_CPU_FLAGS_AVX512VL << 1) - 1},
+        {"neon", (EB_CPU_FLAGS_NEON << 1) - 1},
+        {"11", (EB_CPU_FLAGS_NEON << 1) - 1},
         {"max", EB_CPU_FLAGS_ALL},
-        {"11", EB_CPU_FLAGS_ALL},
+        {"12", EB_CPU_FLAGS_ALL},
     };
     const size_t simds_size = sizeof(simds) / sizeof(simds[0]);
 

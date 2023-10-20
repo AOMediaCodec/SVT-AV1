@@ -148,7 +148,8 @@ static const char *get_asm_level_name_str(EbCpuFlags cpu_flags) {
         {"sse4_2",  EB_CPU_FLAGS_SSE4_2},
         {"avx",     EB_CPU_FLAGS_AVX},
         {"avx2",    EB_CPU_FLAGS_AVX2},
-        {"avx512",  EB_CPU_FLAGS_AVX512F}
+        {"avx512",  EB_CPU_FLAGS_AVX512F},
+        {"neon",    EB_CPU_FLAGS_NEON}
     };
     const uint32_t para_map_size = sizeof(param_maps) / sizeof(param_maps[0]);
     int32_t i;
@@ -841,7 +842,7 @@ static EbErrorType load_default_buffer_configuration_settings(
         /******************************************************************
         * Platform detection, limit cpu flags to hardware available CPU
         ******************************************************************/
-#ifdef ARCH_X86_64
+#if defined ARCH_X86_64 || defined ARCH_AARCH64
         const EbCpuFlags cpu_flags = svt_aom_get_cpu_flags();
         const EbCpuFlags cpu_flags_to_use = svt_aom_get_cpu_flags_to_use();
         scs->static_config.use_cpu_flags &= cpu_flags_to_use;

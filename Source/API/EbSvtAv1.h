@@ -341,7 +341,8 @@ typedef uint64_t EbCpuFlags;
 #define EB_CPU_FLAGS_AVX512PF (1 << 13)
 #define EB_CPU_FLAGS_AVX512BW (1 << 14)
 #define EB_CPU_FLAGS_AVX512VL (1 << 15)
-#define EB_CPU_FLAGS_ALL ((EB_CPU_FLAGS_AVX512VL << 1) - 1)
+#define EB_CPU_FLAGS_NEON (1 << 16)
+#define EB_CPU_FLAGS_ALL ((EB_CPU_FLAGS_NEON << 1) - 1)
 #define EB_CPU_FLAGS_INVALID (1ULL << (sizeof(EbCpuFlags) * 8ULL - 1ULL))
 
 #ifdef __cplusplus
