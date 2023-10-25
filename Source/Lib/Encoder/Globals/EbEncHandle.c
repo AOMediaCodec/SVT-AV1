@@ -139,6 +139,7 @@ static const char *get_asm_level_name_str(EbCpuFlags cpu_flags) {
         EbCpuFlags flags;
     } param_maps[] = {
         {"c",       0},
+#ifdef ARCH_X86_64
         {"mmx",     EB_CPU_FLAGS_MMX},
         {"sse",     EB_CPU_FLAGS_SSE},
         {"sse2",    EB_CPU_FLAGS_SSE2},
@@ -149,7 +150,9 @@ static const char *get_asm_level_name_str(EbCpuFlags cpu_flags) {
         {"avx",     EB_CPU_FLAGS_AVX},
         {"avx2",    EB_CPU_FLAGS_AVX2},
         {"avx512",  EB_CPU_FLAGS_AVX512F},
+#elif defined(ARCH_AARCH64)
         {"neon",    EB_CPU_FLAGS_NEON}
+#endif
     };
     const uint32_t para_map_size = sizeof(param_maps) / sizeof(param_maps[0]);
     int32_t i;
