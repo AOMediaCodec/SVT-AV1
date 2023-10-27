@@ -515,7 +515,7 @@ static EbErrorType load_default_buffer_configuration_settings(
             scs->cdef_segment_row_count = (cdef_l_h < 6) ? 1 : 2;
             scs->cdef_segment_column_count = (cdef_l_w < 10) ? 1 : 3;
         }
-	}
+    }
 
     //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
     //to keep proper processing, segments have to be configured based on chroma resolution.
