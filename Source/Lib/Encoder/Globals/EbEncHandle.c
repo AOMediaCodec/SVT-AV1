@@ -504,13 +504,18 @@ static EbErrorType load_default_buffer_configuration_settings(
     if (core_count == SINGLE_CORE_COUNT) {
         scs->cdef_segment_row_count = 1;
         scs->cdef_segment_column_count = 1;
-    } else if (core_count >= PARALLEL_LEVEL_16_RANGE) {
-        scs->cdef_segment_row_count = (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 3;
-        scs->cdef_segment_column_count = (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 4;
     } else {
-        scs->cdef_segment_row_count = (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 2;
-        scs->cdef_segment_column_count = (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 3;
-    }
+        const uint8_t cdef_l_h = ((scs->max_input_luma_height + 32) / BLOCK_SIZE_64);
+        const uint8_t cdef_l_w = ((scs->max_input_luma_width + 32) / BLOCK_SIZE_64);
+        // Note: Higher thread counts and resolutions will have better perf with more cdef segments!
+        if ((core_count >= PARALLEL_LEVEL_16_RANGE) && (scs->static_config.enc_mode <= ENC_M5)) {
+			scs->cdef_segment_row_count = (cdef_l_h < 6) ? 1 : (cdef_l_h < 15) ? 2 : 3;
+			scs->cdef_segment_column_count = (cdef_l_w < 10) ? 1 : (cdef_l_w < 25) ? 3 : 4;
+        } else {
+            scs->cdef_segment_row_count = (cdef_l_h < 6) ? 1 : 2;
+            scs->cdef_segment_column_count = (cdef_l_w < 10) ? 1 : 3;
+        }
+	}
 
     //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
     //to keep proper processing, segments have to be configured based on chroma resolution.
