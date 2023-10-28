@@ -1517,7 +1517,7 @@ static EbErrorType str_to_asm(const char *nptr, EbCpuFlags *out) {
         {"10", (EB_CPU_FLAGS_AVX512VL << 1) - 1},
 #elif defined(ARCH_AARCH64)
         {"neon", (EB_CPU_FLAGS_NEON << 1) - 1},
-        {"11", (EB_CPU_FLAGS_NEON << 1) - 1},
+        {"1", (EB_CPU_FLAGS_NEON << 1) - 1},
 #endif
         {"max", EB_CPU_FLAGS_ALL},
         {"100", EB_CPU_FLAGS_ALL},
