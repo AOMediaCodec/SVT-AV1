@@ -346,7 +346,7 @@ typedef uint64_t EbCpuFlags;
 #define EB_CPU_FLAGS_NEON (1 << 0)
 #endif
 #define EB_CPU_FLAGS_INVALID (1ULL << (sizeof(EbCpuFlags) * 8ULL - 1ULL))
-#define EB_CPU_FLAGS_ALL (EB_CPU_FLAGS_INVALID >> 1)
+#define EB_CPU_FLAGS_ALL ((EB_CPU_FLAGS_INVALID >> 1) - 1)
 
 #ifdef __cplusplus
 }
