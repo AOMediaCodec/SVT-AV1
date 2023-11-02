@@ -55,12 +55,12 @@
 #if EXCLUDE_HASH
 #define SET_FUNCTIONS(ptr, c, mmx, sse, sse2, sse3, ssse3, sse4_1, sse4_2, avx, avx2, avx512)     \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
-            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);    \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
+            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);           \
             assert(0);                                                                            \
         }                                                                                         \
         if ((uintptr_t)NULL == (uintptr_t)c) {                                                    \
-            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);     \
+            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);            \
             assert(0);                                                                            \
         }                                                                                         \
         ptr = c;                                                                                  \
@@ -69,7 +69,7 @@
 #else
 #define SET_FUNCTIONS(ptr, c, mmx, sse, sse2, sse3, ssse3, sse4_1, sse4_2, avx, avx2, avx512)     \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
             printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, __LINE__, #ptr);    \
             assert(0);                                                                            \
         }                                                                                         \
@@ -83,23 +83,23 @@
 #endif
 #elif defined ARCH_AARCH64
 #if EXCLUDE_HASH
-#define SET_FUNCTIONS(ptr, c, neon)     \
+#define SET_FUNCTIONS(ptr, c, neon)                                                               \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
-            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);    \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
+            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);           \
             assert(0);                                                                            \
         }                                                                                         \
         if ((uintptr_t)NULL == (uintptr_t)c) {                                                    \
-            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);     \
+            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);            \
             assert(0);                                                                            \
         }                                                                                         \
         ptr = c;                                                                                  \
-        SET_FUNCTIONS_AARCH64(ptr, c, neon) \
+        SET_FUNCTIONS_AARCH64(ptr, c, neon)                                                       \
     } while (0)
 #else
-#define SET_FUNCTIONS(ptr, c, neon)     \
+#define SET_FUNCTIONS(ptr, c, neon)                                                               \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
             printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, __LINE__, #ptr);    \
             assert(0);                                                                            \
         }                                                                                         \
@@ -108,27 +108,27 @@
             assert(0);                                                                            \
         }                                                                                         \
         ptr = c;                                                                                  \
-        SET_FUNCTIONS_AARCH64(ptr, c, neon) \
+        SET_FUNCTIONS_AARCH64(ptr, c, neon)                                                       \
     } while (0)
 #endif
 #else
 #if EXCLUDE_HASH
-#define SET_FUNCTIONS(ptr, c)     \
+#define SET_FUNCTIONS(ptr, c)                                                                     \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
-            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);    \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
+            printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, 0, #ptr);           \
             assert(0);                                                                            \
         }                                                                                         \
         if ((uintptr_t)NULL == (uintptr_t)c) {                                                    \
-            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);     \
+            printf("Error: %s:%i: Pointer \"%s\" on C is NULL!\n", __FILE__, 0, #ptr);            \
             assert(0);                                                                            \
         }                                                                                         \
         ptr = c;                                                                                  \
     } while (0)
 #else
-#define SET_FUNCTIONS(ptr, c)     \
+#define SET_FUNCTIONS(ptr, c)                                                                     \
     do {                                                                                          \
-        if (check_pointer_was_set && ptr != 0) {                                                                           \
+        if (check_pointer_was_set && ptr != 0) {                                                  \
             printf("Error: %s:%i: Pointer \"%s\" is set before!\n", __FILE__, __LINE__, #ptr);    \
             assert(0);                                                                            \
         }                                                                                         \
@@ -720,7 +720,7 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
     SET_ONLY_C(svt_aom_highbd_10_variance64x128, svt_aom_highbd_10_variance64x128_c);
     SET_ONLY_C(svt_aom_highbd_10_variance128x64, svt_aom_highbd_10_variance128x64_c);
     SET_ONLY_C(svt_aom_highbd_10_variance128x128, svt_aom_highbd_10_variance128x128_c);
-    
+
     SET_NEON(svt_aom_sub_pixel_variance128x128, svt_aom_sub_pixel_variance128x128_c, svt_aom_sub_pixel_variance128x128_neon);
     SET_NEON(svt_aom_sub_pixel_variance128x64, svt_aom_sub_pixel_variance128x64_c, svt_aom_sub_pixel_variance128x64_neon);
     SET_NEON(svt_aom_sub_pixel_variance16x16, svt_aom_sub_pixel_variance16x16_c, svt_aom_sub_pixel_variance16x16_neon);
