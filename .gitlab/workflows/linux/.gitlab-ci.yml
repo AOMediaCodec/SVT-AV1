@@ -98,6 +98,8 @@ Linux (GCC 4):
 
 Linux (GCC):
   extends: .linux-compiler-base
+  variables:
+    TARGET_OS: "Linux"
   parallel:
     matrix:
       - CC: gcc-7
@@ -115,6 +117,8 @@ Linux (GCC):
       - CC: powerpc64le-linux-gnu-gcc
         CXX: powerpc64le-linux-gnu-g++
         EXTRA_CMAKE_FLAGS: -DCMAKE_TOOLCHAIN_FILE=$CI_PROJECT_DIR/powerpc64le-linux-gnu.cmake -DCROSS=powerpc64le-linux-gnu-
+      - TARGET_OS: "Android"
+        EXTRA_CMAKE_FLAGS: -DCMAKE_TOOLCHAIN_FILE=${CI_PROJECT_DIR}/cmake/toolchains/android_aarch64_toolchain.cmake -DCMAKE_ANDROID_NDK=${CI_PROJECT_DIR}/android-ndk-r26b
   before_script:
     - |
       case $CC in
@@ -127,6 +131,13 @@ Linux (GCC):
           base64 -d > powerpc64le-linux-gnu.cmake
         ;;
       esac
+      if [[ ${TARGET_OS} == "Android" ]]; then
+        apt -y update
+        apt -y install unzip
+        curl -Ls https://dl.google.com/android/repository/android-ndk-r26b-linux.zip -o android-ndk-r26b-linux.zip
+        unzip android-ndk-r26b-linux.zip
+        export PATH=${CI_PROJECT_DIR}/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}
+      fi
 
 Linux (GCC 11, Static):
   extends: .linux-compiler-base
