@@ -456,7 +456,7 @@ EbErrorType pcs_update_param(PictureControlSet *pcs) {
                                        scs->static_config.fast_decode)) {
         set_restoration_unit_size(scs->max_input_luma_width, scs->max_input_luma_height, 1, 1, pcs->rst_info);
     }
-    pcs->frame_width = scs->max_input_luma_width;
+    pcs->frame_width  = scs->max_input_luma_width;
     pcs->frame_height = scs->max_input_luma_height;
     // SB Array
     pcs->b64_total_count = scs->b64_total_count;
@@ -466,7 +466,7 @@ EbErrorType pcs_update_param(PictureControlSet *pcs) {
     const uint16_t picture_sb_w = (uint16_t)((scs->max_input_luma_width + scs->sb_size - 1) / scs->sb_size);
     const uint16_t picture_sb_h = (uint16_t)((scs->max_input_luma_height + scs->sb_size - 1) / scs->sb_size);
     const uint16_t all_sb       = picture_sb_w * picture_sb_h;
-    pcs->sb_total_count = scs->sb_total_count;
+    pcs->sb_total_count         = scs->sb_total_count;
 
     for (sb_index = 0; sb_index < all_sb; ++sb_index) {
         pcs->sb_ptr_array[sb_index]->org_x = (uint16_t)(sb_origin_x * max_blk_size);
@@ -515,10 +515,10 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr
     uint32_t total_tile_cnt = init_data_ptr->tile_row_count * init_data_ptr->tile_column_count;
     uint32_t tile_idx       = 0;
 
-    uint32_t output_buffer_size   = svt_aom_get_out_buffer_size(init_data_ptr->picture_width,
+    uint32_t output_buffer_size = svt_aom_get_out_buffer_size(init_data_ptr->picture_width,
                                                               init_data_ptr->picture_height);
 #if FTR_RES_ON_FLY4
-    object_ptr->frame_width = init_data_ptr->picture_width;
+    object_ptr->frame_width  = init_data_ptr->picture_width;
     object_ptr->frame_height = init_data_ptr->picture_height;
 #endif
     object_ptr->tile_row_count    = init_data_ptr->tile_row_count;
@@ -1264,7 +1264,7 @@ EbErrorType ppcs_update_param(PictureParentControlSet *ppcs) {
         svt_picture_buffer_desc_update(ppcs->chroma_downsampled_pic, (EbPtr)&input_pic_buf_desc_init_data);
     }
     // GOP
-    ppcs->b64_total_count = scs->b64_total_count;
+    ppcs->b64_total_count   = scs->b64_total_count;
     ppcs->av1_cm->mi_stride = scs->pic_width_in_b64 * (BLOCK_SIZE_64 / 4);
 
     ppcs->av1_cm->frm_size.frame_width              = scs->max_input_luma_width - scs->max_input_pad_right;

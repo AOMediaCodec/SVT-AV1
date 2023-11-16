@@ -628,7 +628,7 @@ bool buffer_update_needed(EbBufferHeaderType *input_buffer, struct SequenceContr
 static EbErrorType svt_overlay_buffer_header_update(EbBufferHeaderType *input_buffer, SequenceControlSet *scs,
                                                     Bool noy8b) {
     EbPictureBufferDescInitData input_pic_buf_desc_init_data;
-    EbSvtAv1EncConfiguration *  config   = &scs->static_config;
+    EbSvtAv1EncConfiguration   *config   = &scs->static_config;
     uint8_t                     is_16bit = config->encoder_bit_depth > 8 ? 1 : 0;
 
     input_pic_buf_desc_init_data.max_width = !(scs->max_input_luma_width % 8)
@@ -1097,14 +1097,13 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
 #if FTR_RES_ON_FLY5
             pcs->scs = scs;
             // if resolution has changed, and the pcs settings do not match scs settings, update ppcs params
-            if (pcs->frame_width != scs->max_input_luma_width ||
-                pcs->frame_height != scs->max_input_luma_height) {
+            if (pcs->frame_width != scs->max_input_luma_width || pcs->frame_height != scs->max_input_luma_height) {
                 ppcs_update_param(pcs);
 #if FTR_RES_ON_FLY_PRINT
                 printf("ppcs_update_param:%d:\t(%dx%d)\n ",
-                    (int)context_ptr->picture_number_array[instance_index],
-                    scs->max_input_luma_width,
-                    scs->max_input_luma_height);
+                       (int)context_ptr->picture_number_array[instance_index],
+                       scs->max_input_luma_width,
+                       scs->max_input_luma_height);
 #endif
             }
 #endif
@@ -1185,7 +1184,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             pcs->scs_wrapper = context_ptr->scs_active_array[instance_index];
             // Reset seq_param_change and video_res_change to false
             context_ptr->seq_param_change = false;
-            context_ptr->video_res_change  = false;
+            context_ptr->video_res_change = false;
 #endif
             pcs->scs               = scs;
             pcs->input_pic_wrapper = input_pic_wrapper;
@@ -1204,11 +1203,9 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 svt_get_empty_object(scs->enc_ctx->overlay_input_picture_pool_fifo_ptr, &input_pic_wrapper_ptr);
 #if FTR_RES_ON_FLY5
                 // if resolution has changed, and the overlay_buffer_header settings do not match scs settings, update overlay_buffer_header settings
-                if (buffer_update_needed((EbBufferHeaderType*)input_pic_wrapper_ptr->object_ptr, scs))
+                if (buffer_update_needed((EbBufferHeaderType *)input_pic_wrapper_ptr->object_ptr, scs))
                     svt_overlay_buffer_header_update(
-                        (EbBufferHeaderType *)input_pic_wrapper_ptr->object_ptr,
-                        scs,
-                        FALSE);
+                        (EbBufferHeaderType *)input_pic_wrapper_ptr->object_ptr, scs, FALSE);
 #endif
 
                 // Copy from original picture (pcs->input_pic_wrapper), which is shared
@@ -1293,7 +1290,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             EbPaReferenceObject *pa_ref_obj = (EbPaReferenceObject *)pcs->pa_ref_pic_wrapper->object_ptr;
 #if FTR_RES_ON_FLY5
             // if resolution has changed, and the pa_ref settings do not match scs settings, update pa reference params
-            if(pa_ref_obj->input_padded_pic->max_width != scs->max_input_luma_width ||
+            if (pa_ref_obj->input_padded_pic->max_width != scs->max_input_luma_width ||
                 pa_ref_obj->input_padded_pic->max_height != scs->max_input_luma_height)
                 svt_pa_reference_param_update(pa_ref_obj, scs);
 #endif

@@ -1337,8 +1337,7 @@ static void process_first_pass_stats(PictureParentControlSet *pcs, FIRSTPASS_STA
     } else {
         mb_rows = (scs->max_input_luma_height + 16 - 1) / 16;
     }
-    if (pcs->picture_number == 0 && twopass->stats_buf_ctx->total_stats &&
-        twopass->stats_buf_ctx->total_left_stats) {
+    if (pcs->picture_number == 0 && twopass->stats_buf_ctx->total_stats && twopass->stats_buf_ctx->total_left_stats) {
         if (scs->lap_rc) {
             /*
        * Accumulate total_stats using available limited number of stats,

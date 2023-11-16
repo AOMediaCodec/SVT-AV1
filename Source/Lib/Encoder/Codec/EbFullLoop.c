@@ -1364,9 +1364,9 @@ int32_t svt_aom_quantize_inv_quantize_light(PictureControlSet *pcs, int32_t *coe
     int32_t      qmatrix_level    = (IS_2D_TRANSFORM(tx_type) && pcs->ppcs->frm_hdr.quantization_params.using_qmatrix)
                 ? pcs->ppcs->frm_hdr.quantization_params.qm[AOM_PLANE_Y]
                 : NUM_QM_LEVELS - 1;
-    TxSize  adjusted_tx_size = aom_av1_get_adjusted_tx_size(txsize);
-    const QmVal *q_matrix   = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
-    const QmVal *iq_matrix  = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+    TxSize       adjusted_tx_size = aom_av1_get_adjusted_tx_size(txsize);
+    const QmVal *q_matrix         = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+    const QmVal *iq_matrix        = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
 #if FTR_RES_ON_FLY2
     if (q_matrix == NULL && iq_matrix == NULL) {
         if (bit_depth > EB_EIGHT_BIT) {
@@ -1555,8 +1555,8 @@ int32_t svt_aom_quantize_inv_quantize(PictureControlSet *pcs, ModeDecisionContex
            : NUM_QM_LEVELS - 1;
     TxSize  adjusted_tx_size = aom_av1_get_adjusted_tx_size(txsize);
     MacroblockPlane candidate_plane;
-    const QmVal    *q_matrix  = pcs->ppcs->gqmatrix[qmatrix_level][plane][adjusted_tx_size];
-    const QmVal    *iq_matrix = pcs->ppcs->giqmatrix[qmatrix_level][plane][adjusted_tx_size];
+    const QmVal *   q_matrix  = pcs->ppcs->gqmatrix[qmatrix_level][plane][adjusted_tx_size];
+    const QmVal *   iq_matrix = pcs->ppcs->giqmatrix[qmatrix_level][plane][adjusted_tx_size];
     int32_t         q_index   = pcs->ppcs->frm_hdr.delta_q_params.delta_q_present
                   ? qindex
                   : pcs->ppcs->frm_hdr.quantization_params.base_q_idx;
@@ -1580,8 +1580,7 @@ int32_t svt_aom_quantize_inv_quantize(PictureControlSet *pcs, ModeDecisionContex
             candidate_plane.zbin_qtx        = enc_ctx->quants_8bit.y_zbin[q_index];
             candidate_plane.round_qtx       = enc_ctx->quants_8bit.y_round[q_index];
             candidate_plane.dequant_qtx     = enc_ctx->deq_8bit.y_dequant_qtx[q_index];
-        }
-        else if (component_type == COMPONENT_CHROMA_CB) {
+        } else if (component_type == COMPONENT_CHROMA_CB) {
             candidate_plane.quant_qtx       = enc_ctx->quants_8bit.u_quant[q_index];
             candidate_plane.quant_fp_qtx    = enc_ctx->quants_8bit.u_quant_fp[q_index];
             candidate_plane.round_fp_qtx    = enc_ctx->quants_8bit.u_round_fp[q_index];
