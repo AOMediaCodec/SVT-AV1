@@ -1826,8 +1826,10 @@ static EbErrorType tpl_mc_flow(EncodeContext *enc_ctx, SequenceControlSet *scs, 
             svt_get_empty_object(scs->enc_ctx->tpl_reference_picture_pool_fifo_ptr, &ref_pic_wrapper);
 #if FTR_RES_ON_FLY5
             // if resolution has changed, and the tpl_reference_picture settings do not match scs settings, update tpl reference params
-            if (((EbTplReferenceObject *)ref_pic_wrapper->object_ptr)->ref_picture_ptr->max_width != scs->max_input_luma_width ||
-                ((EbTplReferenceObject *)ref_pic_wrapper->object_ptr)->ref_picture_ptr->max_height != scs->max_input_luma_height)
+            if (((EbTplReferenceObject *)ref_pic_wrapper->object_ptr)->ref_picture_ptr->max_width !=
+                    scs->max_input_luma_width ||
+                ((EbTplReferenceObject *)ref_pic_wrapper->object_ptr)->ref_picture_ptr->max_height !=
+                    scs->max_input_luma_height)
                 svt_tpl_reference_param_update((EbTplReferenceObject *)ref_pic_wrapper->object_ptr, scs);
 #endif
             // Give the new Reference a nominal live_count of 1

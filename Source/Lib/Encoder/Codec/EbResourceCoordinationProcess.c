@@ -152,7 +152,7 @@ EbErrorType svt_aom_resource_coordination_context_ctor(EbThreadContext *thread_c
 
 #if FTR_RES_ON_FLY
     context_ptr->seq_param_change = 0;
-    context_ptr->video_res_change  = 0;
+    context_ptr->video_res_change = 0;
 #endif
     return EB_ErrorNone;
 }
@@ -608,19 +608,15 @@ static void retrieve_resize_event(SequenceControlSet *scs, uint64_t pic_num, Boo
 /**************************************
 * buffer_update_needed: check if updating the buffer needed based on the current width and height and the scs settings
 **************************************/
-bool buffer_update_needed(EbBufferHeaderType* input_buffer,
-    struct SequenceControlSet      *scs) {
+bool buffer_update_needed(EbBufferHeaderType *input_buffer, struct SequenceControlSet *scs) {
+    uint32_t max_width = !(scs->max_input_luma_width % 8) ? scs->max_input_luma_width
+                                                          : scs->max_input_luma_width + (scs->max_input_luma_width % 8);
 
-    uint32_t max_width =
-        !(scs->max_input_luma_width % 8) ?
-        scs->max_input_luma_width :
-        scs->max_input_luma_width + (scs->max_input_luma_width % 8);
-
-    uint32_t max_height =
-        !(scs->max_input_luma_height % 8) ?
-        scs->max_input_luma_height :
-        scs->max_input_luma_height + (scs->max_input_luma_height % 8);
-    if (((EbPictureBufferDesc*)(input_buffer->p_buffer))->max_width != max_width || ((EbPictureBufferDesc*)(input_buffer->p_buffer))->max_height != max_height)
+    uint32_t max_height = !(scs->max_input_luma_height % 8)
+        ? scs->max_input_luma_height
+        : scs->max_input_luma_height + (scs->max_input_luma_height % 8);
+    if (((EbPictureBufferDesc *)(input_buffer->p_buffer))->max_width != max_width ||
+        ((EbPictureBufferDesc *)(input_buffer->p_buffer))->max_height != max_height)
         return true;
     else
         return false;
@@ -629,47 +625,40 @@ bool buffer_update_needed(EbBufferHeaderType* input_buffer,
 /**************************************
 * svt_overlay_buffer_header_update: update the parameters in overlay_buffer_header for changing the resolution on the fly
 **************************************/
-static EbErrorType svt_overlay_buffer_header_update(
-    EbBufferHeaderType* input_buffer,
-    SequenceControlSet       *scs,
-    Bool                   noy8b) {
+static EbErrorType svt_overlay_buffer_header_update(EbBufferHeaderType *input_buffer, SequenceControlSet *scs,
+                                                    Bool noy8b) {
     EbPictureBufferDescInitData input_pic_buf_desc_init_data;
-    EbSvtAv1EncConfiguration   * config = &scs->static_config;
-    uint8_t is_16bit = config->encoder_bit_depth > 8 ? 1 : 0;
+    EbSvtAv1EncConfiguration *  config   = &scs->static_config;
+    uint8_t                     is_16bit = config->encoder_bit_depth > 8 ? 1 : 0;
 
-    input_pic_buf_desc_init_data.max_width =
-        !(scs->max_input_luma_width % 8) ?
-        scs->max_input_luma_width :
-        scs->max_input_luma_width + (scs->max_input_luma_width % 8);
+    input_pic_buf_desc_init_data.max_width = !(scs->max_input_luma_width % 8)
+        ? scs->max_input_luma_width
+        : scs->max_input_luma_width + (scs->max_input_luma_width % 8);
 
-    input_pic_buf_desc_init_data.max_height =
-        !(scs->max_input_luma_height % 8) ?
-        scs->max_input_luma_height :
-        scs->max_input_luma_height + (scs->max_input_luma_height % 8);
+    input_pic_buf_desc_init_data.max_height = !(scs->max_input_luma_height % 8)
+        ? scs->max_input_luma_height
+        : scs->max_input_luma_height + (scs->max_input_luma_height % 8);
 
-    input_pic_buf_desc_init_data.bit_depth = (EbBitDepth)config->encoder_bit_depth;
+    input_pic_buf_desc_init_data.bit_depth    = (EbBitDepth)config->encoder_bit_depth;
     input_pic_buf_desc_init_data.color_format = (EbColorFormat)config->encoder_color_format;
 
-    input_pic_buf_desc_init_data.left_padding = scs->left_padding;
+    input_pic_buf_desc_init_data.left_padding  = scs->left_padding;
     input_pic_buf_desc_init_data.right_padding = scs->right_padding;
-    input_pic_buf_desc_init_data.top_padding = scs->top_padding;
-    input_pic_buf_desc_init_data.bot_padding = scs->bot_padding;
+    input_pic_buf_desc_init_data.top_padding   = scs->top_padding;
+    input_pic_buf_desc_init_data.bot_padding   = scs->bot_padding;
 
     input_pic_buf_desc_init_data.split_mode = is_16bit ? TRUE : FALSE;
 
     input_pic_buf_desc_init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
-    input_pic_buf_desc_init_data.is_16bit_pipeline = 0;
+    input_pic_buf_desc_init_data.is_16bit_pipeline  = 0;
 
     // Enhanced Picture Buffer
     if (!noy8b) {
-        svt_picture_buffer_desc_update(
-            (EbPictureBufferDesc*)input_buffer->p_buffer,
-            (EbPtr)&input_pic_buf_desc_init_data);
-    }
-    else {
-        svt_picture_buffer_desc_noy8b_update(
-            (EbPictureBufferDesc*)input_buffer->p_buffer,
-            (EbPtr)&input_pic_buf_desc_init_data);
+        svt_picture_buffer_desc_update((EbPictureBufferDesc *)input_buffer->p_buffer,
+                                       (EbPtr)&input_pic_buf_desc_init_data);
+    } else {
+        svt_picture_buffer_desc_noy8b_update((EbPictureBufferDesc *)input_buffer->p_buffer,
+                                             (EbPtr)&input_pic_buf_desc_init_data);
     }
 
     return EB_ErrorNone;
@@ -741,21 +730,23 @@ static void update_new_param(SequenceControlSet *scs) {
             scs->mfmv_enabled = 0;
     } else
         scs->mfmv_enabled = scs->static_config.enable_mfmv;
-    
-    // Update the number of segments based on the new resolution
-    uint32_t enc_dec_seg_h = (scs->enc_dec_process_init_count == 1 || is_pic_width_single_sb(scs->super_block_size, scs->max_input_luma_width)) ? 1 :
-        (scs->super_block_size == 128) ?
-        ((scs->max_input_luma_height + 64) / 128) :
-        ((scs->max_input_luma_height + 32) / 64);
-    uint32_t enc_dec_seg_w = (scs->enc_dec_process_init_count == 1) ? 1 :
-        (scs->super_block_size == 128) ?
-        ((scs->max_input_luma_width + 64) / 128) :
-        ((scs->max_input_luma_width + 32) / 64);
 
-    uint32_t me_seg_h = (scs->motion_estimation_process_init_count == 1) ? 1 :
-        (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 8;
-    uint32_t me_seg_w = (scs->motion_estimation_process_init_count == 1) ? 1 :
-        (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 6;
+    // Update the number of segments based on the new resolution
+    uint32_t enc_dec_seg_h = (scs->enc_dec_process_init_count == 1 ||
+                              is_pic_width_single_sb(scs->super_block_size, scs->max_input_luma_width))
+        ? 1
+        : (scs->super_block_size == 128) ? ((scs->max_input_luma_height + 64) / 128)
+                                         : ((scs->max_input_luma_height + 32) / 64);
+    uint32_t enc_dec_seg_w = (scs->enc_dec_process_init_count == 1) ? 1
+        : (scs->super_block_size == 128)                            ? ((scs->max_input_luma_width + 64) / 128)
+                                                                    : ((scs->max_input_luma_width + 32) / 64);
+
+    uint32_t me_seg_h = (scs->motion_estimation_process_init_count == 1) ? 1
+        : (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6)      ? 1
+                                                                         : 8;
+    uint32_t me_seg_w = (scs->motion_estimation_process_init_count == 1) ? 1
+        : (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10)      ? 1
+                                                                         : 6;
     // ME segments
     scs->me_segment_row_count_array[0] = me_seg_h;
     scs->me_segment_row_count_array[1] = me_seg_h;
@@ -786,19 +777,22 @@ static void update_new_param(SequenceControlSet *scs) {
     scs->enc_dec_segment_col_count_array[5] = enc_dec_seg_w;
 
     // TPL processed in 64x64 blocks, so check width against 64x64 block size (even if SB is 128x128)
-    uint32_t tpl_seg_h = (scs->tpl_disp_process_init_count == 1 || is_pic_width_single_sb(64, scs->max_input_luma_width)) ? 1 :
-        ((scs->max_input_luma_height + 32) / 64);
+    uint32_t tpl_seg_h = (scs->tpl_disp_process_init_count == 1 ||
+                          is_pic_width_single_sb(64, scs->max_input_luma_width))
+        ? 1
+        : ((scs->max_input_luma_height + 32) / 64);
 
-    uint32_t tpl_seg_w = (scs->tpl_disp_process_init_count == 1) ? 1 :
-        ((scs->max_input_luma_width + 32) / 64);
+    uint32_t tpl_seg_w = (scs->tpl_disp_process_init_count == 1) ? 1 : ((scs->max_input_luma_width + 32) / 64);
 
     scs->tpl_segment_row_count_array = tpl_seg_h;
     scs->tpl_segment_col_count_array = tpl_seg_w;
 
-    scs->cdef_segment_row_count = (scs->cdef_process_init_count == 1) ? 1 :
-        (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 2;
-    scs->cdef_segment_column_count = (scs->cdef_process_init_count == 1) ? 1 :
-        (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 3;
+    scs->cdef_segment_row_count    = (scs->cdef_process_init_count == 1) ? 1
+           : (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6)   ? 1
+                                                                         : 2;
+    scs->cdef_segment_column_count = (scs->cdef_process_init_count == 1) ? 1
+        : (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10)      ? 1
+                                                                         : 3;
     //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
     //to keep proper processing, segments have to be configured based on chroma resolution.
     uint32_t unit_size             = 256;
@@ -823,7 +817,7 @@ static void update_input_pic_def(ResourceCoordinationContext *ctx, EbBufferHeade
                 scs->max_input_luma_height = input_pic_def->input_luma_height;
                 scs->max_input_pad_right   = input_pic_def->input_pad_right;
                 scs->max_input_pad_bottom  = input_pic_def->input_pad_bottom;
-                ctx->seq_param_change     = true;
+                ctx->seq_param_change      = true;
                 ctx->video_res_change      = true;
                 update_new_param(scs);
             }
@@ -858,7 +852,7 @@ static void update_rate_info(ResourceCoordinationContext *ctx, EbBufferHeaderTyp
                     scs->static_config.optimal_buffer_level_ms   = input_pic_def->optimal_buffer_level_ms;
                     scs->enc_ctx->rc_cfg.optimal_buffer_level_ms = input_pic_def->optimal_buffer_level_ms;
                 }
-                
+
                 ctx->seq_param_change = true;
             }
         }

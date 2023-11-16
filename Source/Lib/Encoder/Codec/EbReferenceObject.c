@@ -138,9 +138,7 @@ EbErrorType svt_reference_param_update(EbReferenceObject *ref_object, SequenceCo
         svt_picture_buffer_desc_update(ref_object->reference_picture, (EbPtr)&picture_buffer_desc_init_data_ptr);
 
         initialize_samples_neighboring_reference_picture(
-            ref_object,
-            &picture_buffer_desc_init_data_ptr,
-            picture_buffer_desc_init_data_ptr.bit_depth);
+            ref_object, &picture_buffer_desc_init_data_ptr, picture_buffer_desc_init_data_ptr.bit_depth);
     }
     const bool gm_ref_info = svt_aom_need_gm_ref_info(scs->static_config.enc_mode,
                                                       scs->static_config.resize_mode == RESIZE_NONE);

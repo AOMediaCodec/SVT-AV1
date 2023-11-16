@@ -293,10 +293,10 @@ static EbErrorType test_update_rate_info(uint64_t pic_num, EbBufferHeaderType *h
     }
     data->target_bit_rate *= 1000; //anaghdin add a check for valid data
     EbPrivDataNode *new_node = (EbPrivDataNode *)malloc(sizeof(EbPrivDataNode));
-    new_node->size      = sizeof(SvtAv1RateInfo);
-    new_node->node_type = RATE_CHANGE_EVENT;
-    new_node->data      = data;
-    new_node->next      = NULL;
+    new_node->size           = sizeof(SvtAv1RateInfo);
+    new_node->node_type      = RATE_CHANGE_EVENT;
+    new_node->data           = data;
+    new_node->next           = NULL;
 
     // append to tail
     if (header_ptr->p_app_private == NULL) {
@@ -318,47 +318,41 @@ static EbErrorType test_update_qp_info(uint64_t pic_num, EbBufferHeaderType *hea
     else if (pic_num % (5 * interval) == 0) {
         data = (SvtAv1RateInfo *)malloc(sizeof(SvtAv1RateInfo));
         memset(data, 0, sizeof(SvtAv1RateInfo));
-        data->seq_qp = 20;
+        data->seq_qp         = 20;
         header_ptr->pic_type = EB_AV1_KEY_PICTURE;
-    }
-    else if (pic_num % (4 * interval) == 0) {
+    } else if (pic_num % (4 * interval) == 0) {
         data = (SvtAv1RateInfo *)malloc(sizeof(SvtAv1RateInfo));
         memset(data, 0, sizeof(SvtAv1RateInfo));
-        data->seq_qp = 25;
+        data->seq_qp         = 25;
         header_ptr->pic_type = EB_AV1_KEY_PICTURE;
-    }
-    else if (pic_num % (3 * interval) == 0) {
+    } else if (pic_num % (3 * interval) == 0) {
         data = (SvtAv1RateInfo *)malloc(sizeof(SvtAv1RateInfo));
         memset(data, 0, sizeof(SvtAv1RateInfo));
-        data->seq_qp = 45;
+        data->seq_qp         = 45;
         header_ptr->pic_type = EB_AV1_KEY_PICTURE;
-    }
-    else if (pic_num % (2 * interval) == 0) {
+    } else if (pic_num % (2 * interval) == 0) {
         data = (SvtAv1RateInfo *)malloc(sizeof(SvtAv1RateInfo));
         memset(data, 0, sizeof(SvtAv1RateInfo));
-        data->seq_qp = 55;
+        data->seq_qp         = 55;
         header_ptr->pic_type = EB_AV1_KEY_PICTURE;
-    }
-    else if (pic_num % interval == 0) {
+    } else if (pic_num % interval == 0) {
         data = (SvtAv1RateInfo *)malloc(sizeof(SvtAv1RateInfo));
         memset(data, 0, sizeof(SvtAv1RateInfo));
-        data->seq_qp = 63;
+        data->seq_qp         = 63;
         header_ptr->pic_type = EB_AV1_KEY_PICTURE;
-    }
-    else {
+    } else {
         return EB_ErrorNone;
     }
     EbPrivDataNode *new_node = (EbPrivDataNode *)malloc(sizeof(EbPrivDataNode));
-    new_node->size = sizeof(SvtAv1RateInfo);
-    new_node->node_type = RATE_CHANGE_EVENT;
-    new_node->data = data;
-    new_node->next = NULL;
+    new_node->size           = sizeof(SvtAv1RateInfo);
+    new_node->node_type      = RATE_CHANGE_EVENT;
+    new_node->data           = data;
+    new_node->next           = NULL;
 
     // append to tail
     if (header_ptr->p_app_private == NULL) {
         header_ptr->p_app_private = new_node;
-    }
-    else {
+    } else {
         EbPrivDataNode *last = header_ptr->p_app_private;
         while (last->next != NULL) { last = last->next; }
         last->next = new_node;
@@ -377,14 +371,14 @@ static EbErrorType test_update_input_pic_def(uint64_t pic_num, EbBufferHeaderTyp
     else if (pic_num % (5 * interval) == 0) {
         data                    = (SvtAv1InputPicDef *)malloc(sizeof(SvtAv1InputPicDef));
         data->input_luma_height = 360;
-        data->input_luma_width = 640;
+        data->input_luma_width  = 640;
         data->input_pad_bottom  = 0;
         data->input_pad_right   = 0;
         header_ptr->pic_type    = EB_AV1_KEY_PICTURE;
     } else if (pic_num % (4 * interval) == 0) {
         data                    = (SvtAv1InputPicDef *)malloc(sizeof(SvtAv1InputPicDef));
         data->input_luma_height = 720;
-        data->input_luma_width = 1280;
+        data->input_luma_width  = 1280;
         data->input_pad_bottom  = 0;
         data->input_pad_right   = 0;
         header_ptr->pic_type    = EB_AV1_KEY_PICTURE;
@@ -414,11 +408,11 @@ static EbErrorType test_update_input_pic_def(uint64_t pic_num, EbBufferHeaderTyp
     }
     EbPrivDataNode *new_node = (EbPrivDataNode *)malloc(sizeof(EbPrivDataNode));
 
-    new_node->size      = sizeof(SvtAv1InputPicDef);
-    new_node->node_type = RES_CHANGE_EVENT;
-    new_node->data      = data;
-    new_node->next      = NULL;
-    app_cfg->input_padded_width = data->input_luma_width;
+    new_node->size               = sizeof(SvtAv1InputPicDef);
+    new_node->node_type          = RES_CHANGE_EVENT;
+    new_node->data               = data;
+    new_node->next               = NULL;
+    app_cfg->input_padded_width  = data->input_luma_width;
     app_cfg->input_padded_height = data->input_luma_height;
 
     // append to tail
@@ -498,11 +492,13 @@ void process_input_buffer(EncChannel *channel) {
 
     AppExitConditionType return_value = APP_ExitConditionNone;
 
+#if FTR_RES_ON_FLY_APP
+    const uint64_t frames_to_be_encoded = (uint64_t)app_cfg->frames_to_be_encoded;
+#else
+    const int64_t frames_to_be_encoded = app_cfg->frames_to_be_encoded;
     const uint8_t color_format         = app_cfg->config.encoder_color_format;
     const int64_t input_padded_width   = app_cfg->input_padded_width;
     const int64_t input_padded_height  = app_cfg->input_padded_height;
-    const int64_t frames_to_be_encoded = app_cfg->frames_to_be_encoded;
-#if !FTR_RES_ON_FLY_APP
     int64_t       total_bytes_to_process_count;
     int64_t       remaining_byte_count;
 #endif
@@ -515,14 +511,14 @@ void process_input_buffer(EncChannel *channel) {
 #if FTR_RES_ON_FLY_APP
     if (frames_to_be_encoded != app_cfg->processed_frame_count && app_cfg->stop_encoder == FALSE) {
         header_ptr->p_app_private = NULL;
-        header_ptr->pic_type = EB_AV1_INVALID_PICTURE;
+        header_ptr->pic_type      = EB_AV1_INVALID_PICTURE;
 #if FTR_RES_ON_FLY_SAMPLE
         test_update_input_pic_def(app_cfg->processed_frame_count, header_ptr, app_cfg);
 #endif
 #else
     total_bytes_to_process_count = (frames_to_be_encoded < 0) ? -1
-        : frames_to_be_encoded *
-        SIZE_OF_ONE_FRAME_IN_BYTES(input_padded_width, input_padded_height, color_format, is_16bit);
+                                                              : frames_to_be_encoded *
+            SIZE_OF_ONE_FRAME_IN_BYTES(input_padded_width, input_padded_height, color_format, is_16bit);
 
     remaining_byte_count = (total_bytes_to_process_count < 0)
         ? -1
@@ -549,10 +545,10 @@ void process_input_buffer(EncChannel *channel) {
             if (keep_running == 0 && !app_cfg->stop_encoder)
                 app_cfg->stop_encoder = TRUE;
             // Fill in Buffers Header control data
-            header_ptr->pts      = app_cfg->processed_frame_count - 1;
+            header_ptr->pts = app_cfg->processed_frame_count - 1;
 #if FTR_RES_ON_FLY_APP
             header_ptr->pic_type = is_forced_keyframe(app_cfg, header_ptr->pts) ? EB_AV1_KEY_PICTURE
-                                                                               : header_ptr->pic_type;
+                                                                                : header_ptr->pic_type;
 #else
             header_ptr->pic_type = is_forced_keyframe(app_cfg, header_ptr->pts) ? EB_AV1_KEY_PICTURE
                                                                                 : EB_AV1_INVALID_PICTURE;
@@ -560,13 +556,13 @@ void process_input_buffer(EncChannel *channel) {
             header_ptr->flags    = 0;
             header_ptr->metadata = NULL;
 #if FTR_KF_ON_FLY_SAMPLE
-            int                interval = 19;
+            int interval = 19;
             if (header_ptr->pts % (interval) == 0)
                 header_ptr->pic_type = EB_AV1_KEY_PICTURE;
 #endif
 #if FTR_RATE_ON_FLY_SAMPLE
             test_update_rate_info(header_ptr->pts, header_ptr);
-          //  test_update_qp_info(header_ptr->pts, header_ptr);
+            //  test_update_qp_info(header_ptr->pts, header_ptr);
 #endif
             retrieve_roi_map_event(app_cfg->roi_map, header_ptr->pts, header_ptr);
             // Send the picture
@@ -574,7 +570,7 @@ void process_input_buffer(EncChannel *channel) {
             if (svt_av1_enc_send_picture(component_handle, header_ptr) != EB_ErrorNone)
                 return_value = APP_ExitConditionFinished;
 #else
-                svt_av1_enc_send_picture(component_handle, header_ptr);
+            svt_av1_enc_send_picture(component_handle, header_ptr);
 #endif
             // p_app_private is deep copied so it's safe to free it now
             free_private_data_list(header_ptr->p_app_private);
@@ -640,14 +636,15 @@ static void mmap_read_input_frames(EbConfig *app_cfg, uint8_t is_16bit, EbBuffer
     input_ptr->cb = svt_mmap(&app_cfg->mmap, app_cfg->mmap.cur_offset, chroma_read_size);
     header_ptr->n_filled_len += (input_ptr->cb ? chroma_read_size : 0);
     app_cfg->mmap.cur_offset += (input_ptr->cb ? chroma_read_size : 0);
-    
+
     input_ptr->cr = svt_mmap(&app_cfg->mmap, app_cfg->mmap.cur_offset, chroma_read_size);
     header_ptr->n_filled_len += (input_ptr->cr ? chroma_read_size : 0);
     app_cfg->mmap.cur_offset += (input_ptr->cr ? chroma_read_size : 0);
 
     if (read_size != header_ptr->n_filled_len) {
         app_cfg->mmap.file_frame_it = 0;
-        app_cfg->mmap.cur_offset = app_cfg->mmap.y4m_seq_hdr;;
+        app_cfg->mmap.cur_offset    = app_cfg->mmap.y4m_seq_hdr;
+        ;
 
         app_cfg->mmap.cur_offset += app_cfg->mmap.y4m_frm_hdr;
         input_ptr->luma = svt_mmap(&app_cfg->mmap, app_cfg->mmap.cur_offset, luma_read_size);

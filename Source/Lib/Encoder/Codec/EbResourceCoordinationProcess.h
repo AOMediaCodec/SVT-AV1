@@ -21,8 +21,7 @@ extern "C" {
  ***************************************/
 EbErrorType svt_aom_resource_coordination_context_ctor(EbThreadContext* thread_ctx, EbEncHandle* enc_handle_ptr);
 #if FTR_RES_ON_FLY4
-extern bool buffer_update_needed(EbBufferHeaderType* input_buffer,
-    struct SequenceControlSet      *scs);
+extern bool buffer_update_needed(EbBufferHeaderType* input_buffer, struct SequenceControlSet* scs);
 #endif
 
 extern void* svt_aom_resource_coordination_kernel(void* input_ptr);

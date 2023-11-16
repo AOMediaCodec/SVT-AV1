@@ -110,7 +110,7 @@ static void init_memory_file_map(EbConfig* app_cfg) {
 #if FTR_RES_ON_FLY_APP
     app_cfg->mmap.cur_offset = app_cfg->mmap.y4m_seq_hdr;
 #endif
-    const int64_t curr_loc      = ftello(app_cfg->input_file); // get current fp location
+    const int64_t curr_loc = ftello(app_cfg->input_file); // get current fp location
     fseeko(app_cfg->input_file, 0L, SEEK_END); // seek to end of file
     app_cfg->mmap.file_size = ftello(app_cfg->input_file); // get file size
     fseeko(app_cfg->input_file, curr_loc, SEEK_SET); // seek back to that location

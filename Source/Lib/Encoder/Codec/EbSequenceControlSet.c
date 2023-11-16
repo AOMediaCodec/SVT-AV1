@@ -300,7 +300,7 @@ EbErrorType copy_sequence_control_set(SequenceControlSet *dst, SequenceControlSe
         EB_FREE_ARRAY(dst->sb_geom);
     if (dst->b64_geom != NULL)
         EB_FREE_ARRAY(dst->b64_geom);
-     // Copy the non-pointer members
+    // Copy the non-pointer members
     *dst = *src;
 
     EB_MALLOC_ARRAY(dst->b64_geom, dst->b64_total_count);
