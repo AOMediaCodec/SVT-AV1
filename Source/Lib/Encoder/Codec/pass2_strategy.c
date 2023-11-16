@@ -1337,7 +1337,8 @@ static void process_first_pass_stats(PictureParentControlSet *pcs, FIRSTPASS_STA
     } else {
         mb_rows = (scs->max_input_luma_height + 16 - 1) / 16;
     }
-    if (pcs->picture_number == 0 && twopass->stats_buf_ctx->total_stats && twopass->stats_buf_ctx->total_left_stats) {
+    if (pcs->picture_number == 0 && twopass->stats_buf_ctx->total_stats &&
+        twopass->stats_buf_ctx->total_left_stats) {
         if (scs->lap_rc) {
             /*
        * Accumulate total_stats using available limited number of stats,
@@ -1686,7 +1687,9 @@ void svt_aom_set_rc_param(SequenceControlSet *scs) {
         enc_ctx->rc_cfg.over_shoot_pct  = scs->static_config.over_shoot_pct;
         enc_ctx->rc_cfg.under_shoot_pct = scs->static_config.under_shoot_pct;
     }
-    enc_ctx->rc_cfg.cq_level                 = quantizer_to_qindex[scs->static_config.qp];
+#if !FTR_RATE_ON_FLY
+    enc_ctx->rc_cfg.cq_level = quantizer_to_qindex[scs->static_config.qp];
+#endif
     enc_ctx->rc_cfg.maximum_buffer_size_ms   = is_vbr ? 240000 : scs->static_config.maximum_buffer_size_ms;
     enc_ctx->rc_cfg.starting_buffer_level_ms = is_vbr ? 60000 : scs->static_config.starting_buffer_level_ms;
     enc_ctx->rc_cfg.optimal_buffer_level_ms  = is_vbr ? 60000 : scs->static_config.optimal_buffer_level_ms;
@@ -1838,10 +1841,13 @@ void svt_aom_find_init_qp_middle_pass(SequenceControlSet *scs, PictureParentCont
 
         rc->active_worst_quality = tmp_q;
         // For same pred pass, use the estimated QP as the sequence QP
-        scs->static_config.qp    = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
+        scs->static_config.qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
                                                (int32_t)scs->static_config.max_qp_allowed - 4,
                                                (int32_t)((tmp_q + 2) >> 2));
+
+#if !FTR_RATE_ON_FLY
         enc_ctx->rc_cfg.cq_level = scs->static_config.qp << 2;
+#endif
     }
 }
 int svt_aom_frame_is_kf_gf_arf(PictureParentControlSet *ppcs) {

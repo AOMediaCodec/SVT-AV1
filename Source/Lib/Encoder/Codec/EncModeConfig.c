@@ -2747,11 +2747,26 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         scs->seq_header.pic_based_rate_est = (uint8_t)scs->pic_based_rate_est;
 
     if (scs->static_config.enable_restoration_filtering == DEFAULT) {
+#if FTR_RES_ON_FLY4
+        // As allocation has already happened based on the initial input resolution, the resolution
+        // changes should not impact enabling restoration. For some presets, restoration is off for 8K
+        // and above and memory allocation is not performed. So, if we switch to smaller resolution, we need
+        // to keep restoration off
+        EbInputResolution init_input_resolution;
+        svt_aom_derive_input_resolution(&init_input_resolution,
+                                        scs->max_initial_input_luma_width * scs->max_initial_input_luma_height);
+        scs->seq_header.enable_restoration = svt_aom_get_enable_restoration(
+            scs->static_config.enc_mode,
+            scs->static_config.enable_restoration_filtering,
+            init_input_resolution,
+            scs->static_config.fast_decode);
+#else
         scs->seq_header.enable_restoration = svt_aom_get_enable_restoration(
             scs->static_config.enc_mode,
             scs->static_config.enable_restoration_filtering,
             scs->input_resolution,
             scs->static_config.fast_decode);
+#endif
     } else
         scs->seq_header.enable_restoration = (uint8_t)scs->static_config.enable_restoration_filtering;
 
