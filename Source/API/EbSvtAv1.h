@@ -340,36 +340,6 @@ typedef struct SvtAv1RateInfo {
     // Sequence QP used in CRF/CQP algorithm. Over writes the sequence QP.
     uint32_t seq_qp;
     uint32_t target_bit_rate;
-    int64_t  starting_buffer_level_ms;
-
-    /**
-     * @brief Optimal Buffer Level in MilliSeconds
-     *
-     * Only applicable for CBR.
-     *
-     * indicates the amount of data that the encoder should try to maintain in the
-     * decoder's buffer, and is expressed in units of time. Must be less than
-     * maximum_buffer_size_ms.
-     *
-     * Min is 20.
-     * Max is 10000.
-     * Default is 600.
-     */
-    int64_t optimal_buffer_level_ms;
-
-    /**
-     * @brief Maximum Buffer Size in MilliSeconds
-     *
-     * Only applicable for CBR.
-     *
-     * indicates the maximum amount of data that may be buffered by the
-     * decoding application, and is expressed in units of time.
-     *
-     * Min is 20.
-     * Max is 10000.
-     * Default is 1000.
-     */
-    int64_t maximum_buffer_size_ms;
 } SvtAv1RateInfo;
 #endif
 /**

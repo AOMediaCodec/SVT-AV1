@@ -5330,13 +5330,14 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType *input_ptr, S
     EbPrivDataNode     *node = (EbPrivDataNode *)input_ptr->p_app_private;
     while (node) {
         if (node->node_type == RES_CHANGE_EVENT) {
+            SvtAv1InputPicDef  *node_data = (SvtAv1InputPicDef *)node->data;
             if (input_ptr->pic_type != EB_AV1_KEY_PICTURE) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution change on the fly not supported for non key frames\n");
                 return EB_ErrorBadParameter;
             }
-            else if ((((SvtAv1InputPicDef *)node->data)->input_luma_height > scs->max_initial_input_luma_height) ||
-                (((SvtAv1InputPicDef *)node->data)->input_luma_width > scs->max_initial_input_luma_width)) {
+            else if ((node_data->input_luma_height > scs->max_initial_input_luma_height) ||
+                (node_data->input_luma_width > scs->max_initial_input_luma_width)) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution cannot be changed to anything greater than the original picture width and height\n");
                 return EB_ErrorBadParameter;
@@ -5371,22 +5372,22 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType *input_ptr, S
                 SVT_ERROR("Resolution change on the fly is not supported for segment based adaptive quantization (--aq-mode == 1)\n");
                 return EB_ErrorBadParameter;
             }
-            else if (((SvtAv1InputPicDef *)node->data)->input_luma_width < 64) {
+            else if (node_data->input_luma_width < 64) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution change on the fly is not supported for luma width less than 64\n");
                 return EB_ErrorBadParameter;
             }
-            else if (((SvtAv1InputPicDef *)node->data)->input_luma_height < 64) {
+            else if (node_data->input_luma_height < 64) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution change on the fly is not supported for luma height less than 64\n");
                 return EB_ErrorBadParameter;
             }
-            else if (((SvtAv1InputPicDef *)node->data)->input_luma_width % 2) {
+            else if (node_data->input_luma_width % 2) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution change on the fly is not supported for an odd source width for YUV_420 colorspace\n");
                 return EB_ErrorBadParameter;
             }
-            else if (((SvtAv1InputPicDef *)node->data)->input_luma_height % 2) {
+            else if (node_data->input_luma_height % 2) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("Resolution change on the fly is not supported for an odd source height for YUV_420 colorspace\n");
                 return EB_ErrorBadParameter;
@@ -5410,55 +5411,28 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType *input_ptr, S
             }
         }
         else if (node->node_type == RATE_CHANGE_EVENT) {
+            SvtAv1RateInfo  *node_data = (SvtAv1RateInfo *)node->data;
             if (input_ptr->pic_type != EB_AV1_KEY_PICTURE) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("QP/TBR change on the fly not supported for non key frames\n");
                 return EB_ErrorBadParameter;
             }
-            if ((scs->static_config.target_bit_rate != ((SvtAv1RateInfo *)node->data)->target_bit_rate) &&
+            if ((scs->static_config.target_bit_rate != node_data->target_bit_rate) &&
                 !((scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) && (scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR))) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("TBR change on the fly not supported for any mode other than Low-Delay CBR\n");
                 return EB_ErrorBadParameter;
             }
-            if (((SvtAv1RateInfo *)node->data)->seq_qp == 0) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP change on the fly requires a QP value greater than or equal to 1; Lossless coding not supported\n");
-                return EB_ErrorBadParameter;
+            if (node_data->seq_qp != 0) {
+                if (node_data->seq_qp > MAX_QP_VALUE) {
+                    input_ptr->flags = EB_BUFFERFLAG_EOS;
+                    SVT_ERROR("QP change on the fly requires a QP value less than or equal to 63\n");
+                    return EB_ErrorBadParameter;
+                }
             }
-            if (((SvtAv1RateInfo *)node->data)->seq_qp > MAX_QP_VALUE) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP change on the fly requires a QP value less than or equal to 63\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->target_bit_rate > 100000000) {
+            if (node_data->target_bit_rate > 100000000) {
                 input_ptr->flags = EB_BUFFERFLAG_EOS;
                 SVT_ERROR("TBR change on the fly requires that the target bit rate must be between [0, 100000] kbps\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->maximum_buffer_size_ms < 20 || ((SvtAv1RateInfo *)node->data)->maximum_buffer_size_ms > 10000) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP/TBR change on the fly: The maximum buffer size must be between [20, 10000]\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->starting_buffer_level_ms < 20 || ((SvtAv1RateInfo *)node->data)->starting_buffer_level_ms > 10000) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP/TBR change on the fly: The initial buffer size must be between [20, 10000]\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->starting_buffer_level_ms >= ((SvtAv1RateInfo *)node->data)->maximum_buffer_size_ms) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP/TBR change on the fly: The initial buffer size must be less than maximum buffer size\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->optimal_buffer_level_ms < 20 || ((SvtAv1RateInfo *)node->data)->optimal_buffer_level_ms > 10000) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP/TBR change on the fly: The optimal buffer size must be between [20, 10000]\n");
-                return EB_ErrorBadParameter;
-            }
-            if (((SvtAv1RateInfo *)node->data)->optimal_buffer_level_ms >= ((SvtAv1RateInfo *)node->data)->maximum_buffer_size_ms) {
-                input_ptr->flags = EB_BUFFERFLAG_EOS;
-                SVT_ERROR("QP/TBR change on the fly: The optimal buffer size must be less than maximum buffer size\n");
                 return EB_ErrorBadParameter;
             }
         }

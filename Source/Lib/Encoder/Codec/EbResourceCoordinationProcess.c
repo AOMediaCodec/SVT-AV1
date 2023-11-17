@@ -840,19 +840,6 @@ static void update_rate_info(ResourceCoordinationContext *ctx, EbBufferHeaderTyp
                     scs->static_config.qp = input_pic_def->seq_qp;
                 if (input_pic_def->target_bit_rate != 0)
                     scs->static_config.target_bit_rate = input_pic_def->target_bit_rate;
-                if (input_pic_def->maximum_buffer_size_ms != 0) {
-                    scs->static_config.maximum_buffer_size_ms   = input_pic_def->maximum_buffer_size_ms;
-                    scs->enc_ctx->rc_cfg.maximum_buffer_size_ms = input_pic_def->maximum_buffer_size_ms;
-                }
-                if (input_pic_def->starting_buffer_level_ms != 0) {
-                    scs->static_config.starting_buffer_level_ms   = input_pic_def->starting_buffer_level_ms;
-                    scs->enc_ctx->rc_cfg.starting_buffer_level_ms = input_pic_def->starting_buffer_level_ms;
-                }
-                if (input_pic_def->optimal_buffer_level_ms != 0) {
-                    scs->static_config.optimal_buffer_level_ms   = input_pic_def->optimal_buffer_level_ms;
-                    scs->enc_ctx->rc_cfg.optimal_buffer_level_ms = input_pic_def->optimal_buffer_level_ms;
-                }
-
                 ctx->seq_param_change = true;
             }
         }
