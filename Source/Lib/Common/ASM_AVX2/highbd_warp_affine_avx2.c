@@ -333,7 +333,9 @@ void svt_aom_dec_svt_av1_highbd_warp_affine_avx2(const int32_t *mat, const uint1
                         sx = sx4 + beta * (k + 4);
 
                         __m256i v_coeff01 = _mm256_inserti128_si256(
-                            v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx) >> WARPEDDIFF_PREC_BITS]), 0);
+                            v_zeros,
+                            _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx) >> WARPEDDIFF_PREC_BITS]),
+                            0);
                         v_coeff01 = _mm256_inserti128_si256(
                             v_coeff01,
                             _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx + alpha) >> WARPEDDIFF_PREC_BITS]),
@@ -414,21 +416,29 @@ void svt_aom_dec_svt_av1_highbd_warp_affine_avx2(const int32_t *mat, const uint1
                 __m256i v_coeff01 = _mm256_inserti128_si256(
                     v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy) >> WARPEDDIFF_PREC_BITS]), 0);
                 v_coeff01 = _mm256_inserti128_si256(
-                    v_coeff01, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + gamma) >> WARPEDDIFF_PREC_BITS]), 1);
+                    v_coeff01,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + gamma) >> WARPEDDIFF_PREC_BITS]),
+                    1);
                 __m256i v_coeff23 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 2 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 2 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff23 = _mm256_inserti128_si256(
                     v_coeff23,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 3 * gamma) >> WARPEDDIFF_PREC_BITS]),
                     1);
                 __m256i v_coeff45 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 4 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 4 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff45 = _mm256_inserti128_si256(
                     v_coeff45,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 5 * gamma) >> WARPEDDIFF_PREC_BITS]),
                     1);
                 __m256i v_coeff67 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 6 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 6 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff67 = _mm256_inserti128_si256(
                     v_coeff67,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 7 * gamma) >> WARPEDDIFF_PREC_BITS]),
@@ -825,7 +835,9 @@ void svt_av1_highbd_warp_affine_avx2(const int32_t *mat, const uint8_t *ref8b, c
                         sx = sx4 + beta * (k + 4);
 
                         __m256i v_coeff01 = _mm256_inserti128_si256(
-                            v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx) >> WARPEDDIFF_PREC_BITS]), 0);
+                            v_zeros,
+                            _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx) >> WARPEDDIFF_PREC_BITS]),
+                            0);
                         v_coeff01 = _mm256_inserti128_si256(
                             v_coeff01,
                             _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sx + alpha) >> WARPEDDIFF_PREC_BITS]),
@@ -904,21 +916,29 @@ void svt_av1_highbd_warp_affine_avx2(const int32_t *mat, const uint8_t *ref8b, c
                 __m256i v_coeff01 = _mm256_inserti128_si256(
                     v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy) >> WARPEDDIFF_PREC_BITS]), 0);
                 v_coeff01 = _mm256_inserti128_si256(
-                    v_coeff01, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + gamma) >> WARPEDDIFF_PREC_BITS]), 1);
+                    v_coeff01,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + gamma) >> WARPEDDIFF_PREC_BITS]),
+                    1);
                 __m256i v_coeff23 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 2 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 2 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff23 = _mm256_inserti128_si256(
                     v_coeff23,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 3 * gamma) >> WARPEDDIFF_PREC_BITS]),
                     1);
                 __m256i v_coeff45 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 4 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 4 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff45 = _mm256_inserti128_si256(
                     v_coeff45,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 5 * gamma) >> WARPEDDIFF_PREC_BITS]),
                     1);
                 __m256i v_coeff67 = _mm256_inserti128_si256(
-                    v_zeros, _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 6 * gamma) >> WARPEDDIFF_PREC_BITS]), 0);
+                    v_zeros,
+                    _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 6 * gamma) >> WARPEDDIFF_PREC_BITS]),
+                    0);
                 v_coeff67 = _mm256_inserti128_si256(
                     v_coeff67,
                     _mm_loadu_si128((__m128i *)svt_aom_warped_filter[(sy + 7 * gamma) >> WARPEDDIFF_PREC_BITS]),

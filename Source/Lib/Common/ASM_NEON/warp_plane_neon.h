@@ -50,33 +50,21 @@ static INLINE void vertical_filter_8x1_f8(const int16x8_t *src,
                                           int gamma);
 
 static INLINE void load_filters_4(int16x8_t out[], int offset, int stride) {
-  out[0] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 0 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[1] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 1 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[2] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 2 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[3] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 3 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
+    out[0] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 0 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[1] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 1 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[2] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 2 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[3] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 3 * stride) >> WARPEDDIFF_PREC_BITS)));
 }
 
 static INLINE void load_filters_8(int16x8_t out[], int offset, int stride) {
-  out[0] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 0 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[1] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 1 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[2] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 2 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[3] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 3 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[4] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 4 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[5] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 5 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[6] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 6 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
-  out[7] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 7 * stride) >>
-                                                      WARPEDDIFF_PREC_BITS)));
+    out[0] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 0 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[1] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 1 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[2] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 2 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[3] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 3 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[4] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 4 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[5] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 5 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[6] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 6 * stride) >> WARPEDDIFF_PREC_BITS)));
+    out[7] = vld1q_s16((int16_t *)(svt_aom_warped_filter + ((offset + 7 * stride) >> WARPEDDIFF_PREC_BITS)));
 }
 
 static INLINE int clamp_iy(int iy, int height) {
