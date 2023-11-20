@@ -1554,7 +1554,7 @@ me_update_param: update the parameters in MotionEstimationData for changing the 
 */
 EbErrorType me_update_param(MotionEstimationData *me_data, SequenceControlSet *scs) {
     EbErrorType return_error = EB_ErrorNone;
-    me_data->b64_total_count = scs->sb_total_count;
+    me_data->b64_total_count = scs->b64_total_count;
 
     return return_error;
 }

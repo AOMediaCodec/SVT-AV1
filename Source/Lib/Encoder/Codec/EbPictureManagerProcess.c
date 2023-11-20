@@ -564,12 +564,6 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                             if (ref->reference_picture->max_width != entry_scs_ptr->max_input_luma_width ||
                                 ref->reference_picture->max_height != entry_scs_ptr->max_input_luma_height)
                                 svt_reference_param_update(ref, entry_scs_ptr);
-#if FTR_RES_ON_FLY_PRINT
-                            printf("svt_reference_param_update:%d:\t(%dx%d)\n ",
-                                   (int)entry_ppcs->picture_number,
-                                   entry_scs_ptr->max_input_luma_width,
-                                   entry_scs_ptr->max_input_luma_height);
-#endif
                             svt_reference_object_reset(ref, entry_scs_ptr);
 #else
                             svt_reference_object_reset(ref, scs);
@@ -588,12 +582,6 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         svt_object_inc_live_count(enc_dec_wrapper, 1);
                         enc_dec_ptr = (EncDecSet *)enc_dec_wrapper->object_ptr;
 #if FTR_RES_ON_FLY5
-#if FTR_RES_ON_FLY_PRINT
-                        printf("recon_coef_update_param:%d:\t(%dx%d)\n ",
-                               (int)entry_ppcs->picture_number,
-                               entry_scs_ptr->max_input_luma_width,
-                               entry_scs_ptr->max_input_luma_height);
-#endif
                         // if resolution has changed, and the recon pic settings do not match scs settings, update recon coeff params
                         if (enc_dec_ptr->recon_pic->max_width != entry_scs_ptr->max_input_luma_width ||
                             enc_dec_ptr->recon_pic->max_height != entry_scs_ptr->max_input_luma_height)
@@ -631,12 +619,6 @@ void *svt_aom_picture_manager_kernel(void *input_ptr) {
                         if (child_pcs->frame_width != child_pcs->scs->max_input_luma_width ||
                             child_pcs->frame_height != child_pcs->scs->max_input_luma_height)
                             pcs_update_param(child_pcs);
-#if FTR_RES_ON_FLY_PRINT
-                        printf("pcs_update_param:%d:\t(%dx%d)\n ",
-                               (int)entry_ppcs->picture_number,
-                               child_pcs->scs->max_input_luma_width,
-                               child_pcs->scs->max_input_luma_height);
-#endif
 #endif
                         child_pcs->picture_qp           = entry_ppcs->picture_qp;
                         child_pcs->picture_number       = entry_ppcs->picture_number;

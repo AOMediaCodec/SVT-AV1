@@ -154,10 +154,10 @@ typedef struct SequenceControlSet {
     uint16_t max_input_pad_bottom;
     uint16_t max_input_pad_right;
 #if FTR_RES_ON_FLY4
-    uint16_t max_initial_input_luma_width; // max initial input luma width aligned to 8
-    uint16_t max_initial_input_luma_height; // max initial input luma height aligned to 8
-    uint16_t max_initial_input_pad_bottom; // max initial input pad bottom
-    uint16_t max_initial_input_pad_right; // max initial input pad right
+    uint16_t max_initial_input_luma_width; // max init time input luma width aligned to 8
+    uint16_t max_initial_input_luma_height; // max init time input luma height aligned to 8
+    uint16_t max_initial_input_pad_bottom; // max init time input pad bottom
+    uint16_t max_initial_input_pad_right; // max init time input pad right
 #endif
     uint32_t          chroma_width;
     uint32_t          chroma_height;

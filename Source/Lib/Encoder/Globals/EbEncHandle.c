@@ -5469,12 +5469,6 @@ EB_API EbErrorType svt_av1_enc_send_picture(
     }
 #endif
 #if FTR_RES_ON_FLY5
-#if  FTR_RES_ON_FLY_PRINT
-    printf("svt_input_y8b_update:%d:\t(%dx%d)\n ",
-        (int)app_hdr->pts,
-        enc_handle_ptr->scs_instance_array[0]->scs->max_input_luma_width,
-        enc_handle_ptr->scs_instance_array[0]->scs->max_input_luma_height);
-#endif
     // if resolution has changed, and the y8b_wrapper settings do not match scs settings, update y8b_wrapper settings
     if (buffer_update_needed((EbBufferHeaderType*)y8b_wrapper->object_ptr, enc_handle_ptr->scs_instance_array[0]->scs))
         svt_input_y8b_update((EbBufferHeaderType*)y8b_wrapper->object_ptr, enc_handle_ptr->scs_instance_array[0]->scs);

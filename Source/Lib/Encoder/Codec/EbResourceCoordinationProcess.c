@@ -1086,12 +1086,6 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             // if resolution has changed, and the pcs settings do not match scs settings, update ppcs params
             if (pcs->frame_width != scs->max_input_luma_width || pcs->frame_height != scs->max_input_luma_height) {
                 ppcs_update_param(pcs);
-#if FTR_RES_ON_FLY_PRINT
-                printf("ppcs_update_param:%d:\t(%dx%d)\n ",
-                       (int)context_ptr->picture_number_array[instance_index],
-                       scs->max_input_luma_width,
-                       scs->max_input_luma_height);
-#endif
             }
 #endif
             // - p_pcs_wrapper_ptr is a direct copy of pcs_wrapper (live_count == 1).
