@@ -403,6 +403,106 @@ static uint32_t get_max_wavefronts(uint32_t width, uint32_t height, uint32_t blk
 static Bool is_pic_width_single_sb(uint32_t sb_size, uint16_t pic_width) {
     return ((pic_width + (sb_size >> 1)) / sb_size) == 1;
 }
+#if FTR_RES_ON_FLY6
+/*********************************************************************************
+* set_segments_numbers: Set the segment numbers for difference processes
+***********************************************************************************/
+void set_segments_numbers(SequenceControlSet    *scs) {
+
+    uint32_t me_seg_h, me_seg_w;
+    unsigned int core_count = scs->core_count;
+
+    uint32_t enc_dec_seg_h = (core_count == SINGLE_CORE_COUNT || is_pic_width_single_sb(scs->super_block_size, scs->max_input_luma_width)) ? 1 :
+        (scs->super_block_size == 128) ?
+        ((scs->max_input_luma_height + 64) / 128) :
+        ((scs->max_input_luma_height + 32) / 64);
+    uint32_t enc_dec_seg_w = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        (scs->super_block_size == 128) ?
+        ((scs->max_input_luma_width + 64) / 128) :
+        ((scs->max_input_luma_width + 32) / 64);
+
+    me_seg_h = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 8;
+    me_seg_w = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 6;
+    // ME segments
+    scs->me_segment_row_count_array[0] = me_seg_h;
+    scs->me_segment_row_count_array[1] = me_seg_h;
+    scs->me_segment_row_count_array[2] = me_seg_h;
+    scs->me_segment_row_count_array[3] = me_seg_h;
+    scs->me_segment_row_count_array[4] = me_seg_h;
+    scs->me_segment_row_count_array[5] = me_seg_h;
+
+    scs->me_segment_column_count_array[0] = me_seg_w;
+    scs->me_segment_column_count_array[1] = me_seg_w;
+    scs->me_segment_column_count_array[2] = me_seg_w;
+    scs->me_segment_column_count_array[3] = me_seg_w;
+    scs->me_segment_column_count_array[4] = me_seg_w;
+    scs->me_segment_column_count_array[5] = me_seg_w;
+
+    // Jing:
+    // A tile group can be consisted by 1 tile or NxM tiles.
+    // Segments will be parallelized within a tile group
+    // We can use tile group to control the threads/parallelism in ED stage
+    // NOTE:1 col will have better perf for segments for large resolutions
+    //by default, do not use tile prallel. to enable, one can set one tile-group per tile.
+    uint8_t tile_group_col_count = 1;
+    uint8_t tile_group_row_count = 1;
+    scs->tile_group_col_count_array[0] = tile_group_col_count;
+    scs->tile_group_col_count_array[1] = tile_group_col_count;
+    scs->tile_group_col_count_array[2] = tile_group_col_count;
+    scs->tile_group_col_count_array[3] = tile_group_col_count;
+    scs->tile_group_col_count_array[4] = tile_group_col_count;
+    scs->tile_group_col_count_array[5] = tile_group_col_count;
+
+    scs->tile_group_row_count_array[0] = tile_group_row_count;
+    scs->tile_group_row_count_array[1] = tile_group_row_count;
+    scs->tile_group_row_count_array[2] = tile_group_row_count;
+    scs->tile_group_row_count_array[3] = tile_group_row_count;
+    scs->tile_group_row_count_array[4] = tile_group_row_count;
+    scs->tile_group_row_count_array[5] = tile_group_row_count;
+    // EncDec segments
+    scs->enc_dec_segment_row_count_array[0] = enc_dec_seg_h;
+    scs->enc_dec_segment_row_count_array[1] = enc_dec_seg_h;
+    scs->enc_dec_segment_row_count_array[2] = enc_dec_seg_h;
+    scs->enc_dec_segment_row_count_array[3] = enc_dec_seg_h;
+    scs->enc_dec_segment_row_count_array[4] = enc_dec_seg_h;
+    scs->enc_dec_segment_row_count_array[5] = enc_dec_seg_h;
+
+    scs->enc_dec_segment_col_count_array[0] = enc_dec_seg_w;
+    scs->enc_dec_segment_col_count_array[1] = enc_dec_seg_w;
+    scs->enc_dec_segment_col_count_array[2] = enc_dec_seg_w;
+    scs->enc_dec_segment_col_count_array[3] = enc_dec_seg_w;
+    scs->enc_dec_segment_col_count_array[4] = enc_dec_seg_w;
+    scs->enc_dec_segment_col_count_array[5] = enc_dec_seg_w;
+
+    // TPL processed in 64x64 blocks, so check width against 64x64 block size (even if SB is 128x128)
+    uint32_t tpl_seg_h = (core_count == SINGLE_CORE_COUNT || is_pic_width_single_sb(64, scs->max_input_luma_width)) ? 1 :
+        ((scs->max_input_luma_height + 32) / 64);
+
+    uint32_t tpl_seg_w = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        ((scs->max_input_luma_width + 32) / 64);
+
+    scs->tpl_segment_row_count_array = tpl_seg_h;
+    scs->tpl_segment_col_count_array = tpl_seg_w;
+
+    scs->cdef_segment_row_count = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6) ? 1 : 2;
+    scs->cdef_segment_column_count = (core_count == SINGLE_CORE_COUNT) ? 1 :
+        (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10) ? 1 : 3;
+
+    //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
+    //to keep proper processing, segments have to be configured based on chroma resolution.
+    uint32_t unit_size = 256;
+    uint32_t rest_seg_w = MAX((scs->max_input_luma_width / 2 + (unit_size >> 1)) / unit_size, 1);
+    uint32_t rest_seg_h = MAX((scs->max_input_luma_height / 2 + (unit_size >> 1)) / unit_size, 1);
+    scs->rest_segment_column_count = MIN(rest_seg_w, 6);
+    scs->rest_segment_row_count = MIN(rest_seg_h, 4);
+
+    scs->tf_segment_column_count = me_seg_w;
+    scs->tf_segment_row_count = me_seg_h;
+}
+#endif
 static EbErrorType load_default_buffer_configuration_settings(
     SequenceControlSet       *scs) {
     EbErrorType           return_error = EB_ErrorNone;
@@ -434,7 +534,12 @@ static EbErrorType load_default_buffer_configuration_settings(
         core_count, scs->input_resolution);
     if (return_ppcs == -1)
         return EB_ErrorInsufficientResources;
-
+#if FTR_RES_ON_FLY6
+    scs->core_count = core_count;
+    set_segments_numbers(scs);
+    me_seg_h = scs->me_segment_row_count_array[0];
+    me_seg_w = scs->me_segment_column_count_array[0];
+#else
     uint32_t enc_dec_seg_h = (core_count == SINGLE_CORE_COUNT || is_pic_width_single_sb(scs->super_block_size, scs->max_input_luma_width)) ? 1 :
         (scs->super_block_size == 128) ?
         ((scs->max_input_luma_height + 64) / 128) :
@@ -524,6 +629,7 @@ static EbErrorType load_default_buffer_configuration_settings(
 
     scs->tf_segment_column_count = me_seg_w;
     scs->tf_segment_row_count = me_seg_h;
+#endif
 
     // adjust buffer count for superres
     uint32_t superres_count = (scs->static_config.superres_mode == SUPERRES_AUTO &&
@@ -4149,7 +4255,9 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         scs->over_boundary_block_mode = scs->over_bndry_blk;
     if (scs->static_config.pass == ENC_FIRST_PASS)
         scs->over_boundary_block_mode = 0;
-
+#if FTR_RES_ON_FLY6
+    svt_aom_set_mfmv_config(scs);
+#else
     if (scs->static_config.enable_mfmv == DEFAULT) {
         if (scs->static_config.enc_mode <= ENC_M5)
             scs->mfmv_enabled = 1;
@@ -4164,6 +4272,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             scs->mfmv_enabled = 0;
     } else
         scs->mfmv_enabled = scs->static_config.enable_mfmv;
+#endif
 
     uint8_t list0_only_base_lvl = 0;
     if (scs->static_config.enc_mode <= ENC_M4)

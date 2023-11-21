@@ -666,15 +666,6 @@ static EbErrorType svt_overlay_buffer_header_update(EbBufferHeaderType *input_bu
 
 #endif
 #if FTR_RES_ON_FLY6
-/*
-* When the picture width is a single SB, must use a single segment (EncDec segments
-* assume a width of at least 2 SBs)
-*
-* Return true if the pic width is a single SB width
-*/
-static Bool is_pic_width_single_sb(uint32_t sb_size, uint16_t pic_width) {
-    return ((pic_width + (sb_size >> 1)) / sb_size) == 1;
-}
 /***********************************************************************
 * update_new_param: Update the parameters based on the on the fly changes
 ************************************************************************/
@@ -714,92 +705,10 @@ static void update_new_param(SequenceControlSet *scs) {
 
     svt_aom_derive_input_resolution(&scs->input_resolution, scs->max_input_luma_width * scs->max_input_luma_height);
 
-    // Set TF level
-    // derive_tf_params(scs);
-    if (scs->static_config.enable_mfmv == DEFAULT) {
-        if (scs->static_config.enc_mode <= ENC_M5)
-            scs->mfmv_enabled = 1;
-        else if ((scs->static_config.enc_mode <= ENC_M9) ||
-                 (scs->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B &&
-                  scs->static_config.enc_mode <= ENC_M11)) {
-            if (scs->input_resolution <= INPUT_SIZE_1080p_RANGE)
-                scs->mfmv_enabled = 1;
-            else
-                scs->mfmv_enabled = 0;
-        } else
-            scs->mfmv_enabled = 0;
-    } else
-        scs->mfmv_enabled = scs->static_config.enable_mfmv;
+    svt_aom_set_mfmv_config(scs);
 
     // Update the number of segments based on the new resolution
-    uint32_t enc_dec_seg_h = (scs->enc_dec_process_init_count == 1 ||
-                              is_pic_width_single_sb(scs->super_block_size, scs->max_input_luma_width))
-        ? 1
-        : (scs->super_block_size == 128) ? ((scs->max_input_luma_height + 64) / 128)
-                                         : ((scs->max_input_luma_height + 32) / 64);
-    uint32_t enc_dec_seg_w = (scs->enc_dec_process_init_count == 1) ? 1
-        : (scs->super_block_size == 128)                            ? ((scs->max_input_luma_width + 64) / 128)
-                                                                    : ((scs->max_input_luma_width + 32) / 64);
-
-    uint32_t me_seg_h = (scs->motion_estimation_process_init_count == 1) ? 1
-        : (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6)      ? 1
-                                                                         : 8;
-    uint32_t me_seg_w = (scs->motion_estimation_process_init_count == 1) ? 1
-        : (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10)      ? 1
-                                                                         : 6;
-    // ME segments
-    scs->me_segment_row_count_array[0] = me_seg_h;
-    scs->me_segment_row_count_array[1] = me_seg_h;
-    scs->me_segment_row_count_array[2] = me_seg_h;
-    scs->me_segment_row_count_array[3] = me_seg_h;
-    scs->me_segment_row_count_array[4] = me_seg_h;
-    scs->me_segment_row_count_array[5] = me_seg_h;
-
-    scs->me_segment_column_count_array[0] = me_seg_w;
-    scs->me_segment_column_count_array[1] = me_seg_w;
-    scs->me_segment_column_count_array[2] = me_seg_w;
-    scs->me_segment_column_count_array[3] = me_seg_w;
-    scs->me_segment_column_count_array[4] = me_seg_w;
-    scs->me_segment_column_count_array[5] = me_seg_w;
-    // EncDec segments
-    scs->enc_dec_segment_row_count_array[0] = enc_dec_seg_h;
-    scs->enc_dec_segment_row_count_array[1] = enc_dec_seg_h;
-    scs->enc_dec_segment_row_count_array[2] = enc_dec_seg_h;
-    scs->enc_dec_segment_row_count_array[3] = enc_dec_seg_h;
-    scs->enc_dec_segment_row_count_array[4] = enc_dec_seg_h;
-    scs->enc_dec_segment_row_count_array[5] = enc_dec_seg_h;
-
-    scs->enc_dec_segment_col_count_array[0] = enc_dec_seg_w;
-    scs->enc_dec_segment_col_count_array[1] = enc_dec_seg_w;
-    scs->enc_dec_segment_col_count_array[2] = enc_dec_seg_w;
-    scs->enc_dec_segment_col_count_array[3] = enc_dec_seg_w;
-    scs->enc_dec_segment_col_count_array[4] = enc_dec_seg_w;
-    scs->enc_dec_segment_col_count_array[5] = enc_dec_seg_w;
-
-    // TPL processed in 64x64 blocks, so check width against 64x64 block size (even if SB is 128x128)
-    uint32_t tpl_seg_h = (scs->tpl_disp_process_init_count == 1 ||
-                          is_pic_width_single_sb(64, scs->max_input_luma_width))
-        ? 1
-        : ((scs->max_input_luma_height + 32) / 64);
-
-    uint32_t tpl_seg_w = (scs->tpl_disp_process_init_count == 1) ? 1 : ((scs->max_input_luma_width + 32) / 64);
-
-    scs->tpl_segment_row_count_array = tpl_seg_h;
-    scs->tpl_segment_col_count_array = tpl_seg_w;
-
-    scs->cdef_segment_row_count    = (scs->cdef_process_init_count == 1) ? 1
-           : (((scs->max_input_luma_height + 32) / BLOCK_SIZE_64) < 6)   ? 1
-                                                                         : 2;
-    scs->cdef_segment_column_count = (scs->cdef_process_init_count == 1) ? 1
-        : (((scs->max_input_luma_width + 32) / BLOCK_SIZE_64) < 10)      ? 1
-                                                                         : 3;
-    //since restoration unit size is same for Luma and Chroma, Luma segments and chroma segments do not correspond to the same area!
-    //to keep proper processing, segments have to be configured based on chroma resolution.
-    uint32_t unit_size             = 256;
-    uint32_t rest_seg_w            = MAX((scs->max_input_luma_width / 2 + (unit_size >> 1)) / unit_size, 1);
-    uint32_t rest_seg_h            = MAX((scs->max_input_luma_height / 2 + (unit_size >> 1)) / unit_size, 1);
-    scs->rest_segment_column_count = MIN(rest_seg_w, 6);
-    scs->rest_segment_row_count    = MIN(rest_seg_h, 4);
+    set_segments_numbers(scs);
 }
 
 // Update the input picture definitions: resolution of the sequence

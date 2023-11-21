@@ -136,5 +136,7 @@ struct _EbEncHandle {
     bool eos_sent; // used to signal we sent the EOS to the app
     bool frame_received; // used to signal we received any frame from the app
 };
-
+#if FTR_RES_ON_FLY6
+void set_segments_numbers(SequenceControlSet *scs);
+#endif
 #endif // EbEncHandle_h

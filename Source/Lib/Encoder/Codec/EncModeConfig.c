@@ -9426,3 +9426,24 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         }
     }
 }
+#if FTR_RES_ON_FLY6
+/****************************************************
+* svt_aom_set_mfmv_config: enable/disable mfmv based on the enc_mode, input_res and pred_structure at sequence level
+****************************************************/
+void svt_aom_set_mfmv_config(SequenceControlSet *scs) {
+    if (scs->static_config.enable_mfmv == DEFAULT) {
+        if (scs->static_config.enc_mode <= ENC_M5)
+            scs->mfmv_enabled = 1;
+        else if ((scs->static_config.enc_mode <= ENC_M9) ||
+                 (scs->static_config.pred_structure != SVT_AV1_PRED_LOW_DELAY_B &&
+                  scs->static_config.enc_mode <= ENC_M11)) {
+            if (scs->input_resolution <= INPUT_SIZE_1080p_RANGE)
+                scs->mfmv_enabled = 1;
+            else
+                scs->mfmv_enabled = 0;
+        } else
+            scs->mfmv_enabled = 0;
+    } else
+        scs->mfmv_enabled = scs->static_config.enable_mfmv;
+}
+#endif

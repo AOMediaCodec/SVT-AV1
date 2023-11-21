@@ -202,6 +202,9 @@ typedef struct SequenceControlSet {
     uint32_t rest_segment_row_count;
     uint32_t tf_segment_column_count;
     uint32_t tf_segment_row_count;
+#if FTR_RES_ON_FLY6
+    unsigned int core_count;
+#endif
 
     /*!< Picture, reference, recon and input output buffer count */
     uint32_t picture_control_set_pool_init_count;
