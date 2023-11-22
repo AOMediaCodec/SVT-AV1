@@ -1358,17 +1358,39 @@ int32_t svt_aom_quantize_inv_quantize_light(PictureControlSet *pcs, int32_t *coe
 #else
     SequenceControlSet *scs = pcs->scs;
 #endif
+
+
     uint32_t               q_index    = qindex;
+
+
     const ScanOrder *const scan_order = &av1_scan_orders[txsize][tx_type];
+
+
     const int32_t          n_coeffs   = av1_get_max_eob(txsize);
+
+
     int32_t      qmatrix_level    = (IS_2D_TRANSFORM(tx_type) && pcs->ppcs->frm_hdr.quantization_params.using_qmatrix)
+
+
                 ? pcs->ppcs->frm_hdr.quantization_params.qm[AOM_PLANE_Y]
+
+
                 : NUM_QM_LEVELS - 1;
+
+
     TxSize       adjusted_tx_size = aom_av1_get_adjusted_tx_size(txsize);
-    const QmVal *q_matrix         = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
-    const QmVal *iq_matrix        = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+
+
+    const QmVal *q_matrix             = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+
+
+    const QmVal *iq_matrix            = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+
+
 
 #if FTR_RES_ON_FLY2
+
+
     if (q_matrix == NULL && iq_matrix == NULL) {
         if (bit_depth > EB_EIGHT_BIT) {
             svt_aom_highbd_quantize_b((TranLow *)coeff,
