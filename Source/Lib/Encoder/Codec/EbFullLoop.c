@@ -1365,8 +1365,8 @@ int32_t svt_aom_quantize_inv_quantize_light(PictureControlSet *pcs, int32_t *coe
                 ? pcs->ppcs->frm_hdr.quantization_params.qm[AOM_PLANE_Y]
                 : NUM_QM_LEVELS - 1;
     TxSize       adjusted_tx_size = aom_av1_get_adjusted_tx_size(txsize);
-    const QmVal *q_matrix             = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
-    const QmVal *iq_matrix            = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+    const QmVal *q_matrix         = pcs->ppcs->gqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
+    const QmVal *iq_matrix        = pcs->ppcs->giqmatrix[qmatrix_level][AOM_PLANE_Y][adjusted_tx_size];
 
 #if FTR_RES_ON_FLY2
     if (q_matrix == NULL && iq_matrix == NULL) {
