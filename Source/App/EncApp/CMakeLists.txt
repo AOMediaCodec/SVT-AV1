@@ -1,12 +1,13 @@
 #
 # Copyright(c) 2019 Intel Corporation
 #
-# This source code is subject to the terms of the BSD 2 Clause License and
-# the Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License
-# was not distributed with this source code in the LICENSE file, you can
-# obtain it at https://www.aomedia.org/license/software-license. If the Alliance for Open
+# This source code is subject to the terms of the BSD 2 Clause License and the
+# Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License was
+# not distributed with this source code in the LICENSE file, you can obtain it
+# at https://www.aomedia.org/license/software-license. If the Alliance for Open
 # Media Patent License 1.0 was not distributed with this source code in the
-# PATENTS file, you can obtain it at https://www.aomedia.org/license/patent-license.
+# PATENTS file, you can obtain it at
+# https://www.aomedia.org/license/patent-license.
 #
 
 # APP Directory CMakeLists.txt
@@ -34,25 +35,20 @@ set(all_files
     EbAppOutputivf.h
     EbAppProcessCmd.c
     EbTime.c
-    EbTime.h
-    )
+    EbTime.h)
 
 # App Source Files
-add_executable(SvtAv1EncApp
-    ${all_files})
+add_executable(SvtAv1EncApp ${all_files})
 
 if(TARGET safestringlib)
-    target_sources(SvtAv1EncApp PRIVATE $<TARGET_OBJECTS:safestringlib>)
+  target_sources(SvtAv1EncApp PRIVATE $<TARGET_OBJECTS:safestringlib>)
 endif()
 
-#********** SET COMPILE FLAGS************
+# ********** SET COMPILE FLAGS************
 # Link the Encoder App
-target_link_libraries(SvtAv1EncApp
-        SvtAv1Enc)
+target_link_libraries(SvtAv1EncApp SvtAv1Enc)
 if(UNIX)
-    target_link_libraries(SvtAv1EncApp
-        pthread
-        m)
+  target_link_libraries(SvtAv1EncApp ${PLATFORM_LIBS})
 endif()
 
 install(TARGETS SvtAv1EncApp RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
