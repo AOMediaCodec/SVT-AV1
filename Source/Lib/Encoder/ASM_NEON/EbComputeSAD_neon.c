@@ -1087,7 +1087,7 @@ static INLINE void update_best_cost_u32(uint32x4_t cost4, uint32_t *best_cost, i
     if (temp_cost < *best_cost) {
         *best_cost       = temp_cost;
         *x_search_center = mvx + (int16_t)(x_search_index + findposq_u32(cost4, temp_cost)) * 8;
-        *y_search_center = mvy + (y_search_index) * 8;
+        *y_search_center = mvy + y_search_index * 8;
     }
 }
 
