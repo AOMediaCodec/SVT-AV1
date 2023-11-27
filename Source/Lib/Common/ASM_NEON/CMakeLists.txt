@@ -31,11 +31,15 @@ target_sources(
   PUBLIC convolve_2d_neon.c
   PUBLIC EbBlend_a64_mask_neon.c
   PUBLIC selfguided_neon.c
-  PUBLIC EbIntraPrediction_neon.c)
+  PUBLIC EbIntraPrediction_neon.c
+  PUBLIC dav1d_asm.S
+  PUBLIC dav1d_util.S
+  PUBLIC itx.S)
 target_include_directories(
   COMMON_ASM_NEON
   PRIVATE ${PROJECT_SOURCE_DIR}/Source/API/
   PRIVATE ${PROJECT_SOURCE_DIR}/Source/Lib/Common/Codec/
   PRIVATE ${PROJECT_SOURCE_DIR}/Source/Lib/Common/C_DEFAULT/
   PRIVATE ${PROJECT_SOURCE_DIR}/Source/Lib/Common/ASM_NEON/)
-asm_compile_to_target(COMMON_ASM_NEON dav1d_asm.S dav1d_util.S itx.S)
+set_source_files_properties(dav1d_asm.S dav1d_util.S itx.S PROPERTIES LANGUAGE
+                                                                      C)

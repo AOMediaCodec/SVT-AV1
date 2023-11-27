@@ -101,7 +101,6 @@ if(NOT COMPILE_C_ONLY AND HAVE_X86_PLATFORM)
   enable_language(ASM_NASM)
   add_definitions(-DARCH_X86_64=1)
 elseif(NOT COMPILE_C_ONLY AND HAVE_ARM_PLATFORM)
-  enable_language(ASM)
   add_definitions(-DARCH_AARCH64=1)
 endif()
 
