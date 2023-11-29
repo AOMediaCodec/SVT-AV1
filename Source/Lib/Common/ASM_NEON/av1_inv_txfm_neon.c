@@ -958,7 +958,7 @@ static INLINE void idct8_low1_neon(int16x8_t *in, int16x8_t *out, int8_t cos_bit
     out[7] = step1;
 }
 
-void av1_round_shift_array_16_neon(int16x8_t *arr, int32_t size, int32_t bit) {
+static INLINE void av1_round_shift_array_16_neon(int16x8_t *arr, int32_t size, int32_t bit) {
     assert(!(size % 4));
     if (!bit)
         return;
@@ -3986,19 +3986,6 @@ static const transform_neon lowbd_txfm_all_1d_zeros_w_arr[TX_SIZES][ITX_TYPES_1D
     {{idct64_low1_neon, idct64_low8_neon, idct64_low16_neon, idct64_low32_neon},
      {NULL, NULL, NULL, NULL},
      {NULL, NULL, NULL, NULL}}};
-
-void av1_round_shift_array_neon(int32_t *arr, int32_t size, int32_t bit) {
-    assert(!(size % 4));
-    if (!bit)
-        return;
-    const int32x4_t dup_bits_n_32x4 = vdupq_n_s32((int32_t)(-bit));
-    for (int32_t i = 0; i < size; i += 4) {
-        int32x4_t tmp_q_s32 = vld1q_s32(arr);
-        tmp_q_s32           = vrshlq_s32(tmp_q_s32, dup_bits_n_32x4);
-        vst1q_s32(arr, tmp_q_s32);
-        arr += 4;
-    }
-}
 
 static INLINE void lowbd_inv_txfm2d_add_idtx_neon(const int32_t *input, uint8_t *output_r, int32_t stride_r,
                                                   uint8_t *output_w, int32_t stride_w, TxType tx_type, TxSize tx_size,

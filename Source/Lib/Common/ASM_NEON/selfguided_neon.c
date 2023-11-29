@@ -1181,8 +1181,8 @@ static void final_filter_fast_internal(uint16_t *A, int32_t *B, const int buf_st
     } while (h > 0);
 }
 
-void final_filter_internal(uint16_t *A, int32_t *B, const int buf_stride, int16_t *src, const int src_stride,
-                           int32_t *dst, const int dst_stride, const int width, const int height) {
+static void final_filter_internal(uint16_t *A, int32_t *B, const int buf_stride, int16_t *src, const int src_stride,
+                                  int32_t *dst, const int dst_stride, const int width, const int height) {
     int16x8_t s0;
     int32_t  *B_tmp, *dst_ptr;
     uint16_t *A_tmp;
