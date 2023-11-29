@@ -24,6 +24,7 @@ target_sources(
   PUBLIC itx_lbd_neon.h
   PUBLIC mem_neon.h
   PUBLIC sse_neon.c
+  PUBLIC sum_neon.h
   PUBLIC transpose_neon.h
   PUBLIC warp_plane_neon.c
   PUBLIC warp_plane_neon.h

@@ -17,7 +17,6 @@ target_sources(
   ENCODER_ASM_NEON
   PUBLIC pickrst_neon.c
   PUBLIC sad_neon.c
-  PUBLIC sum_neon.h
   PUBLIC EbComputeSAD_neon.c
   PUBLIC variance_neon.c
   PUBLIC obmc_sad_neon.c

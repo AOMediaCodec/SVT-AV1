@@ -14,7 +14,7 @@
 #include "convolve_neon.h"
 #include "transpose_neon.h"
 #include "common_dsp_rtcd.h"
-#include "./Source/Lib/Encoder/ASM_NEON/sum_neon.h"
+#include "sum_neon.h"
 
 static INLINE int16x4_t convolve12_4_x(const int16x4_t s0, const int16x4_t s1, const int16x4_t s2, const int16x4_t s3,
                                        const int16x4_t s4, const int16x4_t s5, const int16x4_t s6, const int16x4_t s7,
