@@ -6,6 +6,23 @@
 # Anchors
 #
 
+macos-apple-silicon-build:
+  extends: .common-ci-base
+  image: macos-14-xcode-15
+  stage: compile
+  tags:
+    - saas-macos-medium-m1
+  variables:
+    !reference [.compiler-variables]
+  variables:
+    CMAKE_GENERATOR: Ninja
+    EXTRA_CFLAGS: -Wno-error -g
+    EXTRA_CXXFLAGS: -Wno-error -g
+  script: !reference [.compiler-script]
+  before_script:
+    - |
+      brew install cmake ninja
+
 .macos-compiler-base:
   extends: .common-ci-base
   stage: compile
