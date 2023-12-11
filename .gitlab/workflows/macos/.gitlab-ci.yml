@@ -19,9 +19,50 @@ macos-apple-silicon-build:
     EXTRA_CFLAGS: -Wno-error -g
     EXTRA_CXXFLAGS: -Wno-error -g
   script: !reference [.compiler-script]
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - Bin/Release/SvtAv1EncApp
+      - Bin/Release/SvtAv1DecApp
   before_script:
     - |
       brew install cmake ninja
+
+macos-apple-silicon-enc-dec-test:
+  extends: .common-ci-base
+  image: macos-14-xcode-15
+  stage: test
+  tags:
+    - saas-macos-medium-m1
+  variables:
+    TEST_FILES: akiyo_cif.y4m
+    SVT_ENCTEST_FILENAME: akiyo_cif.y4m
+    SVT_ENCTEST_BITNESS: 8
+  script: |
+    function getBitStreamName {
+      local preset=$1
+      echo "test-${BRANCH:-pr}-$(uname)-Release-${SVT_ENCTEST_BITNESS}bit-m${preset}.ivf"
+    }
+    complianceFailure=0
+    for preset in 2 8; do
+      bitStream=$(getBitStreamName ${preset})
+      recFile=$(sed 's|ivf|enc|g' <<< ${bitStream})
+      decFile=$(sed 's|ivf|dec|g' <<< ${bitStream})
+      ./Bin/Release/SvtAv1EncApp --preset ${preset} -i ${SVT_ENCTEST_FILENAME} -n 17 -b ${bitStream} -o ${recFile}
+      ./Bin/Release/SvtAv1DecApp -i ${bitStream} -o ${decFile}
+      if [[ $(diff -q ${recFile} ${decFile} | wc -l) -gt 0 ]]; then
+        complianceFailure=1
+        break
+      fi
+    done
+    test ${complianceFailure} -eq 0
+  needs:
+    - macos-apple-silicon-build
+  before_script:
+    - |
+      for file in $TEST_FILES; do
+        curl -fLs "https://gitlab.com/AOMediaCodec/aom-testing/-/raw/master/test-files/$file.zst" | zstd -d - -o "$file"
+      done
 
 .macos-compiler-base:
   extends: .common-ci-base
