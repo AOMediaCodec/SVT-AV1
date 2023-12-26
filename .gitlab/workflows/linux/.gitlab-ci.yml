@@ -11,7 +11,7 @@
   stage: compile
   tags:
     - gitlab-org
-  image: registry.gitlab.com/aomediacodec/aom-testing/ubuntu2004
+  image: registry.gitlab.com/ittiam-projects/svt-av1/ubuntu2004:android-ndk
   script: !reference [.compiler-script]
 
 .linux-test-base:
@@ -118,7 +118,7 @@ Linux (GCC):
         CXX: powerpc64le-linux-gnu-g++
         EXTRA_CMAKE_FLAGS: -DCMAKE_TOOLCHAIN_FILE=$CI_PROJECT_DIR/powerpc64le-linux-gnu.cmake -DCROSS=powerpc64le-linux-gnu-
       - TARGET_OS: "Android"
-        EXTRA_CMAKE_FLAGS: -DCMAKE_TOOLCHAIN_FILE=${CI_PROJECT_DIR}/cmake/toolchains/android_aarch64_toolchain.cmake -DCMAKE_ANDROID_NDK=${CI_PROJECT_DIR}/android-ndk-r26b
+        EXTRA_CMAKE_FLAGS: -DCMAKE_TOOLCHAIN_FILE=${CI_PROJECT_DIR}/cmake/toolchains/android_aarch64_toolchain.cmake -DCMAKE_ANDROID_NDK=/android-ndk-r26b
   before_script:
     - |
       case $CC in
@@ -132,11 +132,7 @@ Linux (GCC):
         ;;
       esac
       if [[ ${TARGET_OS} == "Android" ]]; then
-        apt -y update
-        apt -y install unzip
-        curl -Ls https://dl.google.com/android/repository/android-ndk-r26b-linux.zip -o android-ndk-r26b-linux.zip
-        unzip android-ndk-r26b-linux.zip
-        export PATH=${CI_PROJECT_DIR}/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}
+        export PATH=/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}
       fi
 
 Linux (GCC 11, Static):
