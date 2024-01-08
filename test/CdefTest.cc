@@ -54,14 +54,16 @@ typedef void (*svt_cdef_filter_block_8xn_16_func)(
 
 static const svt_cdef_filter_block_8xn_16_func
     svt_cdef_filter_block_8xn_16_func_table[] = {
+#if defined(ARCH_X86_64)
         svt_cdef_filter_block_8xn_16_avx2,
 #if EN_AVX512_SUPPORT
         svt_cdef_filter_block_8xn_16_avx512
 #endif
+#endif
 };
 using cdef_dir_param_t =
     ::testing::tuple<CdefFilterBlockFunc, CdefFilterBlockFunc, BlockSize, int,
-                     int, svt_cdef_filter_block_8xn_16_func>;
+                     int>;
 /**
  * @brief Unit test for svt_cdef_filter_block_avx2
  *
@@ -98,7 +100,6 @@ class CDEFBlockTest : public ::testing::TestWithParam<cdef_dir_param_t> {
         bsize_ = TEST_GET_PARAM(2);
         boundary_ = TEST_GET_PARAM(3);
         bd_ = TEST_GET_PARAM(4);
-        svt_cdef_filter_block_8xn_16 = TEST_GET_PARAM(5);
 
         memset(dst_ref_, 0, sizeof(dst_ref_));
         memset(dst_tst_, 0, sizeof(dst_tst_));
@@ -364,6 +365,8 @@ TEST_P(CDEFBlockTest, DISABLED_SpeedTest) {
     speed_cdef();
 }
 
+#if defined(ARCH_X86_64)
+
 // VS compiling for 32 bit targets does not support vector types in
 // structs as arguments, which makes the v256 type of the intrinsics
 // hard to support, so optimizations for this target are disabled.
@@ -374,8 +377,7 @@ INSTANTIATE_TEST_CASE_P(
         ::testing::Values(&svt_cdef_filter_block_avx2),
         ::testing::Values(&svt_cdef_filter_block_c),
         ::testing::Values(BLOCK_4X4, BLOCK_4X8, BLOCK_8X4, BLOCK_8X8),
-        ::testing::Range(0, 16), ::testing::Range(8, 13, 2),
-        ::testing::ValuesIn(svt_cdef_filter_block_8xn_16_func_table)));
+        ::testing::Range(0, 16), ::testing::Range(8, 13, 2)));
 
 INSTANTIATE_TEST_CASE_P(
     Cdef_sse4_1, CDEFBlockTest,
@@ -383,10 +385,21 @@ INSTANTIATE_TEST_CASE_P(
         ::testing::Values(&svt_cdef_filter_block_avx2),
         ::testing::Values(&svt_av1_cdef_filter_block_sse4_1),
         ::testing::Values(BLOCK_4X4, BLOCK_4X8, BLOCK_8X4, BLOCK_8X8),
-        ::testing::Range(0, 16), ::testing::Range(8, 13, 2),
-        ::testing::ValuesIn(svt_cdef_filter_block_8xn_16_func_table)));
+        ::testing::Range(0, 16), ::testing::Range(8, 13, 2)));
 
 #endif  // defined(_WIN64) || !defined(_MSC_VER)
+#endif  // defined(ARCH_X86_64)
+
+#if defined(ARCH_AARCH64)
+INSTANTIATE_TEST_CASE_P(
+    Cdef_neon, CDEFBlockTest,
+    ::testing::Combine(
+        ::testing::Values(&svt_cdef_filter_block_neon),
+        ::testing::Values(&svt_cdef_filter_block_c),
+        ::testing::Values(BLOCK_4X4, BLOCK_4X8, BLOCK_8X4, BLOCK_8X8),
+        ::testing::Range(0, 16), ::testing::Range(8, 13, 2)));
+#endif  // defined(ARCH_AARCH64)
+
 using FindDirFunc = uint8_t (*)(const uint16_t *img, int stride, int32_t *var,
                                 int coeff_shift);
 using TestFindDirParam = ::testing::tuple<FindDirFunc, FindDirFunc>;
@@ -472,6 +485,8 @@ TEST_P(CDEFFindDirTest, MatchTest) {
     test_finddir();
 }
 
+#if defined(ARCH_X86_64)
+
 // VS compiling for 32 bit targets does not support vector types in
 // structs as arguments, which makes the v256 type of the intrinsics
 // hard to support, so optimizations for this target are disabled.
@@ -482,6 +497,8 @@ INSTANTIATE_TEST_CASE_P(
         make_tuple(&svt_aom_cdef_find_dir_sse4_1, &svt_aom_cdef_find_dir_c),
         make_tuple(&svt_aom_cdef_find_dir_avx2, &svt_aom_cdef_find_dir_c)));
 #endif  // defined(_WIN64) || !defined(_MSC_VER)
+
+#endif  // defined(ARCH_X86_64)
 
 using FindDirDualFunc = void (*)(const uint16_t *img1, const uint16_t *img2,
                                  int stride, int32_t *var1, int32_t *var2,
@@ -601,6 +618,8 @@ TEST_P(CDEFFindDirDualTest, MatchTest) {
     test_finddir();
 }
 
+#if defined(ARCH_X86_64)
+
 // VS compiling for 32 bit targets does not support vector types in
 // structs as arguments, which makes the v256 type of the intrinsics
 // hard to support, so optimizations for this target are disabled.
@@ -613,6 +632,9 @@ INSTANTIATE_TEST_CASE_P(
                                  &svt_aom_cdef_find_dir_dual_c)));
 
 #endif  // defined(_WIN64) || !defined(_MSC_VER)
+
+#endif  // defined(ARCH_X86_64)
+
 }  // namespace
 
 /**
@@ -657,6 +679,10 @@ TEST(CdefToolTest, CopyRectMatchTest) {
 
             svt_aom_copy_rect8_8bit_to_16bit_c(
                 dst_ref_, CDEF_BSTRIDE, src_, CDEF_BSTRIDE, vsize, hsize);
+
+#if defined(ARCH_X86_64)
+            // Test the SSE4.1 copy function
+            memset(dst_data_tst_, 0, sizeof(dst_data_tst_));
             svt_aom_copy_rect8_8bit_to_16bit_sse4_1(
                 dst_tst_, CDEF_BSTRIDE, src_, CDEF_BSTRIDE, vsize, hsize);
 
@@ -679,6 +705,8 @@ TEST(CdefToolTest, CopyRectMatchTest) {
                         << "copy_rect8_8bit_to_16bit failed with pos(" << i
                         << " " << j << ")";
             }
+#endif  // defined(ARCH_X86_64)
+
         }
 }
 
@@ -750,6 +778,9 @@ TEST(CdefToolTest, ComputeCdefDistMatchTest) {
                                                         coeff_shift,
                                                         plane,
                                                         subsampling);
+
+#if defined(ARCH_X86_64)
+                        // SSE4.1
                         const uint64_t sse_mse =
                             svt_aom_compute_cdef_dist_16bit_sse4_1(dst_data_,
                                                                    stride,
@@ -760,6 +791,12 @@ TEST(CdefToolTest, ComputeCdefDistMatchTest) {
                                                                    coeff_shift,
                                                                    plane,
                                                                    subsampling);
+                        ASSERT_EQ(c_mse, sse_mse)
+                            << "svt_aom_compute_cdef_dist_16bit_sse4_1 failed "
+                            << "bitdepth: " << bd << " plane: " << plane
+                            << " BlockSize " << test_bs[i] << " loop: " << k;
+
+                        // AVX2
                         const uint64_t avx_mse =
                             svt_aom_compute_cdef_dist_16bit_avx2(dst_data_,
                                                                  stride,
@@ -770,14 +807,12 @@ TEST(CdefToolTest, ComputeCdefDistMatchTest) {
                                                                  coeff_shift,
                                                                  plane,
                                                                  subsampling);
-                        ASSERT_EQ(c_mse, sse_mse)
-                            << "svt_aom_compute_cdef_dist_16bit_sse4_1 failed "
-                            << "bitdepth: " << bd << " plane: " << plane
-                            << " BlockSize " << test_bs[i] << " loop: " << k;
                         ASSERT_EQ(c_mse, avx_mse)
                             << "svt_aom_compute_cdef_dist_16bit_avx2 failed "
                             << "bitdepth: " << bd << " plane: " << plane
                             << " BlockSize " << test_bs[i] << " loop: " << k;
+#endif  // defined(ARCH_X86_64)
+
                     }
                 }
             }
@@ -835,6 +870,8 @@ TEST(CdefToolTest, ComputeCdefDist8bitMatchTest) {
                                                              coeff_shift,
                                                              plane,
                                                              subsampling);
+#if defined(ARCH_X86_64)
+                        // SSE4.1
                         const uint64_t sse_mse =
                             svt_aom_compute_cdef_dist_8bit_sse4_1(dst_data_,
                                                                   stride,
@@ -845,6 +882,12 @@ TEST(CdefToolTest, ComputeCdefDist8bitMatchTest) {
                                                                   coeff_shift,
                                                                   plane,
                                                                   subsampling);
+                        ASSERT_EQ(c_mse, sse_mse)
+                            << "svt_aom_compute_cdef_dist_8bit_sse4_1 failed "
+                            << "bitdepth: " << bd << " plane: " << plane
+                            << " BlockSize " << test_bs[i] << " loop: " << k;
+
+                        // AVX2
                         const uint64_t avx_mse =
                             svt_aom_compute_cdef_dist_8bit_avx2(dst_data_,
                                                                 stride,
@@ -855,14 +898,12 @@ TEST(CdefToolTest, ComputeCdefDist8bitMatchTest) {
                                                                 coeff_shift,
                                                                 plane,
                                                                 subsampling);
-                        ASSERT_EQ(c_mse, sse_mse)
-                            << "svt_aom_compute_cdef_dist_8bit_sse4_1 failed "
-                            << "bitdepth: " << bd << " plane: " << plane
-                            << " BlockSize " << test_bs[i] << " loop: " << k;
                         ASSERT_EQ(c_mse, avx_mse)
                             << "svt_aom_compute_cdef_dist_8bit_avx2 failed "
                             << "bitdepth: " << bd << " plane: " << plane
                             << " BlockSize " << test_bs[i] << " loop: " << k;
+#endif  // defined(ARCH_X86_64)
+
                     }
                 }
             }
@@ -894,9 +935,11 @@ typedef uint64_t (*svt_search_one_dual_func)(int *lev0, int *lev1,
                                              int start_gi, int end_gi);
 
 static const svt_search_one_dual_func search_one_dual_func_table[] = {
+#if defined(ARCH_X86_64)
     svt_search_one_dual_avx2,
 #if EN_AVX512_SUPPORT
     svt_search_one_dual_avx512
+#endif
 #endif
 };
 
