@@ -1138,6 +1138,8 @@ extern "C" {
 
     void svt_dav1d_inv_txfm_add_neon(const TranLow *dqcoeff, uint8_t *dst_r, int32_t stride_r, uint8_t *dst_w, int32_t stride_w, const TxfmParam *txfm_param);
 
+    void svt_cdef_filter_block_neon(uint8_t *dst8, uint16_t *dst16, int dstride, const uint16_t *in, int pri_strength, int sec_strength, int dir, int pri_damping, int sec_damping, int bsize, int coeff_shift, uint8_t subsampling_factor);
+
 #endif
 
 #ifdef ARCH_X86_64

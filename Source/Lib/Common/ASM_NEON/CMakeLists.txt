@@ -17,6 +17,7 @@ target_sources(
   COMMON_ASM_NEON
   PUBLIC aom_convolve8_neon.c
   PUBLIC av1_inv_txfm_neon.c
+  PUBLIC cdef_block_neon.c
   PUBLIC compound_convolve_neon.c
   PUBLIC compound_convolve_neon.h
   PUBLIC convolve_neon.c
