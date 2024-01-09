@@ -219,15 +219,6 @@ static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, in
     return gm_sumerr;
 }
 
-int64_t svt_av1_frame_error(int use_hbd, int bd, const uint8_t *ref, int stride, uint8_t *dst, int p_width,
-                            int p_height, int p_stride) {
-    if (use_hbd) {
-        return highbd_frame_error(
-            CONVERT_TO_SHORTPTR(ref), stride, CONVERT_TO_SHORTPTR(dst), p_width, p_height, p_stride, bd);
-    }
-    return svt_av1_calc_frame_error(ref, stride, dst, p_width, p_height, p_stride);
-}
-
 int64_t svt_av1_warp_error(EbWarpedMotionParams *wm, int use_hbd, int bd, const uint8_t *ref, const uint8_t *ref_2b,
                            int width, int height, int stride, uint8_t *dst, int p_col, int p_row, int p_width,
                            int p_height, int p_stride, int subsampling_x, int subsampling_y, uint8_t chess_refn,
