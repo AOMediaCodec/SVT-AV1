@@ -81,9 +81,9 @@ EbErrorType segmentation_map_ctor(SegmentationNeighborMap *seg_neighbor_map, uin
 
 static void me_sb_results_dctor(EbPtr p) {
     MeSbResults *obj = (MeSbResults *)p;
-    EB_FREE_ARRAY(obj->me_candidate_array);
-    EB_FREE_ARRAY(obj->me_mv_array);
-    EB_FREE_ARRAY(obj->total_me_candidate_index);
+    EB_FREE_ALIGNED_ARRAY(obj->me_candidate_array);
+    EB_FREE_ALIGNED_ARRAY(obj->me_mv_array);
+    EB_FREE_ALIGNED_ARRAY(obj->total_me_candidate_index);
 }
 /*
   controls how many references are needed for ME results allocation
@@ -111,10 +111,10 @@ EbErrorType svt_aom_me_sb_results_ctor(MeSbResults *obj_ptr, PictureControlSetIn
             : MAX_SB64_PU_COUNT_NO_8X8
         : MAX_SB64_PU_COUNT_WO_16X16;
 
-    EB_MALLOC_ARRAY(obj_ptr->me_mv_array, number_of_pus * max_ref_to_alloc);
-    EB_MALLOC_ARRAY(obj_ptr->me_candidate_array, number_of_pus * max_cand_to_alloc);
+    EB_MALLOC_ALIGNED_ARRAY(obj_ptr->me_mv_array, number_of_pus * max_ref_to_alloc);
+    EB_MALLOC_ALIGNED_ARRAY(obj_ptr->me_candidate_array, number_of_pus * max_cand_to_alloc);
 
-    EB_MALLOC_ARRAY(obj_ptr->total_me_candidate_index, number_of_pus);
+    EB_MALLOC_ALIGNED_ARRAY(obj_ptr->total_me_candidate_index, number_of_pus);
     return EB_ErrorNone;
 }
 void recon_coef_dctor(EbPtr p) {
