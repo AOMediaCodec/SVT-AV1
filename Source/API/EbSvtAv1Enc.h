@@ -928,7 +928,7 @@ typedef struct EbSvtAv1EncConfiguration {
     * 0 = disable ROI
     * 1 = enable ROI
     *  Default is 0. */
-    Bool    enable_roi_map;
+    Bool enable_roi_map;
 
     /* Stores the optional film grain synthesis info */
     AomFilmGrain *fgs_table;

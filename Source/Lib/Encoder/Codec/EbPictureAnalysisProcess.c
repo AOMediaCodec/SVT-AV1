@@ -1458,25 +1458,24 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet *scs, PictureP
     return return_error; //todo: add proper error handling
 }
 
-static EbErrorType apply_film_grain_table(SequenceControlSet *scs_ptr,
-                                          PictureParentControlSet *pcs_ptr) {
-    FrameHeader *frm_hdr = &pcs_ptr->frm_hdr;
-    AomFilmGrain* dst_grain = &frm_hdr->film_grain_params;
-    uint16_t random_seed = dst_grain->random_seed;
+static EbErrorType apply_film_grain_table(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
+    FrameHeader  *frm_hdr     = &pcs_ptr->frm_hdr;
+    AomFilmGrain *dst_grain   = &frm_hdr->film_grain_params;
+    uint16_t      random_seed = dst_grain->random_seed;
 
-    AomFilmGrain* src_grain = scs_ptr->static_config.fgs_table;
+    AomFilmGrain *src_grain = scs_ptr->static_config.fgs_table;
 
     if (svt_memcpy != NULL) {
         svt_memcpy(dst_grain, src_grain, sizeof(*dst_grain));
     } else {
         svt_memcpy_c(dst_grain, src_grain, sizeof(*dst_grain));
-     }
- 
-    frm_hdr->film_grain_params.apply_grain = 1;
-    frm_hdr->film_grain_params.random_seed = random_seed;
+    }
+
+    frm_hdr->film_grain_params.apply_grain        = 1;
+    frm_hdr->film_grain_params.random_seed        = random_seed;
     scs_ptr->seq_header.film_grain_params_present = 1;
 
-     return EB_ErrorNone;
+    return EB_ErrorNone;
 }
 
 /************************************************
