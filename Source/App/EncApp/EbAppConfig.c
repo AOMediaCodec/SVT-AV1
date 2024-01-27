@@ -2315,7 +2315,7 @@ static EbErrorType read_fgs_table(EbConfig *cfg) {
 
     while (!feof(file)) {
         int num_read = fscanf(file,
-                              "E %*d %*d %d %hd %d\n",
+                              "E %*d %*d %d %hu %d\n",
                               &film_grain->apply_grain,
                               &film_grain->random_seed,
                               &film_grain->update_parameters);
