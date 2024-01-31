@@ -362,13 +362,8 @@ static uint32_t max_num_active_blocks;
 GeomIndex svt_aom_geom_idx;
 //TODO need to remove above globals for multi-channel support
 
-/* to access geom info of a particular block; use this table if you have the block index in md scan */
-#ifdef MINIMAL_BUILD
-BlockGeom* svt_aom_blk_geom_mds;
-#else
-BlockGeom svt_aom_blk_geom_mds[MAX_NUM_BLOCKS_ALLOC];
-#endif
-
+BlockGeom svt_aom_blk_geom_mds
+    [MAX_NUM_BLOCKS_ALLOC]; // to access geom info of a particular block; use this table if you have the block index in md scan
 static INLINE TxSize av1_get_tx_size(BlockSize bsize, int32_t plane /*, const MacroBlockD *xd*/) {
     UNUSED(plane);
     //const MbModeInfo *mbmi = xd->mi[0];
