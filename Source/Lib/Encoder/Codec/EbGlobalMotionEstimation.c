@@ -506,12 +506,8 @@ void compute_global_motion(PictureParentControlSet *pcs, int *frm_corners, int n
             if (global_motion.wmtype == IDENTITY)
                 continue;
 
-            const int64_t ref_frame_error = svt_av1_calc_frame_error(ref_buffer,
-                                                                     ref_pic->stride_y,
-                                                                     frm_buffer,
-                                                                     input_pic->width,
-                                                                     input_pic->height,
-                                                                     input_pic->stride_y);
+            const int64_t ref_frame_error = svt_av1_calc_frame_error(
+                ref_buffer, ref_pic->stride_y, frm_buffer, input_pic->width, input_pic->height, input_pic->stride_y);
 
             if (ref_frame_error == 0)
                 continue;
