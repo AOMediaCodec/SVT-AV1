@@ -31,7 +31,7 @@
 
 static AomFilmGrain film_grain_test_vectors[3] = {
     /* Test 1 */
-    {
+    AomFilmGrain {
         1 /* apply_grain */,
         1 /* update_parameters */,
         {{16, 0},
@@ -88,7 +88,7 @@ static AomFilmGrain film_grain_test_vectors[3] = {
         45231 /* random_seed */
     },
     /* Test 2 */
-    {
+    AomFilmGrain {
         1 /* apply_grain */,
         0 /* update_parameters */,
         {{16, 0},
@@ -146,7 +146,7 @@ static AomFilmGrain film_grain_test_vectors[3] = {
     },
 
     /* Test 3 */
-    {
+    AomFilmGrain {
         1 /* apply_grain */,
         1 /* update_parameters */,
         {{0, 96}, {255, 96}},
