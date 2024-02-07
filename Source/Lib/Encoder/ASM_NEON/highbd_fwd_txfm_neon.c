@@ -4382,7 +4382,7 @@ static INLINE void transpose_8x8_in_16x16_neon(const int32x4_t *restrict in, int
 }
 
 void svt_av1_fwd_txfm2d_16x16_N4_neon(int16_t *input, int32_t *coeff, uint32_t stride, TxType tx_type, uint8_t bd) {
-    int32x4_t in[64], out[64];
+    int32x4_t     in[64], out[64];
     const int8_t *shift   = fwd_txfm_shift_ls[TX_16X16];
     const int32_t txw_idx = get_txw_idx(TX_16X16);
     const int32_t txh_idx = get_txh_idx(TX_16X16);
