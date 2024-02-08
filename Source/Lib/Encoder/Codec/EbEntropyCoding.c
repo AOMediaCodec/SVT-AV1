@@ -3089,7 +3089,7 @@ static void write_film_grain_params(PictureParentControlSet *pcs, struct AomWrit
         int32_t ref_idx         = 0;
         pars->update_parameters = 1;
 
-        if (!pars->photon_noise) {
+        if (!pars->ignore_ref) {
             if (svt_aom_film_grain_params_equal(&ref_obj_0->film_grain_params, pars)) {
                 pars->update_parameters = 0;
                 ref_idx                 = get_ref_frame_map_idx(pcs, LAST_FRAME);

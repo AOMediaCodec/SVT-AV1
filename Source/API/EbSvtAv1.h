@@ -393,7 +393,7 @@ typedef struct {
 
     uint16_t random_seed;
 
-    int32_t photon_noise;
+    int32_t ignore_ref;
 } AomFilmGrain;
 
 /**

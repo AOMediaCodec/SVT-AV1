@@ -2424,9 +2424,9 @@ static EbErrorType read_fgs_table(EbConfig *cfg) {
 
     fclose(file);
 
-    film_grain->apply_grain  = 1;
-    film_grain->photon_noise = 1;
-    cfg->config.fgs_table    = film_grain;
+    film_grain->apply_grain = 1;
+    film_grain->ignore_ref  = 1;
+    cfg->config.fgs_table   = film_grain;
 
     return EB_ErrorNone;
 fail:
