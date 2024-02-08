@@ -31,7 +31,7 @@
 
 static AomFilmGrain film_grain_test_vectors[3] = {
     /* Test 1 */
-    AomFilmGrain{
+    {
         1 /* apply_grain */,
         1 /* update_parameters */,
         {{16, 0},
@@ -85,10 +85,11 @@ static AomFilmGrain film_grain_test_vectors[3] = {
         8 /* bit_depth */,
         0 /* chroma_scaling_from_luma*/,
         0 /* grain_scale_shift*/,
-        45231 /* random_seed */
+        45231 /* random_seed */,
+        0 /* ignore_ref */
     },
     /* Test 2 */
-    AomFilmGrain{
+    {
         1 /* apply_grain */,
         0 /* update_parameters */,
         {{16, 0},
@@ -142,11 +143,12 @@ static AomFilmGrain film_grain_test_vectors[3] = {
         8 /* bit_depth */,
         0 /* chroma_scaling_from_luma*/,
         0 /* grain_scale_shift*/,
-        36007 /* random_seed */
+        36007 /* random_seed */,
+        0 /* ignore_ref */
     },
 
     /* Test 3 */
-    AomFilmGrain{
+    {
         1 /* apply_grain */,
         1 /* update_parameters */,
         {{0, 96}, {255, 96}},
@@ -181,7 +183,8 @@ static AomFilmGrain film_grain_test_vectors[3] = {
         8 /* bit_depth */,
         0 /*chroma_scaling_from_luma*/,
         0 /* grain_scale_shift*/,
-        45231 /* random_seed */
+        45231 /* random_seed */,
+        0 /* ignore_ref */
     },
 };
 
