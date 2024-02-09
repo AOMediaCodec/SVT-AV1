@@ -349,7 +349,8 @@ static AomFilmGrain expected_film_grain = {
     8 /* bit_depth */,
     0 /* chroma_scaling_from_luma */,
     0 /* grain_scale_shift */,
-    0 /* random_seed */
+    0 /* random_seed */,
+    0 /* ignore_ref */
 };
 /* clang-format on */
 
