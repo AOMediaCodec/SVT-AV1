@@ -1487,10 +1487,10 @@ static EbErrorType apply_film_grain_table(SequenceControlSet *scs_ptr, PicturePa
  ***** Denoising
  ************************************************/
 void svt_aom_picture_pre_processing_operations(PictureParentControlSet *pcs, SequenceControlSet *scs) {
-    if (scs->static_config.film_grain_denoise_strength) {
-        denoise_estimate_film_grain(scs, pcs);
-    } else if (scs->static_config.fgs_table) {
+    if (scs->static_config.fgs_table) {
         apply_film_grain_table(scs, pcs);
+    } else if (scs->static_config.film_grain_denoise_strength) {
+        denoise_estimate_film_grain(scs, pcs);
     }
 
     return;

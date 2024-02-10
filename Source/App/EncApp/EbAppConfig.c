@@ -2572,6 +2572,10 @@ EbErrorType read_command_line(int32_t argc, char *const argv[], EncChannel *chan
         EncChannel *c   = channels + index;
         EbConfig   *cfg = c->app_cfg;
         if (cfg->fgs_table_path) {
+            if (cfg->config.film_grain_denoise_strength > 0) {
+                fprintf(stderr, "Warning: Both film-grain-denoise and fgs-table were specified\nfilm-grain-denoise will be disabled\n");
+                cfg->config.film_grain_denoise_strength = 0;
+            }
             c->return_error = read_fgs_table(cfg);
             return_error    = (EbErrorType)(return_error & c->return_error);
         }
