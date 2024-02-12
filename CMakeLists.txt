@@ -43,6 +43,10 @@ endif()
 option(COMPILE_C_ONLY "Compile only C code with no simds (autodetect, default off for x86)" OFF)
 option(USE_EXTERNAL_CPUINFO "Consume system cpuinfo library only" OFF)
 
+if(USE_EXTERNAL_CPUINFO)
+    find_package(cpuinfo CONFIG REQUIRED)
+endif()
+
 include(CheckCSourceCompiles)
 
 check_c_source_compiles("
@@ -606,9 +610,7 @@ endif()
 
 add_subdirectory(third_party/fastfeat)
 
-if(USE_EXTERNAL_CPUINFO)
-    find_package(cpuinfo REQUIRED)
-elseif(NOT COMPILE_C_ONLY AND HAVE_X86_PLATFORM)
+if(NOT USE_EXTERNAL_CPUINFO AND NOT COMPILE_C_ONLY AND HAVE_X86_PLATFORM)
     add_subdirectory(third_party/cpuinfo)
 endif()
 
