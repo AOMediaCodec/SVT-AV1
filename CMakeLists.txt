@@ -41,6 +41,7 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 option(COMPILE_C_ONLY "Compile only C code with no simds (autodetect, default off for x86)" OFF)
+option(USE_EXTERNAL_CPUINFO "Consume system cpuinfo library only" OFF)
 
 include(CheckCSourceCompiles)
 
@@ -605,7 +606,9 @@ endif()
 
 add_subdirectory(third_party/fastfeat)
 
-if(NOT COMPILE_C_ONLY AND HAVE_X86_PLATFORM)
+if(USE_EXTERNAL_CPUINFO)
+    find_package(cpuinfo REQUIRED)
+elseif(NOT COMPILE_C_ONLY AND HAVE_X86_PLATFORM)
     add_subdirectory(third_party/cpuinfo)
 endif()
 
