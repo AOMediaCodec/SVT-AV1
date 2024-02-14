@@ -18,35 +18,6 @@
 extern "C" {
 #endif
 #pragma pack(push, 1)
-#if !CLN_BLK_STRUCT_2 // TODO: Remove this file
-typedef struct PredictionUnit {
-    Mv      mv[MAX_NUM_OF_REF_PIC_LIST]; // 16-bytes
-    uint8_t inter_pred_direction_index;
-
-    // Intra Mode
-    int8_t           angle_delta[PLANE_TYPES];
-    UvPredictionMode intra_chroma_mode;
-    // Inter Mode
-    uint8_t    ref_frame_type;
-    MotionMode motion_mode;
-    uint16_t   num_proj_ref;
-    uint32_t   overlappable_neighbors[2];
-    uint8_t    cfl_alpha_idx; // Index of the alpha Cb and alpha Cr combination
-    uint8_t    cfl_alpha_signs; // Joint sign of alpha Cb and alpha Cr
-} PredictionUnit;
-typedef struct EcPredictionUnit {
-    uint8_t inter_pred_direction_index;
-
-    // Intra Mode
-    int8_t angle_delta[PLANE_TYPES];
-    // Inter Mode
-    MotionMode motion_mode;
-    uint16_t   num_proj_ref;
-    uint32_t   overlappable_neighbors[2];
-    uint8_t    cfl_alpha_idx; // Index of the alpha Cb and alpha Cr combination
-    uint8_t    cfl_alpha_signs; // Joint sign of alpha Cb and alpha Cr
-} EcPredictionUnit;
-#endif
 #pragma pack(pop)
 
 #ifdef __cplusplus
