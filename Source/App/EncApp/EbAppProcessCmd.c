@@ -529,14 +529,23 @@ void process_input_buffer(EncChannel *channel) {
 #endif
             retrieve_roi_map_event(app_cfg->roi_map, header_ptr->pts, header_ptr);
             // Send the picture
-            if (svt_av1_enc_send_picture(component_handle, header_ptr) != EB_ErrorNone)
+            if (svt_av1_enc_send_picture(component_handle, header_ptr) != EB_ErrorNone) {
+                header_ptr->flags = EB_BUFFERFLAG_EOS;
+                svt_av1_enc_send_picture(component_handle,
+                    &(EbBufferHeaderType){
+                    .flags = EB_BUFFERFLAG_EOS,
+                        .pic_type = EB_AV1_INVALID_PICTURE,
+                });
                 return_value = APP_ExitConditionFinished;
+            }
+
             // p_app_private is deep copied so it's safe to free it now
             free_private_data_list(header_ptr->p_app_private);
 
             if (app_cfg->mmap.enable)
                 release_memory_mapped_file(app_cfg, is_16bit, header_ptr);
         }
+        
         if ((app_cfg->processed_frame_count == (uint64_t)app_cfg->frames_to_be_encoded) || app_cfg->stop_encoder) {
             header_ptr->flags = EB_BUFFERFLAG_EOS;
             svt_av1_enc_send_picture(component_handle,

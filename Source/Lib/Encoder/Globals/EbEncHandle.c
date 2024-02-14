@@ -77,6 +77,12 @@
 #include "common_dsp_rtcd.h"
 
 
+ /***************************************
+  * Macros
+  ***************************************/
+#define SIZE_OF_ONE_FRAME_IN_BYTES(width, height, csp, is_16bit) \
+    ((((width) * (height)) + 2 * (((width) * (height)) >> (3 - csp))) << is_16bit)
+
  /**************************************
   * Defines
   **************************************/
@@ -5614,6 +5620,7 @@ static void copy_input_buffer(SequenceControlSet* scs, EbBufferHeaderType* dst,
     dst->size         = src->size;
     dst->qp           = src->qp;
     dst->pic_type     = src->pic_type;
+
 #if OPT_MPASS_VBR4
 #if OPT_MPASS_VBR8
     if (scs->first_pass_ctrls.ds) {
@@ -5779,6 +5786,7 @@ EB_API EbErrorType svt_av1_enc_send_picture(
     EbBufferHeaderType   *p_buffer)
 {
     EbErrorType     return_val = EB_ErrorNone;
+
     EbEncHandle          *enc_handle_ptr = (EbEncHandle*)svt_enc_component->p_component_private;
     EbObjectWrapper      *eb_wrapper_ptr;
     EbBufferHeaderType   *app_hdr = p_buffer;
@@ -5819,16 +5827,30 @@ EB_API EbErrorType svt_av1_enc_send_picture(
         //copy the Luma 8bit part into y8b buffer and the rest of samples into the regular buffer
         EbBufferHeaderType *lib_y8b_hdr = (EbBufferHeaderType*)y8b_wrapper->object_ptr;
         EbBufferHeaderType *lib_reg_hdr = (EbBufferHeaderType*)eb_wrapper_ptr->object_ptr;
-        copy_input_buffer(
-            enc_handle_ptr->scs_instance_array[0]->scs,
-            lib_reg_hdr,
-            lib_y8b_hdr,
-            app_hdr,
+
+        // Error out if n_filled_len doesn't match the expected input size
+        EbPictureBufferDesc* input_pic = (EbPictureBufferDesc*)lib_y8b_hdr->p_buffer;
+        SequenceControlSet* scs = enc_handle_ptr->scs_instance_array[0]->scs;
+        EbSvtAv1EncConfiguration* config = &scs->static_config;
+        Bool is_16bit_input = (Bool)(config->encoder_bit_depth > EB_EIGHT_BIT);
+        size_t read_size = (size_t)SIZE_OF_ONE_FRAME_IN_BYTES(
+            input_pic->width - scs->max_input_pad_right, input_pic->height - scs->max_input_pad_bottom, config->encoder_color_format, is_16bit_input);
+        if (app_hdr->p_buffer != NULL &&  read_size != app_hdr->n_filled_len) {
+                SVT_ERROR("The API input buffer size and the Library allocated input buffer size dont match \n");
+                return_val = EB_ErrorBadParameter;
+        }
+        else {
+            copy_input_buffer(
+                enc_handle_ptr->scs_instance_array[0]->scs,
+                lib_reg_hdr,
+                lib_y8b_hdr,
+                app_hdr,
 #if OPT_MPASS_VBR4
-            0);
+                0);
 #else
-            enc_handle_ptr->scs_instance_array[0]->scs->static_config.pass == ENC_FIRST_PASS);
+                enc_handle_ptr->scs_instance_array[0]->scs->static_config.pass == ENC_FIRST_PASS);
 #endif
+        }
     }
 
     //Take a new App-RessCoord command
