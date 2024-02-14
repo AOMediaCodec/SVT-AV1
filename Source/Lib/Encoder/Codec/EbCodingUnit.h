@@ -196,16 +196,16 @@ typedef struct BlkStruct {
     uint64_t             cost;
     // Similar to cost but does not get updated @ svt_aom_d1_non_square_block_decision() and
     // svt_aom_d2_inter_depth_block_decision()
-    uint64_t default_cost;
-    uint64_t total_rate;
-    uint32_t full_dist;
-    QuantDcData quant_dc;
-    EobData     eob;
-    TxType      tx_type[MAX_TXB_COUNT];
-    TxType      tx_type_uv;
-    uint16_t    y_has_coeff;
-    uint8_t     u_has_coeff;
-    uint8_t     v_has_coeff;
+    uint64_t     default_cost;
+    uint64_t     total_rate;
+    uint32_t     full_dist;
+    QuantDcData  quant_dc;
+    EobData      eob;
+    TxType       tx_type[MAX_TXB_COUNT];
+    TxType       tx_type_uv;
+    uint16_t     y_has_coeff;
+    uint8_t      u_has_coeff;
+    uint8_t      v_has_coeff;
     PaletteInfo *palette_info;
     uint8_t      palette_mem; // status of palette info alloc
     uint8_t      palette_size[2];
@@ -228,7 +228,7 @@ typedef struct BlkStruct {
     InterInterCompoundData interinter_comp;
     uint32_t               interp_filters;
     uint8_t                interintra_wedge_index;
-    int16_t inter_mode_ctx;
+    int16_t                inter_mode_ctx;
     // equivalent of leaf_index in the nscu context. we will keep both for now and use the right one
     // on a case by case basis.
     uint16_t mds_idx;

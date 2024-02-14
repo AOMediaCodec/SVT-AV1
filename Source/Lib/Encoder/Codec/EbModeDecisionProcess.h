@@ -545,7 +545,7 @@ typedef struct NicPruningCtrls {
     uint16_t mds1_q_weight;
     uint16_t mds2_q_weight;
     uint16_t mds3_q_weight;
-    uint8_t merge_inter_cands_mult;
+    uint8_t  merge_inter_cands_mult;
 } NicPruningCtrls;
 typedef struct NicCtrls {
     NicPruningCtrls pruning_ctrls;
@@ -906,10 +906,10 @@ typedef struct ModeDecisionContext {
     BlkStruct                    *md_blk_arr_nsq;
     uint8_t                      *avail_blk_flag;
     uint8_t                      *cost_avail;
-    MdcSbData mdc_sb_array;
-    bool copied_neigh_arrays;
-    MvReferenceFrame ref_frame_type_arr[MODE_CTX_REF_FRAMES];
-    uint8_t          tot_ref_frame_types;
+    MdcSbData                     mdc_sb_array;
+    bool                          copied_neigh_arrays;
+    MvReferenceFrame              ref_frame_type_arr[MODE_CTX_REF_FRAMES];
+    uint8_t                       tot_ref_frame_types;
 
     NeighborArrayUnit *recon_neigh_y;
     NeighborArrayUnit *recon_neigh_cb;
@@ -952,7 +952,7 @@ typedef struct ModeDecisionContext {
     // MD palette search
     PALETTE_BUFFER *palette_buffer;
     PaletteInfo    *palette_cand_array;
-    uint8_t *palette_size_array_0;
+    uint8_t        *palette_size_array_0;
     // simple geometry 64x64SB, Sq only, no 4xN
     uint8_t          sb64_sq_no4xn_geom;
     uint8_t          pu_itr;
@@ -1003,23 +1003,23 @@ typedef struct ModeDecisionContext {
     int16_t              cr_txb_skip_context;
     int16_t              cr_dc_sign_context;
     // Multi-modes signal(s)
-    uint8_t              global_mv_injection;
-    uint8_t              new_nearest_injection;
-    uint8_t              new_nearest_near_comb_injection;
-    WmCtrls              wm_ctrls;
-    UvCtrls              uv_ctrls;
-    uint8_t              unipred3x3_injection;
-    Bipred3x3Controls    bipred3x3_ctrls;
-    uint8_t              redundant_blk;
-    uint8_t              nic_level;
-    uint8_t              svt_aom_inject_inter_candidates;
-    uint8_t             *cfl_temp_luma_recon;
-    uint16_t            *cfl_temp_luma_recon16bit;
-    Bool   blk_skip_decision;
-    int8_t rdoq_level;
-    int16_t sb_me_mv[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX][2];
+    uint8_t           global_mv_injection;
+    uint8_t           new_nearest_injection;
+    uint8_t           new_nearest_near_comb_injection;
+    WmCtrls           wm_ctrls;
+    UvCtrls           uv_ctrls;
+    uint8_t           unipred3x3_injection;
+    Bipred3x3Controls bipred3x3_ctrls;
+    uint8_t           redundant_blk;
+    uint8_t           nic_level;
+    uint8_t           svt_aom_inject_inter_candidates;
+    uint8_t          *cfl_temp_luma_recon;
+    uint16_t         *cfl_temp_luma_recon16bit;
+    Bool              blk_skip_decision;
+    int8_t            rdoq_level;
+    int16_t           sb_me_mv[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX][2];
     // Store ME MV of the square to use with NSQ shapes; 4x4 will also use the 8x8 ME MVs
-    int16_t sq_sb_me_mv[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX][2];
+    int16_t  sq_sb_me_mv[MAX_NUM_OF_REF_PIC_LIST][MAX_REF_IDX][2];
     MV       fp_me_mv[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     MV       sub_me_mv[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint32_t post_subpel_me_mv_cost[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
@@ -1028,7 +1028,7 @@ typedef struct ModeDecisionContext {
     // Store MVP during MD search - only results are forwarded to encdec
     CandidateMv ref_mv_stack[MODE_CTX_REF_FRAMES][MAX_REF_MV_STACK_SIZE];
     // Store inter_mode_ctx for each reference during MD search - only ctx for winning ref frame is forwarded to encdec
-    int16_t inter_mode_ctx[MODE_CTX_REF_FRAMES];
+    int16_t              inter_mode_ctx[MODE_CTX_REF_FRAMES];
     EbPictureBufferDesc *input_sample16bit_buffer;
     // set to 1 once the packing of 10bit source is done for each SB
     uint8_t  hbd_pack_done;
@@ -1121,13 +1121,13 @@ typedef struct ModeDecisionContext {
     TxsControls         txs_ctrls;
     TxtControls         txt_ctrls;
     CandReductionCtrls  cand_reduction_ctrls;
-    NsqGeomCtrls   nsq_geom_ctrls;
-    NsqSearchCtrls nsq_search_ctrls;
+    NsqGeomCtrls        nsq_geom_ctrls;
+    NsqSearchCtrls      nsq_search_ctrls;
     DepthEarlyExitCtrls depth_early_exit_ctrls;
     RdoqCtrls           rdoq_ctrls;
     uint8_t             disallow_4x4;
-    uint8_t md_disallow_nsq_search;
-    uint8_t params_status; // specifies the status of MD parameters; 0: default, 1: modified
+    uint8_t             md_disallow_nsq_search;
+    uint8_t             params_status; // specifies the status of MD parameters; 0: default, 1: modified
     // was parent_sq_coeff_area_based_cycles_reduction_ctrls
     ParentSqCmplxCtrls   psq_cplx_ctrls;
     NsqPsqTxsCtrls       nsq_psq_txs_ctrls;
@@ -1145,16 +1145,16 @@ typedef struct ModeDecisionContext {
     // Array for all nearest/near MVs for a block for single ref case
     MV mvp_array[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH][MAX_MVP_CANIDATES];
     // Count of all nearest/near MVs for a block for single ref case
-    int8_t mvp_count[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
+    int8_t   mvp_count[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint16_t best_fp_mvp_idx[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint32_t best_fp_mvp_dist[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint32_t fp_me_dist[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     // Start/end position for MD sparse search
-    int16_t  sprs_lev0_start_x;
-    int16_t  sprs_lev0_end_x;
-    int16_t  sprs_lev0_start_y;
-    int16_t  sprs_lev0_end_y;
-    NicCtrls nic_ctrls;
+    int16_t         sprs_lev0_start_x;
+    int16_t         sprs_lev0_end_x;
+    int16_t         sprs_lev0_start_y;
+    int16_t         sprs_lev0_end_y;
+    NicCtrls        nic_ctrls;
     MV              ref_mv;
     uint16_t        sb_index;
     uint64_t        mds0_best_cost;
@@ -1234,10 +1234,10 @@ typedef struct ModeDecisionContext {
     // chroma components to compensate at MDS3 of LPD1
     COMPONENT_TYPE lpd1_chroma_comp;
     uint8_t        corrupted_mv_check;
-    uint8_t pred_mode_depth_refine;
+    uint8_t        pred_mode_depth_refine;
     // when MD is done on 8bit, scale palette colors to 10bit (valid when bypass is 1)
-    uint8_t scale_palette;
-    uint8_t high_freq_present;
+    uint8_t  scale_palette;
+    uint8_t  high_freq_present;
     uint32_t b32_satd[4];
     uint64_t rec_dist_per_quadrant[4];
     // non-normative txs

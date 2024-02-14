@@ -41,9 +41,9 @@ typedef struct {
     double this_frame_mv_in_out;
 } GF_GROUP_STATS;
 
-void svt_av1_init_second_pass(struct SequenceControlSet *scs);
-void svt_av1_init_single_pass_lap(struct SequenceControlSet *scs);
-void svt_av1_new_framerate(struct SequenceControlSet *scs, double framerate);
+void        svt_av1_init_second_pass(struct SequenceControlSet *scs);
+void        svt_av1_init_single_pass_lap(struct SequenceControlSet *scs);
+void        svt_av1_new_framerate(struct SequenceControlSet *scs, double framerate);
 void        svt_aom_one_pass_rt_rate_alloc(struct PictureParentControlSet *pcs);
 void        svt_aom_process_rc_stat(struct PictureParentControlSet *pcs);
 void        svt_aom_reset_update_frame_target(struct PictureParentControlSet *ppcs);

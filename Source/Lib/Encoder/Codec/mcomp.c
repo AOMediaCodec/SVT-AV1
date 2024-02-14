@@ -705,11 +705,11 @@ int svt_av1_find_best_sub_pixel_tree(void *ictx, MacroBlockD *xd, const struct A
     if (ctx != NULL && ms_params->search_stage == SPEL_ME) {
         ctx->fp_me_dist[ms_params->list_idx][ms_params->ref_idx] = besterr;
         if (ctx->pd_pass == PD_PASS_1 && ctx->md_subpel_me_ctrls.mvp_th > 0) {
-            unsigned int best_mvperr  = ctx->best_fp_mvp_dist[ms_params->list_idx][ms_params->ref_idx];
-            int          best_mvp_idx = ctx->best_fp_mvp_idx[ms_params->list_idx][ms_params->ref_idx];
-            const int     mvp_err   = best_mvperr + 1;
-            const int     me_err    = besterr + 1;
-            const int32_t deviation = ((me_err - mvp_err) * 100) / me_err;
+            unsigned int  best_mvperr  = ctx->best_fp_mvp_dist[ms_params->list_idx][ms_params->ref_idx];
+            int           best_mvp_idx = ctx->best_fp_mvp_idx[ms_params->list_idx][ms_params->ref_idx];
+            const int     mvp_err      = best_mvperr + 1;
+            const int     me_err       = besterr + 1;
+            const int32_t deviation    = ((me_err - mvp_err) * 100) / me_err;
             if (deviation >= ctx->md_subpel_me_ctrls.mvp_th)
                 round = 1;
             else if (ABS(bestmv->col - ctx->mvp_array[ms_params->list_idx][ms_params->ref_idx][best_mvp_idx].col) >

@@ -30,7 +30,7 @@
 #include "EbPackUnPack_C.h"
 #include "EbEncInterPrediction.h"
 
-void svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
+void               svt_aom_get_recon_pic(PictureControlSet *pcs, EbPictureBufferDesc **recon_ptr, Bool is_highbd);
 void               aom_av1_set_ssim_rdmult(struct ModeDecisionContext *ctx, PictureControlSet *pcs, const int mi_row,
                                            const int mi_col);
 static EbErrorType ec_rtime_alloc_palette_info(EcBlkStruct *md_blk_arr_nsq) {
@@ -706,7 +706,7 @@ void svt_aom_store16bit_input_src(EbPictureBufferDesc *input_sample16bit_buffer,
                    from_ptr + row_it * input_sample16bit_buffer->stride_cr,
                    sb_w * 2);
 }
-void svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx, PictureControlSet *pcs);
+void        svt_aom_update_mi_map_enc_dec(BlkStruct *blk_ptr, ModeDecisionContext *ctx, PictureControlSet *pcs);
 static void perform_intra_coding_loop(PictureControlSet *pcs, SuperBlock *sb_ptr, uint32_t sb_addr, BlkStruct *blk_ptr,
                                       EncDecContext *ed_ctx) {
     Bool                 is_16bit  = ed_ctx->is_16bit;
@@ -1467,19 +1467,18 @@ static void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet
             blk_ptr->quant_dc.v[ctx->txb_itr] = 0;
         } else {
             //inter mode  2
-            av1_encode_loop(
-                pcs,
-                ctx,
-                sb_ptr,
-                txb_origin_x, //pic offset
-                txb_origin_y,
-                recon_buffer,
-                coeff_buffer_sb,
-                residual_buffer,
-                transform_buffer,
-                inverse_quant_buffer,
-                blk_geom->has_uv && uv_pass ? PICTURE_BUFFER_DESC_FULL_MASK : PICTURE_BUFFER_DESC_LUMA_MASK,
-                eobs[ctx->txb_itr]);
+            av1_encode_loop(pcs,
+                            ctx,
+                            sb_ptr,
+                            txb_origin_x, //pic offset
+                            txb_origin_y,
+                            recon_buffer,
+                            coeff_buffer_sb,
+                            residual_buffer,
+                            transform_buffer,
+                            inverse_quant_buffer,
+                            blk_geom->has_uv && uv_pass ? PICTURE_BUFFER_DESC_FULL_MASK : PICTURE_BUFFER_DESC_LUMA_MASK,
+                            eobs[ctx->txb_itr]);
         }
 
         //inter mode
@@ -1492,14 +1491,13 @@ static void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet
             blk_geom->has_uv && uv_pass ? PICTURE_BUFFER_DESC_FULL_MASK : PICTURE_BUFFER_DESC_LUMA_MASK,
             eobs[ctx->txb_itr]);
 
-
         ctx->coded_area_sb += blk_geom->tx_width[blk_ptr->tx_depth] * blk_geom->tx_height[blk_ptr->tx_depth];
 
         if (ctx->blk_geom->has_uv && uv_pass)
             ctx->coded_area_sb_uv += blk_geom->tx_width_uv[blk_ptr->tx_depth] *
                 blk_geom->tx_height_uv[blk_ptr->tx_depth];
 
-            // Update the luma Dc Sign Level Coeff Neighbor Array
+        // Update the luma Dc Sign Level Coeff Neighbor Array
         uint8_t dc_sign_level_coeff = (uint8_t)blk_ptr->quant_dc.y[ctx->txb_itr];
 
         svt_aom_neighbor_array_unit_mode_write(pcs->ep_luma_dc_sign_level_coeff_na[tile_idx],
@@ -1999,8 +1997,7 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
             } // END COPY RECON
 
             // Loop over TX units only if needed
-            if (pcs->cdf_ctrl.update_coef ||
-                (md_ctx->bypass_encdec && !(md_ctx->fixed_partition))) {
+            if (pcs->cdf_ctrl.update_coef || (md_ctx->bypass_encdec && !(md_ctx->fixed_partition))) {
                 ctx->is_inter = (blk_ptr->prediction_mode_flag == INTER_MODE || blk_ptr->use_intrabc);
 
                 // Initialize the Transform Loop
@@ -2124,7 +2121,7 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                                 blk_ptr->tx_type_uv,
                                 (blk_geom->has_uv && uv_pass) ? COMPONENT_ALL : COMPONENT_LUMA);
 
-                            // Update the luma DC Sign Level Coeff Neighbor Array
+                        // Update the luma DC Sign Level Coeff Neighbor Array
                         uint8_t dc_sign_level_coeff = (uint8_t)blk_ptr->quant_dc.y[ctx->txb_itr];
 
                         svt_aom_neighbor_array_unit_mode_write(pcs->ep_luma_dc_sign_level_coeff_na_update[tile_idx],

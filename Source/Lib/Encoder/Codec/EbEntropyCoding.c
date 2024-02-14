@@ -488,7 +488,7 @@ static int32_t av1_write_coeffs_txb_1d(PictureParentControlSet *ppcs, FRAME_CONT
     (void)pu_index;
     (void)coeff_stride;
     const TxSize txs_ctx = (TxSize)((txsize_sqr_map[tx_size] + txsize_sqr_up_map[tx_size] + 1) >> 1);
-    TxType tx_type = component_type == COMPONENT_LUMA ? blk_ptr->tx_type[txb_index] : blk_ptr->tx_type_uv;
+    TxType       tx_type = component_type == COMPONENT_LUMA ? blk_ptr->tx_type[txb_index] : blk_ptr->tx_type_uv;
     const ScanOrder *const scan_order = &av1_scan_orders[tx_size][tx_type];
     const int16_t *const   scan       = scan_order->scan;
     int32_t                c;
@@ -1160,10 +1160,7 @@ static void encode_intra_chroma_mode_av1(FRAME_CONTEXT *frame_context, AomWriter
         ec_writer, chroma_mode, frame_context->uv_mode_cdf[cflAllowed][luma_mode], UV_INTRA_MODES - !cflAllowed);
 
     if (chroma_mode == UV_CFL_PRED)
-        write_cfl_alphas(frame_context,
-                         blk_ptr->cfl_alpha_idx,
-                         blk_ptr->cfl_alpha_signs,
-                         ec_writer);
+        write_cfl_alphas(frame_context, blk_ptr->cfl_alpha_idx, blk_ptr->cfl_alpha_signs, ec_writer);
 
     if (bsize >= BLOCK_8X8 && av1_is_directional_mode(get_uv_mode(mbmi->block_mi.uv_mode))) {
         aom_write_symbol(ec_writer,
@@ -1272,13 +1269,8 @@ MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, uint16_t nu
 static void write_motion_mode(FRAME_CONTEXT *frame_context, AomWriter *ec_writer, BlockSize bsize, MbModeInfo *mbmi,
                               MotionMode motion_mode, MvReferenceFrame rf0, MvReferenceFrame rf1, EcBlkStruct *blk_ptr,
                               PictureControlSet *pcs) {
-    MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(pcs,
-                                                                      blk_ptr->num_proj_ref,
-                                                                      blk_ptr->overlappable_neighbors,
-                                                                      bsize,
-                                                                      rf0,
-                                                                      rf1,
-                                                                      mbmi->block_mi.mode);
+    MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
+        pcs, blk_ptr->num_proj_ref, blk_ptr->overlappable_neighbors, bsize, rf0, rf1, mbmi->block_mi.mode);
     switch (last_motion_mode_allowed) {
     case SIMPLE_TRANSLATION: break;
     case OBMC_CAUSAL: aom_write_symbol(ec_writer, motion_mode == OBMC_CAUSAL, frame_context->obmc_cdf[bsize], 2); break;
@@ -1648,13 +1640,8 @@ static void write_mb_interp_filter(BlockSize bsize, MvReferenceFrame rf0, MvRefe
     FrameHeader *const frm_hdr = &pcs->frm_hdr;
 
     if (frm_hdr->interpolation_filter != SWITCHABLE ||
-        !av1_is_interp_needed(rf0,
-                              rf1,
-                              mbmi->block_mi.skip_mode,
-                              blk_ptr->motion_mode,
-                              mbmi->block_mi.mode,
-                              bsize,
-                              pcs)) {
+        !av1_is_interp_needed(
+            rf0, rf1, mbmi->block_mi.skip_mode, blk_ptr->motion_mode, mbmi->block_mi.mode, bsize, pcs)) {
         return;
     }
 
@@ -5067,10 +5054,10 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
 
                 write_ref_frames(frame_context, pcs->ppcs, blk_ptr->av1xd, ec_writer);
 
-                MvReferenceFrame *rf         = mbmi->block_mi.ref_frame;
-                int16_t           mode_ctx   = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
-                PredictionMode    inter_mode = mbmi->block_mi.mode;
-                const int32_t is_compound = is_inter_compound_mode(inter_mode);
+                MvReferenceFrame *rf          = mbmi->block_mi.ref_frame;
+                int16_t           mode_ctx    = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx, rf);
+                PredictionMode    inter_mode  = mbmi->block_mi.mode;
+                const int32_t     is_compound = is_inter_compound_mode(inter_mode);
 
                 // If segment skip is not enabled code the mode.
                 if (is_inter_compound_mode(inter_mode)) {
@@ -5144,15 +5131,8 @@ static EbErrorType write_modes_b(PictureControlSet *pcs, EntropyCodingContext *e
                 }
 
                 if (frm_hdr->is_motion_mode_switchable && rf[1] != INTRA_FRAME) {
-                    write_motion_mode(frame_context,
-                                      ec_writer,
-                                      bsize,
-                                      mbmi,
-                                      blk_ptr->motion_mode,
-                                      rf[0],
-                                      rf[1],
-                                      blk_ptr,
-                                      pcs);
+                    write_motion_mode(
+                        frame_context, ec_writer, bsize, mbmi, blk_ptr->motion_mode, rf[0], rf[1], blk_ptr, pcs);
                 }
                 // First write idx to indicate current compound inter prediction mode group
                 // Group A (0): dist_wtd_comp, compound_average

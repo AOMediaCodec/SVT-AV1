@@ -508,8 +508,7 @@ void svt_aom_recon_output(PictureControlSet *pcs, SequenceControlSet *scs) {
             const uint16_t ss_x         = (color_format == EB_YUV444 ? 1 : 2) - 1;
             const uint16_t ss_y         = (color_format >= EB_YUV422 ? 1 : 2) - 1;
             // FGN: Create a buffer if needed, copy the reconstructed picture and run the film grain synthesis algorithm
-            if (scs->seq_header.film_grain_params_present &&
-                pcs->ppcs->frm_hdr.film_grain_params.apply_grain) {
+            if (scs->seq_header.film_grain_params_present && pcs->ppcs->frm_hdr.film_grain_params.apply_grain) {
                 AomFilmGrain *film_grain_ptr;
 
                 uint16_t                    padding = scs->super_block_size + 32;
@@ -2093,7 +2092,7 @@ static void set_parent_to_be_considered(ModeDecisionContext *ctx, MdcSbData *res
     const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
     if (blk_geom->sq_size < ((sb_size == BLOCK_128X128) ? 128 : 64)) {
         //Set parent to be considered
-        uint32_t parent_depth_idx_mds = blk_geom->parent_depth_idx_mds;
+        uint32_t parent_depth_idx_mds                     = blk_geom->parent_depth_idx_mds;
         results_ptr->consider_block[parent_depth_idx_mds] = 1;
         if (depth_step < -1)
             set_parent_to_be_considered(
@@ -2211,11 +2210,10 @@ static void set_d1_blocks_to_test(PictureControlSet *pcs, ModeDecisionContext *c
     uint8_t    shapes_idx = 0;
     const Part max_part   = (!ctx->nsq_geom_ctrls.enabled ||
                            (blk_geom->sq_size <= ctx->nsq_geom_ctrls.min_nsq_block_size) || blk_geom->sq_size == 4 ||
-                           (ctx->md_disallow_nsq_search && !inj_hv_incomp) ||
-                           inj_sq_only_incomp)
-        ? PART_N
-        : (blk_geom->sq_size == 8 || inj_hv_incomp) ? PART_V
-                                                    : PART_S - 1;
+                           (ctx->md_disallow_nsq_search && !inj_hv_incomp) || inj_sq_only_incomp)
+          ? PART_N
+          : (blk_geom->sq_size == 8 || inj_hv_incomp) ? PART_V
+                                                      : PART_S - 1;
     for (Part part = PART_N; part <= max_part; part++) {
         if (inj_hv_incomp) {
             if ((pcs->ppcs->sb_geom[ctx->sb_index].block_is_allowed[blk_index + 1] && part != PART_H) ||
@@ -2242,7 +2240,7 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                                    bool first_stage) {
     memset(ctx->avail_blk_flag, FALSE, sizeof(uint8_t) * scs->max_block_cnt);
     memset(ctx->cost_avail, FALSE, sizeof(uint8_t) * scs->max_block_cnt);
-    MdcSbData *results_ptr = &ctx->mdc_sb_array;
+    MdcSbData *results_ptr        = &ctx->mdc_sb_array;
     results_ptr->leaf_count       = 0;
     uint32_t       blk_index      = 0;
     const uint16_t max_block_cnt  = scs->max_block_cnt;
@@ -2515,8 +2513,8 @@ static void get_max_min_pd0_depths(SequenceControlSet *scs, PictureControlSet *p
 static void perform_pred_depth_refinement(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx,
                                           uint32_t sb_index) {
     MdcSbData *results_ptr = &ctx->mdc_sb_array;
-    uint32_t blk_index = 0;
-    uint8_t  use_cost_band_based_modulation =
+    uint32_t   blk_index   = 0;
+    uint8_t    use_cost_band_based_modulation =
         (!scs->vq_ctrls.stability_ctrls.depth_refinement ||
          (pcs->slice_type != I_SLICE && pcs->ppcs->me_8x8_cost_variance[ctx->sb_index] < VQ_STABILITY_ME_VAR_TH));
     if (!ctx->nsq_geom_ctrls.enabled) {
@@ -2527,8 +2525,8 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs, PictureContro
             while (blk_index < scs->max_block_cnt) {
                 const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
 
-                Bool split_flag                        = blk_geom->sq_size > 4 ? TRUE : FALSE;
-                results_ptr->consider_block[blk_index] = 0;
+                Bool split_flag                            = blk_geom->sq_size > 4 ? TRUE : FALSE;
+                results_ptr->consider_block[blk_index]     = 0;
                 results_ptr->refined_split_flag[blk_index] = blk_geom->sq_size > 4 ? TRUE : FALSE;
                 blk_index += split_flag ? blk_geom->d1_depth_offset : blk_geom->ns_depth_offset;
             }
@@ -2536,8 +2534,8 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs, PictureContro
     } else {
         // Reset mdc_sb_array data to defaults; it will be updated based on the predicted blocks (stored in md_blk_arr_nsq)
         while (blk_index < scs->max_block_cnt) {
-            const BlockGeom *blk_geom              = get_blk_geom_mds(blk_index);
-            results_ptr->consider_block[blk_index] = 0;
+            const BlockGeom *blk_geom                  = get_blk_geom_mds(blk_index);
+            results_ptr->consider_block[blk_index]     = 0;
             results_ptr->refined_split_flag[blk_index] = blk_geom->sq_size > 4 ? TRUE : FALSE;
             blk_index++;
         }
@@ -2554,7 +2552,7 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs, PictureContro
 
     while (blk_index < scs->max_block_cnt) {
         const BlockGeom *blk_geom = get_blk_geom_mds(blk_index);
-        ctx->blk_ptr = &ctx->md_blk_arr_nsq[blk_index];
+        ctx->blk_ptr              = &ctx->md_blk_arr_nsq[blk_index];
 
         // if the parent square is inside inject this block
         uint8_t is_blk_allowed = pcs->slice_type != I_SLICE ? 1 : (blk_geom->sq_size < 128) ? 1 : 0;
@@ -2659,8 +2657,7 @@ static void perform_pred_depth_refinement(SequenceControlSet *scs, PictureContro
                         if (ctx->depth_refinement_ctrls.enabled && e_depth == 1 &&
                             // Check avail_blk_flag b/c use default_cost inside, and default_cost may not be
                             // updated even if cost_avail is true.
-                            ctx->avail_blk_flag[blk_index] &&
-                            blk_geom->sq_size > 4) {
+                            ctx->avail_blk_flag[blk_index] && blk_geom->sq_size > 4) {
                             add_sub_depth = is_child_to_current_deviation_small(
                                 pcs, ctx, blk_geom, blk_index, th_offset);
                         }
@@ -2799,9 +2796,8 @@ static void exaustive_light_pd1_features(ModeDecisionContext *md_ctx, PicturePar
             // If TXS enabled at picture level, there are necessary context updates that must be added to LPD1
             ppcs->frm_hdr.tx_mode != TX_MODE_SELECT && md_ctx->txs_ctrls.enabled == 0 && md_ctx->pred_depth_only &&
             md_ctx->md_disallow_nsq_search == TRUE && md_ctx->disallow_4x4 == TRUE &&
-            ppcs->scs->super_block_size == 64 &&
-            ppcs->ref_list0_count_try == 1 && ppcs->ref_list1_count_try == 1 && md_ctx->cfl_ctrls.enabled == 0 &&
-            md_ctx->uv_ctrls.uv_mode == CHROMA_MODE_1) {
+            ppcs->scs->super_block_size == 64 && ppcs->ref_list0_count_try == 1 && ppcs->ref_list1_count_try == 1 &&
+            md_ctx->cfl_ctrls.enabled == 0 && md_ctx->uv_ctrls.uv_mode == CHROMA_MODE_1) {
             light_pd1 = 1;
         } else {
             light_pd1 = 0;
@@ -3349,8 +3345,8 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         ed_ctx->md_ctx->tile_index  = sb_ptr->tile_info.tile_rs_index;
                         ed_ctx->md_ctx->sb_origin_x = sb_origin_x;
                         ed_ctx->md_ctx->sb_origin_y = sb_origin_y;
-                        mdc_ptr = &(ed_ctx->md_ctx->mdc_sb_array);
-                        ed_ctx->sb_index = sb_index;
+                        mdc_ptr                     = &(ed_ctx->md_ctx->mdc_sb_array);
+                        ed_ctx->sb_index            = sb_index;
                         if (pcs->cdf_ctrl.enabled) {
                             if (scs->seq_header.pic_based_rate_est &&
                                 scs->enc_dec_segment_row_count_array[pcs->temporal_layer_index] == 1 &&
@@ -3459,7 +3455,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                                                                     sb_origin_x,
                                                                     sb_origin_y);
 
-                                    // Build the t=0 cand_block_array
+                                // Build the t=0 cand_block_array
                                 build_cand_block_array(scs, pcs, md_ctx, true);
                                 svt_aom_mode_decision_sb_light_pd0(scs, pcs, ed_ctx->md_ctx, mdc_ptr);
                                 // Re-build mdc_blk_ptr for the 2nd PD Pass [PD_PASS_1]

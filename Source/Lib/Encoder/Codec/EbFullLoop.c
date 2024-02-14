@@ -1625,8 +1625,8 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet *pcs, ModeDecisionContex
         }
     }
     if (perform_rdoq && *eob != 0) {
-        int width  = tx_size_wide[txsize];
-        int height = tx_size_high[txsize];
+        int width    = tx_size_wide[txsize];
+        int height   = tx_size_high[txsize];
         int eob_perc = (*eob) * 100 / (width * height);
         if (eob_perc >= ctx->rdoq_ctrls.eob_th) {
             perform_rdoq = 0;
@@ -1724,8 +1724,8 @@ void svt_aom_full_loop_chroma_light_pd1(PictureControlSet *pcs, ModeDecisionCont
                                         uint64_t cb_full_distortion[DIST_CALC_TOTAL],
                                         uint64_t cr_full_distortion[DIST_CALC_TOTAL], uint64_t *cb_coeff_bits,
                                         uint64_t *cr_coeff_bits) {
-    uint32_t full_lambda = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD];
-    const TxSize tx_size_uv = ctx->blk_geom->txsize_uv[0];
+    uint32_t     full_lambda = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD];
+    const TxSize tx_size_uv  = ctx->blk_geom->txsize_uv[0];
 
     EB_TRANS_COEFF_SHAPE pf_shape = ctx->pf_ctrls.pf_shape;
     // If Cb component not detected as complex, can use TX shortcuts
@@ -1804,7 +1804,7 @@ void svt_aom_full_loop_chroma_light_pd1(PictureControlSet *pcs, ModeDecisionCont
                                                                     chroma_shift);
         cb_full_distortion[DIST_CALC_PREDICTION] = RIGHT_SIGNED_SHIFT(cb_full_distortion[DIST_CALC_PREDICTION],
                                                                       chroma_shift);
-        cand_bf->u_has_coeff = (cand_bf->eob.u[0] > 0);
+        cand_bf->u_has_coeff                     = (cand_bf->eob.u[0] > 0);
     }
 
     pf_shape = ctx->pf_ctrls.pf_shape;
@@ -1884,7 +1884,7 @@ void svt_aom_full_loop_chroma_light_pd1(PictureControlSet *pcs, ModeDecisionCont
                                                                     chroma_shift);
         cr_full_distortion[DIST_CALC_PREDICTION] = RIGHT_SIGNED_SHIFT(cr_full_distortion[DIST_CALC_PREDICTION],
                                                                       chroma_shift);
-        cand_bf->v_has_coeff = (cand_bf->eob.v[0] > 0);
+        cand_bf->v_has_coeff                     = (cand_bf->eob.v[0] > 0);
     }
 
     //CHROMA-ONLY
@@ -2004,9 +2004,9 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                                        PLANE_TYPE_UV,
                                        pf_shape);
 
-            int32_t seg_qp = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
-                ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[ctx->blk_ptr->segment_id][SEG_LVL_ALT_Q]
-                : 0;
+            int32_t seg_qp               = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
+                              ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[ctx->blk_ptr->segment_id][SEG_LVL_ALT_Q]
+                              : 0;
             cand_bf->quant_dc.u[txb_itr] = svt_aom_quantize_inv_quantize(
                 pcs,
                 ctx,
@@ -2183,9 +2183,9 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                                        cand_bf->cand->transform_type_uv,
                                        PLANE_TYPE_UV,
                                        pf_shape);
-            int32_t seg_qp = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
-                ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[ctx->blk_ptr->segment_id][SEG_LVL_ALT_Q]
-                : 0;
+            int32_t seg_qp               = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
+                              ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[ctx->blk_ptr->segment_id][SEG_LVL_ALT_Q]
+                              : 0;
             cand_bf->quant_dc.v[txb_itr] = svt_aom_quantize_inv_quantize(
                 pcs,
                 ctx,

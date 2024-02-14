@@ -261,8 +261,7 @@ static void print_summary(const EncContext* const enc_context) {
         const EncChannel* const c       = &enc_context->channels[inst_cnt];
         const EbConfig*         app_cfg = c->app_cfg;
         if (c->exit_cond == APP_ExitConditionFinished && c->return_error == EB_ErrorNone &&
-            (app_cfg->config.pass == 0 ||
-             app_cfg->config.pass == 2)) {
+            (app_cfg->config.pass == 0 || app_cfg->config.pass == 2)) {
 #if LOG_ENC_DONE
             tot_frames_done = (int)app_cfg->performance_context.frame_count;
 #endif

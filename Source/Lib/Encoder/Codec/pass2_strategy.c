@@ -863,7 +863,7 @@ static void process_first_pass_stats(PictureParentControlSet *pcs, FIRSTPASS_STA
         const int    section_target_bandwidth = get_section_target_bandwidth(pcs);
         const double section_length           = twopass->stats_buf_ctx->total_left_stats->count;
         const double section_error            = twopass->stats_buf_ctx->total_left_stats->coded_error / section_length;
-        int tmp_q;
+        int          tmp_q;
         if (scs->passes == 2) {
             int          ref_qindex        = twopass->stats_buf_ctx->stats_in_start->stat_struct.worst_qindex;
             const double ref_q             = svt_av1_convert_qindex_to_q(ref_qindex, scs->encoder_bit_depth);
@@ -886,11 +886,7 @@ static void process_first_pass_stats(PictureParentControlSet *pcs, FIRSTPASS_STA
                 tmp_q = low;
             }
         } else
-            tmp_q = get_twopass_worst_quality(pcs,
-                                              section_error,
-                                              0,
-                                              section_target_bandwidth,
-                                              DEFAULT_GRP_WEIGHT);
+            tmp_q = get_twopass_worst_quality(pcs, section_error, 0, section_target_bandwidth, DEFAULT_GRP_WEIGHT);
 
         rc->active_worst_quality          = tmp_q;
         rc->avg_frame_qindex[INTER_FRAME] = tmp_q;
@@ -1285,7 +1281,7 @@ void svt_av1_init_second_pass(SequenceControlSet *scs) {
     // first pass.
     svt_av1_new_framerate(scs, frame_rate);
     twopass->bits_left = (int64_t)(stats->duration * (int64_t)scs->static_config.target_bit_rate / 10000000.0);
-        read_stat_from_file(scs);
+    read_stat_from_file(scs);
 
     // Scan the first pass file and calculate a modified total error based upon
     // the bias/power function used to allocate bits.

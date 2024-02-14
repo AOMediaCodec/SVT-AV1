@@ -487,7 +487,7 @@ static void av1_setup_motion_field(Av1Common *cm, PictureControlSet *pcs) {
 }
 EbErrorType svt_av1_hash_table_create(HashTable *p_hash_table);
 void       *rtime_alloc_block_hash_block_is_same(size_t size) { return malloc(size); }
-int32_t svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
+int32_t     svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
 /* Determine the frame complexity level (stored under pcs->coeff_lvl) based
 on the ME distortion and QP. */
 static void set_frame_coeff_lvl(PictureControlSet *pcs) {
@@ -501,7 +501,7 @@ static void set_frame_coeff_lvl(PictureControlSet *pcs) {
                                                        input_pic->height,
                                                        input_pic->stride_y);
 
-    noise_level_fp16 = svt_aom_noise_log1p_fp16(noise_level_fp16);
+    noise_level_fp16         = svt_aom_noise_log1p_fp16(noise_level_fp16);
     uint64_t tot_me_8x8_dist = 0;
     for (uint32_t b64_idx = 0; b64_idx < pcs->b64_total_count; b64_idx++) {
         tot_me_8x8_dist += pcs->ppcs->me_8x8_distortion[b64_idx];
@@ -625,7 +625,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
         pcs->rtc_tune        = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
         // Mode Decision Configuration Kernel Signal(s) derivation
-            svt_aom_sig_deriv_mode_decision_config(scs, pcs);
+        svt_aom_sig_deriv_mode_decision_config(scs, pcs);
 
         if (pcs->slice_type != I_SLICE && scs->mfmv_enabled)
             av1_setup_motion_field(pcs->ppcs->av1_cm, pcs);

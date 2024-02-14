@@ -169,8 +169,7 @@ uint8_t svt_aom_get_tpl_group_level(uint8_t tpl, int8_t enc_mode, SvtAv1RcMode r
 
     if (!tpl) {
         tpl_group_level = 0;
-    }
-    else if (enc_mode <= ENC_M6) {
+    } else if (enc_mode <= ENC_M6) {
         tpl_group_level = 1;
     } else if (enc_mode <= ENC_M7) {
         tpl_group_level = 2;

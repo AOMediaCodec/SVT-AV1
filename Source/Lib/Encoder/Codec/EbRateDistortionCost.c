@@ -977,10 +977,10 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     const uint8_t        skip_mode_ctx       = ctx->skip_mode_ctx;
     MvReferenceFrame     rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
-    const uint8_t is_compound = is_inter_compound_mode(cand->pred_mode);
+    const uint8_t  is_compound  = is_inter_compound_mode(cand->pred_mode);
     const uint32_t mode_context = svt_aom_mode_context_analyzer(ctx->inter_mode_ctx[cand->ref_frame_type], rf);
-    uint64_t reference_picture_bits_num = 0;
-    reference_picture_bits_num          = ctx->estimate_ref_frames_num_bits[cand->ref_frame_type];
+    uint64_t       reference_picture_bits_num = 0;
+    reference_picture_bits_num                = ctx->estimate_ref_frames_num_bits[cand->ref_frame_type];
     if (is_compound) {
         assert(INTER_COMPOUND_OFFSET(inter_mode) < INTER_COMPOUND_MODES);
         inter_mode_bits_num += r->inter_compound_mode_fac_bits[mode_context][INTER_COMPOUND_OFFSET(inter_mode)];
@@ -1130,10 +1130,10 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
 uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                  ModeDecisionCandidateBuffer *cand_bf, uint64_t lambda, uint64_t luma_distortion,
                                  uint64_t chroma_distortion) {
-    const BlockGeom       *blk_geom = ctx->blk_geom;
-    BlkStruct             *blk_ptr  = ctx->blk_ptr;
-    ModeDecisionCandidate *cand     = cand_bf->cand;
-    CandidateMv *ref_mv_stack = &(ctx->ref_mv_stack[cand->ref_frame_type][0]);
+    const BlockGeom       *blk_geom     = ctx->blk_geom;
+    BlkStruct             *blk_ptr      = ctx->blk_ptr;
+    ModeDecisionCandidate *cand         = cand_bf->cand;
+    CandidateMv           *ref_mv_stack = &(ctx->ref_mv_stack[cand->ref_frame_type][0]);
 
     if (ctx->approx_inter_rate)
         return av1_inter_fast_cost_light(
@@ -1157,9 +1157,9 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     const uint8_t    skip_mode_ctx = ctx->skip_mode_ctx;
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
-    const uint8_t is_compound = is_inter_compound_mode(cand->pred_mode);
-    uint32_t mode_context = svt_aom_mode_context_analyzer(ctx->inter_mode_ctx[cand->ref_frame_type], rf);
-    uint64_t reference_picture_bits_num = 0;
+    const uint8_t is_compound  = is_inter_compound_mode(cand->pred_mode);
+    uint32_t      mode_context = svt_aom_mode_context_analyzer(ctx->inter_mode_ctx[cand->ref_frame_type], rf);
+    uint64_t      reference_picture_bits_num = 0;
 
     //Reference Type and Mode Bit estimation
     reference_picture_bits_num = ctx->estimate_ref_frames_num_bits[cand->ref_frame_type];
@@ -1314,8 +1314,8 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     }
     Bool is_inter = inter_mode >= SINGLE_INTER_MODE_START && inter_mode < SINGLE_INTER_MODE_END;
     if (is_inter && frm_hdr->is_motion_mode_switchable && rf[1] != INTRA_FRAME) {
-        MotionMode motion_mode_rd = cand->motion_mode;
-        BlockSize  bsize          = blk_geom->bsize;
+        MotionMode motion_mode_rd           = cand->motion_mode;
+        BlockSize  bsize                    = blk_geom->bsize;
         blk_ptr->num_proj_ref               = cand->num_proj_ref;
         MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
             pcs, blk_ptr->num_proj_ref, blk_ptr->overlappable_neighbors, bsize, rf[0], rf[1], inter_mode);

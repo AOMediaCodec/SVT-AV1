@@ -241,10 +241,10 @@ typedef struct SequenceControlSet {
     int     cqp_base_q_tf;
     int     cqp_base_q;
     // less than 200 frames or gop_constraint_rc is set, used in VBR and set in multipass encode
-    uint8_t is_short_clip;
-    uint8_t passes;
+    uint8_t           is_short_clip;
+    uint8_t           passes;
     FirstPassControls first_pass_ctrls;
-    uint8_t final_pass_preset;
+    uint8_t           final_pass_preset;
     /* Palette Mode
     *
     * -1: Default, 0: OFF, 1: Fully ON, 2 ... 6: Faster levels */

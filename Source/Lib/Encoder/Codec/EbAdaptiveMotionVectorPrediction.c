@@ -1196,14 +1196,14 @@ void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr, M
 
     if (is_compound && mode != GLOBAL_GLOBALMV) {
         int32_t ref_mv_idx = drl_index + 1;
-        nearestmv[0] = ctx->ref_mv_stack[ref_frame][0].this_mv;
-        nearestmv[1] = ctx->ref_mv_stack[ref_frame][0].comp_mv;
-        nearmv[0]    = ctx->ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
-        nearmv[1]    = ctx->ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
+        nearestmv[0]       = ctx->ref_mv_stack[ref_frame][0].this_mv;
+        nearestmv[1]       = ctx->ref_mv_stack[ref_frame][0].comp_mv;
+        nearmv[0]          = ctx->ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
+        nearmv[1]          = ctx->ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
     } else if (drl_index > 0 && mode == NEARMV) {
         assert((1 + drl_index) < MAX_REF_MV_STACK_SIZE);
         IntMv cur_mv = ctx->ref_mv_stack[ref_frame][1 + drl_index].this_mv;
-        nearmv[0] = cur_mv;
+        nearmv[0]    = cur_mv;
     }
 
     ref_mv[0] = nearestmv[0];
@@ -1345,7 +1345,7 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
     block_mi->skip         = (blk_ptr->block_has_coeff) ? FALSE : TRUE;
     block_mi->partition    = from_shape_to_part[blk_geom->shape];
     block_mi->skip_mode    = (int8_t)blk_ptr->skip_mode;
-    block_mi->uv_mode = blk_ptr->intra_chroma_mode;
+    block_mi->uv_mode      = blk_ptr->intra_chroma_mode;
     block_mi->use_intrabc  = blk_ptr->use_intrabc;
     block_mi->ref_frame[0] = rf[0];
     block_mi->ref_frame[1] = (blk_ptr->is_interintra_used) ? INTRA_FRAME : rf[1];
@@ -1816,8 +1816,8 @@ static uint32_t count_overlappable_nb_left(const Av1Common *cm, MacroBlockD *xd,
 
 void svt_av1_count_overlappable_neighbors(const PictureControlSet *pcs, BlkStruct *blk_ptr, const BlockSize bsize,
                                           int32_t mi_row, int32_t mi_col) {
-    Av1Common   *cm = pcs->ppcs->av1_cm;
-    MacroBlockD *xd = blk_ptr->av1xd;
+    Av1Common   *cm                 = pcs->ppcs->av1_cm;
+    MacroBlockD *xd                 = blk_ptr->av1xd;
     blk_ptr->overlappable_neighbors = 0;
 
     if (!is_motion_variation_allowed_bsize(bsize))

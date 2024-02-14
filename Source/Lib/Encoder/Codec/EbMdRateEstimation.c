@@ -631,8 +631,8 @@ static AOM_INLINE void update_palette_cdf(MacroBlockD *xd, const MbModeInfo *con
             update_cdf(fc->palette_y_size_cdf[palette_bsize_ctx], n - PALETTE_MIN_SIZE, PALETTE_SIZES);
         }
     }
-    uint32_t intra_chroma_mode = blk_ptr->intra_chroma_mode;
-    const int uv_dc_pred = intra_chroma_mode == UV_DC_PRED && is_chroma_reference(mi_row, mi_col, bsize, 1, 1);
+    uint32_t  intra_chroma_mode = blk_ptr->intra_chroma_mode;
+    const int uv_dc_pred        = intra_chroma_mode == UV_DC_PRED && is_chroma_reference(mi_row, mi_col, bsize, 1, 1);
 
     if (uv_dc_pred) {
         const int n                   = blk_ptr->palette_size[1];
@@ -679,8 +679,8 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
     uint8_t sub_sampling_y = 1; // NM - subsampling_y is harcoded to 1 for 420 chroma sampling.
     if (!is_chroma_reference(mi_row, mi_col, bsize, sub_sampling_x, sub_sampling_y))
         return;
-    const UvPredictionMode uv_mode = blk_ptr->intra_chroma_mode;
-    const int cfl_allowed = blk_geom->bwidth <= 32 && blk_geom->bheight <= 32;
+    const UvPredictionMode uv_mode     = blk_ptr->intra_chroma_mode;
+    const int              cfl_allowed = blk_geom->bwidth <= 32 && blk_geom->bheight <= 32;
     update_cdf(fc->uv_mode_cdf[cfl_allowed][y_mode], uv_mode, UV_INTRA_MODES - !cfl_allowed);
     if (uv_mode == UV_CFL_PRED) {
         const int8_t  joint_sign = blk_ptr->cfl_alpha_signs;
@@ -866,8 +866,7 @@ void svt_aom_update_stats(PictureControlSet *pcs, BlkStruct *blk_ptr, int mi_row
             }
         }
     }
-    if (inter_block && frm_hdr->interpolation_filter == SWITCHABLE &&
-        blk_ptr->motion_mode != WARPED_CAUSAL &&
+    if (inter_block && frm_hdr->interpolation_filter == SWITCHABLE && blk_ptr->motion_mode != WARPED_CAUSAL &&
         !svt_aom_is_nontrans_global_motion_ec(
             mbmi->block_mi.ref_frame[0], mbmi->block_mi.ref_frame[1], blk_ptr->pred_mode, bsize, pcs->ppcs)) {
         update_filter_type_cdf(xd, mbmi, pcs->scs->seq_header.enable_dual_filter);

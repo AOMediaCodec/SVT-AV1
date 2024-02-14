@@ -2154,7 +2154,7 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
                 fprintf(stderr, "[SVT-Error]:  Multipass VBR is not supported for preset %d.\n\n", enc_mode);
                 return 0;
             } else {
-                passes = 2;
+                passes          = 2;
                 multi_pass_mode = TWO_PASS;
             }
         }

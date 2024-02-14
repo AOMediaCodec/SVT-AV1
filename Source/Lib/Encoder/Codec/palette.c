@@ -332,11 +332,11 @@ void search_palette_luma(PictureControlSet *pcs, ModeDecisionContext *ctx, Palet
         colors = svt_av1_count_colors(src, src_stride, rows, cols, count_buf);
 
     if (colors > 1 && colors <= 64) {
-        int       r, c, i;
-        const int max_itr = 50;
-        int *const data = ctx->palette_buffer->kmeans_data_buf;
-        int centroids[PALETTE_MAX_SIZE];
-        int lb, ub;
+        int        r, c, i;
+        const int  max_itr = 50;
+        int *const data    = ctx->palette_buffer->kmeans_data_buf;
+        int        centroids[PALETTE_MAX_SIZE];
+        int        lb, ub;
 
 #define GENERATE_KMEANS_DATA(src_data_type)                                    \
     do {                                                                       \

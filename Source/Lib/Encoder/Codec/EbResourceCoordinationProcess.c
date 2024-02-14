@@ -878,7 +878,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             scs->pad_bottom = scs->max_input_pad_bottom;
 
             // Pre-Analysis Signal(s) derivation
-                svt_aom_sig_deriv_pre_analysis_scs(scs);
+            svt_aom_sig_deriv_pre_analysis_scs(scs);
 
             // Init SB Params
             const uint32_t input_size = scs->max_input_luma_width * scs->max_input_luma_height;
@@ -1082,10 +1082,10 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 speed_buffer_control(context_ptr, pcs, scs);
             } else
                 pcs->enc_mode = (EncMode)scs->static_config.enc_mode;
-                //  If the mode of the second pass is not set from CLI, it is set to enc_mode
+            //  If the mode of the second pass is not set from CLI, it is set to enc_mode
 
-                // Pre-Analysis Signal(s) derivation
-                svt_aom_sig_deriv_pre_analysis_pcs(pcs);
+            // Pre-Analysis Signal(s) derivation
+            svt_aom_sig_deriv_pre_analysis_pcs(pcs);
             // Rate Control
 
             // Picture Stats

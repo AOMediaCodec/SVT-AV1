@@ -168,7 +168,7 @@ typedef struct EbMdcLeafData {
     Part shapes[PART_S];
     // total number of shapes to test for the current SQ block
     uint8_t tot_shapes;
-    bool is_child; // does is it belong to the child depth(s); relative to PRED (the output of PD0)
+    bool    is_child; // does is it belong to the child depth(s); relative to PRED (the output of PD0)
 } EbMdcLeafData;
 
 typedef struct MdcSbData {
@@ -846,8 +846,8 @@ typedef struct PictureParentControlSet {
     int8_t               is_gm_on; //-1 invalid, 1: gm on in one of the ref frames,  0:gm off for all ref frames
     uint16_t             me_processed_b64_count;
     EbHandle             me_processed_b64_mutex;
-    double ts_duration;
-    double r0;
+    double               ts_duration;
+    double               r0;
     // track pictures that are processd in two different TPL groups
     uint8_t tpl_src_data_ready;
     Bool    blk_lambda_tuning;
@@ -1057,19 +1057,19 @@ typedef struct PictureParentControlSet {
     bool         gm_pp_detected; //gm detection enabled at the pre-processing level
     CdefControls cdef_ctrls;
     // RC related variables
-    int                             q_low;
-    int                             q_high;
-    int                             loop_count;
-    int                             overshoot_seen;
-    int                             undershoot_seen;
-    int                             low_cr_seen;
-    uint64_t                        pcs_total_rate;
-    EbHandle                        pcs_total_rate_mutex;
-    uint8_t                         first_pass_done;
-    uint8_t                         first_frame_in_minigop;
-    TplControls                     tpl_ctrls;
-    uint8_t                         tpl_is_valid;
-    EbHandle                        tpl_disp_mutex;
+    int         q_low;
+    int         q_high;
+    int         loop_count;
+    int         overshoot_seen;
+    int         undershoot_seen;
+    int         low_cr_seen;
+    uint64_t    pcs_total_rate;
+    EbHandle    pcs_total_rate_mutex;
+    uint8_t     first_pass_done;
+    uint8_t     first_frame_in_minigop;
+    TplControls tpl_ctrls;
+    uint8_t     tpl_is_valid;
+    EbHandle    tpl_disp_mutex;
     // uint32_t         input_type;
     int16_t  enc_dec_segment_row;
     uint16_t tile_group_index;
