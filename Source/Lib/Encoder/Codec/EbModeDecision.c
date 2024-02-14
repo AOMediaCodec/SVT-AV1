@@ -19,7 +19,6 @@
 #include "EbCommonUtils.h"
 #include "EbSequenceControlSet.h"
 #include "EbModeDecision.h"
-#include "EbTransformUnit.h"
 #include "EbModeDecisionProcess.h"
 #include "EbMotionEstimation.h"
 

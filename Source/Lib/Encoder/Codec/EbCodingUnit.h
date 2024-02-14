@@ -14,11 +14,11 @@
 
 #include "EbMotionEstimationLcuResults.h"
 #include "EbPictureBufferDesc.h"
-#include "EbPredictionUnit.h"
-#include "EbTransformUnit.h"
 #include "EbBlockStructures.h"
 #include "EbCabacContextModel.h"
 #include "hash.h"
+#include "EbDefinitions.h"
+#include "EbMotionVectorUnit.h"
 
 #ifdef __cplusplus
 extern "C" {

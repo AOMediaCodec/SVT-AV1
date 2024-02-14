@@ -16,7 +16,6 @@
 #include "EbDefinitions.h"
 #include "EbEntropyCodingObject.h"
 #include "EbCodingUnit.h"
-#include "EbPredictionUnit.h"
 #include "EbPictureBufferDesc.h"
 #include "EbSequenceControlSet.h"
 #include "EbPictureControlSet.h"

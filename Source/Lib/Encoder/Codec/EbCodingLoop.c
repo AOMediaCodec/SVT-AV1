@@ -13,7 +13,6 @@
 
 #include "EbCodingLoop.h"
 #include "EbUtility.h"
-#include "EbTransformUnit.h"
 #include "EbRateDistortionCost.h"
 #include "EbDeblockingFilter.h"
 #include "EbPictureOperators.h"

@@ -15,7 +15,6 @@
 #include "EbUtility.h"
 #include "EbPictureControlSet.h"
 #include "EbCodingUnit.h"
-#include "EbPredictionUnit.h"
 #include "EbNeighborArrays.h"
 #include "EbMvMerge.h"
 #include "EbEncWarpedMotion.h"

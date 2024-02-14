@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "EbTransformUnit.h"
 #include "EbPictureControlSet.h"
 #include "EbUtility.h"
 #include "EncModeConfig.h"

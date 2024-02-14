@@ -15,7 +15,6 @@
 #include "EbDefinitions.h"
 #include "EbMotionEstimationLcuResults.h"
 #include "EbUtility.h"
-#include "EbTransformUnit.h"
 #include "EbRateDistortionCost.h"
 #include "EbFullLoop.h"
 #include "EbPictureOperators.h"
