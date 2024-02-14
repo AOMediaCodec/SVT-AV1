@@ -175,9 +175,7 @@ static const char *get_asm_level_name_str(EbCpuFlags cpu_flags) {
 //Get Number of logical processors
 static uint32_t get_num_processors() {
 #ifdef _WIN32
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    return num_groups == 1 ? sysinfo.dwNumberOfProcessors : sysinfo.dwNumberOfProcessors << 1;
+    return GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
 #else
     return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
