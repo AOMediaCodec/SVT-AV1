@@ -6817,24 +6817,40 @@ static void md_stage_3(PictureControlSet *pcs, ModeDecisionContext *ctx, EbPictu
                         cand->palette_info->pmi.palette_colors[col] *= 4;
         // If EncDec is bypassed, disable features affecting the TX that are usually disabled in EncDec
         if (ctx->bypass_encdec && ctx->pd_pass == PD_PASS_1) {
-            ctx->pf_ctrls.pf_shape       = DEFAULT_SHAPE;
-            ctx->rdoq_ctrls.skip_uv      = 0;
+            ctx->pf_ctrls.pf_shape  = DEFAULT_SHAPE;
+            ctx->rdoq_ctrls.skip_uv = 0;
+
             ctx->rdoq_ctrls.dct_dct_only = 0;
         }
+
         // Set MD Staging full_loop_core settings
+
         ctx->mds_do_inter_pred = ctx->nic_ctrls.md_staging_mode != MD_STAGING_MODE_0 ||
+
             (ctx->pd_pass == PD_PASS_1 && ctx->need_hbd_comp_mds3);
-        ctx->mds_skip_ifs     = (ctx->ifs_ctrls.level == IFS_MDS3) ? FALSE : TRUE;
+
+        ctx->mds_skip_ifs = (ctx->ifs_ctrls.level == IFS_MDS3) ? FALSE : TRUE;
+
         ctx->mds_tx_size_mode = ctx->txs_ctrls.enabled && (ctx->blk_geom->sq_size >= ctx->txs_ctrls.min_sq_size);
-        ctx->mds_txt_level    = ctx->txt_ctrls.enabled;
+
+        ctx->mds_txt_level = ctx->txt_ctrls.enabled;
+
         ctx->mds_skip_full_uv = FALSE;
-        ctx->mds_skip_rdoq    = FALSE;
-        ctx->mds_spatial_sse  = ctx->spatial_sse_ctrls.spatial_sse_full_loop_level;
+
+        ctx->mds_skip_rdoq = FALSE;
+
+        ctx->mds_spatial_sse = ctx->spatial_sse_ctrls.spatial_sse_full_loop_level;
+
         ctx->mds_fast_coeff_est_level = (ctx->pd_pass == PD_PASS_1) ? 1 : ctx->rate_est_ctrls.pd0_fast_coeff_est_level;
-        ctx->mds_subres_step          = (ctx->pd_pass == PD_PASS_1) ? 0 : ctx->subres_ctrls.step;
+
+        ctx->mds_subres_step = (ctx->pd_pass == PD_PASS_1) ? 0 : ctx->subres_ctrls.step;
+
         // If independent chroma search was performed before the last MD stage, update the chroma data
+
         if (ctx->ind_uv_avail && ctx->uv_ctrls.ind_uv_last_mds)
+
             update_intra_chroma_mode(pcs, ctx, cand_bf);
+
         full_loop_core(pcs,
                        ctx,
                        cand_bf,
