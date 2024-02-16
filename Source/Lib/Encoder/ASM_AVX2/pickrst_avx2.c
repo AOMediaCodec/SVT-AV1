@@ -2532,6 +2532,7 @@ static INLINE void compute_stats_win7_avx2(const int16_t *const d, const int32_t
             const int16_t *d_j                        = d + j - 1;
             __m256i        deltas[2 * WIENER_WIN - 1] = {_mm256_setzero_si256()};
             __m256i        deltas_t[8], deltas_tt[4];
+         
             __m256i        dd[WIENER_WIN] = {_mm256_setzero_si256()}, ds[WIENER_WIN];
             dd[0]                         = _mm256_setzero_si256(); // Initialize to avoid warning.
             ds[0]                         = _mm256_setzero_si256(); // Initialize to avoid warning.
@@ -2561,7 +2562,10 @@ static INLINE void compute_stats_win7_avx2(const int16_t *const d, const int32_t
             ds[0] = _mm256_insert_epi16(ds[0], d_j[4 * d_stride + width], 12);
             ds[0] = _mm256_insert_epi16(ds[0], d_j[5 * d_stride], 5);
             ds[0] = _mm256_insert_epi16(ds[0], d_j[5 * d_stride + width], 13);
-
+            deltas_tt[0] = _mm256_setzero_si256();
+            deltas_tt[1] = _mm256_setzero_si256();
+            deltas_tt[2] = _mm256_setzero_si256();
+            deltas_tt[3] = _mm256_setzero_si256();   
             y = 0;
             while (y < h8) {
                 // 00s 10s 20s 30s 40s 50s 60s 70s  00e 10e 20e 30e 40e 50e 60e
