@@ -2533,6 +2533,11 @@ static INLINE void compute_stats_win7_avx2(const int16_t *const d, const int32_t
             __m256i        deltas[2 * WIENER_WIN - 1] = {_mm256_setzero_si256()};
             __m256i        deltas_t[8], deltas_tt[4];
 
+            deltas_tt[0] = _mm256_setzero_si256();
+            deltas_tt[1] = _mm256_setzero_si256();
+            deltas_tt[2] = _mm256_setzero_si256();
+            deltas_tt[3] = _mm256_setzero_si256();
+
             __m256i dd[WIENER_WIN] = {_mm256_setzero_si256()}, ds[WIENER_WIN];
             dd[0]                  = _mm256_setzero_si256(); // Initialize to avoid warning.
             ds[0]                  = _mm256_setzero_si256(); // Initialize to avoid warning.
@@ -2550,23 +2555,20 @@ static INLINE void compute_stats_win7_avx2(const int16_t *const d, const int32_t
             dd[0] = _mm256_insert_epi16(dd[0], di[5 * d_stride], 5);
             dd[0] = _mm256_insert_epi16(dd[0], di[5 * d_stride + width], 13);
 
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[0 * d_stride], 0);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[0 * d_stride + width], 8);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[1 * d_stride], 1);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[1 * d_stride + width], 9);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[2 * d_stride], 2);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[2 * d_stride + width], 10);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[3 * d_stride], 3);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[3 * d_stride + width], 11);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[4 * d_stride], 4);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[4 * d_stride + width], 12);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[5 * d_stride], 5);
-            ds[0]        = _mm256_insert_epi16(ds[0], d_j[5 * d_stride + width], 13);
-            deltas_tt[0] = _mm256_setzero_si256();
-            deltas_tt[1] = _mm256_setzero_si256();
-            deltas_tt[2] = _mm256_setzero_si256();
-            deltas_tt[3] = _mm256_setzero_si256();
-            y            = 0;
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[0 * d_stride], 0);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[0 * d_stride + width], 8);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[1 * d_stride], 1);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[1 * d_stride + width], 9);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[2 * d_stride], 2);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[2 * d_stride + width], 10);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[3 * d_stride], 3);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[3 * d_stride + width], 11);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[4 * d_stride], 4);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[4 * d_stride + width], 12);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[5 * d_stride], 5);
+            ds[0] = _mm256_insert_epi16(ds[0], d_j[5 * d_stride + width], 13);
+
+            y = 0;
             while (y < h8) {
                 // 00s 10s 20s 30s 40s 50s 60s 70s  00e 10e 20e 30e 40e 50e 60e
                 // 70e
