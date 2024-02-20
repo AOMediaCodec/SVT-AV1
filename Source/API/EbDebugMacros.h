@@ -34,6 +34,13 @@
 extern "C" {
 #endif // __cplusplus
 
+// svt-10
+#define OPT_DEPTHS_LVL                            1 // Optimize depth_level: levels and qp-banding
+#define OPT_OBMC_DIST                             1 // Use scs-qp @ obmc pic early exit
+#define OPT_TXS                                   1 // Optimize txs_level: levels and qp-banding
+#define OPT_HIGH_FREQ                             1 // Opt high freq
+#define OPT_NIC                                   1 // Optimize nic_level: levels and qp-banding
+
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one

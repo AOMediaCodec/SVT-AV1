@@ -4461,6 +4461,44 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 
     if (enc_mode <= ENC_MR)
         nic_level = is_base ? 2 : 5;
+#if OPT_NIC
+    else if (enc_mode <= ENC_M2) {
+        if (hierarchical_levels <= 3)
+            nic_level = 10;
+        else
+            nic_level = is_base ? 8 : 10;
+    }
+    else if (enc_mode <= ENC_M3) {
+        if (hierarchical_levels <= 3)
+            nic_level = 10;
+        else
+            nic_level = is_base ? 9 : 12;
+    }
+    else if (enc_mode <= ENC_M4) {
+        if (hierarchical_levels <= 3)
+            nic_level = 10;
+        else
+            nic_level = is_base ? 10 : 12;
+    }
+    else if (enc_mode <= ENC_M6)
+        nic_level = 15;
+    else if (enc_mode <= ENC_M12)
+        nic_level = is_base ? 15 : 16;
+    else if (enc_mode <= ENC_M11)
+        nic_level = 17;
+    else
+        nic_level = 19;
+
+    // QP-banding
+    if (qp <= 23)
+        nic_level = MIN(nic_level + 2, 19);
+    else if (qp <= 39)
+        nic_level = MIN(nic_level + 1, 19);
+    else if (qp > 59)
+        nic_level = nic_level <= 1 ? 0 : nic_level - 2;
+    else if (qp > 55)
+        nic_level = nic_level == 0 ? 0 : nic_level - 1;
+#else
     else if (enc_mode <= ENC_M2) {
         if (hierarchical_levels <= 3)
             nic_level = 10;
@@ -4497,6 +4535,7 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         } else
             nic_level = MAX(nic_level - 1, 1);
     }
+#endif
     return nic_level;
 }
 /*
@@ -4604,7 +4643,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4637,7 +4680,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4671,7 +4718,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4705,7 +4756,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4739,7 +4794,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4773,7 +4832,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4806,7 +4869,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 2;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4839,7 +4906,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 15;
             nic_pruning_ctrls->mds2_q_weight            = 5;
             nic_pruning_ctrls->mds3_q_weight            = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4872,7 +4943,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 10;
             nic_pruning_ctrls->mds2_q_weight            = 3;
             nic_pruning_ctrls->mds3_q_weight            = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_2;
         break;
@@ -4907,7 +4982,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight          = 10;
             nic_pruning_ctrls->mds2_q_weight          = 3;
             nic_pruning_ctrls->mds3_q_weight          = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult = 4;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
@@ -4932,7 +5011,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             // Cand pruning settings
             nic_pruning_ctrls->mds1_cand_base_th_intra  = 1200;
             nic_pruning_ctrls->mds1_cand_base_th_inter  = 300;
+#if OPT_NIC
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 2;
+#else
             nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+#endif
             nic_pruning_ctrls->mds2_cand_base_th        = 15;
             nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
             nic_pruning_ctrls->mds2_relative_dev_th     = 5;
@@ -4940,7 +5023,11 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 10;
             nic_pruning_ctrls->mds2_q_weight            = 3;
             nic_pruning_ctrls->mds3_q_weight            = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
@@ -4973,14 +5060,21 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 10;
             nic_pruning_ctrls->mds2_q_weight            = 3;
             nic_pruning_ctrls->mds3_q_weight            = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
             nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+#endif
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
     case 14:
         // NIC scaling level
+#if OPT_NIC
+        nic_scaling_level = 10;
+#else
         nic_scaling_level = 13;
-
+#endif
         if (nic_pruning_ctrls) {
             // Class pruning settings
             nic_pruning_ctrls->mds1_class_th = 200;
@@ -4999,6 +5093,84 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_cand_base_th_intra  = 300;
             nic_pruning_ctrls->mds1_cand_base_th_inter  = 300;
             nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->mds2_cand_base_th        = 10;
+#else
+            nic_pruning_ctrls->mds2_cand_base_th        = 5;
+#endif
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+#if OPT_NIC
+            nic_pruning_ctrls->mds3_cand_base_th        = 10;
+#else
+            nic_pruning_ctrls->mds3_cand_base_th        = 5;
+#endif
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
+#if OPT_NIC
+            nic_pruning_ctrls->merge_inter_cands_mult   = (uint8_t)~0;
+#else
+            nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+#endif
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+#if OPT_NIC
+    case 15:
+        // NIC scaling level
+        nic_scaling_level = 13;
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 200;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 10;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 10;
+            nic_pruning_ctrls->mds3_band_cnt = 16;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 0;
+            nic_pruning_ctrls->force_1_cand_th      = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 300;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 300;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 10;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 10;
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
+            nic_pruning_ctrls->merge_inter_cands_mult = (uint8_t)~0;
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+    case 16:
+        // NIC scaling level
+        nic_scaling_level = 13;
+
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 200;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 10;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 10;
+            nic_pruning_ctrls->mds3_band_cnt = 16;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 0;
+            nic_pruning_ctrls->force_1_cand_th      = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 200;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 200;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
             nic_pruning_ctrls->mds2_cand_base_th        = 5;
             nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
             nic_pruning_ctrls->mds2_relative_dev_th     = 5;
@@ -5006,10 +5178,146 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds1_q_weight            = 10;
             nic_pruning_ctrls->mds2_q_weight            = 3;
             nic_pruning_ctrls->mds3_q_weight            = 3;
+            nic_pruning_ctrls->merge_inter_cands_mult = (uint8_t)~0;;
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+
+    case 17:
+        // NIC scaling level
+        nic_scaling_level = 14;
+
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 200;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 10;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 10;
+            nic_pruning_ctrls->mds3_band_cnt = 16;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 0;
+            nic_pruning_ctrls->force_1_cand_th = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  =  100;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  =  100;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 1;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 1;
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
             nic_pruning_ctrls->merge_inter_cands_mult   = 4;
         }
         md_staging_mode = MD_STAGING_MODE_1;
         break;
+
+     case 18:
+        // NIC scaling level
+        nic_scaling_level = 15;
+
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 200;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 10;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 10;
+            nic_pruning_ctrls->mds3_band_cnt = 16;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 0;
+            nic_pruning_ctrls->force_1_cand_th = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 1;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 1;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 1;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 1;
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
+            nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+
+    case 19:
+        // NIC scaling level
+        nic_scaling_level = 15;
+
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 75;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 0;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 0;
+            nic_pruning_ctrls->mds3_band_cnt = 2;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 1;
+            nic_pruning_ctrls->force_1_cand_th      = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 1;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 1;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 1;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 1;
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
+            nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+        }
+        md_staging_mode = MD_STAGING_MODE_1;
+        break;
+    case 20: // PD0 level
+        // NIC scaling level
+        nic_scaling_level = 15;
+
+        if (nic_pruning_ctrls) {
+            // Class pruning settings
+            nic_pruning_ctrls->mds1_class_th = 75;
+            nic_pruning_ctrls->mds1_band_cnt = 16;
+
+            nic_pruning_ctrls->mds2_class_th = 0;
+            nic_pruning_ctrls->mds2_band_cnt = 2;
+
+            nic_pruning_ctrls->mds3_class_th = 0;
+            nic_pruning_ctrls->mds3_band_cnt = 2;
+
+            nic_pruning_ctrls->enable_skipping_mds1 = 1;
+            nic_pruning_ctrls->force_1_cand_th      = 0;
+
+            // Cand pruning settings
+            nic_pruning_ctrls->mds1_cand_base_th_intra  = 1;
+            nic_pruning_ctrls->mds1_cand_base_th_inter  = 1;
+            nic_pruning_ctrls->mds1_cand_th_rank_factor = 3;
+            nic_pruning_ctrls->mds2_cand_base_th        = 1;
+            nic_pruning_ctrls->mds2_cand_th_rank_factor = 1;
+            nic_pruning_ctrls->mds2_relative_dev_th     = 5;
+            nic_pruning_ctrls->mds3_cand_base_th        = 1;
+            nic_pruning_ctrls->mds1_q_weight            = 10;
+            nic_pruning_ctrls->mds2_q_weight            = 3;
+            nic_pruning_ctrls->mds3_q_weight            = 3;
+            nic_pruning_ctrls->merge_inter_cands_mult   = 4;
+        }
+        md_staging_mode = MD_STAGING_MODE_0;
+        break;
+#else
     case 15:
         // NIC scaling level
         nic_scaling_level = 14;
@@ -5111,6 +5419,7 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
         }
         md_staging_mode = MD_STAGING_MODE_0;
         break;
+#endif
     default: assert(0); break;
     }
 
@@ -5462,7 +5771,211 @@ void svt_aom_set_inter_intra_ctrls(ModeDecisionContext *ctx, uint8_t inter_intra
     default: assert(0); break;
     }
 }
+#if OPT_DEPTHS_LVL
+void svt_aom_set_depth_ctrls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t depth_level) {
+    DepthCtrls* depth_ctrls = &ctx->depth_ctrls;
 
+    // I_SLICE
+    int8_t s_depth_i = 0;
+    int8_t e_depth_i = 0;
+
+    // non I_SLICE
+    uint8_t left_th = 0;
+    int8_t s_depth_per_segment[4] = { 0,0,0,0 };
+    uint8_t right_th = 0;
+    int8_t e_depth_per_segment[4] = { 0,0,0,0 };
+
+    switch (depth_level) {
+    case 0:
+        s_depth_i = 0;
+        e_depth_i = 0;
+        left_th = 50;
+        s_depth_per_segment[0] = 0;
+        e_depth_per_segment[0] = 0;
+        s_depth_per_segment[1] = 0;
+        e_depth_per_segment[1] = 0;
+        right_th = 50;
+        s_depth_per_segment[2] = 0;
+        e_depth_per_segment[2] = 0;
+        s_depth_per_segment[3] = 0;
+        e_depth_per_segment[3] = 0;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    case 1: // lvl1 of previous
+        s_depth_i = -2;
+        e_depth_i = 2;
+        left_th = 50;
+        s_depth_per_segment[0] = -2;
+        e_depth_per_segment[0] = 2;
+        s_depth_per_segment[1] = -2;
+        e_depth_per_segment[1] = 2;
+        right_th = 50;
+        s_depth_per_segment[2] = -2;
+        e_depth_per_segment[2] = 2;
+        s_depth_per_segment[3] = -2;
+        e_depth_per_segment[3] = 2;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    case 2: // lvl2 of previous
+        s_depth_i = -2;
+        e_depth_i = 2;
+        left_th = 50;
+        s_depth_per_segment[0] = -2;
+        e_depth_per_segment[0] = 1;
+        s_depth_per_segment[1] = -2;
+        e_depth_per_segment[1] = 1;
+        right_th = 50;
+        s_depth_per_segment[2] = -2;
+        e_depth_per_segment[2] = 2;
+        s_depth_per_segment[3] = -2;
+        e_depth_per_segment[3] = 2;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    case 3:
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = -1;
+        e_depth_per_segment[0] = 1;
+        s_depth_per_segment[1] = -1;
+        e_depth_per_segment[1] = 1;
+        right_th = 50;
+        s_depth_per_segment[2] = -2;
+        e_depth_per_segment[2] = 2;
+        s_depth_per_segment[3] = -2;
+        e_depth_per_segment[3] = 2;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    case 4: // lvl 3
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = -1;
+        e_depth_per_segment[0] = 1;
+        s_depth_per_segment[1] = -1;
+        e_depth_per_segment[1] = 1;
+        right_th = 50;
+        s_depth_per_segment[2] = -1;
+        e_depth_per_segment[2] = 1;
+        s_depth_per_segment[3] = -1;
+        e_depth_per_segment[3] = 1;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    case 5:// previous lvl-4
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = -1;
+        e_depth_per_segment[0] = 1;
+        s_depth_per_segment[1] = -1;
+        e_depth_per_segment[1] = 1;
+        right_th = 50;
+        s_depth_per_segment[2] = -1;
+        e_depth_per_segment[2] = 1;
+        s_depth_per_segment[3] = -1;
+        e_depth_per_segment[3] = 1;
+        depth_ctrls->limit_max_min_to_pd0 = 1;
+        depth_ctrls->use_pred_mode = 1;
+        break;
+    case 6:
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = -1;
+        e_depth_per_segment[0] = 0;
+        s_depth_per_segment[1] = -1;
+        e_depth_per_segment[1] = 0;
+        right_th = 50;
+        s_depth_per_segment[2] = -1;
+        e_depth_per_segment[2] = 1;
+        s_depth_per_segment[3] = -1;
+        e_depth_per_segment[3] = 1;
+        depth_ctrls->limit_max_min_to_pd0 = 1;
+        depth_ctrls->use_pred_mode = 1;
+        break;
+    case 7:
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = -1;
+        e_depth_per_segment[0] = 0;
+        s_depth_per_segment[1] = -1;
+        e_depth_per_segment[1] = 0;
+        right_th = 50;
+        s_depth_per_segment[2] = 0;
+        e_depth_per_segment[2] = 1;
+        s_depth_per_segment[3] = 0;
+        e_depth_per_segment[3] = 1;
+        depth_ctrls->limit_max_min_to_pd0 = 1;
+        depth_ctrls->use_pred_mode = 1;
+        break;
+    case 8:
+        s_depth_i = -1;
+        e_depth_i = 1;
+        left_th = 50;
+        s_depth_per_segment[0] = 0;
+        e_depth_per_segment[0] = 0;
+        s_depth_per_segment[1] = 0;
+        e_depth_per_segment[1] = 0;
+        right_th = 50;
+        s_depth_per_segment[2] = 0;
+        e_depth_per_segment[2] = 0;
+        s_depth_per_segment[3] = -1;
+        e_depth_per_segment[3] = 1;
+        depth_ctrls->limit_max_min_to_pd0 = 1;
+        depth_ctrls->use_pred_mode = 1;
+        break;
+    default:
+        s_depth_i = 0;
+        e_depth_i = 0;
+        left_th = 50;
+        s_depth_per_segment[0] = 0;
+        e_depth_per_segment[0] = 0;
+        s_depth_per_segment[1] = 0;
+        e_depth_per_segment[1] = 0;
+        right_th = 50;
+        s_depth_per_segment[2] = 0;
+        e_depth_per_segment[2] = 0;
+        s_depth_per_segment[3] = 0;
+        e_depth_per_segment[3] = 0;
+        depth_ctrls->limit_max_min_to_pd0 = 0;
+        depth_ctrls->use_pred_mode = 0;
+        break;
+    }
+    SequenceControlSet* scs = pcs->scs;
+
+    if (pcs->slice_type == I_SLICE) {
+        depth_ctrls->s_depth = s_depth_i;
+        depth_ctrls->e_depth = e_depth_i;
+    }
+    else {
+        uint32_t me_8x8_cost_variance;
+        if (scs->super_block_size == 64) {
+            me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
+        }
+        else {
+            // distortion values only needed to satisfy function inputs
+            uint32_t dist_64, dist_32, dist_16, dist_8;
+            get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+        }
+        if (me_8x8_cost_variance <= pcs->avg_me_clpx) {
+            int32_t distance = (int32_t)((pcs->avg_me_clpx - me_8x8_cost_variance) * 100) / (int32_t)MAX(pcs->avg_me_clpx - pcs->min_me_clpx, 1);
+            depth_ctrls->s_depth = s_depth_per_segment[distance < left_th];
+            depth_ctrls->e_depth = e_depth_per_segment[distance < left_th];
+        }
+        else {
+            int32_t distance = (int)((me_8x8_cost_variance - pcs->avg_me_clpx) * 100) / (int32_t)MAX(pcs->max_me_clpx - pcs->avg_me_clpx, 1);
+            depth_ctrls->s_depth = s_depth_per_segment[2 + (distance > right_th)];
+            depth_ctrls->e_depth = e_depth_per_segment[2 + (distance > right_th)];
+        }
+    }
+}
+#else
 void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t depth_level) {
     DepthCtrls *depth_ctrls        = &ctx->depth_ctrls;
     uint8_t     me_cplx_modulation = 0;
@@ -5533,6 +6046,7 @@ void svt_aom_set_depth_ctrls(PictureControlSet *pcs, ModeDecisionContext *ctx, u
         }
     }
 }
+#endif
 static void set_lpd0_ctrls(ModeDecisionContext *ctx, uint8_t lpd0_lvl) {
     Lpd0Ctrls *ctrls = &ctx->lpd0_ctrls;
     // Light-PD0 only compatible with 8bit MD
@@ -6271,6 +6785,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         txs_ctrls->quadrant_th_sf            = 0;
         break;
     case 3:
+#if !OPT_TXS
         txs_ctrls->enabled                   = 1;
         txs_ctrls->prev_depth_coeff_exit_th  = 1;
         txs_ctrls->intra_class_max_depth_sq  = 2;
@@ -6297,6 +6812,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         break;
 
     case 5:
+#endif
         txs_ctrls->enabled                   = 1;
         txs_ctrls->prev_depth_coeff_exit_th  = 2;
         txs_ctrls->intra_class_max_depth_sq  = 2;
@@ -6308,7 +6824,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         txs_ctrls->min_sq_size               = 0;
         txs_ctrls->quadrant_th_sf            = 160;
         break;
+#if OPT_TXS
+    case 4:
+#else
     case 6:
+#endif
         txs_ctrls->enabled                   = 1;
         txs_ctrls->prev_depth_coeff_exit_th  = 2;
         txs_ctrls->intra_class_max_depth_sq  = 1;
@@ -6320,6 +6840,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         txs_ctrls->min_sq_size               = 0;
         txs_ctrls->quadrant_th_sf            = 160;
         break;
+#if !OPT_TXS
     case 7:
         txs_ctrls->enabled                   = 1;
         txs_ctrls->prev_depth_coeff_exit_th  = 2;
@@ -6332,6 +6853,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         txs_ctrls->min_sq_size               = 0;
         txs_ctrls->quadrant_th_sf            = 160;
         break;
+#endif
     default: assert(0); break;
     }
 }
@@ -6888,6 +7410,97 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = 0;
     } else if (enc_mode <= ENC_M0)
         depth_level = 1;
+#if OPT_DEPTHS_LVL
+    else if (enc_mode <= ENC_M2) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 2;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 4;
+        }
+        else {
+            depth_level = 3;
+        }
+    }
+    else if (enc_mode <= ENC_M3) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 2;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 5;
+        }
+        else {
+            depth_level = 4;
+        }
+    }
+    else if (enc_mode <= ENC_M4) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 3;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 6;
+        }
+        else {
+            depth_level = 5;
+        }
+    }
+    else if (enc_mode <= ENC_M7) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 4;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 6;
+        }
+        else {
+            depth_level = 5;
+        }
+    }
+    else if (enc_mode <= ENC_M8) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 5;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 8;
+        }
+        else {
+            depth_level = 6;
+        }
+    }
+    else if (enc_mode <= ENC_M9) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 6;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 8;
+        }
+        else {
+            depth_level = 7;
+        }
+    }
+    else
+        depth_level = 0;
+
+
+    if (depth_level && !pcs->ppcs->sc_class1 && !rtc_tune) {
+        if (enc_mode <= ENC_M0) {
+            //no action
+        }
+        else {
+            if (scs->static_config.qp <= 24) {
+                depth_level = depth_level ? depth_level + 2 : 0;
+            }
+            else if (scs->static_config.qp <= 32) {
+                depth_level = depth_level ? depth_level + 1 : 0;
+            }
+            else if (scs->static_config.qp <= 55) {
+                //no action
+            }
+            else {
+                depth_level = depth_level == 1 ? depth_level : depth_level - 1;
+            }
+        }
+    }
+#else
     else if (enc_mode <= ENC_M3) {
         if (pcs->coeff_lvl == LOW_LVL) {
             depth_level = 1;
@@ -6942,6 +7555,7 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             }
         }
     }
+#endif
     svt_aom_set_depth_ctrls(pcs, ctx, depth_level);
     // pic_pred_depth_only shouldn't be changed after this point
     ctx->pred_depth_only = ctx->pic_pred_depth_only = (depth_level == 0);
@@ -7412,8 +8026,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
     const bool               is_not_last_layer = !ppcs->is_highest_layer;
     const bool               rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
     svt_aom_set_nsq_search_ctrls(ctx, pcs->nsq_search_level, input_resolution);
-
+#if OPT_NIC
+    svt_aom_set_nic_controls(ctx, ctx->pd_pass == PD_PASS_0 ? 20 : pcs->nic_level);
+#else
     svt_aom_set_nic_controls(ctx, ctx->pd_pass == PD_PASS_0 ? 17 : pcs->nic_level);
+#endif
     set_cand_reduction_ctrls(pcs,
                              ctx,
                              pd_pass == PD_PASS_0 ? 0 : pcs->cand_reduction_level,
@@ -8010,6 +8627,10 @@ uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t
 
     return inter_intra_level;
 }
+
+#if OPT_OBMC_DIST
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode, EbInputResolution input_resolution) {
+#else
 int bypass_obmc_based_on_me_info(PictureControlSet *pcs, EncMode enc_mode) {
     if (pcs != NULL) {
         if (pcs->slice_type != I_SLICE) {
@@ -8036,6 +8657,7 @@ int bypass_obmc_based_on_me_info(PictureControlSet *pcs, EncMode enc_mode) {
 }
 uint8_t svt_aom_get_obmc_level(PictureControlSet *pcs, EncMode enc_mode, uint8_t fast_decode,
                                EbInputResolution input_resolution) {
+#endif
     uint8_t obmc_level = 0;
     if (fast_decode == 0 || input_resolution <= INPUT_SIZE_360p_RANGE) {
         if (enc_mode <= ENC_M0)
@@ -8054,7 +8676,9 @@ uint8_t svt_aom_get_obmc_level(PictureControlSet *pcs, EncMode enc_mode, uint8_t
         else
             obmc_level = 0;
     }
+#if !OPT_OBMC_DIST
     obmc_level = bypass_obmc_based_on_me_info(pcs, enc_mode) ? obmc_level : 0;
+#endif
     return obmc_level;
 }
 void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
@@ -8189,7 +8813,14 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         scs->static_config.resize_mode == RESIZE_NONE;
 
     frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
+#if OPT_OBMC_DIST
+    const uint32_t obmc_me_dist_th = ((enc_mode <= ENC_M4 ? 0 : enc_mode <= ENC_M5 ? 100000 : enc_mode <= ENC_M6 ? 150000 : 200000) * (pcs->temporal_layer_index + 1)) / pcs->scs->static_config.qp;
+    ppcs->pic_obmc_level = (pcs->ppcs->norm_me_dist < obmc_me_dist_th)
+        ? 0
+        : svt_aom_get_obmc_level(enc_mode, fast_decode, input_resolution);
+#else
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(pcs, enc_mode, fast_decode, input_resolution);
+#endif
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
 
@@ -8471,6 +9102,33 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     } else
         pcs->inter_intra_level = 0;
 
+#if OPT_TXS
+    if (enc_mode <= ENC_M2) {
+        pcs->txs_level = 2;
+    }
+    else if (enc_mode <= ENC_M6) {
+        pcs->txs_level = is_base ? 3 : 0;
+    }
+    else if (enc_mode <= ENC_M10) {
+        pcs->txs_level = is_base ? 4 : 0;
+    }
+    else {
+        pcs->txs_level = is_islice ? 4 : 0;
+    }
+
+    if (pcs->scs->low_latency_kf && pcs->slice_type == I_SLICE)
+        pcs->txs_level = 4;
+
+    // QP-banding
+    if (pcs->txs_level) {
+        if (sq_qp <= 23) {
+            pcs->txs_level = pcs->txs_level + 1;
+        }
+        else if (sq_qp > 55) {
+            pcs->txs_level = pcs->txs_level == 1 ? pcs->txs_level : pcs->txs_level - 1;
+        }
+    }
+#else
     if (enc_mode <= ENC_M2)
         pcs->txs_level = 2;
     else if (enc_mode <= ENC_M7) {
@@ -8506,7 +9164,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     if (pcs->scs->low_latency_kf && pcs->slice_type == I_SLICE)
         pcs->txs_level = 7;
-
+#endif
     // Set tx_mode for the frame header
     frm_hdr->tx_mode = (pcs->txs_level) ? TX_MODE_SELECT : TX_MODE_LARGEST;
     // Set the level for nic

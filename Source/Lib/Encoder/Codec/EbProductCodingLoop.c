@@ -10259,7 +10259,11 @@ static void update_d1_data(PictureControlSet *pcs, ModeDecisionContext *ctx, uin
         }
     }
 }
+#if OPT_HIGH_FREQ
+static void update_nsq_settings(PictureControlSet* pcs, ModeDecisionContext* ctx) {
+#else
 static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx) {
+#endif
     // Reset the NSQ setting if previous-SQ is_high_energy
     svt_aom_set_nsq_search_ctrls(ctx, pcs->nsq_search_level, pcs->ppcs->input_resolution);
 
@@ -10267,6 +10271,20 @@ static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs,
     uint32_t energy = ctx->blk_geom->sq_size < 64
         ? ctx->b32_satd[(ctx->blk_geom->org_x / 32) + ((ctx->blk_geom->org_y / 32) << 1)]
         : MAX(ctx->b32_satd[0], MAX(ctx->b32_satd[1], MAX(ctx->b32_satd[2], ctx->b32_satd[3])));
+#if OPT_HIGH_FREQ
+    uint32_t input_size = (pcs->ppcs->frame_width * pcs->ppcs->frame_height) / 10000;
+    uint32_t high_energy = CLIP3(500, 100000, (int)((40000 - (125 * input_size))));
+
+    if (energy > high_energy) {
+        NsqSearchCtrls* nsq_search_ctrls = &ctx->nsq_search_ctrls;
+        nsq_search_ctrls->sq_weight = MAX(95, nsq_search_ctrls->sq_weight);
+        nsq_search_ctrls->max_part0_to_part1_dev = 0;
+        nsq_search_ctrls->psq_txs_lvl = 0;
+        nsq_search_ctrls->sub_depth_block_lvl = MIN(1, nsq_search_ctrls->sub_depth_block_lvl);
+        nsq_search_ctrls->component_multiple_th = nsq_search_ctrls->component_multiple_th == 0 ? 0 : MAX(80, nsq_search_ctrls->component_multiple_th);
+        nsq_search_ctrls->hv_weight = MAX(100, nsq_search_ctrls->hv_weight);
+    }
+#else
     int      energy_quantizer;
     // energy-quantizer = f (frame_size)
     int input_size   = (pcs->ppcs->frame_width * pcs->ppcs->frame_height) / 10000;
@@ -10284,6 +10302,7 @@ static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs,
             MAX(ENC_MR, (int)pcs->ppcs->enc_mode - delta), is_base, pcs->coeff_lvl, scs->static_config.qp);
         svt_aom_set_nsq_search_ctrls(ctx, nsq_search_level, pcs->ppcs->input_resolution);
     }
+#endif
 }
 /*
  * Update d2 data (including d2 decision) after processing the last d1 block of a given square.
@@ -10535,8 +10554,11 @@ void svt_aom_mode_decision_sb(SequenceControlSet *scs, PictureControlSet *pcs, M
         // Use more conservative NSQ settings in the presence of a high energy area
         if (!ctx->md_disallow_nsq_search && ctx->nsq_search_ctrls.high_energy_weight &&
             ctx->detect_high_freq_ctrls.enabled)
+#if OPT_HIGH_FREQ
+            update_nsq_settings(pcs, ctx);
+#else
             update_nsq_settings(scs, pcs, ctx);
-
+#endif
         // Check current depth cost; if larger than parent, exit early
         // if using pred depth only, you won't skip, so no need to check
         if (!(ctx->pd_pass == PD_PASS_1 && ctx->pred_depth_only))
