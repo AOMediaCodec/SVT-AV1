@@ -10148,14 +10148,14 @@ static void faster_md_settings_nsq(PictureControlSet *pcs, ModeDecisionContext *
         ctx->nsq_search_ctrls.nsq_split_cost_th    = MIN(60, ctx->nsq_search_ctrls.nsq_split_cost_th);
         ctx->nsq_search_ctrls.H_vs_V_split_rate_th = MAX(60, ctx->nsq_search_ctrls.H_vs_V_split_rate_th);
         ctx->nsq_search_ctrls.non_HV_split_rate_th = MAX(60, ctx->nsq_search_ctrls.non_HV_split_rate_th);
-
+#if !OPT_NEW_NSQ_LVLS
         if (ctx->nsq_search_ctrls.sub_depth_block_lvl >= 2) {
             ctx->nic_ctrls.scaling_ctrls.stage1_scaling_num = MIN(ctx->nic_ctrls.scaling_ctrls.stage1_scaling_num, 1);
             ctx->nic_ctrls.scaling_ctrls.stage2_scaling_num = MIN(ctx->nic_ctrls.scaling_ctrls.stage2_scaling_num, 1);
             ctx->nic_ctrls.scaling_ctrls.stage3_scaling_num = MIN(ctx->nic_ctrls.scaling_ctrls.stage3_scaling_num, 1);
             ctx->txs_ctrls.enabled                          = 0;
         }
-
+#endif
         ctx->params_status = 1;
     }
 }
@@ -10276,6 +10276,9 @@ static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs,
     uint32_t high_energy = CLIP3(500, 100000, (int)((40000 - (125 * input_size))));
 
     if (energy > high_energy) {
+#if OPT_NEW_NSQ_LVLS
+        svt_aom_set_nsq_search_ctrls(ctx, MAX((int)pcs->nsq_search_level - 1, 1), pcs->ppcs->input_resolution);
+#else
         NsqSearchCtrls* nsq_search_ctrls = &ctx->nsq_search_ctrls;
         nsq_search_ctrls->sq_weight = MAX(95, nsq_search_ctrls->sq_weight);
         nsq_search_ctrls->max_part0_to_part1_dev = 0;
@@ -10283,6 +10286,7 @@ static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs,
         nsq_search_ctrls->sub_depth_block_lvl = MIN(1, nsq_search_ctrls->sub_depth_block_lvl);
         nsq_search_ctrls->component_multiple_th = nsq_search_ctrls->component_multiple_th == 0 ? 0 : MAX(80, nsq_search_ctrls->component_multiple_th);
         nsq_search_ctrls->hv_weight = MAX(100, nsq_search_ctrls->hv_weight);
+#endif
     }
 #else
     int      energy_quantizer;
