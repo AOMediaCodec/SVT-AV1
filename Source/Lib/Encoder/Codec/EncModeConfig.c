@@ -4456,40 +4456,29 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
 // Get the nic_level used for each preset (to be passed to setting function: svt_aom_set_nic_controls())
 // hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
 #if OPT_NIC
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, uint32_t qp) {
+uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp) {
 #else
 uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, uint32_t qp,
                               bool rtc_tune) {
 #endif
     uint8_t nic_level;
 
-    if (enc_mode <= ENC_MR)
-        nic_level = is_base ? 2 : 5;
+
 #if OPT_NIC
-    else if (enc_mode <= ENC_M2) {
-        if (hierarchical_levels <= 3)
-            nic_level = 10;
-        else
-            nic_level = is_base ? 8 : 10;
-    }
-    else if (enc_mode <= ENC_M3) {
-        if (hierarchical_levels <= 3)
-            nic_level = 10;
-        else
-            nic_level = is_base ? 9 : 12;
-    }
-    else if (enc_mode <= ENC_M4) {
-        if (hierarchical_levels <= 3)
-            nic_level = 10;
-        else
-            nic_level = is_base ? 10 : 12;
-    }
+    if (enc_mode <= ENC_MR)
+        nic_level = is_base ? 2 : 6;
+    else if (enc_mode <= ENC_M2)
+        nic_level = is_base ? 8 : 10;
+    else if (enc_mode <= ENC_M3)
+        nic_level = is_base ? 9 : 12;
+    else if (enc_mode <= ENC_M4) 
+        nic_level = is_base ? 10 : 12;
     else if (enc_mode <= ENC_M6)
         nic_level = 15;
-    else if (enc_mode <= ENC_M12)
+    else if (enc_mode <= ENC_M9)
         nic_level = is_base ? 15 : 16;
-    else if (enc_mode <= ENC_M11)
-        nic_level = 17;
+    else if (enc_mode <= ENC_M12)
+        nic_level = 16;
     else
         nic_level = 19;
 
@@ -4503,6 +4492,8 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
     else if (qp > 55)
         nic_level = nic_level == 0 ? 0 : nic_level - 1;
 #else
+    if (enc_mode <= ENC_MR)
+        nic_level = is_base ? 2 : 5;
     else if (enc_mode <= ENC_M2) {
         if (hierarchical_levels <= 3)
             nic_level = 10;
@@ -7845,24 +7836,18 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
     else
         depth_level = 0;
 
-
+    // QP-banding
     if (depth_level && !pcs->ppcs->sc_class1 && !rtc_tune) {
         if (enc_mode <= ENC_M0) {
             //no action
         }
         else {
-            if (scs->static_config.qp <= 24) {
+            if (scs->static_config.qp <= 24)
                 depth_level = depth_level ? depth_level + 2 : 0;
-            }
-            else if (scs->static_config.qp <= 32) {
+            else if (scs->static_config.qp <= 32)
                 depth_level = depth_level ? depth_level + 1 : 0;
-            }
-            else if (scs->static_config.qp <= 55) {
-                //no action
-            }
-            else {
+            else if (scs->static_config.qp > 55)
                 depth_level = depth_level == 1 ? depth_level : depth_level - 1;
-            }
         }
     }
 #else
@@ -9611,8 +9596,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     frm_hdr->tx_mode = (pcs->txs_level) ? TX_MODE_SELECT : TX_MODE_LARGEST;
     // Set the level for nic
 #if OPT_NIC
-    pcs->nic_level = svt_aom_get_nic_level(
-        enc_mode, is_base, hierarchical_levels, pcs->scs->static_config.qp);
+    pcs->nic_level = svt_aom_get_nic_level(enc_mode, is_base, pcs->scs->static_config.qp);
 #else
     pcs->nic_level = svt_aom_get_nic_level(
         enc_mode, is_base, hierarchical_levels, pcs->scs->static_config.qp, rtc_tune);

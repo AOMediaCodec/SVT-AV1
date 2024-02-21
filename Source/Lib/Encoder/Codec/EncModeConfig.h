@@ -20,7 +20,7 @@ uint8_t svt_aom_get_update_cdf_level(EncMode enc_mode, SliceType is_islice, uint
 uint8_t svt_aom_get_chroma_level(EncMode enc_mode);
 uint8_t svt_aom_get_bypass_encdec(EncMode enc_mode, uint8_t encoder_bit_depth);
 #if OPT_NIC
-uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, uint32_t qp);
+uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp);
 #else
 uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarchical_levels, uint32_t qp,
                               bool rtc_tune);
