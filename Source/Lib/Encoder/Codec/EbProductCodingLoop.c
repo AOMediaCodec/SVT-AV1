@@ -9386,6 +9386,7 @@ static bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDeci
                                                                     full_lambda,
                                                                     TRUE, // Use accurate split cost for early exit
                                                                     ctx->md_rate_est_ctx);
+#if !OPT_NEW_NSQ_LVLS
         if (ctx->nsq_search_ctrls.non_HV_split_rate_modulation) {
             const uint64_t ratio = (MAX(part_cost, best_part_cost) * 1000) /
                 ctx->md_blk_arr_nsq[blk_geom->sqi_mds].default_cost;
@@ -9393,6 +9394,7 @@ static bool update_skip_nsq_based_on_split_rate(PictureControlSet *pcs, ModeDeci
             if (ratio >= 30)
                 non_HV_split_rate_th += 20;
         }
+#endif
 
         if (part_cost * non_HV_split_rate_th > best_part_cost * 100)
             return true;

@@ -598,8 +598,10 @@ typedef struct NsqSearchCtrls {
     // For non-H/V partitions, skip testing the partition if its signaling rate cost is significantly higher than the signaling rate cost of the
     // best partition.  Specified as a percentage TH. 0 is off, higher is more aggressive.
     uint32_t non_HV_split_rate_th;
+#if !OPT_NEW_NSQ_LVLS
     // Apply an offset to non_HV_split_rate_th
     bool non_HV_split_rate_modulation;
+#endif
     // Offset applied to rate thresholds for 16x16 and smaller block sizes. Higher is more aggressive; 0 is off.
     uint32_t rate_th_offset_lte16;
     // If the distortion (or rate) component of the SQ cost is more than component_multiple_th times the rate (or distortion) component, skip the NSQ shapes
