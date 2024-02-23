@@ -1458,6 +1458,26 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet *scs, PictureP
     return return_error; //todo: add proper error handling
 }
 
+static EbErrorType apply_film_grain_table(SequenceControlSet *scs_ptr, PictureParentControlSet *pcs_ptr) {
+    FrameHeader  *frm_hdr     = &pcs_ptr->frm_hdr;
+    AomFilmGrain *dst_grain   = &frm_hdr->film_grain_params;
+    uint16_t      random_seed = dst_grain->random_seed;
+
+    AomFilmGrain *src_grain = scs_ptr->static_config.fgs_table;
+
+    if (svt_memcpy != NULL) {
+        svt_memcpy(dst_grain, src_grain, sizeof(*dst_grain));
+    } else {
+        svt_memcpy_c(dst_grain, src_grain, sizeof(*dst_grain));
+    }
+
+    frm_hdr->film_grain_params.apply_grain        = 1;
+    frm_hdr->film_grain_params.random_seed        = random_seed;
+    scs_ptr->seq_header.film_grain_params_present = 1;
+
+    return EB_ErrorNone;
+}
+
 /************************************************
  * Picture Pre Processing Operations *
  *** A function that groups all of the Pre proceesing
@@ -1467,8 +1487,12 @@ static EbErrorType denoise_estimate_film_grain(SequenceControlSet *scs, PictureP
  ***** Denoising
  ************************************************/
 void svt_aom_picture_pre_processing_operations(PictureParentControlSet *pcs, SequenceControlSet *scs) {
-    if (scs->static_config.film_grain_denoise_strength)
+    if (scs->static_config.fgs_table) {
+        apply_film_grain_table(scs, pcs);
+    } else if (scs->static_config.film_grain_denoise_strength) {
         denoise_estimate_film_grain(scs, pcs);
+    }
+
     return;
 }
 
@@ -2152,16 +2176,8 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
         // There is no need to do processing for overlay picture. Overlay and AltRef share the same
         // results.
         if (!pcs->is_overlay) {
-            input_pic      = pcs->enhanced_pic;
-            int copy_frame = 1;
-            if (pcs->scs->ipp_pass_ctrls.skip_frame_first_pass == 1)
-                copy_frame = (((pcs->picture_number % 8) == 0) || ((pcs->picture_number % 8) == 6) ||
-                              ((pcs->picture_number % 8) == 7));
-            else if (pcs->scs->ipp_pass_ctrls.skip_frame_first_pass == 2)
-                copy_frame = ((pcs->picture_number < 7) || ((pcs->picture_number % 8) == 0) ||
-                              ((pcs->picture_number % 8) == 6) || ((pcs->picture_number % 8) == 7));
-            // Bypass copy for the unecessary picture in IPPP pass
-            if (scs->static_config.pass != ENC_FIRST_PASS || copy_frame) {
+            input_pic = pcs->enhanced_pic;
+            {
                 // Padding for input pictures
                 svt_aom_pad_input_pictures(scs, input_pic);
 
@@ -2208,7 +2224,7 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
                 pcs->ds_pics.sixteenth_picture_ptr = pa_ref_obj_->sixteenth_downsampled_picture_ptr;
             }
             // Gathering statistics of input picture, including Variance Calculation, Histogram Bins
-            if (scs->static_config.pass != ENC_FIRST_PASS) {
+            {
                 svt_aom_gathering_picture_statistics(
                     scs, pcs, input_padded_pic, (EbPictureBufferDesc *)pa_ref_obj_->sixteenth_downsampled_picture_ptr);
 
@@ -2216,9 +2232,7 @@ void *svt_aom_picture_analysis_kernel(void *input_ptr) {
             }
             // If running multi-threaded mode, perform SC detection in svt_aom_picture_analysis_kernel, else in svt_aom_picture_decision_kernel
             if (scs->static_config.logical_processors != 1) {
-                if ((scs->static_config.pass != ENC_FIRST_PASS || copy_frame) == 0) {
-                    pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = 0;
-                } else if (scs->static_config.screen_content_mode == 2) { // auto detect
+                if (scs->static_config.screen_content_mode == 2) { // auto detect
                     // SC Detection is OFF for 4K and higher
                     if (scs->input_resolution <= INPUT_SIZE_1080p_RANGE)
                         svt_aom_is_screen_content(pcs);

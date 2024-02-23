@@ -29,7 +29,7 @@
 #include "EbInvTransforms.h"
 #include "EncModeConfig.h"
 #include "EbGlobalMotionEstimation.h"
-
+#include "aom_dsp_rtcd.h"
 #define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
 static MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
     {{64, 8}, {28, 4}, {15, 1}, {7, 1}},
@@ -487,6 +487,54 @@ static void av1_setup_motion_field(Av1Common *cm, PictureControlSet *pcs) {
 }
 EbErrorType svt_av1_hash_table_create(HashTable *p_hash_table);
 void       *rtime_alloc_block_hash_block_is_same(size_t size) { return malloc(size); }
+int32_t     svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
+/* Determine the frame complexity level (stored under pcs->coeff_lvl) based
+on the ME distortion and QP. */
+static void set_frame_coeff_lvl(PictureControlSet *pcs) {
+    // Derive the input nois level
+    EbPictureBufferDesc *input_pic = pcs->ppcs->enhanced_pic;
+
+    EbByte buffer_y = input_pic->buffer_y + input_pic->org_y * input_pic->stride_y + input_pic->org_x;
+
+    int32_t noise_level_fp16 = svt_estimate_noise_fp16(buffer_y, // Y
+                                                       input_pic->width,
+                                                       input_pic->height,
+                                                       input_pic->stride_y);
+
+    noise_level_fp16         = svt_aom_noise_log1p_fp16(noise_level_fp16);
+    uint64_t tot_me_8x8_dist = 0;
+    for (uint32_t b64_idx = 0; b64_idx < pcs->b64_total_count; b64_idx++) {
+        tot_me_8x8_dist += pcs->ppcs->me_8x8_distortion[b64_idx];
+    }
+    uint64_t me_8x8_dist_per_sb  = tot_me_8x8_dist / pcs->b64_total_count;
+    uint64_t cmplx               = me_8x8_dist_per_sb / MAX(1, pcs->scs->static_config.qp);
+    uint64_t coeff_low_level_th  = COEFF_LVL_TH_0;
+    uint64_t coeff_high_level_th = COEFF_LVL_TH_1;
+    if (pcs->ppcs->input_resolution <= INPUT_SIZE_240p_RANGE) {
+        coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.7);
+        coeff_high_level_th = (uint64_t)((double)coeff_high_level_th * 1.7);
+    } else if (pcs->ppcs->input_resolution <= INPUT_SIZE_480p_RANGE) {
+        coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.3);
+        coeff_high_level_th = (uint64_t)((double)coeff_high_level_th * 1.3);
+    } else if (pcs->ppcs->input_resolution <= INPUT_SIZE_720p_RANGE) {
+        coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.2);
+        coeff_high_level_th = (uint64_t)((double)coeff_high_level_th * 1.2);
+    }
+
+    if (noise_level_fp16 < 26572 /*FLOAT2FP(log1p(0.5), 16, int32_t)*/) {
+        coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 0.7);
+        coeff_high_level_th = (uint64_t)((double)coeff_high_level_th * 0.7);
+    } else if (noise_level_fp16 > 45426 /*FLOAT2FP(log1p(1.0), 16, int32_t)*/) {
+        coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.05);
+        coeff_high_level_th = (uint64_t)((double)coeff_high_level_th * 1.05);
+    }
+    pcs->coeff_lvl = NORMAL_LVL;
+    if (cmplx < coeff_low_level_th) {
+        pcs->coeff_lvl = LOW_LVL;
+    } else if (cmplx > coeff_high_level_th) {
+        pcs->coeff_lvl = HIGH_LVL;
+    }
+}
 
 /* Mode Decision Configuration Kernel */
 
@@ -536,7 +584,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         pcs->min_me_clpx               = 0;
         pcs->max_me_clpx               = 0;
         pcs->avg_me_clpx               = 0;
-        if (scs->static_config.pass != ENC_FIRST_PASS && pcs->slice_type != I_SLICE) {
+        if (pcs->slice_type != I_SLICE) {
             uint32_t b64_idx;
             uint64_t avg_me_clpx = 0;
             uint64_t min_dist    = (uint64_t)~0;
@@ -552,11 +600,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
             pcs->avg_me_clpx = avg_me_clpx / pcs->ppcs->b64_total_count;
         }
         pcs->coeff_lvl = INVALID_LVL;
-        if (scs->static_config.pass != ENC_FIRST_PASS) {
-            if (pcs->slice_type != I_SLICE && !pcs->ppcs->sc_class1) {
-                uint8_t pfc_lvl = svt_aom_get_predict_frame_coeff_lvl(pcs->enc_mode);
-                svt_aom_set_frame_coeff_lvl(pcs, pfc_lvl);
-            }
+
+        if (pcs->slice_type != I_SLICE && !pcs->ppcs->sc_class1) {
+            set_frame_coeff_lvl(pcs);
         }
         // -------
         // Scale references if resolution of the reference is different than the input
@@ -579,10 +625,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
         pcs->rtc_tune        = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
         // Mode Decision Configuration Kernel Signal(s) derivation
-        if (scs->static_config.pass == ENC_FIRST_PASS)
-            svt_aom_first_pass_sig_deriv_mode_decision_config(pcs);
-        else
-            svt_aom_sig_deriv_mode_decision_config(scs, pcs);
+        svt_aom_sig_deriv_mode_decision_config(scs, pcs);
 
         if (pcs->slice_type != I_SLICE && scs->mfmv_enabled)
             av1_setup_motion_field(pcs->ppcs->av1_cm, pcs);
@@ -626,11 +669,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                                      pcs->ppcs->frm_hdr.allow_intrabc,
                                      &pcs->md_frame_context);
         // Initial Rate Estimation of the Motion vectors
-        if (scs->static_config.pass != ENC_FIRST_PASS) {
-            svt_aom_estimate_mv_rate(pcs, md_rate_est_ctx, &pcs->md_frame_context);
-            // Initial Rate Estimation of the quantized coefficients
-            svt_aom_estimate_coefficients_rate(md_rate_est_ctx, &pcs->md_frame_context);
-        }
+        svt_aom_estimate_mv_rate(pcs, md_rate_est_ctx, &pcs->md_frame_context);
+        // Initial Rate Estimation of the quantized coefficients
+        svt_aom_estimate_coefficients_rate(md_rate_est_ctx, &pcs->md_frame_context);
         if (frm_hdr->allow_intrabc) {
             int            i;
             int            speed = 1;

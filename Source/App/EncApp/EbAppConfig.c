@@ -180,6 +180,7 @@
 #define CHROMA_SAMPLE_POSITION_TOKEN "--chroma-sample-position"
 #define MASTERING_DISPLAY_TOKEN "--mastering-display"
 #define CONTENT_LIGHT_LEVEL_TOKEN "--content-light"
+#define FGS_TABLE_TOKEN "--fgs-table"
 
 #define SFRAME_DIST_TOKEN "--sframe-dist"
 #define SFRAME_MODE_TOKEN "--sframe-mode"
@@ -383,6 +384,17 @@ static EbErrorType set_cfg_stat_file(EbConfig *cfg, const char *token, const cha
 }
 static EbErrorType set_cfg_roi_map_file(EbConfig *cfg, const char *token, const char *value) {
     return open_file(&cfg->roi_map_file, token, value, "r");
+}
+static EbErrorType set_cfg_fgs_table_path(EbConfig *cfg, const char *token, const char *value) {
+    EbErrorType ret  = EB_ErrorBadParameter;
+    FILE       *file = NULL;
+    if ((ret = open_file(&file, token, value, "r")) < 0)
+        return ret;
+    fclose(file);
+
+    cfg->fgs_table_path = strdup(value);
+
+    return EB_ErrorNone;
 }
 
 static EbErrorType set_two_pass_stats(EbConfig *cfg, const char *token, const char *value) {
@@ -1058,6 +1070,8 @@ ConfigEntry config_entry_specific[] = {
      "1: level of denoising is set by the film-grain parameter]",
      set_cfg_generic_token},
 
+    {SINGLE_INPUT, FGS_TABLE_TOKEN, "Set the film grain model table path", set_cfg_fgs_table_path},
+
     // --- start: SUPER-RESOLUTION SUPPORT
     {SINGLE_INPUT,
      SUPERRES_MODE_INPUT,
@@ -1156,6 +1170,7 @@ ConfigEntry config_entry_color_description[] = {
      "Set content light level in the format of \"max_cll,max_fall\", refer to the user guide "
      "Appendix A.2",
      set_cfg_generic_token},
+
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
@@ -1296,6 +1311,7 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, RESTRICTED_MOTION_VECTOR, "RestrictedMotionVector", set_cfg_generic_token},
     {SINGLE_INPUT, FILM_GRAIN_TOKEN, "FilmGrain", set_cfg_generic_token},
     {SINGLE_INPUT, FILM_GRAIN_DENOISE_APPLY_TOKEN, "FilmGrainDenoise", set_cfg_generic_token},
+    {SINGLE_INPUT, FGS_TABLE_TOKEN, "FilmGrainTable", set_cfg_fgs_table_path},
 
     //   Super-resolution support
     {SINGLE_INPUT, SUPERRES_MODE_INPUT, "SuperresMode", set_cfg_generic_token},
@@ -1347,6 +1363,8 @@ EbConfig *svt_config_ctor() {
     app_cfg->progress            = 1;
     app_cfg->injector_frame_rate = 60;
     app_cfg->roi_map_file        = NULL;
+    app_cfg->fgs_table_path      = NULL;
+
     return app_cfg;
 }
 
@@ -1398,6 +1416,11 @@ void svt_config_dtor(EbConfig *app_cfg) {
     if (app_cfg->roi_map_file) {
         fclose(app_cfg->roi_map_file);
         app_cfg->roi_map_file = (FILE *)NULL;
+    }
+
+    if (app_cfg->fgs_table_path) {
+        free(app_cfg->fgs_table_path);
+        app_cfg->fgs_table_path = NULL;
     }
 
     for (size_t i = 0; i < app_cfg->forced_keyframes.count; ++i) free(app_cfg->forced_keyframes.specifiers[i]);
@@ -1622,40 +1645,8 @@ EbErrorType handle_stats_file(EbConfig *app_cfg, EncPass enc_pass, const SvtAv1F
                 return EB_ErrorBadParameter;
             }
         }
-
-        // Multi pass VBR has 3 passes, and pass = 2 is the middle pass
-        // In this pass, data is read from the file, copied to memory, updated and
-        // written back to the same file
-        else if (app_cfg->config.pass == 2 && app_cfg->config.rate_control_mode == SVT_AV1_RC_MODE_VBR) {
-            if (!fopen_and_lock(&app_cfg->input_stat_file, stats, FALSE)) {
-                fprintf(app_cfg->error_log_file,
-                        "Error instance %u: can't read stats file %s for read\n",
-                        channel_number + 1,
-                        stats);
-                return EB_ErrorBadParameter;
-            }
-            // Copy from file to memory
-            if (!load_twopass_stats_in(app_cfg)) {
-                fprintf(app_cfg->error_log_file, "Error instance %u: can't load file %s\n", channel_number + 1, stats);
-                return EB_ErrorBadParameter;
-            }
-            // Close the input stat file
-            if (app_cfg->input_stat_file) {
-                fclose(app_cfg->input_stat_file);
-                app_cfg->input_stat_file = (FILE *)NULL;
-            }
-            // Open the file in write mode
-            if (!fopen_and_lock(&app_cfg->output_stat_file, stats, TRUE)) {
-                fprintf(app_cfg->error_log_file,
-                        "Error instance %u: can't open stats file %s for write \n",
-                        channel_number + 1,
-                        stats);
-                return EB_ErrorBadParameter;
-            }
-        }
-        // Final pass: pass = 2 for CRF and pass = 3 for VBR
-        else if ((app_cfg->config.pass == 2 && app_cfg->config.rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) ||
-                 (app_cfg->config.pass == 3 && app_cfg->config.rate_control_mode == SVT_AV1_RC_MODE_VBR)) {
+        // Final pass
+        else if (app_cfg->config.pass == 2) {
             if (!fopen_and_lock(&app_cfg->input_stat_file, stats, FALSE)) {
                 fprintf(app_cfg->error_log_file,
                         "Error instance %u: can't read stats file %s for read\n",
@@ -1685,19 +1676,7 @@ EbErrorType handle_stats_file(EbConfig *app_cfg, EncPass enc_pass, const SvtAv1F
         }
         break;
     }
-
     case ENC_SECOND_PASS: {
-        if (!rc_stats_buffer->sz) {
-            fprintf(app_cfg->error_log_file,
-                    "Error instance %u: combined multi passes need stats in for the middle pass \n",
-                    channel_number + 1);
-            return EB_ErrorBadParameter;
-        }
-        app_cfg->config.rc_stats_buffer = *rc_stats_buffer;
-        break;
-    }
-
-    case ENC_THIRD_PASS: {
         if (!rc_stats_buffer->sz) {
             fprintf(app_cfg->error_log_file,
                     "Error instance %u: combined multi passes need stats in for the final pass \n",
@@ -2164,7 +2143,7 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
             fprintf(stderr, "[SVT-Error]: Multipass CRF is not supported.\n\n");
             return 0;
         }
-        multi_pass_mode = passes == 2 ? TWO_PASS_IPP_FINAL : SINGLE_PASS;
+        multi_pass_mode = SINGLE_PASS;
     }
     // Determine the number of passes in rate control mode
     else if (rc_mode == 1) {
@@ -2175,8 +2154,8 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
                 fprintf(stderr, "[SVT-Error]:  Multipass VBR is not supported for preset %d.\n\n", enc_mode);
                 return 0;
             } else {
-                passes          = 3;
-                multi_pass_mode = THREE_PASS_IPP_SAMEPRED_FINAL;
+                passes          = 2;
+                multi_pass_mode = TWO_PASS;
             }
         }
     } else {
@@ -2190,14 +2169,9 @@ uint32_t get_passes(int32_t argc, char *const argv[], EncPass enc_pass[MAX_ENC_P
     // Set the settings for each pass based on multi_pass_mode
     switch (multi_pass_mode) {
     case SINGLE_PASS: enc_pass[0] = ENC_SINGLE_PASS; break;
-    case TWO_PASS_IPP_FINAL:
+    case TWO_PASS:
         enc_pass[0] = ENC_FIRST_PASS;
         enc_pass[1] = ENC_SECOND_PASS;
-        break;
-    case THREE_PASS_IPP_SAMEPRED_FINAL:
-        enc_pass[0] = ENC_FIRST_PASS;
-        enc_pass[1] = ENC_SECOND_PASS;
-        enc_pass[2] = ENC_THIRD_PASS;
         break;
     default: break;
     }
@@ -2269,6 +2243,148 @@ static Bool warn_legacy_token(const char *const token) {
 
 static void free_config_strings(unsigned nch, char *config_strings[MAX_CHANNEL_NUMBER]) {
     for (unsigned i = 0; i < nch; ++i) free(config_strings[i]);
+}
+
+static EbErrorType read_fgs_table(EbConfig *cfg) {
+    EbErrorType   ret = EB_ErrorBadParameter;
+    AomFilmGrain *film_grain;
+    FILE         *file;
+    FOPEN(file, cfg->fgs_table_path, "r");
+
+    if (!file)
+        return EB_ErrorBadParameter;
+
+    // Read in one extra character as there should be a newline
+    char magic[9];
+    if (!fread(magic, 9, 1, file) || strncmp(magic, "filmgrn1", 8)) {
+        fprintf(stderr, "invalid grain table magic %s\n", cfg->fgs_table_path);
+        fclose(file);
+        return ret;
+    }
+
+    film_grain = (AomFilmGrain *)calloc(1, sizeof(AomFilmGrain));
+
+    while (!feof(file)) {
+        int num_read = fscanf(file,
+                              "E %*d %*d %d %hu %d\n",
+                              &film_grain->apply_grain,
+                              &film_grain->random_seed,
+                              &film_grain->update_parameters);
+
+        if (num_read == 0 && feof(file)) {
+            fprintf(stderr, "invalid grain table %s\n", cfg->fgs_table_path);
+            goto fail;
+        }
+        if (num_read != 3) {
+            fprintf(stderr, "Unable to read entry header. Read %d != 3\n", num_read);
+            goto fail;
+        }
+
+        if (film_grain->update_parameters) {
+            num_read = fscanf(file,
+                              "p %d %d %d %d %d %d %d %d %d %d %d %d\n",
+                              &film_grain->ar_coeff_lag,
+                              &film_grain->ar_coeff_shift,
+                              &film_grain->grain_scale_shift,
+                              &film_grain->scaling_shift,
+                              &film_grain->chroma_scaling_from_luma,
+                              &film_grain->overlap_flag,
+                              &film_grain->cb_mult,
+                              &film_grain->cb_luma_mult,
+                              &film_grain->cb_offset,
+                              &film_grain->cr_mult,
+                              &film_grain->cr_luma_mult,
+                              &film_grain->cr_offset);
+            if (num_read != 12) {
+                fprintf(stderr, "Unable to read entry header. Read %d != 12\n", num_read);
+                goto fail;
+            }
+            if (!fscanf(file, "\tsY %d ", &film_grain->num_y_points)) {
+                fprintf(stderr, "Unable to read num y points\n");
+                goto fail;
+            }
+            for (int i = 0; i < film_grain->num_y_points; ++i) {
+                if (2 !=
+                    fscanf(file, "%d %d", &film_grain->scaling_points_y[i][0], &film_grain->scaling_points_y[i][1])) {
+                    fprintf(stderr, "Unable to read y scaling points\n");
+                    goto fail;
+                }
+            }
+            if (!fscanf(file, "\n\tsCb %d", &film_grain->num_cb_points)) {
+                fprintf(stderr, "Unable to read num cb points\n");
+                goto fail;
+            }
+            for (int i = 0; i < film_grain->num_cb_points; ++i) {
+                if (2 !=
+                    fscanf(file, "%d %d", &film_grain->scaling_points_cb[i][0], &film_grain->scaling_points_cb[i][1])) {
+                    fprintf(stderr, "Unable to read cb scaling points\n");
+                    goto fail;
+                }
+            }
+            if (!fscanf(file, "\n\tsCr %d", &film_grain->num_cr_points)) {
+                fprintf(stderr, "Unable to read num cr points\n");
+                goto fail;
+            }
+            for (int i = 0; i < film_grain->num_cr_points; ++i) {
+                if (2 !=
+                    fscanf(file, "%d %d", &film_grain->scaling_points_cr[i][0], &film_grain->scaling_points_cr[i][1])) {
+                    fprintf(stderr, "Unable to read cr scaling points\n");
+                    goto fail;
+                }
+            }
+
+            if (fscanf(file, "\n\tcY")) {
+                fprintf(stderr, "Unable to read Y coeffs header (cY)\n");
+                goto fail;
+            }
+            const int n = 2 * film_grain->ar_coeff_lag * (film_grain->ar_coeff_lag + 1);
+            for (int i = 0; i < n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_y[i])) {
+                    fprintf(stderr, "Unable to read Y coeffs\n");
+                    goto fail;
+                }
+            }
+            if (fscanf(file, "\n\tcCb")) {
+                fprintf(stderr, "Unable to read Cb coeffs header (cCb)\n");
+                goto fail;
+            }
+            for (int i = 0; i <= n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cb[i])) {
+                    fprintf(stderr, "Unable to read Cb coeffs\n");
+                    goto fail;
+                }
+            }
+            if (fscanf(file, "\n\tcCr")) {
+                fprintf(stderr, "Unable read to Cr coeffs header (cCr)\n");
+                goto fail;
+            }
+            for (int i = 0; i <= n; ++i) {
+                if (1 != fscanf(file, "%d", &film_grain->ar_coeffs_cr[i])) {
+                    fprintf(stderr, "Unable to read Cr coeffs\n");
+                    goto fail;
+                }
+            }
+            if (fscanf(file, "\n")) {
+                // optional newline at end of file,
+            }
+        }
+
+        // TODO Add functionality to read multiple grain table entries
+        break;
+    }
+
+    fclose(file);
+
+    film_grain->apply_grain = 1;
+    film_grain->ignore_ref  = 1;
+    cfg->config.fgs_table   = film_grain;
+
+    return EB_ErrorNone;
+fail:
+    free(film_grain);
+
+    fclose(file);
+    return ret;
 }
 
 /******************************************
@@ -2402,6 +2518,22 @@ EbErrorType read_command_line(int32_t argc, char *const argv[], EncChannel *chan
             }
         }
     }
+
+    for (index = 0; index < num_channels; ++index) {
+        EncChannel *c   = channels + index;
+        EbConfig   *cfg = c->app_cfg;
+        if (cfg->fgs_table_path) {
+            if (cfg->config.film_grain_denoise_strength > 0) {
+                fprintf(stderr,
+                        "Warning: Both film-grain-denoise and fgs-table were specified\nfilm-grain-denoise will be "
+                        "disabled\n");
+                cfg->config.film_grain_denoise_strength = 0;
+            }
+            c->return_error = read_fgs_table(cfg);
+            return_error    = (EbErrorType)(return_error & c->return_error);
+        }
+    }
+
     /***************************************************************************************************/
     /**************************************   Verify configuration parameters   ************************/
     /***************************************************************************************************/

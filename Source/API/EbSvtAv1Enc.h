@@ -454,9 +454,9 @@ typedef struct EbSvtAv1EncConfiguration {
      * Default is 63. */
     uint32_t max_qp_allowed;
     /* Minimum QP value allowed for rate control use, only applicable when rate
-     * control mode is set to 1. It has to be smaller or equal to maxQpAllowed.
+     * control mode is set to 1 or 2. It has to be smaller or equal to maxQpAllowed.
      *
-     * Default is 0. */
+     * Default is 4. */
     uint32_t min_qp_allowed;
 
     // DATARATE CONTROL OPTIONS
@@ -928,9 +928,12 @@ typedef struct EbSvtAv1EncConfiguration {
     * 0 = disable ROI
     * 1 = enable ROI
     *  Default is 0. */
-    Bool    enable_roi_map;
-    uint8_t padding[64 - sizeof(Bool)];
+    Bool enable_roi_map;
 
+    /* Stores the optional film grain synthesis info */
+    AomFilmGrain *fgs_table;
+
+    uint8_t padding[64 - sizeof(Bool) - sizeof(AomFilmGrain *)];
 } EbSvtAv1EncConfiguration;
 
 /**

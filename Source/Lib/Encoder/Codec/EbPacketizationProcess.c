@@ -58,7 +58,7 @@ void        svt_aom_recon_output(PictureControlSet *pcs, SequenceControlSet *scs
 void        svt_aom_init_resize_picture(SequenceControlSet *scs, PictureParentControlSet *pcs);
 void        pad_ref_and_set_flags(PictureControlSet *pcs, SequenceControlSet *scs);
 void        svt_aom_update_rc_counts(PictureParentControlSet *ppcs);
-void        svt_aom_ssim_calculations(PictureControlSet *pcs, SequenceControlSet *scs, Bool free_memory);
+EbErrorType svt_aom_ssim_calculations(PictureControlSet *pcs, SequenceControlSet *scs, Bool free_memory);
 
 // Extracts passthrough data from a linked list. The extracted data nodes are removed from the original linked list and
 // returned as a linked list. Does not gaurantee the original order of the nodes.
@@ -451,7 +451,9 @@ static inline EbErrorType malloc_p_buffer(EbBufferHeaderType *output_stream_ptr)
     EB_MALLOC(output_stream_ptr->p_buffer, output_stream_ptr->n_alloc_len);
     return EB_ErrorNone;
 }
-
+void update_firstpass_stats(PictureParentControlSet *pcs, const int frame_number, const double ts_duration,
+                            StatStruct *stat_struct);
+void svt_av1_end_first_pass(PictureParentControlSet *pcs);
 /* Realloc when bitstream pointer size is not enough to write data of size sz */
 static EbErrorType realloc_output_bitstream(Bitstream *bitstream_ptr, uint32_t sz) {
     if (bitstream_ptr && sz > 0) {
@@ -834,10 +836,10 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
 
         // Send the number of bytes per frame to RC
         pcs->ppcs->total_num_bits = output_stream_ptr->n_filled_len << 3;
-        if (scs->passes == 3 && scs->static_config.pass == ENC_MIDDLE_PASS) {
+        if (scs->passes == 2 && scs->static_config.pass == ENC_FIRST_PASS) {
             StatStruct stat_struct;
             stat_struct.poc = pcs->picture_number;
-            if (scs->mid_pass_ctrls.ds)
+            if (scs->first_pass_ctrls.ds)
                 stat_struct.total_num_bits = pcs->ppcs->total_num_bits * DS_SC_FACT / 10;
             else
                 stat_struct.total_num_bits = pcs->ppcs->total_num_bits;
@@ -846,7 +848,11 @@ void *svt_aom_packetization_kernel(void *input_ptr) {
             if (svt_aom_is_pic_skipped(pcs->ppcs))
                 stat_struct.total_num_bits = 0;
             stat_struct.temporal_layer_index = pcs->temporal_layer_index;
-            (scs->twopass.stats_buf_ctx->stats_in_start + pcs->ppcs->picture_number)->stat_struct = stat_struct;
+            if (scs->static_config.pass == ENC_FIRST_PASS) {
+                update_firstpass_stats(pcs->ppcs, (const int)pcs->picture_number, pcs->ppcs->ts_duration, &stat_struct);
+                if (ppcs->end_of_sequence_flag)
+                    svt_av1_end_first_pass(ppcs);
+            }
         }
         queue_entry_ptr->total_num_bits = pcs->ppcs->total_num_bits;
         queue_entry_ptr->frame_type     = frm_hdr->frame_type;

@@ -284,7 +284,7 @@ static EbErrorType test_update_rate_info(uint64_t pic_num, EbBufferHeaderType *h
     } else {
         return EB_ErrorNone;
     }
-    data->target_bit_rate *= 1000; //anaghdin add a check for valid data
+    data->target_bit_rate *= 1000;
     EbPrivDataNode *new_node = (EbPrivDataNode *)malloc(sizeof(EbPrivDataNode));
     new_node->size           = sizeof(SvtAv1RateInfo);
     new_node->node_type      = RATE_CHANGE_EVENT;
@@ -843,14 +843,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                         }
                     }
                 }
-                if (app_cfg->config.pass == ENC_SECOND_PASS) {
-                    if (app_cfg->output_stat_file && app_cfg->config.rc_stats_buffer.buf) {
-                        fwrite(app_cfg->config.rc_stats_buffer.buf,
-                               1,
-                               app_cfg->config.rc_stats_buffer.sz,
-                               app_cfg->output_stat_file);
-                    }
-                }
             } else {
                 is_alt_ref = (flags & EB_BUFFERFLAG_IS_ALT_REF);
                 if (!(flags & EB_BUFFERFLAG_IS_ALT_REF))
@@ -982,14 +974,6 @@ void process_output_stream_buffer(EncChannel *channel, EncApp *enc_app, int32_t 
                             memcpy(enc_app->rc_twopasses_stats.buf, first_pass_stat.buf, first_pass_stat.sz);
                             enc_app->rc_twopasses_stats.sz = first_pass_stat.sz;
                         }
-                    }
-                }
-                if (app_cfg->config.pass == ENC_SECOND_PASS) {
-                    if (app_cfg->output_stat_file && app_cfg->config.rc_stats_buffer.buf) {
-                        fwrite(app_cfg->config.rc_stats_buffer.buf,
-                               1,
-                               app_cfg->config.rc_stats_buffer.sz,
-                               app_cfg->output_stat_file);
                     }
                 }
             }

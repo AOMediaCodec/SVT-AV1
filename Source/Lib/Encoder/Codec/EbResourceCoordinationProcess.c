@@ -546,7 +546,7 @@ void svt_aom_setup_two_pass(SequenceControlSet *scs) {
     scs->twopass.passes        = scs->passes;
     scs->twopass.stats_buf_ctx = &enc_ctx->stats_buf_context;
     scs->twopass.stats_in      = scs->twopass.stats_buf_ctx->stats_in_start;
-    if (scs->static_config.pass == ENC_MIDDLE_PASS || scs->static_config.pass == ENC_LAST_PASS) {
+    if (scs->static_config.pass == ENC_SECOND_PASS) {
         const size_t packet_sz = sizeof(FIRSTPASS_STATS);
         const int    packets   = (int)(enc_ctx->rc_stats_buffer.sz / packet_sz);
 
@@ -563,6 +563,8 @@ void svt_aom_setup_two_pass(SequenceControlSet *scs) {
         }
     } else if (scs->lap_rc)
         svt_av1_init_single_pass_lap(scs);
+    else if (scs->static_config.pass == ENC_FIRST_PASS)
+        svt_aom_set_rc_param(scs);
 }
 
 static EbErrorType realloc_sb_param(SequenceControlSet *scs, PictureParentControlSet *pcs) {
@@ -876,10 +878,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             scs->pad_bottom = scs->max_input_pad_bottom;
 
             // Pre-Analysis Signal(s) derivation
-            if (scs->static_config.pass == ENC_FIRST_PASS)
-                svt_aom_first_pass_sig_deriv_pre_analysis_scs(scs);
-            else
-                svt_aom_sig_deriv_pre_analysis_scs(scs);
+            svt_aom_sig_deriv_pre_analysis_scs(scs);
 
             // Init SB Params
             const uint32_t input_size = scs->max_input_luma_width * scs->max_input_luma_height;
@@ -896,7 +895,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                                                   scs->max_input_luma_height);
 
             if (scs->enc_ctx->initial_picture) {
-                if (scs->static_config.pass == ENC_MIDDLE_PASS || scs->static_config.pass == ENC_LAST_PASS)
+                if (scs->static_config.pass == ENC_SECOND_PASS)
                     svt_aom_read_stat(scs);
                 if (scs->static_config.pass != ENC_SINGLE_PASS || scs->lap_rc)
                     svt_aom_setup_two_pass(scs);
@@ -1086,10 +1085,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
             //  If the mode of the second pass is not set from CLI, it is set to enc_mode
 
             // Pre-Analysis Signal(s) derivation
-            if (scs->static_config.pass == ENC_FIRST_PASS)
-                svt_aom_first_pass_sig_deriv_pre_analysis_pcs(pcs);
-            else
-                svt_aom_sig_deriv_pre_analysis_pcs(pcs);
+            svt_aom_sig_deriv_pre_analysis_pcs(pcs);
             // Rate Control
 
             // Picture Stats
@@ -1097,11 +1093,7 @@ void *svt_aom_resource_coordination_kernel(void *input_ptr) {
                 pcs->picture_number = context_ptr->picture_number_array[instance_index]++;
             else
                 pcs->picture_number = context_ptr->picture_number_array[instance_index];
-            if (pcs->picture_number == 0) {
-                if (scs->static_config.pass == ENC_MIDDLE_PASS)
-                    svt_aom_find_init_qp_middle_pass(scs, pcs);
-            }
-            if (scs->passes == 3 && !end_of_sequence_flag && scs->static_config.pass == ENC_LAST_PASS &&
+            if (scs->passes == 2 && !end_of_sequence_flag && scs->static_config.pass == ENC_SECOND_PASS &&
                 scs->static_config.rate_control_mode) {
                 pcs->stat_struct = (scs->twopass.stats_buf_ctx->stats_in_start + pcs->picture_number)->stat_struct;
                 if (pcs->stat_struct.poc != pcs->picture_number)

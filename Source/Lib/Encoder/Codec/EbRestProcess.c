@@ -103,8 +103,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext *thread_ctx, const EbEncHa
     if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
                                        config->enable_restoration_filtering,
                                        scs->input_resolution,
-                                       scs->static_config.fast_decode,
-                                       scs->static_config.qp)) {
+                                       scs->static_config.fast_decode)) {
         EbPictureBufferDescInitData init_data;
 
         init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
@@ -130,8 +129,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext *thread_ctx, const EbEncHa
                 context_ptr->org_rec_frame->bit_depth = EB_EIGHT_BIT;
         }
         context_ptr->rst_tmpbuf = NULL;
-        if (svt_aom_get_enable_sg(
-                init_data_ptr->enc_mode, scs->input_resolution, scs->static_config.fast_decode, scs->static_config.qp))
+        if (svt_aom_get_enable_sg(init_data_ptr->enc_mode, scs->input_resolution, scs->static_config.fast_decode))
             EB_MALLOC_ALIGNED(context_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
     }
 
@@ -660,7 +658,7 @@ void *svt_aom_rest_kernel(void *input_ptr) {
             superres_recode = pcs->ppcs->superres_total_recode_loop > 0 ? TRUE : FALSE;
 
             // Pad the reference picture and set ref POC
-            if (scs->static_config.pass != ENC_FIRST_PASS) {
+            {
                 if (pcs->ppcs->is_ref == TRUE)
                     pad_ref_and_set_flags(pcs, scs);
                 else {

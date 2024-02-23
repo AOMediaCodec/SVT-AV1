@@ -1135,9 +1135,7 @@ void svt_aom_generate_av1_mvp_table(ModeDecisionContext *ctx, BlkStruct *blk_ptr
         }
 
         xd->ref_mv_count[ref_frame] = 0;
-        memset(ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[ref_frame],
-               0,
-               sizeof(CandidateMv) * MAX_REF_MV_STACK_SIZE);
+        memset(ctx->ref_mv_stack[ref_frame], 0, sizeof(CandidateMv) * MAX_REF_MV_STACK_SIZE);
 
         IntMv gm_mv[2];
 
@@ -1173,7 +1171,7 @@ void svt_aom_generate_av1_mvp_table(ModeDecisionContext *ctx, BlkStruct *blk_ptr
                           xd,
                           ref_frame,
                           &xd->ref_mv_count[ref_frame],
-                          ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[ref_frame],
+                          ctx->ref_mv_stack[ref_frame],
                           gm_mv,
                           pcs->ppcs->global_motion,
                           mi_row,
@@ -1181,7 +1179,7 @@ void svt_aom_generate_av1_mvp_table(ModeDecisionContext *ctx, BlkStruct *blk_ptr
                           ctx,
                           symteric_refs,
                           mv_ref0,
-                          &blk_ptr->inter_mode_ctx[ref_frame]);
+                          &ctx->inter_mode_ctx[ref_frame]);
     }
 }
 void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr, MvReferenceFrame ref_frame,
@@ -1192,19 +1190,19 @@ void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr, M
 
     if (!is_compound && mode != GLOBALMV) {
         //av1_find_best_ref_mvs(allow_hp, ref_mvs[mbmi->ref_frame[0]], &nearestmv[0], &nearmv[0], cm->cur_frame_force_integer_mv);
-        nearestmv[0] = ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].ed_ref_mv_stack[ref_frame][0].this_mv;
-        nearmv[0]    = ctx->md_local_blk_unit[ctx->blk_geom->blkidx_mds].ed_ref_mv_stack[ref_frame][1].this_mv;
+        nearestmv[0] = ctx->ref_mv_stack[ref_frame][0].this_mv;
+        nearmv[0]    = ctx->ref_mv_stack[ref_frame][1].this_mv;
     }
 
     if (is_compound && mode != GLOBAL_GLOBALMV) {
         int32_t ref_mv_idx = drl_index + 1;
-        nearestmv[0]       = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][0].this_mv;
-        nearestmv[1]       = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][0].comp_mv;
-        nearmv[0]          = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
-        nearmv[1]          = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
+        nearestmv[0]       = ctx->ref_mv_stack[ref_frame][0].this_mv;
+        nearestmv[1]       = ctx->ref_mv_stack[ref_frame][0].comp_mv;
+        nearmv[0]          = ctx->ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
+        nearmv[1]          = ctx->ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
     } else if (drl_index > 0 && mode == NEARMV) {
         assert((1 + drl_index) < MAX_REF_MV_STACK_SIZE);
-        IntMv cur_mv = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][1 + drl_index].this_mv;
+        IntMv cur_mv = ctx->ref_mv_stack[ref_frame][1 + drl_index].this_mv;
         nearmv[0]    = cur_mv;
     }
 
@@ -1220,14 +1218,14 @@ void svt_aom_get_av1_mv_pred_drl(ModeDecisionContext *ctx, BlkStruct *blk_ptr, M
             ref_mv_idx = 1 + drl_index;
 
         if (compound_ref0_mode(mode) == NEWMV)
-            ref_mv[0] = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
+            ref_mv[0] = ctx->ref_mv_stack[ref_frame][ref_mv_idx].this_mv;
 
         if (compound_ref1_mode(mode) == NEWMV)
-            ref_mv[1] = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
+            ref_mv[1] = ctx->ref_mv_stack[ref_frame][ref_mv_idx].comp_mv;
     } else {
         if (mode == NEWMV) {
             if (xd->ref_mv_count[ref_frame] > 1)
-                ref_mv[0] = ctx->md_local_blk_unit[blk_ptr->mds_idx].ed_ref_mv_stack[ref_frame][drl_index].this_mv;
+                ref_mv[0] = ctx->ref_mv_stack[ref_frame][drl_index].this_mv;
         }
     }
 }
@@ -1323,7 +1321,7 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
     pcs->mi_grid_base[offset] = pcs->mip + mip_offset;
 
     MvReferenceFrame rf[2];
-    av1_set_ref_frame(rf, blk_ptr->prediction_unit_array->ref_frame_type);
+    av1_set_ref_frame(rf, blk_ptr->ref_frame_type);
 
     ModeInfo *mi_ptr = *(pcs->mi_grid_base + offset);
     // use idx 0 as that's the first mbmmi in the block
@@ -1347,22 +1345,22 @@ void svt_aom_update_mi_map(BlkStruct *blk_ptr, uint32_t blk_org_x, uint32_t blk_
     block_mi->skip         = (blk_ptr->block_has_coeff) ? FALSE : TRUE;
     block_mi->partition    = from_shape_to_part[blk_geom->shape];
     block_mi->skip_mode    = (int8_t)blk_ptr->skip_mode;
-    block_mi->uv_mode      = blk_ptr->prediction_unit_array->intra_chroma_mode;
+    block_mi->uv_mode      = blk_ptr->intra_chroma_mode;
     block_mi->use_intrabc  = blk_ptr->use_intrabc;
     block_mi->ref_frame[0] = rf[0];
     block_mi->ref_frame[1] = (blk_ptr->is_interintra_used) ? INTRA_FRAME : rf[1];
     if (blk_ptr->prediction_mode_flag == INTER_MODE || block_mi->use_intrabc) {
-        if (blk_ptr->prediction_unit_array->inter_pred_direction_index == UNI_PRED_LIST_0) {
-            block_mi->mv[0].as_mv.col = blk_ptr->prediction_unit_array->mv[0].x;
-            block_mi->mv[0].as_mv.row = blk_ptr->prediction_unit_array->mv[0].y;
-        } else if (blk_ptr->prediction_unit_array->inter_pred_direction_index == UNI_PRED_LIST_1) {
-            block_mi->mv[0].as_mv.col = blk_ptr->prediction_unit_array->mv[1].x;
-            block_mi->mv[0].as_mv.row = blk_ptr->prediction_unit_array->mv[1].y;
+        if (blk_ptr->inter_pred_direction_index == UNI_PRED_LIST_0) {
+            block_mi->mv[0].as_mv.col = blk_ptr->mv[0].x;
+            block_mi->mv[0].as_mv.row = blk_ptr->mv[0].y;
+        } else if (blk_ptr->inter_pred_direction_index == UNI_PRED_LIST_1) {
+            block_mi->mv[0].as_mv.col = blk_ptr->mv[1].x;
+            block_mi->mv[0].as_mv.row = blk_ptr->mv[1].y;
         } else {
-            block_mi->mv[0].as_mv.col = blk_ptr->prediction_unit_array->mv[0].x;
-            block_mi->mv[0].as_mv.row = blk_ptr->prediction_unit_array->mv[0].y;
-            block_mi->mv[1].as_mv.col = blk_ptr->prediction_unit_array->mv[1].x;
-            block_mi->mv[1].as_mv.row = blk_ptr->prediction_unit_array->mv[1].y;
+            block_mi->mv[0].as_mv.col = blk_ptr->mv[0].x;
+            block_mi->mv[0].as_mv.row = blk_ptr->mv[0].y;
+            block_mi->mv[1].as_mv.col = blk_ptr->mv[1].x;
+            block_mi->mv[1].as_mv.row = blk_ptr->mv[1].y;
         }
 
         block_mi->compound_idx   = blk_ptr->compound_idx;
@@ -1757,8 +1755,8 @@ Bool svt_aom_warped_motion_parameters(PictureControlSet *pcs, BlkStruct *blk_ptr
 }
 
 //foreach_overlappable_nb_above
-static int count_overlappable_nb_above(const Av1Common *cm, MacroBlockD *xd, int32_t mi_col, int nb_max) {
-    int nb_count = 0;
+static uint32_t count_overlappable_nb_above(const Av1Common *cm, MacroBlockD *xd, int32_t mi_col, uint32_t nb_max) {
+    uint32_t nb_count = 0;
     if (!xd->up_available)
         return nb_count;
 
@@ -1789,8 +1787,8 @@ static int count_overlappable_nb_above(const Av1Common *cm, MacroBlockD *xd, int
     return nb_count;
 }
 
-static int count_overlappable_nb_left(const Av1Common *cm, MacroBlockD *xd, int32_t mi_row, int nb_max) {
-    int nb_count = 0;
+static uint32_t count_overlappable_nb_left(const Av1Common *cm, MacroBlockD *xd, int32_t mi_row, uint32_t nb_max) {
+    uint32_t nb_count = 0;
     if (!xd->left_available)
         return nb_count;
 
@@ -1818,19 +1816,16 @@ static int count_overlappable_nb_left(const Av1Common *cm, MacroBlockD *xd, int3
 
 void svt_av1_count_overlappable_neighbors(const PictureControlSet *pcs, BlkStruct *blk_ptr, const BlockSize bsize,
                                           int32_t mi_row, int32_t mi_col) {
-    Av1Common   *cm                                             = pcs->ppcs->av1_cm;
-    MacroBlockD *xd                                             = blk_ptr->av1xd;
-    blk_ptr->prediction_unit_array[0].overlappable_neighbors[0] = 0;
-    blk_ptr->prediction_unit_array[0].overlappable_neighbors[1] = 0;
+    Av1Common   *cm                 = pcs->ppcs->av1_cm;
+    MacroBlockD *xd                 = blk_ptr->av1xd;
+    blk_ptr->overlappable_neighbors = 0;
 
     if (!is_motion_variation_allowed_bsize(bsize))
         return;
 
-    blk_ptr->prediction_unit_array[0].overlappable_neighbors[0] = count_overlappable_nb_above(
-        cm, xd, mi_col, MAX_SIGNED_VALUE);
+    blk_ptr->overlappable_neighbors = count_overlappable_nb_above(cm, xd, mi_col, UINT32_MAX);
 
-    blk_ptr->prediction_unit_array[0].overlappable_neighbors[1] = count_overlappable_nb_left(
-        cm, xd, mi_row, MAX_SIGNED_VALUE);
+    blk_ptr->overlappable_neighbors += count_overlappable_nb_left(cm, xd, mi_row, UINT32_MAX);
 }
 
 int svt_aom_is_dv_valid(const MV dv, const MacroBlockD *xd, int mi_row, int mi_col, BlockSize bsize,

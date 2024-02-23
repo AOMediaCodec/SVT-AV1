@@ -16,7 +16,6 @@
 #include "EbDefinitions.h"
 #include "EbEntropyCodingObject.h"
 #include "EbCodingUnit.h"
-#include "EbPredictionUnit.h"
 #include "EbPictureBufferDesc.h"
 #include "EbSequenceControlSet.h"
 #include "EbPictureControlSet.h"
@@ -188,7 +187,7 @@ extern EbErrorType svt_aom_encode_sps_av1(Bitstream *bitstream_ptr, SequenceCont
 
 //*******************************************************************************************//
 MotionMode svt_aom_motion_mode_allowed(const PictureControlSet *pcs, uint16_t num_proj_ref,
-                                       uint32_t *overlappable_neighbors, const BlockSize bsize, MvReferenceFrame rf0,
+                                       uint32_t overlappable_neighbors, const BlockSize bsize, MvReferenceFrame rf0,
                                        MvReferenceFrame rf1, PredictionMode mode);
 int        svt_aom_is_masked_compound_type(COMPOUND_TYPE type);
 

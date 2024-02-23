@@ -334,7 +334,7 @@ void search_palette_luma(PictureControlSet *pcs, ModeDecisionContext *ctx, Palet
     if (colors > 1 && colors <= 64) {
         int        r, c, i;
         const int  max_itr = 50;
-        int *const data    = ctx->palette_buffer.kmeans_data_buf;
+        int *const data    = ctx->palette_buffer->kmeans_data_buf;
         int        centroids[PALETTE_MAX_SIZE];
         int        lb, ub;
 

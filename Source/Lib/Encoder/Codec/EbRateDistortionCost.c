@@ -978,7 +978,7 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     MvReferenceFrame     rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t  is_compound  = is_inter_compound_mode(cand->pred_mode);
-    const uint32_t mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
+    const uint32_t mode_context = svt_aom_mode_context_analyzer(ctx->inter_mode_ctx[cand->ref_frame_type], rf);
     uint64_t       reference_picture_bits_num = 0;
     reference_picture_bits_num                = ctx->estimate_ref_frames_num_bits[cand->ref_frame_type];
     if (is_compound) {
@@ -1133,8 +1133,7 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     const BlockGeom       *blk_geom     = ctx->blk_geom;
     BlkStruct             *blk_ptr      = ctx->blk_ptr;
     ModeDecisionCandidate *cand         = cand_bf->cand;
-    CandidateMv           *ref_mv_stack = &(
-        ctx->md_local_blk_unit[blk_geom->blkidx_mds].ed_ref_mv_stack[cand->ref_frame_type][0]);
+    CandidateMv           *ref_mv_stack = &(ctx->ref_mv_stack[cand->ref_frame_type][0]);
 
     if (ctx->approx_inter_rate)
         return av1_inter_fast_cost_light(
@@ -1159,7 +1158,7 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     MvReferenceFrame rf[2];
     av1_set_ref_frame(rf, cand->ref_frame_type);
     const uint8_t is_compound  = is_inter_compound_mode(cand->pred_mode);
-    uint32_t      mode_context = svt_aom_mode_context_analyzer(blk_ptr->inter_mode_ctx[cand->ref_frame_type], rf);
+    uint32_t      mode_context = svt_aom_mode_context_analyzer(ctx->inter_mode_ctx[cand->ref_frame_type], rf);
     uint64_t      reference_picture_bits_num = 0;
 
     //Reference Type and Mode Bit estimation
@@ -1315,17 +1314,11 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     }
     Bool is_inter = inter_mode >= SINGLE_INTER_MODE_START && inter_mode < SINGLE_INTER_MODE_END;
     if (is_inter && frm_hdr->is_motion_mode_switchable && rf[1] != INTRA_FRAME) {
-        MotionMode motion_mode_rd                      = cand->motion_mode;
-        BlockSize  bsize                               = blk_geom->bsize;
-        blk_ptr->prediction_unit_array[0].num_proj_ref = cand->num_proj_ref;
-        MotionMode last_motion_mode_allowed            = svt_aom_motion_mode_allowed(
-            pcs,
-            blk_ptr->prediction_unit_array[0].num_proj_ref,
-            blk_ptr->prediction_unit_array[0].overlappable_neighbors,
-            bsize,
-            rf[0],
-            rf[1],
-            inter_mode);
+        MotionMode motion_mode_rd           = cand->motion_mode;
+        BlockSize  bsize                    = blk_geom->bsize;
+        blk_ptr->num_proj_ref               = cand->num_proj_ref;
+        MotionMode last_motion_mode_allowed = svt_aom_motion_mode_allowed(
+            pcs, blk_ptr->num_proj_ref, blk_ptr->overlappable_neighbors, bsize, rf[0], rf[1], inter_mode);
         switch (last_motion_mode_allowed) {
         case SIMPLE_TRANSLATION: break;
         case OBMC_CAUSAL:
@@ -1581,8 +1574,8 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
             cand_bf->cand->transform_type_uv = DCT_DCT;
             assert(DCT_DCT == 0);
             memset(cand_bf->cand->transform_type, DCT_DCT, 16 * sizeof(cand_bf->cand->transform_type[0]));
-            memset(cand_bf->quantized_dc, 0, 3 * 16 * sizeof(cand_bf->quantized_dc[0][0]));
-            memset(cand_bf->eob, 0, 3 * 16 * sizeof(cand_bf->eob[0][0]));
+            memset(&cand_bf->quant_dc, 0, sizeof(QuantDcData));
+            memset(&cand_bf->eob, 0, sizeof(EobData));
         }
     }
 
@@ -1633,8 +1626,8 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
             assert(DCT_DCT == 0);
             memset(cand_bf->cand->transform_type, DCT_DCT, 16 * sizeof(cand_bf->cand->transform_type[0]));
             cand_bf->cand->transform_type_uv = DCT_DCT;
-            memset(cand_bf->quantized_dc, 0, 3 * 16 * sizeof(cand_bf->quantized_dc[0][0]));
-            memset(cand_bf->eob, 0, 3 * 16 * sizeof(cand_bf->eob[0][0]));
+            memset(&cand_bf->quant_dc, 0, sizeof(QuantDcData));
+            memset(&cand_bf->eob, 0, sizeof(EobData));
         }
     }
 
@@ -1669,13 +1662,13 @@ void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecision
         ctx->skip_mode_ctx = av1_get_skip_mode_context(xd);
     }
     // Generate Partition context
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].above_neighbor_partition =
+    blk_ptr->above_neighbor_partition =
         (((PartitionContext *)leaf_partition_na->top_array)[partition_above_neighbor_index].above ==
          (char)INVALID_NEIGHBOR_DATA)
         ? 0
         : ((PartitionContext *)leaf_partition_na->top_array)[partition_above_neighbor_index].above;
 
-    ctx->md_local_blk_unit[blk_ptr->mds_idx].left_neighbor_partition =
+    blk_ptr->left_neighbor_partition =
         (((PartitionContext *)leaf_partition_na->left_array)[partition_left_neighbor_index].left ==
          (char)INVALID_NEIGHBOR_DATA)
         ? 0
@@ -1999,14 +1992,14 @@ uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDecisionC
     if (!has_rows && !has_cols) {
         return 0;
     }
-    const PartitionContextType left_ctx  = ctx->md_local_blk_unit[blk_mds_idx].left_neighbor_partition ==
+    const PartitionContextType left_ctx  = ctx->md_blk_arr_nsq[blk_mds_idx].left_neighbor_partition ==
             (char)(INVALID_NEIGHBOR_DATA)
          ? 0
-         : ctx->md_local_blk_unit[blk_mds_idx].left_neighbor_partition;
-    const PartitionContextType above_ctx = ctx->md_local_blk_unit[blk_mds_idx].above_neighbor_partition ==
+         : ctx->md_blk_arr_nsq[blk_mds_idx].left_neighbor_partition;
+    const PartitionContextType above_ctx = ctx->md_blk_arr_nsq[blk_mds_idx].above_neighbor_partition ==
             (char)(INVALID_NEIGHBOR_DATA)
         ? 0
-        : ctx->md_local_blk_unit[blk_mds_idx].above_neighbor_partition;
+        : ctx->md_blk_arr_nsq[blk_mds_idx].above_neighbor_partition;
     const int                  bsl       = mi_size_wide_log2[bsize] - mi_size_wide_log2[BLOCK_8X8];
     assert(bsl >= 0);
 

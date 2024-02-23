@@ -901,8 +901,8 @@ extern "C" {
     EbErrorType svt_av1_highbd_resize_plane_c(const uint16_t *const input, int height, int width, int in_stride, uint16_t *output, int height2, int width2, int out_stride, int bd);
     RTCD_EXTERN EbErrorType(*svt_av1_resize_plane)(const uint8_t *const input, int height, int width, int in_stride, uint8_t *output, int height2, int width2, int out_stride);
     EbErrorType svt_av1_resize_plane_c(const uint8_t *const input, int height, int width, int in_stride, uint8_t *output, int height2, int width2, int out_stride);
-    RTCD_EXTERN int(*svt_av1_compute_cul_level)(const int16_t *const scan, const int32_t *const quant_coeff, uint16_t *eob);
-    int svt_av1_compute_cul_level_c(const int16_t *const scan, const int32_t *const quant_coeff, uint16_t *eob);
+    RTCD_EXTERN uint8_t(*svt_av1_compute_cul_level)(const int16_t* const scan, const int32_t* const quant_coeff, uint16_t* eob);
+    uint8_t svt_av1_compute_cul_level_c(const int16_t* const scan, const int32_t* const quant_coeff, uint16_t* eob);
     RTCD_EXTERN double (*svt_ssim_8x8)(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp);
     double svt_ssim_8x8_c(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp);
     RTCD_EXTERN double (*svt_ssim_4x4)(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp);
@@ -1111,6 +1111,8 @@ extern "C" {
     void svt_aom_quantize_b_neon(const TranLow *coeff_ptr, intptr_t n_coeffs, const int16_t *zbin_ptr, const int16_t *round_ptr, const int16_t *quant_ptr, const int16_t *quant_shift_ptr, TranLow *qcoeff_ptr, TranLow *dqcoeff_ptr, const int16_t *dequant_ptr, uint16_t *eob_ptr, const int16_t *scan, const int16_t *iscan, const QmVal *qm_ptr, const QmVal *iqm_ptr, const int log_scale);
 
     int64_t svt_av1_lowbd_pixel_proj_error_neon(const uint8_t *src8, int32_t width, int32_t height, int32_t src_stride, const uint8_t *dat8, int32_t dat_stride, int32_t *flt0, int32_t flt0_stride, int32_t *flt1, int32_t flt1_stride, int32_t xq[2], const SgrParamsType *params);
+
+    void svt_aom_downsample_2d_neon(uint8_t *input_samples, uint32_t input_stride, uint32_t input_area_width, uint32_t input_area_height, uint8_t *decim_samples, uint32_t decim_stride, uint32_t decim_step);
 
     void svt_av1_txb_init_levels_neon(const TranLow *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
 
@@ -1960,7 +1962,7 @@ extern "C" {
     void svt_av1_highbd_down2_symeven_avx2(const uint16_t *const input, int length, uint16_t *output, int bd);
     EbErrorType svt_av1_highbd_resize_plane_avx2(const uint16_t *const input, int height, int width, int in_stride, uint16_t *output, int height2, int width2, int out_stride, int bd);
     EbErrorType svt_av1_resize_plane_avx2(const uint8_t *const input, int height, int width, int in_stride, uint8_t *output, int height2, int width2, int out_stride);
-    int svt_av1_compute_cul_level_avx2(const int16_t *const scan, const int32_t *const quant_coeff, uint16_t *eob);
+    uint8_t svt_av1_compute_cul_level_avx2(const int16_t* const scan, const int32_t* const quant_coeff, uint16_t* eob);
     double svt_ssim_8x8_avx2(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp);
     double svt_ssim_4x4_avx2(const uint8_t* s, uint32_t sp, const uint8_t* r, uint32_t rp);
     double svt_ssim_8x8_hbd_avx2(const uint16_t* s, uint32_t sp, const uint16_t* r, uint32_t rp);

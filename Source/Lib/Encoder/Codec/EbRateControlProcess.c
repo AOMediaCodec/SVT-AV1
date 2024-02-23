@@ -1408,12 +1408,6 @@ static int av1_find_qindex(double desired_q, aom_bit_depth_t bit_depth, int best
     assert(svt_av1_convert_qindex_to_q(low, bit_depth) >= desired_q || low == worst_qindex);
     return low;
 }
-static int find_fp_qindex(aom_bit_depth_t bit_depth) {
-#ifdef ARCH_X86_64
-    aom_clear_system_state();
-#endif
-    return av1_find_qindex(FIRST_PASS_Q, bit_depth, 0, QINDEX_RANGE - 1);
-}
 void set_rc_buffer_sizes(SequenceControlSet *scs) {
     EncodeContext        *enc_ctx   = scs->enc_ctx;
     RATE_CONTROL         *rc        = &enc_ctx->rc;
@@ -3050,19 +3044,15 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                             const int32_t qindex = quantizer_to_qindex[(uint8_t)scs->static_config.qp];
                             // if there are need enough pictures in the LAD/SlidingWindow, the adaptive QP scaling is not used
                             int32_t new_qindex;
-                            if (scs->static_config.pass != ENC_FIRST_PASS) {
-                                // if CRF
-                                if (pcs->ppcs->tpl_ctrls.enable) {
-                                    if (pcs->picture_number == 0) {
-                                        rc->active_worst_quality = quantizer_to_qindex[(uint8_t)scs->static_config.qp];
-                                        av1_rc_init(scs);
-                                    }
-                                    new_qindex = crf_qindex_calc(pcs, rc, rc->active_worst_quality);
-                                } else // if CQP
-                                    new_qindex = cqp_qindex_calc(pcs, qindex);
-                            } else {
-                                new_qindex = find_fp_qindex((EbBitDepth)scs->static_config.encoder_bit_depth);
-                            }
+                            // if CRF
+                            if (pcs->ppcs->tpl_ctrls.enable) {
+                                if (pcs->picture_number == 0) {
+                                    rc->active_worst_quality = quantizer_to_qindex[(uint8_t)scs->static_config.qp];
+                                    av1_rc_init(scs);
+                                }
+                                new_qindex = crf_qindex_calc(pcs, rc, rc->active_worst_quality);
+                            } else // if CQP
+                                new_qindex = cqp_qindex_calc(pcs, qindex);
                             frm_hdr->quantization_params.base_q_idx = (uint8_t)CLIP3(
                                 (int32_t)quantizer_to_qindex[scs->static_config.min_qp_allowed],
                                 (int32_t)quantizer_to_qindex[scs->static_config.max_qp_allowed],
