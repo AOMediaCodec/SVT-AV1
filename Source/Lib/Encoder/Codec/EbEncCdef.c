@@ -314,7 +314,7 @@ void svt_av1_cdef_frame(SequenceControlSet *scs, PictureControlSet *pcs) {
     const int32_t  nvfb        = (cm->mi_rows + MI_SIZE_64X64 - 1) / MI_SIZE_64X64;
     const int32_t  nhfb        = (cm->mi_cols + MI_SIZE_64X64 - 1) / MI_SIZE_64X64;
 
-    row_cdef = (uint8_t *)svt_aom_malloc(sizeof(*row_cdef) * (nhfb + 2) * 2);
+    row_cdef = (uint8_t *)svt_aom_malloc(sizeof(*row_cdef) * (nhfb + 2) * 2 * 2);
     assert(row_cdef != NULL);
     memset(row_cdef, 1, sizeof(*row_cdef) * (nhfb + 2) * 2);
     prev_row_cdef = row_cdef + 1;
