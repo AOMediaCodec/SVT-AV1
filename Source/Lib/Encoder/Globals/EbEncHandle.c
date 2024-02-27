@@ -5150,7 +5150,7 @@ static void memset_input_buffer(SequenceControlSet* scs, EbBufferHeaderType* dst
 
             uint32_t y8b_input_size = ((y8b_input_picture_ptr->max_width + (y8b_input_picture_ptr->org_x << 1))* (y8b_input_picture_ptr->max_height + (y8b_input_picture_ptr->org_y << 1)));
             memset(y8b_input_picture_ptr->buffer_y, 0, (y8b_input_size * sizeof(uint8_t)));
-            
+
             uint32_t input_size = ((input_pic->max_width + (input_pic->org_x << 1)) * (input_pic->max_height + (input_pic->org_y << 1)));
             memset(input_pic->buffer_cb, 128, (input_size >> 2) * sizeof(uint8_t));
             memset(input_pic->buffer_cr, 128, (input_size >> 2) * sizeof(uint8_t));
