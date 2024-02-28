@@ -3890,7 +3890,181 @@ static void set_sq_txs_ctrls(ModeDecisionContext *ctx, uint8_t psq_txs_lvl) {
     default: assert(0); break;
     }
 }
+#if OPT_TXT
+void svt_aom_set_txt_controls(ModeDecisionContext *ctx, uint8_t txt_level) {
+    TxtControls *txt_ctrls = &ctx->txt_ctrls;
 
+    switch (txt_level) {
+    case 0:
+        txt_ctrls->enabled = 0;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = 1;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 1;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = 1;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = 1;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 0;
+        txt_ctrls->satd_early_exit_th_inter    = 0;
+        txt_ctrls->satd_th_q_weight            = (uint16_t)~0;
+        txt_ctrls->txt_rate_cost_th            = 0;
+        break;
+    case 1:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 0;
+        txt_ctrls->satd_early_exit_th_inter    = 0;
+        txt_ctrls->satd_th_q_weight            = (uint16_t)~0;
+        txt_ctrls->txt_rate_cost_th            = 0;
+        break;
+    case 2:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 20;
+        txt_ctrls->satd_early_exit_th_inter    = 20;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 250;
+        break;
+    case 3:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 15;
+        txt_ctrls->satd_early_exit_th_inter    = 15;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 250;
+        break;
+    case 4:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 10;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 250;
+        break;
+    case 5:
+        txt_ctrls->enabled                     = 1;
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 5;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 100;
+
+        break;
+    case 6:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 5;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 5;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 100;
+        break;
+    case 7:
+        // ref lvl_5
+        txt_ctrls->enabled                     = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = 5;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 5;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = MAX_TX_TYPE_GROUP;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = MAX_TX_TYPE_GROUP;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 5;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 100;
+        break;
+    case 8:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = 4;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 3;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = 5;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = 4;
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 5;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 100;
+        break;
+    case 9:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = 3;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 2;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = 4;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = 3;
+
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 5;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 65;
+        break;
+     case 10:
+        txt_ctrls->enabled = 1;
+
+        txt_ctrls->txt_group_inter_lt_16x16    = 2;
+        txt_ctrls->txt_group_inter_gt_eq_16x16 = 1;
+
+        txt_ctrls->txt_group_intra_lt_16x16    = 3;
+        txt_ctrls->txt_group_intra_gt_eq_16x16 = 3;
+
+        txt_ctrls->early_exit_dist_th          = 0;
+        txt_ctrls->early_exit_coeff_th         = 0;
+        txt_ctrls->satd_early_exit_th_intra    = 10;
+        txt_ctrls->satd_early_exit_th_inter    = 10;
+        txt_ctrls->satd_th_q_weight            = 2;
+        txt_ctrls->txt_rate_cost_th            = 50;
+        break;
+    default: assert(0); break;
+    }
+}
+#else
 void svt_aom_set_txt_controls(ModeDecisionContext *ctx, uint8_t txt_level) {
     TxtControls *txt_ctrls = &ctx->txt_ctrls;
 
@@ -4092,6 +4266,7 @@ void svt_aom_set_txt_controls(ModeDecisionContext *ctx, uint8_t txt_level) {
     default: assert(0); break;
     }
 }
+#endif
 static void set_interpolation_search_level_ctrls(ModeDecisionContext *ctx, uint8_t interpolation_search_level) {
     InterpolationSearchCtrls *ifs_ctrls = &ctx->ifs_ctrls;
 
@@ -9296,6 +9471,24 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     // Set the level for the txt search
     pcs->txt_level = 0;
+
+#if OPT_TXT
+    if (enc_mode <= ENC_M0) {
+        pcs->txt_level = is_base ? 2 : 3;
+    }
+    else if (enc_mode <= ENC_M2) {
+        pcs->txt_level = is_base ? 2 : 5;
+    }
+    else if (enc_mode <= ENC_M9) {
+        pcs->txt_level = is_base ? 5 : 7;
+    }
+    else if (enc_mode <= ENC_M12) {
+        pcs->txt_level = is_base ? 7 : 9;
+    }
+    else  {
+        pcs->txt_level = is_base ? 9 : 10;
+    }
+#else
     if (rtc_tune) {
         if (sc_class1) {
             if (pcs->coeff_lvl == LOW_LVL) {
@@ -9392,6 +9585,8 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             }
         }
     }
+#endif
+
     // Set the level for the txt shortcut feature
     // Any tx_shortcut_level having the chroma detector off in REF frames should be reserved for M13+
     pcs->tx_shortcut_level = 0;
