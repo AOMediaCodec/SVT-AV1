@@ -41,7 +41,8 @@ extern "C" {
 #define OPT_HIGH_FREQ                             1 // Opt high freq
 #define OPT_NIC                                   1 // Optimize nic_level: levels and qp-banding
 #define OPT_NEW_NSQ_LVLS                          1 // Add new NSQ levels and tune based on QP and coeff_level
-#define OPT_TXT                                   1 // Optimize txt_level: levels and qp-banding
+#define OPT_TXT                                   1 // Optimize for txt levels: remove unnecessary levels and create new levels with better spacing in terms of speed
+#define OPT_OBMC_LVLS                             1 // Optimize obmc_level
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

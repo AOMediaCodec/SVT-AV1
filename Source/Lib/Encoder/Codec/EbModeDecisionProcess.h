@@ -127,10 +127,17 @@ typedef struct InterIntraCompCtrls {
 } InterIntraCompCtrls;
 typedef struct ObmcControls {
     uint8_t enabled;
+#if OPT_OBMC_LVLS
+    // Specifies max block size to refine
+    Bool max_blk_size_to_refine;
+    // Specifies max block size to test
+    Bool max_blk_size;
+#else
     // if true, cap the max block size to refine to 16x16
     Bool max_blk_size_to_refine_16x16;
     // if true, cap the max block size to test to 16x16
     Bool max_blk_size_16x16;
+#endif
     // Specifies the level the obmc refinement
     // 0: Full/Sub @ MDS0, 1: Full/Sub @ MDS1, 2: Only Sub MDS1, 3: Full/Sub @ MDS3, 4: Only Sub MDS3
     uint8_t refine_level;

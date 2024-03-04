@@ -2613,6 +2613,69 @@ Bool svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t 
     return ref_obj->reference_picture->width == pcs->ppcs->frame_width &&
         ref_obj->reference_picture->height == pcs->ppcs->frame_height;
 }
+#if OPT_OBMC_LVLS
+void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
+    ObmcControls *obmc_ctrls = &ctx->obmc_ctrls;
+    switch (obmc_mode) {
+    case 0: obmc_ctrls->enabled = 0; break;
+    case 1:
+        obmc_ctrls->enabled                      = 1;
+        obmc_ctrls->max_blk_size_to_refine       = 128;
+        obmc_ctrls->max_blk_size                 = 128;
+        obmc_ctrls->refine_level                 = 0;
+        obmc_ctrls->trans_face_off               = 0;
+        obmc_ctrls->fpel_search_range            = 16;
+        obmc_ctrls->fpel_search_diag             = 1;
+        obmc_ctrls->qp_dist_early_exit           = 0;
+        break;
+    case 2:
+        obmc_ctrls->enabled                      = 1;
+        obmc_ctrls->max_blk_size_to_refine       = 64;
+        obmc_ctrls->max_blk_size                 = 128;
+        obmc_ctrls->refine_level                 = 1;
+        obmc_ctrls->trans_face_off               = 0;
+        obmc_ctrls->fpel_search_range            = 16;
+        obmc_ctrls->fpel_search_diag             = 1;
+        obmc_ctrls->qp_dist_early_exit           = 0;
+        break;
+    case 3:
+        obmc_ctrls->enabled                      = 1;
+        obmc_ctrls->max_blk_size_to_refine       = 32;
+        obmc_ctrls->max_blk_size                 = 128;
+        obmc_ctrls->refine_level                 = 1;
+        obmc_ctrls->trans_face_off               = 0;
+        obmc_ctrls->fpel_search_range            = 8;
+        obmc_ctrls->fpel_search_diag             = 0;
+        obmc_ctrls->qp_dist_early_exit           = 0;
+        break;
+    case 4:
+        obmc_ctrls->enabled                      = 1;
+        obmc_ctrls->max_blk_size_to_refine       = 32;
+        obmc_ctrls->max_blk_size                 = 32;
+        obmc_ctrls->refine_level                 = 1;
+        obmc_ctrls->trans_face_off               = 1;
+        obmc_ctrls->trans_face_off_th            = 0;
+        obmc_ctrls->fpel_search_range            = 8;
+        obmc_ctrls->fpel_search_diag             = 0;
+        obmc_ctrls->qp_dist_early_exit           = 0;
+        break;
+    case 5:
+        obmc_ctrls->enabled                      = 1;
+        obmc_ctrls->max_blk_size_to_refine       = 16;
+        obmc_ctrls->max_blk_size                 = 16;
+        obmc_ctrls->refine_level                 = 4;
+        obmc_ctrls->trans_face_off               = 1;
+        obmc_ctrls->trans_face_off_th            = 0;
+        obmc_ctrls->fpel_search_range            = 8;
+        obmc_ctrls->fpel_search_diag             = 0;
+        obmc_ctrls->qp_dist_early_exit           = 0;
+        break;
+    default:  
+        obmc_ctrls->enabled = 0; 
+        break;
+    }
+}
+#else
 void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
     ObmcControls *obmc_ctrls = &ctx->obmc_ctrls;
     switch (obmc_mode) {
@@ -2662,6 +2725,7 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
     default: assert(0); break;
     }
 }
+#endif
 void set_depth_removal_level_controls_rtc(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     DepthRemovalCtrls *depth_removal_ctrls = &ctx->depth_removal_ctrls;
     B64Geom           *b64_geom            = &pcs->ppcs->b64_geom[ctx->sb_index];
@@ -9223,7 +9287,31 @@ uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t
 
     return inter_intra_level;
 }
+#if OPT_OBMC_LVLS
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp) {
+    uint8_t obmc_level = 0;
+    if (enc_mode <= ENC_M0)
+        obmc_level = 1;
+    else if (enc_mode <= ENC_M4)
+        obmc_level = 3;
+    else if (enc_mode <= ENC_M11)
+        obmc_level = 4;
+    else
+        obmc_level = 0;
 
+    // QP-banding
+    if (!(enc_mode <= ENC_MR) && obmc_level) {
+        if (qp <= 43)
+            obmc_level = obmc_level + 2;
+        else if (qp <= 55)
+            obmc_level = obmc_level + 1;
+        else if (qp > 59)
+            obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
+    }
+
+    return obmc_level;
+}
+#else
 #if OPT_OBMC_DIST
 uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode, EbInputResolution input_resolution) {
 #else
@@ -9277,6 +9365,7 @@ uint8_t svt_aom_get_obmc_level(PictureControlSet *pcs, EncMode enc_mode, uint8_t
 #endif
     return obmc_level;
 }
+#endif
 void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
     PictureParentControlSet *ppcs                = pcs->ppcs;
     EncMode                  enc_mode            = pcs->enc_mode;
@@ -9410,10 +9499,14 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
 #if OPT_OBMC_DIST
+#if OPT_OBMC_LVLS
+    ppcs->pic_obmc_level = svt_aom_get_obmc_level(enc_mode, sq_qp);
+#else
     const uint32_t obmc_me_dist_th = ((enc_mode <= ENC_M4 ? 0 : enc_mode <= ENC_M5 ? 100000 : enc_mode <= ENC_M6 ? 150000 : 200000) * (pcs->temporal_layer_index + 1)) / pcs->scs->static_config.qp;
     ppcs->pic_obmc_level = (pcs->ppcs->norm_me_dist < obmc_me_dist_th)
         ? 0
         : svt_aom_get_obmc_level(enc_mode, fast_decode, input_resolution);
+#endif
 #else
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(pcs, enc_mode, fast_decode, input_resolution);
 #endif

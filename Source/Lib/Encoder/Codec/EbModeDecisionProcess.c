@@ -244,6 +244,19 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
     }
 
     // Allocate buffers for obmc prediction
+#if OPT_OBMC_LVLS
+    uint8_t obmc_allowed = 0;
+    for (uint8_t fast_decode = 0; fast_decode < 2; fast_decode++) {
+        for (EbInputResolution input_resolution = 0; input_resolution < INPUT_SIZE_COUNT; input_resolution++) {
+            // min QP is 1 b/c 0 is lossless and is not supported
+            for (uint8_t qp = 1; qp <= MAX_QP_VALUE; qp++) {
+                if (obmc_allowed)
+                    break;
+                obmc_allowed |= svt_aom_get_obmc_level(enc_mode, qp);
+            }
+        }
+    }
+#else
     uint8_t obmc_allowed = 0;
     for (uint8_t fast_decode = 0; fast_decode < 2; fast_decode++) {
         for (EbInputResolution input_resolution = 0; input_resolution < INPUT_SIZE_COUNT; input_resolution++) {
@@ -256,6 +269,7 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext *ctx, EbColor
 #endif
         }
     }
+#endif
     if (obmc_allowed) {
         const uint8_t bits = ctx->hbd_md > EB_8_BIT_MD ? 2 : 1;
         EB_MALLOC(ctx->obmc_buff_0, sb_size * sb_size * bits * MAX_MB_PLANE * sizeof(ctx->obmc_buff_0[0]));

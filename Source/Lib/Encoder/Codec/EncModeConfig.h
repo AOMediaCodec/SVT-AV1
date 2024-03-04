@@ -66,11 +66,15 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, uint8_t is_base, InputCoe
 uint8_t get_inter_compound_level(EncMode enc_mode);
 uint8_t get_filter_intra_level(EncMode enc_mode);
 uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t transition_present);
+#if OPT_OBMC_LVLS
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp);
+#else
 #if OPT_OBMC_DIST
 uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode, EbInputResolution input_resolution);
 #else
 uint8_t svt_aom_get_obmc_level(PictureControlSet *pcs, EncMode enc_mode, uint8_t fast_decode,
                                EbInputResolution input_resolution);
+#endif
 #endif
 void    svt_aom_set_nsq_geom_ctrls(ModeDecisionContext *ctx, uint8_t nsq_geom_level, uint8_t *allow_HVA_HVB,
                                    uint8_t *allow_HV4, uint8_t *min_nsq_bsize);

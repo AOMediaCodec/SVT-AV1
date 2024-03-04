@@ -188,9 +188,15 @@ MotionMode svt_aom_obmc_motion_mode_allowed(
     if (ctx->obmc_ctrls.trans_face_off && !situation)
         return SIMPLE_TRANSLATION;
     // check if should cap the max block size for obmc
+
+#if OPT_OBMC_LVLS
+    if (block_size_wide[bsize] > ctx->obmc_ctrls.max_blk_size  || block_size_high[bsize] > ctx->obmc_ctrls.max_blk_size)
+        return SIMPLE_TRANSLATION;
+#else
     if (ctx->obmc_ctrls.max_blk_size_16x16)
         if (block_size_wide[bsize] > 16 || block_size_high[bsize] > 16)
             return SIMPLE_TRANSLATION;
+#endif
     if (!ctx->obmc_ctrls.enabled)
         return SIMPLE_TRANSLATION;
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
@@ -2667,12 +2673,17 @@ void single_motion_search(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
 // Refine the OBMC MV (8 bit search). Return true if search found a valid MV; false otherwise
 uint8_t svt_aom_obmc_motion_refinement(PictureControlSet *pcs, struct ModeDecisionContext *ctx,
                                        ModeDecisionCandidate *cand, uint8_t ref_list_idx, int refine_level) {
+#if OPT_OBMC_LVLS
+    if (block_size_wide[ctx->blk_geom->bsize] > ctx->obmc_ctrls.max_blk_size_to_refine || block_size_high[ctx->blk_geom->bsize] > ctx->obmc_ctrls.max_blk_size_to_refine)
+        return 1;
+#else
     if (ctx->obmc_ctrls.max_blk_size_to_refine_16x16) {
         if (block_size_wide[ctx->blk_geom->bsize] > 16 || block_size_high[ctx->blk_geom->bsize] > 16) {
             // No refinement performed, therefore input MVs haven't changed and are assumed to be valid
             return 1;
         }
     }
+#endif
     IntMv           best_pred_mv[2] = {{0}, {0}};
     IntraBcContext  x_st;
     IntraBcContext *x = &x_st;
