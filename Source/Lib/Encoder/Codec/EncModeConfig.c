@@ -303,6 +303,94 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
         me_ctx->me_sa.sa_min.height = (me_ctx->me_sa.sa_min.height * 3) >> 1;
     }
 }
+#if OPT_ME_HME_REF_PRUNE
+static void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_level) {
+    MeHmeRefPruneCtrls *me_hme_prune_ctrls = &me_ctx->me_hme_prune_ctrls;
+
+    switch (prune_level) {
+    case 0:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 0;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = (uint16_t)~0;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = (uint16_t)~0;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+    case 1:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 80;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = (uint16_t)~0;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+    case 2:
+
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 50;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = (uint16_t)~0;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+
+    case 3:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 30;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = (uint16_t)~0;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+    case 4:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 15;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = 60;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+
+    case 5:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 5;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = 60;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 0;
+        me_hme_prune_ctrls->zz_sad_pct   = 0;
+        me_hme_prune_ctrls->phme_sad_th  = 0;
+        me_hme_prune_ctrls->phme_sad_pct = 0;
+        break;
+    case 6:
+        me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
+        me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 5;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = 60;
+        me_hme_prune_ctrls->protect_closest_refs                    = 1;
+
+        me_hme_prune_ctrls->zz_sad_th    = 20 * 64 * 64;
+        me_hme_prune_ctrls->zz_sad_pct   = 5;
+        me_hme_prune_ctrls->phme_sad_th  = 10 * 64 * 64;
+        me_hme_prune_ctrls->phme_sad_pct = 5;
+        break;
+    default: assert(0); break;
+    }
+}
+#else
 static void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_level) {
     MeHmeRefPruneCtrls *me_hme_prune_ctrls = &me_ctx->me_hme_prune_ctrls;
 
@@ -388,6 +476,7 @@ static void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_
     default: assert(0); break;
     }
 }
+#endif
 
 static void svt_aom_set_me_sr_adjustment_ctrls(MeContext *me_ctx, uint8_t sr_adjustment_level) {
     MeSrCtrls *me_sr_adjustment_ctrls = &me_ctx->me_sr_adjustment_ctrls;
@@ -602,6 +691,9 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     const uint8_t     sc_class1        = pcs->sc_class1;
     EbInputResolution input_resolution = scs->input_resolution;
     const bool        rtc_tune         = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+#if OPT_ME_HME_REF_PRUNE
+    const bool        is_base          = pcs->temporal_layer_index == 0;
+#endif
     // Set ME search area
     set_me_search_params(scs, pcs, me_ctx, input_resolution);
 
@@ -668,6 +760,22 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         else
             me_ref_prune_level = 6;
     } else {
+#if OPT_ME_HME_REF_PRUNE
+        if (enc_mode <= ENC_MR) {
+            me_ref_prune_level = 1;
+        }
+        else if (enc_mode <= ENC_M2) {
+            me_ref_prune_level = is_base ? 1 : 4;
+        }
+        else if (enc_mode <= ENC_M8) {
+            me_ref_prune_level = is_base ? 1 : 5;
+        }
+        else if (enc_mode <= ENC_M10) {
+            me_ref_prune_level = is_base ? 1 : 6;
+        }
+        else
+            me_ref_prune_level = 6;
+#else
         if (enc_mode <= ENC_MR) {
             me_ref_prune_level = 1;
         } else if (enc_mode <= ENC_M0) {
@@ -692,6 +800,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
                 me_ref_prune_level = 4;
         } else
             me_ref_prune_level = 5;
+#endif
     }
 
     svt_aom_set_me_hme_ref_prune_ctrls(me_ctx, me_ref_prune_level);
