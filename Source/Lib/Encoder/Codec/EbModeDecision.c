@@ -177,14 +177,20 @@ uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_of
 static Bool warped_motion_mode_allowed(PictureControlSet *pcs, ModeDecisionContext *ctx) {
     FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
     return frm_hdr->allow_warped_motion && has_overlappable_candidates(ctx->blk_ptr) && ctx->blk_geom->bwidth >= 8 &&
+#if OPT_WARP_LVLS
+        ctx->blk_geom->bheight >= 8 && ctx->wm_ctrls.enabled;
+#else
         ctx->blk_geom->bheight >= 8 && ctx->wm_ctrls.enabled && ctx->do_warp;
+#endif
 }
 MotionMode svt_aom_obmc_motion_mode_allowed(
     const PictureControlSet *pcs, struct ModeDecisionContext *ctx, const BlockSize bsize,
     uint8_t          situation, // 0: candidate(s) preparation, 1: data preparation, 2: simple translation face-off
     MvReferenceFrame rf0, MvReferenceFrame rf1, PredictionMode mode) {
+#if !OPT_OBMC_LVLS
     if (!ctx->do_obmc)
         return SIMPLE_TRANSLATION;
+#endif
     if (ctx->obmc_ctrls.trans_face_off && !situation)
         return SIMPLE_TRANSLATION;
     // check if should cap the max block size for obmc
@@ -4631,12 +4637,15 @@ EbErrorType generate_md_stage_0_cand(
     ctx->injected_mv_count = 0;
     ctx->inject_new_me = 1;
     ctx->inject_new_pme = 1;
+#if !OPT_OBMC_LVLS
     ctx->do_obmc = 1;
     if (ctx->obmc_ctrls.qp_dist_early_exit) {
         uint16_t th = (ctx->obmc_ctrls.qp_dist_early_exit * (63 - pcs->scs->static_config.qp)) >> 1;
         if ((MIN(ctx->md_me_dist, ctx->md_pme_dist) / (ctx->blk_geom->bwidth * ctx->blk_geom->bheight)) < th)
             ctx->do_obmc = 0;
     }
+#endif
+#if !OPT_WARP_LVLS
     ctx->do_warp = 1;
     if (ctx->wm_ctrls.qp_dist_early_exit)
     {
@@ -4644,6 +4653,7 @@ EbErrorType generate_md_stage_0_cand(
         if ((MIN(ctx->md_me_dist, ctx->md_pme_dist) / (ctx->blk_geom->bwidth * ctx->blk_geom->bheight)) < th)
             ctx->do_warp = 0;
     }
+#endif
     uint8_t dc_cand_only_flag = ctx->intra_ctrls.enable_intra && (ctx->intra_ctrls.intra_mode_end == DC_PRED);
     if (ctx->cand_reduction_ctrls.cand_elimination_ctrls.enabled)
         eliminate_candidate_based_on_pme_me_results(ctx,

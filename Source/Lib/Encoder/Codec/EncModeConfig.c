@@ -2735,7 +2735,6 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
         obmc_ctrls->trans_face_off               = 0;
         obmc_ctrls->fpel_search_range            = 16;
         obmc_ctrls->fpel_search_diag             = 1;
-        obmc_ctrls->qp_dist_early_exit           = 0;
         break;
     case 2:
         obmc_ctrls->enabled                      = 1;
@@ -2745,7 +2744,6 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
         obmc_ctrls->trans_face_off               = 0;
         obmc_ctrls->fpel_search_range            = 16;
         obmc_ctrls->fpel_search_diag             = 1;
-        obmc_ctrls->qp_dist_early_exit           = 0;
         break;
     case 3:
         obmc_ctrls->enabled                      = 1;
@@ -2755,7 +2753,6 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
         obmc_ctrls->trans_face_off               = 0;
         obmc_ctrls->fpel_search_range            = 8;
         obmc_ctrls->fpel_search_diag             = 0;
-        obmc_ctrls->qp_dist_early_exit           = 0;
         break;
     case 4:
         obmc_ctrls->enabled                      = 1;
@@ -2766,7 +2763,6 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
         obmc_ctrls->trans_face_off_th            = 0;
         obmc_ctrls->fpel_search_range            = 8;
         obmc_ctrls->fpel_search_diag             = 0;
-        obmc_ctrls->qp_dist_early_exit           = 0;
         break;
     case 5:
         obmc_ctrls->enabled                      = 1;
@@ -2777,7 +2773,6 @@ void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
         obmc_ctrls->trans_face_off_th            = 0;
         obmc_ctrls->fpel_search_range            = 8;
         obmc_ctrls->fpel_search_diag             = 0;
-        obmc_ctrls->qp_dist_early_exit           = 0;
         break;
     default:  
         obmc_ctrls->enabled = 0; 
@@ -4758,7 +4753,9 @@ uint8_t svt_aom_set_chroma_controls(ModeDecisionContext *ctx, uint8_t uv_level) 
 
     return uv_mode;
 }
-
+#if OPT_WARP_LVLS
+#define MAX_WARP_LVL 4
+#endif
 void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
     WmCtrls *wm_ctrls = &ctx->wm_ctrls;
 
@@ -4775,7 +4772,9 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
         wm_ctrls->lower_band_th           = 0;
         wm_ctrls->upper_band_th           = (uint16_t)~0;
         wm_ctrls->shut_approx_if_not_mds0 = 0;
+#if !OPT_WARP_LVLS
         wm_ctrls->qp_dist_early_exit      = 0;
+#endif
         break;
     case 2:
         wm_ctrls->enabled                 = 1;
@@ -4788,7 +4787,9 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
         wm_ctrls->lower_band_th           = 0;
         wm_ctrls->upper_band_th           = (uint16_t)~0;
         wm_ctrls->shut_approx_if_not_mds0 = 1;
+#if !OPT_WARP_LVLS
         wm_ctrls->qp_dist_early_exit      = 0;
+#endif
         break;
     case 3:
         wm_ctrls->enabled                 = 1;
@@ -4801,9 +4802,15 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
         wm_ctrls->lower_band_th           = 1 << 10;
         wm_ctrls->upper_band_th           = (uint16_t)~0;
         wm_ctrls->shut_approx_if_not_mds0 = 1;
+#if !OPT_WARP_LVLS
         wm_ctrls->qp_dist_early_exit      = 1;
+#endif
         break;
+#if OPT_WARP_LVLS
+    case MAX_WARP_LVL:
+#else
     case 4:
+#endif
         wm_ctrls->enabled                 = 1;
         wm_ctrls->use_wm_for_mvp          = 0;
         wm_ctrls->refinement_iterations   = 0;
@@ -4814,7 +4821,9 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
         wm_ctrls->lower_band_th           = 0;
         wm_ctrls->upper_band_th           = (uint16_t)~0;
         wm_ctrls->shut_approx_if_not_mds0 = 0;
+#if !OPT_WARP_LVLS
         wm_ctrls->qp_dist_early_exit      = 1;
+#endif
         break;
     default: assert(0); break;
     }
@@ -9596,6 +9605,16 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (hierarchical_levels <= 2) {
         pcs->wm_level = enc_mode <= ENC_M8 ? pcs->wm_level : 0;
     }
+#if OPT_WARP_LVLS
+    if (sq_qp > 55) {
+        pcs->wm_level = pcs->wm_level == 1 
+            ? pcs->wm_level 
+            : pcs->wm_level == 0
+                ? MAX_WARP_LVL
+                : pcs->wm_level - 1 ;
+    }
+#endif
+
     Bool enable_wm = pcs->wm_level ? 1 : 0;
     if (scs->enable_warped_motion != DEFAULT)
         enable_wm = (Bool)scs->enable_warped_motion;

@@ -44,6 +44,7 @@ extern "C" {
 #define OPT_TXT                                   1 // Optimize for txt levels: remove unnecessary levels and create new levels with better spacing in terms of speed
 #define OPT_OBMC_LVLS                             1 // Optimize obmc_level
 #define OPT_ME_HME_REF_PRUNE                      1 // Optimize levels for ME/HME ref pruning
+#define OPT_WARP_LVLS                             1 // Optimize warp_level
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
