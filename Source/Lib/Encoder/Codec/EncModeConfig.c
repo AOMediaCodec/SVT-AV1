@@ -9606,12 +9606,14 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->wm_level = enc_mode <= ENC_M8 ? pcs->wm_level : 0;
     }
 #if OPT_WARP_LVLS
-    if (sq_qp > 55) {
-        pcs->wm_level = pcs->wm_level == 1 
-            ? pcs->wm_level 
-            : pcs->wm_level == 0
+    if (enc_mode <= ENC_M10) {
+        if (sq_qp > 55) {
+            pcs->wm_level = pcs->wm_level == 1
+                ? pcs->wm_level
+                : pcs->wm_level == 0
                 ? MAX_WARP_LVL
-                : pcs->wm_level - 1 ;
+                : pcs->wm_level - 1;
+        }
     }
 #endif
 
