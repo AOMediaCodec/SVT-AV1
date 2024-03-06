@@ -9397,16 +9397,16 @@ uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t
     return inter_intra_level;
 }
 #if OPT_OBMC_LVLS
-uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp) {
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
     uint8_t obmc_level = 0;
     if (enc_mode <= ENC_M0)
         obmc_level = 1;
     else if (enc_mode <= ENC_M4)
         obmc_level = 3;
-    else if (enc_mode <= ENC_M11)
+    else if (enc_mode <= ENC_M9)
         obmc_level = 4;
-    else
-        obmc_level = 0;
+    else if (enc_mode <= ENC_M11)
+        obmc_level = is_base ? 4 : 0;
 
     // QP-banding
     if (!(enc_mode <= ENC_MR) && obmc_level) {
@@ -9609,7 +9609,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
 #if OPT_OBMC_DIST
 #if OPT_OBMC_LVLS
-    ppcs->pic_obmc_level = svt_aom_get_obmc_level(enc_mode, sq_qp);
+    ppcs->pic_obmc_level = svt_aom_get_obmc_level(enc_mode, sq_qp, is_base);
 #else
     const uint32_t obmc_me_dist_th = ((enc_mode <= ENC_M4 ? 0 : enc_mode <= ENC_M5 ? 100000 : enc_mode <= ENC_M6 ? 150000 : 200000) * (pcs->temporal_layer_index + 1)) / pcs->scs->static_config.qp;
     ppcs->pic_obmc_level = (pcs->ppcs->norm_me_dist < obmc_me_dist_th)

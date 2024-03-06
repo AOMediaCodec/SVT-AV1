@@ -67,7 +67,7 @@ uint8_t get_inter_compound_level(EncMode enc_mode);
 uint8_t get_filter_intra_level(EncMode enc_mode);
 uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t transition_present);
 #if OPT_OBMC_LVLS
-uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp);
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base);
 #else
 #if OPT_OBMC_DIST
 uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint8_t fast_decode, EbInputResolution input_resolution);
