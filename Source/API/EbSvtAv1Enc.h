@@ -934,7 +934,7 @@ typedef struct EbSvtAv1EncConfiguration {
     /* Stores the optional film grain synthesis info */
     AomFilmGrain *fgs_table;
 
-    uint8_t padding[64 - sizeof(Bool) - sizeof(AomFilmGrain *)];
+    uint8_t padding[64];
 } EbSvtAv1EncConfiguration;
 
 /**
