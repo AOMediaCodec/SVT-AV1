@@ -934,10 +934,7 @@ typedef struct EbSvtAv1EncConfiguration {
     AomFilmGrain *fgs_table;
 
     /* New parameters can go in under this line. Also deduct the size of the parameter */
-	/* from the padding array */
-
-
-
+    /* from the padding array */
 
     /*Add 128 Byte Padding to Struct to avoid changing the size of the public configuration struct*/
     uint8_t padding[128];
