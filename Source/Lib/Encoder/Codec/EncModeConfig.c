@@ -50,7 +50,11 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
             gm_level = 2;
         else if (enc_mode <= ENC_M2)
             gm_level = 4;
+#if CALL_GLOBAL
+        else if (enc_mode <= ENC_M6)
+#else
         else if (enc_mode <= ENC_M3)
+#endif
             gm_level = 5;
         else
             gm_level = 0;
@@ -8191,6 +8195,19 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
     else
         depth_level = 0;
 
+
+#if OPT_R0_DEPTHS
+    if (depth_level && pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
+
+        double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
+
+        double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
+        if (pcs->ppcs->r0 < r0_th)
+            depth_level = MAX((int)(depth_level - 3), 1);
+
+    }
+#endif
+
     // QP-banding
     if (depth_level && !pcs->ppcs->sc_class1 && !rtc_tune) {
         if (enc_mode <= ENC_M0) {
@@ -9018,7 +9035,11 @@ uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeff
 }
 
 #if OPT_NEW_NSQ_LVLS
+#if OPT_R0_NSQ
+uint8_t svt_aom_get_nsq_search_level(PictureControlSet* pcs, EncMode enc_mode, InputCoeffLvl coeff_lvl, uint32_t qp) {
+#else
 uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, uint32_t qp) {
+#endif
     int nsq_search_level;
     if (enc_mode <= ENC_MR) {
         nsq_search_level = 3;
@@ -9045,9 +9066,38 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         nsq_search_level = 18;
     }
 
+#if USE_GLOBAL
     // If NSQ search is off, don't apply offsets
     if (nsq_search_level == 0)
         return nsq_search_level;
+
+    int is_global = 0;
+    for (int frame = LAST_FRAME; frame <= ALTREF_FRAME; ++frame) {
+        EbWarpedMotionParams* wm = &pcs->ref_global_motion[frame];
+        if (wm->wmtype > IDENTITY) {
+            is_global = 1;
+            break;
+        }
+    }
+    if (is_global)
+        nsq_search_level = MAX(nsq_search_level - 3, 1);
+#endif
+
+    // If NSQ search is off, don't apply offsets
+    if (nsq_search_level == 0)
+        return nsq_search_level;
+
+#if OPT_R0_NSQ
+#define NSQ_R0_MODULATION_MIN_LEVEL 8
+    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
+        if (pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
+            double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
+            double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
+            if (pcs->ppcs->r0 < r0_th)
+                nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
+        }
+    }
+#endif
 
     // offset level based on coeff_lvl
     if (coeff_lvl == HIGH_LVL)
@@ -9953,7 +10003,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     //set the nsq_level
     pcs->nsq_geom_level   = svt_aom_get_nsq_geom_level(enc_mode, is_base, pcs->coeff_lvl);
 #if OPT_NEW_NSQ_LVLS
+#if OPT_R0_NSQ
+    pcs->nsq_search_level = svt_aom_get_nsq_search_level(pcs, enc_mode, pcs->coeff_lvl, scs->static_config.qp);
+#else
     pcs->nsq_search_level = svt_aom_get_nsq_search_level(enc_mode, pcs->coeff_lvl, scs->static_config.qp);
+#endif
 #else
     pcs->nsq_search_level = svt_aom_get_nsq_search_level(enc_mode, is_base, pcs->coeff_lvl, scs->static_config.qp);
 #endif
@@ -10203,6 +10257,18 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         }
     }
     pcs->pic_depth_removal_level_rtc = enc_mode <= ENC_M8 || (enc_mode <= ENC_M10 && is_ref) ? 0 : 1;
+
+#if OPT_R0_DEPTH_REMOVAL
+    if (pcs->pic_depth_removal_level && pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
+
+        double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
+
+        double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
+        if (pcs->ppcs->r0 < r0_th)
+            pcs->pic_depth_removal_level = MAX((int)(pcs->pic_depth_removal_level - 4), 0);
+
+    }
+#endif
     if (sc_class1) {
         if (enc_mode <= ENC_M7)
             pcs->pic_block_based_depth_refinement_level = 0;
@@ -10264,7 +10330,17 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->pic_block_based_depth_refinement_level = is_base ? 9 : 12;
         }
     }
+#if OPT_R0_DEPTH_REFINEMENT
+    if (pcs->pic_block_based_depth_refinement_level && pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
 
+        double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
+
+        double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
+        if (pcs->ppcs->r0 < r0_th)
+            pcs->pic_block_based_depth_refinement_level = MAX((int)(pcs->pic_block_based_depth_refinement_level - 1), 0);
+
+    }
+#endif
     if (sc_class1) {
         if (enc_mode <= ENC_M8)
             pcs->pic_lpd1_lvl = 0;

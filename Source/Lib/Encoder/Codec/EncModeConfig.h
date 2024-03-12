@@ -59,7 +59,11 @@ void svt_aom_set_dist_based_ref_pruning_controls(ModeDecisionContext *ctx, uint8
 bool    svt_aom_get_disallow_4x4(EncMode enc_mode, uint8_t is_base);
 uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeffLvl coeff_lvl);
 #if OPT_NEW_NSQ_LVLS
+#if OPT_R0_NSQ
+uint8_t svt_aom_get_nsq_search_level(PictureControlSet* pcs, EncMode enc_mode, InputCoeffLvl coeff_lvl, uint32_t qp);
+#else
 uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, uint32_t qp);
+#endif
 #else
 uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, uint8_t is_base, InputCoeffLvl coeff_lvl, uint32_t qp);
 #endif

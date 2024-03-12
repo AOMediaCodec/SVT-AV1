@@ -46,8 +46,18 @@ extern "C" {
 #define OPT_ME_HME_REF_PRUNE                      1 // Optimize levels for ME/HME ref pruning
 #define OPT_WARP_LVLS                             1 // Optimize warp_level
 #define OPT_CAND_RED                              1 // Optimize cand reduction level for M6
+#define OPT_R0_NSQ                                1 // NSQ-offset = f(r0)
+#define OPT_R0_DEPTH_REFINEMENT                   0
+#define OPT_R0_DEPTH_REMOVAL                      0
+#define OPT_R0_DEPTHS                             0
+#define CALL_GLOBAL                               0
+#if CALL_GLOBAL
+#define USE_GLOBAL                                0
+#endif
+
 
 //FOR DEBUGGING - Do not remove
+
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch
