@@ -9679,6 +9679,23 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->cand_reduction_level = 0;
     else if (enc_mode <= ENC_M3)
         pcs->cand_reduction_level = is_base ? 0 : 1;
+#if OPT_CAND_RED
+    else if (enc_mode <= ENC_M5) {
+        pcs->cand_reduction_level = 1;
+    }
+    else if (enc_mode <= ENC_M6) {
+        if (pcs->coeff_lvl == LOW_LVL)
+            pcs->cand_reduction_level = 1;
+        else
+            pcs->cand_reduction_level = is_not_last_layer ? 1 : 2;
+    }
+    else if (enc_mode <= ENC_M12) {
+        if (pcs->coeff_lvl == LOW_LVL)
+            pcs->cand_reduction_level = 1;
+        else
+            pcs->cand_reduction_level = 2;
+    }
+#else
     else if (enc_mode <= ENC_M6) {
         pcs->cand_reduction_level = 1;
     } else if (enc_mode <= ENC_M12)
@@ -9686,6 +9703,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->cand_reduction_level = 1;
         else
             pcs->cand_reduction_level = 2;
+#endif
     else
         pcs->cand_reduction_level = 2;
 

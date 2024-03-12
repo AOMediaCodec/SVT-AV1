@@ -45,6 +45,7 @@ extern "C" {
 #define OPT_OBMC_LVLS                             1 // Optimize obmc_level
 #define OPT_ME_HME_REF_PRUNE                      1 // Optimize levels for ME/HME ref pruning
 #define OPT_WARP_LVLS                             1 // Optimize warp_level
+#define OPT_CAND_RED                              1 // Optimize cand reduction level for M6
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
