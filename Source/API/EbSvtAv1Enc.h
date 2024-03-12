@@ -923,7 +923,6 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     SvtAv1FrameScaleEvts frame_scale_evts;
 
-    /*Add 64 Byte Padding to Struct to avoid changing the size of the public configuration struct*/
     /* ROI map
     *
     * 0 = disable ROI
@@ -934,7 +933,15 @@ typedef struct EbSvtAv1EncConfiguration {
     /* Stores the optional film grain synthesis info */
     AomFilmGrain *fgs_table;
 
-    uint8_t padding[64];
+    /* New parameters can go in under this line. Also deduct the size of the parameter */
+	/* from the padding array */
+
+
+
+
+    /*Add 128 Byte Padding to Struct to avoid changing the size of the public configuration struct*/
+    uint8_t padding[128];
+
 } EbSvtAv1EncConfiguration;
 
 /**
