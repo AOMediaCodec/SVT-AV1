@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] - 2024-03-08
+## [2.0.0] - 2024-03-13
 
 Major API updates
 - Changed the API signaling the End Of Stream (EOS) with the last frame vs with an empty frame
@@ -15,6 +15,7 @@ Encoder
 -   Simplified VBR multi-pass to use 2 passes to allow integration with ffmpeg
 - Continued adding ARM optimizations for functions with c_only equivalent
 - Replaced the 3-pass VBR with a 2-pass VBR to ease the multi-pass integration with ffmpeg
+- Memory savings of 20-35% for LP 8 mode in preset M6 and below and 1-5% in other modes / presets
 
 Cleanup and bug fixes and documentation
 - Various cleanups and functional bug fixes
