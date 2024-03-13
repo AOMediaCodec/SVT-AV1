@@ -827,7 +827,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     else
         me_8x8_var_lvl = 2;
     svt_aom_set_me_8x8_var_ctrls(me_ctx, me_8x8_var_lvl);
+#if TUNE_SHUT_ME_CAND_PRUNE
+    if (enc_mode <= ENC_M6)
+#else
     if (enc_mode <= ENC_M5)
+#endif
         me_ctx->prune_me_candidates_th = 0;
     else
         me_ctx->prune_me_candidates_th = 65;

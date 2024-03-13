@@ -47,6 +47,7 @@ extern "C" {
 #define OPT_WARP_LVLS                             1 // Optimize warp_level
 #define OPT_CAND_RED                              1 // Optimize cand reduction level for M6
 #define OPT_R0_NSQ                                1 // NSQ-offset = f(r0)
+#define TUNE_SHUT_ME_CAND_PRUNE                   1 // Disable me cand pruning in M6
 
 #define OPT_R0_DEPTH_REFINEMENT                   0
 #define OPT_R0_DEPTH_REMOVAL                      0
