@@ -9083,6 +9083,7 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         nsq_search_level = MAX(nsq_search_level - 3, 1);
 #endif
 
+
     // If NSQ search is off, don't apply offsets
     if (nsq_search_level == 0)
         return nsq_search_level;

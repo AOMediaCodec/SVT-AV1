@@ -47,9 +47,13 @@ extern "C" {
 #define OPT_WARP_LVLS                             1 // Optimize warp_level
 #define OPT_CAND_RED                              1 // Optimize cand reduction level for M6
 #define OPT_R0_NSQ                                1 // NSQ-offset = f(r0)
+
 #define OPT_R0_DEPTH_REFINEMENT                   0
 #define OPT_R0_DEPTH_REMOVAL                      0
 #define OPT_R0_DEPTHS                             0
+
+#define OPT_LIST1_REMOVAL                         1 // Optimize levels for List0-only @ Base
+
 #define CALL_GLOBAL                               0
 #if CALL_GLOBAL
 #define USE_GLOBAL                                0
