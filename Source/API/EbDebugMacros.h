@@ -60,6 +60,7 @@ extern "C" {
 #define USE_GLOBAL                                0
 #endif
 
+#define OPT_SUBPEL_LVLS                           0 // Optimize ME subpel levels
 
 //FOR DEBUGGING - Do not remove
 
