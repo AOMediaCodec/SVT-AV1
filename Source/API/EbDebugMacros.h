@@ -62,6 +62,11 @@ extern "C" {
 
 #define OPT_SUBPEL_LVLS                           0 // Optimize ME subpel levels
 
+#define OPT_M7                                    1 // M7 tuning using M5 as a reference
+#define OPT_DEPTH_REFINEMENT_LVLS                 1 // Use r0 instead of coeff-check/base-check @ depth-refinement lvl derivation
+#define OPT_TPL_SUB_LVL                           1 // Optimize the tpl sub-lvl
+
+
 //FOR DEBUGGING - Do not remove
 
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

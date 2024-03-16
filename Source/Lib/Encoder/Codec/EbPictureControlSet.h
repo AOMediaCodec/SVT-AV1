@@ -528,6 +528,10 @@ typedef struct TplControls {
     // the max precision for TPL subpel
     SUBPEL_FORCE_STOP
     subpel_depth;
+#if OPT_TPL_SUB_LVL
+    // Specifies the subpel accuracy for diagonal position(s) 
+    uint8_t subpel_diag_refinement;
+#endif
 } TplControls;
 
 typedef struct {

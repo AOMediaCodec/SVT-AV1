@@ -4964,7 +4964,11 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         nic_level = is_base ? 9 : 12;
     else if (enc_mode <= ENC_M4) 
         nic_level = is_base ? 10 : 12;
+#if OPT_M7
+    else if (enc_mode <= ENC_M7)
+#else
     else if (enc_mode <= ENC_M6)
+#endif
         nic_level = 15;
     else if (enc_mode <= ENC_M9)
         nic_level = is_base ? 15 : 16;
@@ -9875,7 +9879,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     else if (enc_mode <= ENC_M5) {
         pcs->cand_reduction_level = 1;
     }
+#if OPT_M7
+    else if (enc_mode <= ENC_M7) {
+#else
     else if (enc_mode <= ENC_M6) {
+#endif
         if (pcs->coeff_lvl == LOW_LVL)
             pcs->cand_reduction_level = 1;
         else
@@ -10360,7 +10368,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->pic_depth_removal_level = 0;
             else if (enc_mode <= ENC_M5) {
                 pcs->pic_depth_removal_level = 2;
+#if OPT_M7
+            } else if (enc_mode <= ENC_M7) {
+#else
             } else if (enc_mode <= ENC_M6) {
+#endif
                 if (input_resolution <= INPUT_SIZE_480p_RANGE) {
                     if (pcs->coeff_lvl == HIGH_LVL)
                         pcs->pic_depth_removal_level = is_base ? 2 : 3;
@@ -10411,6 +10423,77 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     }
 #endif
+#if OPT_DEPTH_REFINEMENT_LVLS
+    if (sc_class1) {
+        if (enc_mode <= ENC_M7)
+            pcs->pic_block_based_depth_refinement_level = 0;
+        else if (enc_mode <= ENC_M9)
+            pcs->pic_block_based_depth_refinement_level = is_base ? 0 : hierarchical_levels == 5 ? 4 : 5;
+        else if (enc_mode <= ENC_M10)
+            pcs->pic_block_based_depth_refinement_level = hierarchical_levels == 5 ? (is_islice ? 2 : 4)
+                                                                                   : (is_islice ? 2 : 5);
+        else
+            pcs->pic_block_based_depth_refinement_level = hierarchical_levels == 5 ? (is_islice ? 6 : 11)
+                                                                                   : (is_islice ? 7 : 12);
+    } else if (enc_mode <= ENC_MR) {
+        pcs->pic_block_based_depth_refinement_level = 0;
+    } else if (enc_mode <= ENC_M1) {
+        if (pcs->coeff_lvl == HIGH_LVL)
+            pcs->pic_block_based_depth_refinement_level = is_base ? 1 : 3;
+        else // regular or low
+            pcs->pic_block_based_depth_refinement_level = 1;
+    } else if (enc_mode <= ENC_M3) {
+        if (pcs->coeff_lvl == HIGH_LVL)
+            pcs->pic_block_based_depth_refinement_level = is_base ? 2 : 3;
+        else // regular or low
+            pcs->pic_block_based_depth_refinement_level = 2;
+    } else if (enc_mode <= ENC_M7) {
+        pcs->pic_block_based_depth_refinement_level = 3;
+    } else if (enc_mode <= ENC_M9) {
+        if (rtc_tune) {
+            if (pcs->coeff_lvl == LOW_LVL) {
+                pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 4;
+            } else { // regular
+                pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 5;
+            }
+        } else {
+            if (pcs->coeff_lvl == LOW_LVL)
+                pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 3;
+            else
+                pcs->pic_block_based_depth_refinement_level = is_base ? 7 : 10;
+        }
+    } else if (enc_mode <= ENC_M10) {
+        if (rtc_tune) {
+            if (pcs->coeff_lvl == LOW_LVL) {
+                pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 6;
+            } else { // regular
+                pcs->pic_block_based_depth_refinement_level = is_base ? 7 : 10;
+            }
+        } else {
+            if (pcs->coeff_lvl == LOW_LVL)
+                pcs->pic_block_based_depth_refinement_level = 3;
+            else
+                pcs->pic_block_based_depth_refinement_level = is_base ? 7 : 10;
+        }
+    } else {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 6;
+        } else { // regular
+            pcs->pic_block_based_depth_refinement_level = is_base ? 7 : 10;
+        }
+    }
+    
+    // r0-modulation
+    if (pcs->pic_block_based_depth_refinement_level && pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
+
+        double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
+
+        double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
+        if (pcs->ppcs->r0 < (2 * r0_th))
+            pcs->pic_block_based_depth_refinement_level = MAX((int)(pcs->pic_block_based_depth_refinement_level - 1), 0);
+
+    }
+#else
     if (sc_class1) {
         if (enc_mode <= ENC_M7)
             pcs->pic_block_based_depth_refinement_level = 0;
@@ -10418,70 +10501,73 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->pic_block_based_depth_refinement_level = is_base ? 0 : hierarchical_levels == 5 ? 6 : 7;
         else if (enc_mode <= ENC_M10)
             pcs->pic_block_based_depth_refinement_level = hierarchical_levels == 5 ? (is_islice ? 2 : 6)
-                                                                                   : (is_islice ? 3 : 7);
+            : (is_islice ? 3 : 7);
         else
             pcs->pic_block_based_depth_refinement_level = hierarchical_levels == 5 ? (is_islice ? 8 : 13)
-                                                                                   : (is_islice ? 9 : 14);
-    } else if (enc_mode <= ENC_MR) {
+            : (is_islice ? 9 : 14);
+    }
+    else if (enc_mode <= ENC_MR) {
         pcs->pic_block_based_depth_refinement_level = 0;
-    } else if (enc_mode <= ENC_M1) {
+    }
+    else if (enc_mode <= ENC_M1) {
         if (pcs->coeff_lvl == HIGH_LVL)
             pcs->pic_block_based_depth_refinement_level = is_base ? 1 : 6;
         else // regular or low
             pcs->pic_block_based_depth_refinement_level = 1;
-    } else if (enc_mode <= ENC_M3) {
+    }
+    else if (enc_mode <= ENC_M3) {
         if (pcs->coeff_lvl == HIGH_LVL)
             pcs->pic_block_based_depth_refinement_level = is_base ? 2 : 6;
         else // regular or low
             pcs->pic_block_based_depth_refinement_level = 2;
-    } else if (enc_mode <= ENC_M7) {
+    }
+    else if (enc_mode <= ENC_M7) {
         if (pcs->coeff_lvl == LOW_LVL)
             pcs->pic_block_based_depth_refinement_level = is_base ? 2 : hierarchical_levels == 5 ? 3 : 4;
         else
             pcs->pic_block_based_depth_refinement_level = is_base ? 2 : hierarchical_levels == 5 ? 5 : 6;
-    } else if (enc_mode <= ENC_M9) {
+    }
+    else if (enc_mode <= ENC_M9) {
         if (rtc_tune) {
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 6;
-            } else { // regular
+            }
+            else { // regular
                 pcs->pic_block_based_depth_refinement_level = is_base ? 4 : 7;
             }
-        } else {
+        }
+        else {
             if (pcs->coeff_lvl == LOW_LVL)
                 pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 5;
             else
                 pcs->pic_block_based_depth_refinement_level = is_base ? 9 : 12;
         }
-    } else if (enc_mode <= ENC_M10) {
+    }
+    else if (enc_mode <= ENC_M10) {
         if (rtc_tune) {
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->pic_block_based_depth_refinement_level = is_base ? 4 : 8;
-            } else { // regular
+            }
+            else { // regular
                 pcs->pic_block_based_depth_refinement_level = is_base ? 9 : 12;
             }
-        } else {
+        }
+        else {
             if (pcs->coeff_lvl == LOW_LVL)
                 pcs->pic_block_based_depth_refinement_level = is_base ? 3 : 5;
             else
                 pcs->pic_block_based_depth_refinement_level = is_base ? 9 : 12;
         }
-    } else {
+    }
+    else {
         if (pcs->coeff_lvl == LOW_LVL) {
             pcs->pic_block_based_depth_refinement_level = is_base ? 4 : 8;
-        } else { // regular
+        }
+        else { // regular
             pcs->pic_block_based_depth_refinement_level = is_base ? 9 : 12;
         }
     }
-#if OPT_R0_DEPTH_REFINEMENT
-    if (pcs->pic_block_based_depth_refinement_level && pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
 
-        double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
-
-        double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
-        if (pcs->ppcs->r0 < r0_th)
-            pcs->pic_block_based_depth_refinement_level = MAX((int)(pcs->pic_block_based_depth_refinement_level - 1), 0);
-
-    }
 #endif
     if (sc_class1) {
         if (enc_mode <= ENC_M8)
@@ -10533,7 +10619,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->pic_lpd1_lvl = is_base ? 0 : 5;
         }
     } else {
-        if (enc_mode <= ENC_M6) {
+#if OPT_M7
+         if (enc_mode <= ENC_M7) {
+#else
+         if (enc_mode <= ENC_M6) {
+#endif
             pcs->pic_lpd1_lvl = 0;
         } else if (enc_mode <= ENC_M8) {
             if (input_resolution <= INPUT_SIZE_360p_RANGE)
