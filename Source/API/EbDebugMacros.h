@@ -67,7 +67,7 @@ extern "C" {
 #define OPT_TPL_SUB_LVL                           1 // Optimize the tpl sub-lvl
 #define OPT_DEPTH_REMOVAL                         0 // Optimize depth_removal
 #define OPT_NSQ_GEOM                              1 // Optimize nsq_geom
-
+#define CLOSE_THE_SPEED_GAP_TO_1_8                1 // M5_cand_red + M5_txs
 
 //FOR DEBUGGING - Do not remove
 

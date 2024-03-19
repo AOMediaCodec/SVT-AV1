@@ -10256,11 +10256,19 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     else if (enc_mode <= ENC_M3)
         pcs->cand_reduction_level = is_base ? 0 : 1;
 #if OPT_CAND_RED
+#if CLOSE_THE_SPEED_GAP_TO_1_8
+    else if (enc_mode <= ENC_M7) {
+#else
     else if (enc_mode <= ENC_M5) {
+#endif
         pcs->cand_reduction_level = 1;
     }
 #if OPT_M7
+#if CLOSE_THE_SPEED_GAP_TO_1_8
+    else if (enc_mode <= ENC_M8) {
+#else
     else if (enc_mode <= ENC_M7) {
+#endif
 #else
     else if (enc_mode <= ENC_M6) {
 #endif
@@ -10551,7 +10559,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (enc_mode <= ENC_M2) {
         pcs->txs_level = 2;
     }
+#if CLOSE_THE_SPEED_GAP_TO_1_8
+    else if (enc_mode <= ENC_M7) {
+#else
     else if (enc_mode <= ENC_M6) {
+#endif
         pcs->txs_level = is_base ? 3 : 0;
     }
     else if (enc_mode <= ENC_M10) {
