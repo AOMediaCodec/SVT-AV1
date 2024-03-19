@@ -6276,6 +6276,21 @@ void svt_aom_set_nsq_geom_ctrls(ModeDecisionContext *ctx, uint8_t nsq_geom_level
         nsq_geom_ctrls->allow_HVA_HVB      = 0;
         break;
 
+#if OPT_NSQ_GEOM
+    case 3:
+        nsq_geom_ctrls->enabled            = 1;
+        nsq_geom_ctrls->min_nsq_block_size = 8;
+        nsq_geom_ctrls->allow_HV4          = 1;
+        nsq_geom_ctrls->allow_HVA_HVB      = 0;
+        break;
+
+    case 4:
+        nsq_geom_ctrls->enabled            = 1;
+        nsq_geom_ctrls->min_nsq_block_size = 8;
+        nsq_geom_ctrls->allow_HV4          = 0;
+        nsq_geom_ctrls->allow_HVA_HVB      = 0;
+        break;
+#else
     case 3:
         nsq_geom_ctrls->enabled            = 1;
         nsq_geom_ctrls->min_nsq_block_size = 8;
@@ -6289,8 +6304,9 @@ void svt_aom_set_nsq_geom_ctrls(ModeDecisionContext *ctx, uint8_t nsq_geom_level
         nsq_geom_ctrls->allow_HV4          = 0;
         nsq_geom_ctrls->allow_HVA_HVB      = 0;
         break;
-
+#endif
     default: assert(0); break;
+
     }
 
     if (allow_HVA_HVB)
@@ -9462,8 +9478,43 @@ bool svt_aom_get_disallow_4x4(EncMode enc_mode, uint8_t is_base) {
     else
         return true;
 }
+
 uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeffLvl coeff_lvl) {
     uint8_t nsq_geom_level;
+
+#if OPT_NSQ_GEOM
+        if (enc_mode <= ENC_M0) {
+        if (coeff_lvl == HIGH_LVL)
+            nsq_geom_level = 2;
+        else // regular or low
+            nsq_geom_level = is_base ? 1 : 2;
+    } else if (enc_mode <= ENC_M3) {
+        nsq_geom_level = 2;
+    } else if (enc_mode <= ENC_M5) {
+        if (coeff_lvl == HIGH_LVL)
+            nsq_geom_level = 4;
+        else // regular
+            nsq_geom_level = 2;
+    } else if (enc_mode <= ENC_M6) {
+        if (coeff_lvl == HIGH_LVL)
+            nsq_geom_level = 4;
+        else // regular or low
+            nsq_geom_level = 2;
+    } else if (enc_mode <= ENC_M7) {
+        if (coeff_lvl == HIGH_LVL)
+            nsq_geom_level = is_base ? 4 : 0;
+        else // regular
+            nsq_geom_level = is_base ? 2 : 3;
+    } else if (enc_mode <= ENC_M11) {
+        if (coeff_lvl == LOW_LVL)
+            nsq_geom_level = 4;
+        else
+            nsq_geom_level = is_base ? 4 : 0;
+    }
+    else {
+            nsq_geom_level = is_base ? 4 : 0;
+    }
+#else
     if (enc_mode <= ENC_M0) {
         if (coeff_lvl == HIGH_LVL)
             nsq_geom_level = 2;
@@ -9504,7 +9555,7 @@ uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeff
     else
         nsq_geom_level = 0;
 #endif
-
+#endif
     return nsq_geom_level;
 }
 
