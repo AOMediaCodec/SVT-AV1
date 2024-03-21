@@ -3097,29 +3097,29 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
             disallow_below_16x16_cost_th_multiplier = 0;
             disallow_below_32x32_cost_th_multiplier = 0;
             disallow_below_64x64_cost_th_multiplier = 0;
-            dev_16x16_to_8x8_th                     = 50;
+            dev_16x16_to_8x8_th                     = 40;
             dev_32x32_to_16x16_th                   = 0;
             qp_scale_factor                         = 1;
             break;
         case 6:
             depth_removal_ctrls->enabled            = 1;
             disallow_4x4_cost_th_multiplier         = 64;
-            disallow_below_16x16_cost_th_multiplier = 4;
-            disallow_below_32x32_cost_th_multiplier = 2;
+            disallow_below_16x16_cost_th_multiplier = 0;
+            disallow_below_32x32_cost_th_multiplier = 0;
             disallow_below_64x64_cost_th_multiplier = 0;
             dev_16x16_to_8x8_th                     = 50;
-            dev_32x32_to_16x16_th                   = 0;
-            qp_scale_factor                         = 2;
+            dev_32x32_to_16x16_th                   = 25;
+            qp_scale_factor                         = 1;
             break;
         case 7:
             depth_removal_ctrls->enabled            = 1;
             disallow_4x4_cost_th_multiplier         = 64;
-            disallow_below_16x16_cost_th_multiplier = 4;
-            disallow_below_32x32_cost_th_multiplier = 2;
-            disallow_below_64x64_cost_th_multiplier = 2;
+            disallow_below_16x16_cost_th_multiplier = 0;
+            disallow_below_32x32_cost_th_multiplier = 0;
+            disallow_below_64x64_cost_th_multiplier = 0;
             dev_16x16_to_8x8_th                     = 50;
-            dev_32x32_to_16x16_th                   = 0;
-            qp_scale_factor                         = 2;
+            dev_32x32_to_16x16_th                   = 35;
+            qp_scale_factor                         = 1;
             break;
         case 8:
             depth_removal_ctrls->enabled            = 1;
@@ -10708,23 +10708,91 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->pic_depth_removal_level = is_base ? 5 : 14;
             }
         } else if (fast_decode == 0) {
+#if OPT_DEPTH_REMOVAL
+            if (enc_mode <= ENC_M2)
+#else
             if (enc_mode <= ENC_M6)
+#endif
                 pcs->pic_depth_removal_level = 0;
 #if OPT_DEPTH_REMOVAL
-            else if (enc_mode <= ENC_M7) {
+            else if (enc_mode <= ENC_M5) {
                 if (pcs->coeff_lvl == HIGH_LVL)
                     pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 4;
                 else
                     pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 1 : 2;
             }
+            else if (enc_mode <= ENC_M7) {
+                if (input_resolution <= INPUT_SIZE_720p_RANGE) {
+                    if (pcs->coeff_lvl == HIGH_LVL)
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 4 : 5;
+                    else
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 4;
+                }
+                else {
+                    if (pcs->coeff_lvl == HIGH_LVL)
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 4 : 6;
+                    else
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 5;
+                }
+            }
 #endif
+
+#if OPT_DEPTH_REMOVAL
+            else if ((rtc_tune && (enc_mode <= ENC_M9))) {
+                if (pcs->coeff_lvl == LOW_LVL) {
+                    if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                        pcs->pic_depth_removal_level = 4;
+                    else
+                        pcs->pic_depth_removal_level = 5;
+                }
+                else {
+                    if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                        pcs->pic_depth_removal_level = 4;
+                    else
+                        pcs->pic_depth_removal_level = is_base ? 5 : 6;
+                }
+            } else if (enc_mode <= ENC_M8) {
+                if (pcs->coeff_lvl == LOW_LVL) {
+                    if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                        pcs->pic_depth_removal_level = 4;
+                    else
+                        pcs->pic_depth_removal_level = 5;
+                } else {
+                    if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                        pcs->pic_depth_removal_level = is_base ? 5 : 6;
+                    else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                        pcs->pic_depth_removal_level = is_base ? 5 : 7;
+                    else
+                        pcs->pic_depth_removal_level = is_base ? 5 : 7;
+                }
+            } else if (enc_mode <= ENC_M12) {
+                if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 5 : 6;
+                else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 5 : 7;
+                else if (input_resolution <= INPUT_SIZE_720p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 5 : 8;
+                else if (input_resolution <= INPUT_SIZE_1080p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 5 : 8;
+                else
+                    pcs->pic_depth_removal_level = is_base ? 9 : 14;
+            } else {
+                if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 5 : 6;
+                else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 9 : 11;
+                else
+                    pcs->pic_depth_removal_level = is_base ? 9 : 14;
+            }
+#else
             else if ((rtc_tune && (enc_mode <= ENC_M9))) {
                 if (pcs->coeff_lvl == LOW_LVL) {
                     if (input_resolution <= INPUT_SIZE_480p_RANGE)
                         pcs->pic_depth_removal_level = 1;
                     else
                         pcs->pic_depth_removal_level = 2;
-                } else {
+                }
+                else {
                     if (input_resolution <= INPUT_SIZE_480p_RANGE)
                         pcs->pic_depth_removal_level = 1;
                     else
@@ -10763,12 +10831,16 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 else
                     pcs->pic_depth_removal_level = is_base ? 9 : 14;
             }
+#endif
         } else {
             if (enc_mode <= ENC_M2)
                 pcs->pic_depth_removal_level = 0;
 #if OPT_DEPTH_REMOVAL
-            else if (enc_mode <= ENC_M4) {
-                pcs->pic_depth_removal_level = is_islice ? 0 : 2;
+            else if (enc_mode <= ENC_M5) {
+                if (pcs->coeff_lvl == HIGH_LVL)
+                    pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 4;
+                else
+                    pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 1 : 2;
 #else
             else if (enc_mode <= ENC_M5) {
                 pcs->pic_depth_removal_level = 2;
@@ -10779,10 +10851,45 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             } else if (enc_mode <= ENC_M6) {
 #endif
 #if OPT_DEPTH_REMOVAL
-                if (pcs->coeff_lvl == HIGH_LVL)
-                    pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 4;
+                if (input_resolution <= INPUT_SIZE_720p_RANGE) {
+                    if (pcs->coeff_lvl == HIGH_LVL)
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 4 : 5;
+                    else
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 4;
+                }
+                else {
+                    if (pcs->coeff_lvl == HIGH_LVL)
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 4 : 6;
+                    else
+                        pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 3 : 5;
+                }
+            }
+            else if (enc_mode <= ENC_M9) {
+                if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 4 : 5;
                 else
-                    pcs->pic_depth_removal_level = is_islice ? 0 : is_base ? 1 : 2;
+                    pcs->pic_depth_removal_level = is_base ? 4 : 6;
+            }
+            else if (enc_mode <= ENC_M11) {
+                if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 4 : 6;
+                else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 4 : 6;
+                else if (input_resolution <= INPUT_SIZE_720p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 4 : 7;
+                else if (input_resolution <= INPUT_SIZE_1080p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 4 : 8;
+                else
+                    pcs->pic_depth_removal_level = is_base ? 9 : 14;
+            }
+            else {
+                if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                    pcs->pic_depth_removal_level = 7;
+                else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                    pcs->pic_depth_removal_level = is_base ? 9 : 11;
+                else
+                    pcs->pic_depth_removal_level = is_base ? 9 : 14;
+            }
 #else
                 if (input_resolution <= INPUT_SIZE_480p_RANGE) {
                     if (pcs->coeff_lvl == HIGH_LVL)
@@ -10795,13 +10902,14 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                     else
                         pcs->pic_depth_removal_level = is_base ? 2 : 3;
                 }
-#endif
-            } else if (enc_mode <= ENC_M9) {
+            }
+            else if (enc_mode <= ENC_M9) {
                 if (input_resolution <= INPUT_SIZE_480p_RANGE)
                     pcs->pic_depth_removal_level = is_base ? 2 : 3;
                 else
                     pcs->pic_depth_removal_level = is_base ? 2 : 6;
-            } else if (enc_mode <= ENC_M11) {
+            }
+            else if (enc_mode <= ENC_M11) {
                 if (input_resolution <= INPUT_SIZE_360p_RANGE)
                     pcs->pic_depth_removal_level = is_base ? 2 : 4;
                 else if (input_resolution <= INPUT_SIZE_480p_RANGE)
@@ -10812,7 +10920,8 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                     pcs->pic_depth_removal_level = is_base ? 3 : 8;
                 else
                     pcs->pic_depth_removal_level = is_base ? 9 : 14;
-            } else {
+            }
+            else {
                 if (input_resolution <= INPUT_SIZE_360p_RANGE)
                     pcs->pic_depth_removal_level = 7;
                 else if (input_resolution <= INPUT_SIZE_480p_RANGE)
@@ -10820,6 +10929,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 else
                     pcs->pic_depth_removal_level = is_base ? 9 : 14;
             }
+#endif
         }
     }
     pcs->pic_depth_removal_level_rtc = enc_mode <= ENC_M8 || (enc_mode <= ENC_M10 && is_ref) ? 0 : 1;

@@ -65,7 +65,7 @@ extern "C" {
 #define OPT_M7                                    1 // M7 tuning using M5 as a reference
 #define OPT_DEPTH_REFINEMENT_LVLS                 1 // Use r0 instead of coeff-check/base-check @ depth-refinement lvl derivation
 #define OPT_TPL_SUB_LVL                           1 // Optimize the tpl sub-lvl
-#define OPT_DEPTH_REMOVAL                         0 // Optimize depth_removal
+#define OPT_DEPTH_REMOVAL                         1 // Optimize depth_removal
 #define OPT_NSQ_GEOM                              0 // Optimize nsq_geom
 #define CLOSE_THE_SPEED_GAP_TO_1_8                1 // M5_cand_red + M5_txs
 
