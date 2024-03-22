@@ -10267,8 +10267,11 @@ static void update_nsq_settings(PictureControlSet* pcs, ModeDecisionContext* ctx
 static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs, ModeDecisionContext *ctx) {
 #endif
     // Reset the NSQ setting if previous-SQ is_high_energy
+#if OPT_DIST_BAND
+    svt_aom_set_nsq_search_ctrls(pcs, ctx, pcs->nsq_search_level, pcs->ppcs->input_resolution);
+#else
     svt_aom_set_nsq_search_ctrls(ctx, pcs->nsq_search_level, pcs->ppcs->input_resolution);
-
+#endif
     // Derive area energy
     uint32_t energy = ctx->blk_geom->sq_size < 64
         ? ctx->b32_satd[(ctx->blk_geom->org_x / 32) + ((ctx->blk_geom->org_y / 32) << 1)]
@@ -10279,7 +10282,11 @@ static void update_nsq_settings(SequenceControlSet *scs, PictureControlSet *pcs,
 
     if (energy > high_energy) {
 #if OPT_NEW_NSQ_LVLS
+#if OPT_DIST_BAND
+        svt_aom_set_nsq_search_ctrls(pcs, ctx, MAX((int)pcs->nsq_search_level - 1, 1), pcs->ppcs->input_resolution);
+#else
         svt_aom_set_nsq_search_ctrls(ctx, MAX((int)pcs->nsq_search_level - 1, 1), pcs->ppcs->input_resolution);
+#endif
 #else
         NsqSearchCtrls* nsq_search_ctrls = &ctx->nsq_search_ctrls;
         nsq_search_ctrls->sq_weight = MAX(95, nsq_search_ctrls->sq_weight);

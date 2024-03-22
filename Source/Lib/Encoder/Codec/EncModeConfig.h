@@ -83,7 +83,11 @@ uint8_t svt_aom_get_obmc_level(PictureControlSet *pcs, EncMode enc_mode, uint8_t
 
 void    svt_aom_set_nsq_geom_ctrls(ModeDecisionContext *ctx, uint8_t nsq_geom_level, uint8_t *allow_HVA_HVB,
                                    uint8_t *allow_HV4, uint8_t *min_nsq_bsize);
+#if OPT_DIST_BAND
+void    svt_aom_set_nsq_search_ctrls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t nsq_search_level, uint8_t resolution);
+#else
 void    svt_aom_set_nsq_search_ctrls(ModeDecisionContext *ctx, uint8_t nsq_search_level, uint8_t resolution);
+#endif
 uint8_t svt_aom_get_tpl_synthesizer_block_size(int8_t tpl_level, uint32_t picture_width, uint32_t picture_height);
 
 void svt_aom_set_mfmv_config(SequenceControlSet *scs);

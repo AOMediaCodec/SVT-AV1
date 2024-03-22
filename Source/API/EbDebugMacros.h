@@ -68,6 +68,9 @@ extern "C" {
 #define OPT_DEPTH_REMOVAL                         1 // Optimize depth_removal
 #define OPT_NSQ_GEOM                              0 // Optimize nsq_geom
 #define CLOSE_THE_SPEED_GAP_TO_1_8                1 // M5_cand_red + M5_txs
+#define OPT_DIST_DEPTHS                           1 // med-banding for depths
+#define OPT_DIST_BAND                             0 
+#define OPT_LPD1_LVLS                             0 
 
 //FOR DEBUGGING - Do not remove
 
