@@ -11,6 +11,68 @@
 #define MAX_LDP0_LVL 8 // Max supported ldp0 levels
 static uint8_t pf_gi[16] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60};
 
+
+/*
+* Get the equivalent ME distortion/variance for a 128x128 SB, based on the ME data stored in 64x64 granularity.
+*
+* The equivalent values are stored in me_64x64_dist, me_32x32_dist, me_16x16_dist, me_8x8_dist, me_8x8_cost_var.
+* The distortion metrics will be averaged (sum of 64x64 dists/num 64x64 blocks in the SB), while the variance
+* will be the maximum of the 64x64 variances.
+*/
+static void get_sb128_me_data(PictureControlSet* pcs, ModeDecisionContext* ctx, uint32_t* me_64x64_dist,
+    uint32_t* me_32x32_dist, uint32_t* me_16x16_dist, uint32_t* me_8x8_dist,
+    uint32_t* me_8x8_cost_var) {
+    uint32_t me_sb_size = pcs->scs->b64_size;
+    uint32_t me_pic_width_in_sb = (pcs->ppcs->aligned_width + me_sb_size - 1) / me_sb_size;
+    uint32_t me_pic_height_in_sb = (pcs->ppcs->aligned_height + me_sb_size - 1) / me_sb_size;
+    uint32_t me_sb_x = (ctx->sb_origin_x / me_sb_size);
+    uint32_t me_sb_y = (ctx->sb_origin_y / me_sb_size);
+    uint32_t me_sb_addr = me_sb_x + me_sb_y * me_pic_width_in_sb;
+
+    uint32_t dist_64 = pcs->ppcs->me_64x64_distortion[me_sb_addr];
+    uint32_t dist_32 = pcs->ppcs->me_32x32_distortion[me_sb_addr];
+    uint32_t dist_16 = pcs->ppcs->me_16x16_distortion[me_sb_addr];
+    uint32_t dist_8 = pcs->ppcs->me_8x8_distortion[me_sb_addr];
+    uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[me_sb_addr];
+    int      count = 1;
+    if (me_sb_x + 1 <= me_pic_width_in_sb) {
+        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + 1];
+        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + 1];
+        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + 1];
+        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + 1];
+        me_8x8_cost_variance = MAX(me_8x8_cost_variance, pcs->ppcs->me_8x8_cost_variance[me_sb_addr + 1]);
+        count++;
+    }
+    if (me_sb_y + 1 <= me_pic_height_in_sb) {
+        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + me_pic_width_in_sb];
+        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + me_pic_width_in_sb];
+        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + me_pic_width_in_sb];
+        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + me_pic_width_in_sb];
+        me_8x8_cost_variance = MAX(me_8x8_cost_variance,
+            pcs->ppcs->me_8x8_cost_variance[me_sb_addr + me_pic_width_in_sb]);
+        count++;
+    }
+    if (me_sb_y + 1 <= me_pic_height_in_sb && me_sb_x + 1 <= me_pic_width_in_sb) {
+        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + me_pic_width_in_sb + 1];
+        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + me_pic_width_in_sb + 1];
+        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + me_pic_width_in_sb + 1];
+        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + me_pic_width_in_sb + 1];
+        me_8x8_cost_variance = MAX(me_8x8_cost_variance,
+            pcs->ppcs->me_8x8_cost_variance[me_sb_addr + me_pic_width_in_sb + 1]);
+        count++;
+    }
+    dist_64 /= count;
+    dist_32 /= count;
+    dist_16 /= count;
+    dist_8 /= count;
+
+    *me_64x64_dist = dist_64;
+    *me_32x32_dist = dist_32;
+    *me_16x16_dist = dist_16;
+    *me_8x8_dist = dist_8;
+    *me_8x8_cost_var = me_8x8_cost_variance;
+}
+
 // use this function to set the enable_me_8x8 level
 uint8_t svt_aom_get_enable_me_8x8(EncMode enc_mode, bool rtc_tune, EbInputResolution input_resolution) {
     uint8_t enable_me_8x8 = 0;
@@ -2731,8 +2793,31 @@ Bool svt_aom_is_ref_same_size(PictureControlSet *pcs, uint8_t list_idx, uint8_t 
         ref_obj->reference_picture->height == pcs->ppcs->frame_height;
 }
 #if OPT_OBMC_LVLS
+#if OPT_DIST_OBMC
+void svt_aom_set_obmc_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t obmc_mode) {
+#else
 void svt_aom_set_obmc_controls(ModeDecisionContext *ctx, uint8_t obmc_mode) {
+#endif
     ObmcControls *obmc_ctrls = &ctx->obmc_ctrls;
+
+
+#if OPT_DIST_OBMC
+    if (pcs->slice_type != I_SLICE && obmc_mode) {
+        // med-banding
+        uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
+        if (pcs->scs->super_block_size == 64) {
+            dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+        }
+        else {
+            get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+        }
+        uint32_t error_per_sample = 2;
+        if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+            obmc_mode = obmc_mode + 1;
+        }
+    }
+#endif
+
     switch (obmc_mode) {
     case 0: obmc_ctrls->enabled = 0; break;
     case 1:
@@ -2900,66 +2985,6 @@ void set_depth_removal_level_controls_rtc(PictureControlSet *pcs, ModeDecisionCo
         : 0;
 }
 
-/*
-* Get the equivalent ME distortion/variance for a 128x128 SB, based on the ME data stored in 64x64 granularity.
-*
-* The equivalent values are stored in me_64x64_dist, me_32x32_dist, me_16x16_dist, me_8x8_dist, me_8x8_cost_var.
-* The distortion metrics will be averaged (sum of 64x64 dists/num 64x64 blocks in the SB), while the variance
-* will be the maximum of the 64x64 variances.
-*/
-static void get_sb128_me_data(PictureControlSet *pcs, ModeDecisionContext *ctx, uint32_t *me_64x64_dist,
-                              uint32_t *me_32x32_dist, uint32_t *me_16x16_dist, uint32_t *me_8x8_dist,
-                              uint32_t *me_8x8_cost_var) {
-    uint32_t me_sb_size          = pcs->scs->b64_size;
-    uint32_t me_pic_width_in_sb  = (pcs->ppcs->aligned_width + me_sb_size - 1) / me_sb_size;
-    uint32_t me_pic_height_in_sb = (pcs->ppcs->aligned_height + me_sb_size - 1) / me_sb_size;
-    uint32_t me_sb_x             = (ctx->sb_origin_x / me_sb_size);
-    uint32_t me_sb_y             = (ctx->sb_origin_y / me_sb_size);
-    uint32_t me_sb_addr          = me_sb_x + me_sb_y * me_pic_width_in_sb;
-
-    uint32_t dist_64              = pcs->ppcs->me_64x64_distortion[me_sb_addr];
-    uint32_t dist_32              = pcs->ppcs->me_32x32_distortion[me_sb_addr];
-    uint32_t dist_16              = pcs->ppcs->me_16x16_distortion[me_sb_addr];
-    uint32_t dist_8               = pcs->ppcs->me_8x8_distortion[me_sb_addr];
-    uint32_t me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[me_sb_addr];
-    int      count                = 1;
-    if (me_sb_x + 1 <= me_pic_width_in_sb) {
-        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + 1];
-        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + 1];
-        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + 1];
-        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + 1];
-        me_8x8_cost_variance = MAX(me_8x8_cost_variance, pcs->ppcs->me_8x8_cost_variance[me_sb_addr + 1]);
-        count++;
-    }
-    if (me_sb_y + 1 <= me_pic_height_in_sb) {
-        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + me_pic_width_in_sb];
-        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + me_pic_width_in_sb];
-        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + me_pic_width_in_sb];
-        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + me_pic_width_in_sb];
-        me_8x8_cost_variance = MAX(me_8x8_cost_variance,
-                                   pcs->ppcs->me_8x8_cost_variance[me_sb_addr + me_pic_width_in_sb]);
-        count++;
-    }
-    if (me_sb_y + 1 <= me_pic_height_in_sb && me_sb_x + 1 <= me_pic_width_in_sb) {
-        dist_64 += pcs->ppcs->me_64x64_distortion[me_sb_addr + me_pic_width_in_sb + 1];
-        dist_32 += pcs->ppcs->me_32x32_distortion[me_sb_addr + me_pic_width_in_sb + 1];
-        dist_16 += pcs->ppcs->me_16x16_distortion[me_sb_addr + me_pic_width_in_sb + 1];
-        dist_8 += pcs->ppcs->me_8x8_distortion[me_sb_addr + me_pic_width_in_sb + 1];
-        me_8x8_cost_variance = MAX(me_8x8_cost_variance,
-                                   pcs->ppcs->me_8x8_cost_variance[me_sb_addr + me_pic_width_in_sb + 1]);
-        count++;
-    }
-    dist_64 /= count;
-    dist_32 /= count;
-    dist_16 /= count;
-    dist_8 /= count;
-
-    *me_64x64_dist   = dist_64;
-    *me_32x32_dist   = dist_32;
-    *me_16x16_dist   = dist_16;
-    *me_8x8_dist     = dist_8;
-    *me_8x8_cost_var = me_8x8_cost_variance;
-}
 #if OPT_DEPTH_REMOVAL
 static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisionContext *ctx,
                                              uint8_t depth_removal_level) {
@@ -3046,6 +3071,24 @@ static void set_depth_removal_level_controls(PictureControlSet *pcs, ModeDecisio
             else if (diff < 0)
                 depth_removal_level = MAX(0, (int)depth_removal_level - 1);
         }
+
+
+#if OPT_DIST_DEPTH_REMOVAL
+        if (depth_removal_level) {
+            // med-banding
+            uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
+            if (pcs->scs->super_block_size == 64) {
+                dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+            }
+            else {
+                get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+            }
+            uint32_t error_per_sample = 10;
+            if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+                depth_removal_level = depth_removal_level + 1;
+            }
+        }
+#endif
 
         switch (depth_removal_level) {
         case 0: depth_removal_ctrls->enabled = 0; break;
@@ -5365,10 +5408,32 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 * When called at memory allocation, there is no context (it is passed as NULL) so the signals
 * are not set.
 */
+#if OPT_DIST_NIC
+uint8_t svt_aom_set_nic_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t nic_level) {
+#else
 uint8_t svt_aom_set_nic_controls(ModeDecisionContext *ctx, uint8_t nic_level) {
+#endif
     NicPruningCtrls *nic_pruning_ctrls = ctx ? &ctx->nic_ctrls.pruning_ctrls : NULL;
     uint8_t          nic_scaling_level = 0;
     uint8_t          md_staging_mode   = MD_STAGING_MODE_0;
+
+
+#if OPT_DIST_NIC
+    if (ctx && pcs && pcs->slice_type != I_SLICE) {
+        // med-banding
+        uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
+        if (pcs->scs->super_block_size == 64) {
+            dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+        }
+        else {
+            get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+        }
+        uint32_t error_per_sample = 1;
+        if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+            nic_level = MIN(nic_level + 1, 19);
+        }
+    }
+#endif
     switch (nic_level) {
     case 0: // MAX NIC scaling; no pruning
         // NIC scaling level
@@ -6342,7 +6407,7 @@ void svt_aom_set_nsq_search_ctrls(ModeDecisionContext* ctx, uint8_t nsq_search_l
             get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
         }
 
-        int error_per_sample = 5;
+        int error_per_sample = 2;
         if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
             nsq_search_level =  MIN(nsq_search_level + 1, 18);
         }
@@ -7955,8 +8020,29 @@ void svt_aom_set_dist_based_ref_pruning_controls(ModeDecisionContext *ctx, uint8
     default: assert(0); break;
     }
 }
+#if OPT_DIST_TXS
+static void set_txs_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t txs_level) {
+#else
 static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
+#endif
     TxsControls *txs_ctrls = &ctx->txs_ctrls;
+
+#if OPT_DIST_TXS
+    if (pcs->slice_type != I_SLICE && txs_level) {
+        // med-banding
+        uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
+        if (pcs->scs->super_block_size == 64) {
+            dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+        }
+        else {
+            get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+        }
+        uint32_t error_per_sample = 7;
+        if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+            txs_level = txs_level + 1;
+        }
+    }
+#endif
 
     switch (txs_level) {
     case 0: txs_ctrls->enabled = 0; break;
@@ -8054,7 +8140,11 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         txs_ctrls->quadrant_th_sf            = 160;
         break;
 #endif
+#if OPT_TXS
+    default: txs_ctrls->enabled = 0; break;
+#else
     default: assert(0); break;
+#endif
     }
 }
 static void set_spatial_sse_full_loop_level(ModeDecisionContext *ctx, uint8_t spatial_sse_full_loop_level) {
@@ -8712,7 +8802,7 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
                 get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
             }
 
-            int error_per_sample = 3;
+            int error_per_sample = 2;
             if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
                 depth_level = depth_level + 1;
             }
@@ -9293,7 +9383,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
     svt_aom_set_nsq_search_ctrls(ctx, pcs->nsq_search_level, input_resolution);
 #endif
 #if OPT_NIC
+#if OPT_DIST_NIC
+    svt_aom_set_nic_controls(pcs, ctx, ctx->pd_pass == PD_PASS_0 ? 20 : pcs->nic_level);
+#else
     svt_aom_set_nic_controls(ctx, ctx->pd_pass == PD_PASS_0 ? 20 : pcs->nic_level);
+#endif
 #else
     svt_aom_set_nic_controls(ctx, ctx->pd_pass == PD_PASS_0 ? 17 : pcs->nic_level);
 #endif
@@ -9391,10 +9485,17 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
         ctx->md_pic_obmc_level = 0;
     else
         ctx->md_pic_obmc_level = pcs->ppcs->pic_obmc_level;
-
+#if OPT_DIST_OBMC
+    svt_aom_set_obmc_controls(pcs, ctx, ctx->md_pic_obmc_level);
+#else
     svt_aom_set_obmc_controls(ctx, ctx->md_pic_obmc_level);
+#endif
     svt_aom_set_inter_intra_ctrls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->inter_intra_level);
+#if OPT_DIST_TXS
+    set_txs_controls(pcs, ctx, pd_pass == PD_PASS_0 ? 0 : pcs->txs_level);
+#else
     set_txs_controls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->txs_level);
+#endif
     // Set md_filter_intra_mode @ MD
     // md_filter_intra_level specifies whether filter intra would be active
     // for a given prediction candidate in mode decision.
@@ -11264,14 +11365,6 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             }
         }
     }
-#if OPT_LPD1_LVLS
-    // QP-banding
-    if (!is_base) {
-        if (sq_qp <= 35) {
-            pcs->pic_lpd1_lvl = pcs->pic_lpd1_lvl + 5;
-        }
-    }
-#endif
 
     if (is_base && !pcs->ppcs->ld_enhanced_base_frame && pcs->slice_type != I_SLICE &&
         ((!sc_class1 && enc_mode > ENC_M10) || (sc_class1 && enc_mode > ENC_M11)) && pcs->rtc_tune) {

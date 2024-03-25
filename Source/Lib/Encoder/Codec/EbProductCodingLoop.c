@@ -9641,8 +9641,13 @@ static Bool update_md_settings(PictureControlSet *pcs, ModeDecisionContext *ctx,
         ctx->nic_ctrls.scaling_ctrls.stage3_scaling_num = MIN(ctx->nic_ctrls.scaling_ctrls.stage3_scaling_num, 3);
         ctx->txs_ctrls.enabled                          = 0;
         svt_aom_set_wm_controls(ctx, MAX(MIN(pcs->wm_level ? pcs->wm_level + 1 : 0, 2), pcs->wm_level));
+#if OPT_DIST_OBMC
+        svt_aom_set_obmc_controls(
+            pcs, ctx, MAX(MIN(ctx->md_pic_obmc_level ? ctx->md_pic_obmc_level + 1 : 0, 2), ctx->md_pic_obmc_level));
+#else
         svt_aom_set_obmc_controls(
             ctx, MAX(MIN(ctx->md_pic_obmc_level ? ctx->md_pic_obmc_level + 1 : 0, 2), ctx->md_pic_obmc_level));
+#endif
         svt_aom_set_txt_controls(ctx, MAX(MIN(pcs->txt_level ? pcs->txt_level + 2 : 0, 4), pcs->txt_level));
     }
     if (level >= 2) {
