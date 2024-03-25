@@ -6355,6 +6355,13 @@ void svt_aom_set_nsq_geom_ctrls(ModeDecisionContext *ctx, uint8_t nsq_geom_level
         nsq_geom_ctrls->allow_HV4          = 0;
         nsq_geom_ctrls->allow_HVA_HVB      = 0;
         break;
+
+    case 5:
+        nsq_geom_ctrls->enabled            = 1;
+        nsq_geom_ctrls->min_nsq_block_size = 16;
+        nsq_geom_ctrls->allow_HV4          = 0;
+        nsq_geom_ctrls->allow_HVA_HVB      = 0;
+        break;
 #else
     case 3:
         nsq_geom_ctrls->enabled            = 1;
@@ -9646,8 +9653,11 @@ bool svt_aom_get_disallow_4x4(EncMode enc_mode, uint8_t is_base) {
     else
         return true;
 }
-
+#if OPT_NSQ_GEOM
+uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeffLvl coeff_lvl, EbInputResolution input_resolution) {
+#else
 uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeffLvl coeff_lvl) {
+#endif
     uint8_t nsq_geom_level;
 
 #if OPT_NSQ_GEOM
@@ -9669,10 +9679,18 @@ uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeff
         else // regular or low
             nsq_geom_level = 2;
     } else if (enc_mode <= ENC_M7) {
-        if (coeff_lvl == HIGH_LVL)
-            nsq_geom_level = is_base ? 4 : 0;
-        else // regular
-            nsq_geom_level = is_base ? 2 : 3;
+        if(input_resolution <= INPUT_SIZE_480p_RANGE) {
+            if (coeff_lvl == HIGH_LVL)
+                nsq_geom_level = is_base ? 4 : 5;
+            else // regular
+                nsq_geom_level = is_base ? 2 : 4;
+        }
+        else {
+            if (coeff_lvl == HIGH_LVL)
+                nsq_geom_level = is_base ? 4 : 0;
+            else // regular
+                nsq_geom_level = is_base ? 2 : 3;
+        }
     } else if (enc_mode <= ENC_M11) {
         if (coeff_lvl == LOW_LVL)
             nsq_geom_level = 4;
@@ -10706,7 +10724,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     else
         pcs->spatial_sse_full_loop_level = scs->spatial_sse_full_loop_level;
     //set the nsq_level
+#if OPT_NSQ_GEOM
+    pcs->nsq_geom_level = svt_aom_get_nsq_geom_level(enc_mode, is_base, pcs->coeff_lvl, input_resolution);
+#else
     pcs->nsq_geom_level   = svt_aom_get_nsq_geom_level(enc_mode, is_base, pcs->coeff_lvl);
+#endif
 #if OPT_NEW_NSQ_LVLS
 #if OPT_R0_NSQ
     pcs->nsq_search_level = svt_aom_get_nsq_search_level(pcs, enc_mode, pcs->coeff_lvl, scs->static_config.qp);
