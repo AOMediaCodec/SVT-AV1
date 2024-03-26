@@ -74,7 +74,7 @@ extern "C" {
 #define OPT_DIST_NIC                              0 // med-banding for depth-removal
 #define OPT_DIST_TXS                              1 // med-banding for depth-removal
 #define OPT_DIST_OBMC                             0 // med-banding for depth-removal
-
+#define OPT_STRENGTHEN_MED                        1 // conservative med
 
 //FOR DEBUGGING - Do not remove
 

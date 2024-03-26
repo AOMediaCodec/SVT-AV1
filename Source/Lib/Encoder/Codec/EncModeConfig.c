@@ -6414,8 +6414,14 @@ void svt_aom_set_nsq_search_ctrls(ModeDecisionContext* ctx, uint8_t nsq_search_l
             get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
         }
 
+#if OPT_STRENGTHEN_MED
+        int error_per_sample = 3;
+        if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) &&
+            me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
+#else
         int error_per_sample = 2;
         if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+#endif
             nsq_search_level =  MIN(nsq_search_level + 1, 18);
         }
     }
@@ -8039,13 +8045,22 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         // med-banding
         uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
         if (pcs->scs->super_block_size == 64) {
+            dist_64 = pcs->ppcs->me_64x64_distortion[ctx->sb_index];
+            dist_32 = pcs->ppcs->me_32x32_distortion[ctx->sb_index];
+            dist_16 = pcs->ppcs->me_16x16_distortion[ctx->sb_index];
             dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+            me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
         }
         else {
             get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
         }
         uint32_t error_per_sample = 7;
+#if OPT_STRENGTHEN_MED
+        if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) &&
+            me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
+#else
         if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+#endif
             txs_level = txs_level + 1;
         }
     }
@@ -8809,8 +8824,15 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
                 get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
             }
 
+
+#if OPT_STRENGTHEN_MED
+            int error_per_sample = 3;
+            if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) && 
+                me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
+#else
             int error_per_sample = 2;
             if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+#endif
                 depth_level = depth_level + 1;
             }
         }
