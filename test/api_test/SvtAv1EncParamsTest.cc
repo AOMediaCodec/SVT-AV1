@@ -294,9 +294,11 @@ PARAM_TEST(EncParamTierTest);
 DEFINE_PARAM_TEST_CLASS(EncParamLevelTest, level);
 PARAM_TEST(EncParamLevelTest);
 
+#if defined(ARCH_X86_64) // not supported for ARM family yet
 /** Test case for use_cpu_flags*/
 DEFINE_PARAM_TEST_CLASS(EncParamOplLevelTest, use_cpu_flags);
 PARAM_TEST(EncParamOplLevelTest);
+#endif
 
 /** Test case for channel_id*/
 DEFINE_PARAM_TEST_CLASS(EncParamChIdTest, channel_id);

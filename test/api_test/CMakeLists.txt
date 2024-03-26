@@ -12,8 +12,8 @@
 
 # APP Directory CMakeLists.txt
 
-if (NOT HAVE_X86_PLATFORM)
-    message(WARNING "Skipping SvtAv1ApiTests because HAVE_X86_PLATFORM is false")
+if (NOT HAVE_X86_PLATFORM AND NOT HAVE_ARM_PLATFORM)
+    message(WARNING "Skipping SvtAv1E2ETests because both of HAVE_X86_PLATFORM and HAVE_ARM_PLATFORM are false")
     return()
 endif()
 

@@ -714,6 +714,7 @@ static const vector<uint32_t> invalid_level = {
 static const vector<EbCpuFlags> default_use_cpu_flags = {
     EB_CPU_FLAGS_ALL,
 };
+#ifdef ARCH_X86_64
 static const vector<EbCpuFlags> valid_use_cpu_flags = {
     EB_CPU_FLAGS_MMX,
     EB_CPU_FLAGS_SSE,
@@ -732,6 +733,9 @@ static const vector<EbCpuFlags> valid_use_cpu_flags = {
     EB_CPU_FLAGS_AVX512BW,
     EB_CPU_FLAGS_AVX512VL,
 };
+#elif defined(ARCH_AARCH64)
+#define EB_CPU_FLAGS_NEON (1 << 0)
+#endif
 static const vector<EbCpuFlags> invalid_use_cpu_flags = {EB_CPU_FLAGS_INVALID};
 
 // Application Specific parameters
