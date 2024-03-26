@@ -395,16 +395,13 @@ void svt_aom_upscale_wm_params(EbWarpedMotionParams *wm_params, uint8_t scale_fa
     }
 }
 
-int generic_sad(const uint8_t *const ref, int stride, 
-                const uint8_t *const dst, int p_stride,
-                          int p_width, int p_height) {
-    int sad = 0;
-    for (int i = 0; i < p_height; ++i) {
-        for (int j = 0; j < p_width; ++j) {
-            sad += abs(dst[j + i * p_stride] - ref[j + i * stride]);
-        }
-    }
-    return sad;
+int generic_sad(const uint8_t *const ref, int stride, const uint8_t *const dst, int p_stride, int p_width,
+                int p_height) {
+     int sad = 0;
+     for (int i = 0; i < p_height; ++i) {
+        for (int j = 0; j < p_width; ++j) { sad += abs(dst[j + i * p_stride] - ref[j + i * stride]); }
+     }
+     return sad;
 }
 
 void compute_global_motion(PictureParentControlSet *pcs, int *frm_corners, int num_frm_corners,
