@@ -102,11 +102,11 @@ int64_t svt_av1_calc_frame_error_c(const uint8_t *const ref, int stride, const u
 
 static INLINE int generic_sad(const uint8_t *const ref, int stride, const uint8_t *const dst, int p_stride, int p_width,
                               int p_height) {
-     int sad = 0;
-     for (int i = 0; i < p_height; ++i) {
+    int sad = 0;
+    for (int i = 0; i < p_height; ++i) {
         for (int j = 0; j < p_width; ++j) { sad += abs(dst[j + i * p_stride] - ref[j + i * stride]); }
-     }
-     return sad;
+    }
+    return sad;
 }
 
 static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, int width, int height, int stride,
