@@ -100,15 +100,6 @@ int64_t svt_av1_calc_frame_error_c(const uint8_t *const ref, int stride, const u
     return sum_error;
 }
 
-static INLINE int generic_sad(const uint8_t *const ref, int stride, const uint8_t *const dst, int p_stride, int p_width,
-                              int p_height) {
-    int sad = 0;
-    for (int i = 0; i < p_height; ++i) {
-        for (int j = 0; j < p_width; ++j) { sad += abs(dst[j + i * p_stride] - ref[j + i * stride]); }
-    }
-    return sad;
-}
-
 static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, int width, int height, int stride,
                           const uint8_t *const dst, int p_col, int p_row, int p_width, int p_height, int p_stride,
                           int subsampling_x, int subsampling_y, uint8_t chess_refn, int64_t best_error) {
@@ -150,11 +141,7 @@ static int64_t warp_error(EbWarpedMotionParams *wm, const uint8_t *const ref, in
                            subsampling_y,
                            &conv_params);
 
-            if (warp_w == WARP_ERROR_BLOCK && warp_h == WARP_ERROR_BLOCK) {
-                gm_sumerr += svt_aom_sad32x32(tmp, WARP_ERROR_BLOCK, dst + j + i * p_stride, p_stride);
-            } else {
-                gm_sumerr += generic_sad(tmp, WARP_ERROR_BLOCK, dst + j + i * p_stride, p_stride, warp_w, warp_h);
-            }
+            gm_sumerr += svt_nxm_sad_kernel(tmp, WARP_ERROR_BLOCK, dst + j + i * p_stride, p_stride, warp_h, warp_w);
 
             if (gm_sumerr > best_error)
                 return gm_sumerr;
