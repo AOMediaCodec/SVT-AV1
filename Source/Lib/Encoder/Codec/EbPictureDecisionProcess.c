@@ -2748,6 +2748,9 @@ static void  av1_generate_rps_info(
         pcs->sc_class0 = pcs->alt_ref_ppcs_ptr->sc_class0;
         pcs->sc_class1 = pcs->alt_ref_ppcs_ptr->sc_class1;
         pcs->sc_class2 = pcs->alt_ref_ppcs_ptr->sc_class2;
+#if OPT_NSQ_CLASSIFIER_1
+        pcs->sc_class3 = pcs->alt_ref_ppcs_ptr->sc_class3;
+#endif
     }
 /***************************************************************************************************
  * Initialize the overlay frame
@@ -3948,19 +3951,33 @@ static void perform_sc_detection(SequenceControlSet* scs, PictureParentControlSe
                 if (scs->input_resolution <= INPUT_SIZE_1080p_RANGE)
                     svt_aom_is_screen_content(pcs);
                 else
+#if OPT_NSQ_CLASSIFIER_1
+                    pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = pcs->sc_class3 = 0;
+#else
                     pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = 0;
+#endif
             }
             else
+#if OPT_NSQ_CLASSIFIER_1
+                pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = pcs->sc_class3 = scs->static_config.screen_content_mode;
+#else
                 pcs->sc_class0 = pcs->sc_class1 = pcs->sc_class2 = scs->static_config.screen_content_mode;
+#endif
         }
         ctx->last_i_picture_sc_class0 = pcs->sc_class0;
         ctx->last_i_picture_sc_class1 = pcs->sc_class1;
         ctx->last_i_picture_sc_class2 = pcs->sc_class2;
+#if OPT_NSQ_CLASSIFIER_1
+        ctx->last_i_picture_sc_class3 = pcs->sc_class3;
+#endif
     }
     else {
         pcs->sc_class0 = ctx->last_i_picture_sc_class0;
         pcs->sc_class1 = ctx->last_i_picture_sc_class1;
         pcs->sc_class2 = ctx->last_i_picture_sc_class2;
+#if OPT_NSQ_CLASSIFIER_1
+        pcs->sc_class3 = ctx->last_i_picture_sc_class3;
+#endif
     }
 }
 

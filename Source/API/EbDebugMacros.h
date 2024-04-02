@@ -55,11 +55,6 @@ extern "C" {
 
 #define OPT_LIST1_REMOVAL                         1 // Optimize levels for List0-only @ Base
 
-#define CALL_GLOBAL                               0
-#if CALL_GLOBAL
-#define USE_GLOBAL                                0
-#endif
-
 #define OPT_SUBPEL_LVLS                           1 // Optimize ME subpel levels
 
 #define OPT_M7                                    1 // M7 tuning using M5 as a reference
@@ -76,6 +71,13 @@ extern "C" {
 #define OPT_DIST_OBMC                             0 // med-banding for depth-removal
 #define OPT_STRENGTHEN_MED                        1 // conservative med
 
+#define TUNE_SUBPEL                               1 // apply M6 subpel to M7
+
+#define OPT_NSQ_CLASSIFIER_1                      1
+#define CALL_GLOBAL                               0
+#if CALL_GLOBAL
+#define USE_GLOBAL                                0
+#endif
 //FOR DEBUGGING - Do not remove
 
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

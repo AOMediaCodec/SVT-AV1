@@ -113,7 +113,7 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
         else if (enc_mode <= ENC_M2)
             gm_level = 4;
 #if CALL_GLOBAL
-        else if (enc_mode <= ENC_M6)
+        else if (enc_mode <= ENC_M7)
 #else
         else if (enc_mode <= ENC_M3)
 #endif
@@ -9561,8 +9561,13 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
         ctx->md_subpel_me_level = 3;
     else if (enc_mode <= ENC_M0)
         ctx->md_subpel_me_level = 1;
+#if TUNE_SUBPEL
+    else if (enc_mode <= ENC_M7)
+        ctx->md_subpel_me_level = 2;
+#else
     else if (enc_mode <= ENC_M6)
         ctx->md_subpel_me_level = 2;
+#endif
     else
         ctx->md_subpel_me_level = 3;
 #else
@@ -9755,6 +9760,7 @@ uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeff
         else
             nsq_geom_level = is_base ? 3 : 4;
     }
+
 #if OPT_NEW_NSQ_LVLS
     else {
         nsq_geom_level = 4;
@@ -9799,22 +9805,7 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         nsq_search_level = 18;
     }
 
-#if USE_GLOBAL
-    // If NSQ search is off, don't apply offsets
-    if (nsq_search_level == 0)
-        return nsq_search_level;
 
-    int is_global = 0;
-    for (int frame = LAST_FRAME; frame <= ALTREF_FRAME; ++frame) {
-        EbWarpedMotionParams* wm = &pcs->ref_global_motion[frame];
-        if (wm->wmtype > IDENTITY) {
-            is_global = 1;
-            break;
-        }
-    }
-    if (is_global)
-        nsq_search_level = MAX(nsq_search_level - 3, 1);
-#endif
 
     // If NSQ search is off, don't apply offsets
     if (nsq_search_level == 0)
@@ -9831,7 +9822,27 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         }
     }
 #endif
+#if OPT_NSQ_CLASSIFIER_1
+    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
+        if (pcs->ppcs->sc_class3)
+            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 2, 1)));
+    }
+#endif
+#if USE_GLOBAL
+    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
 
+        int is_global = 0;
+        for (int frame = LAST_FRAME; frame <= ALTREF_FRAME; ++frame) {
+            EbWarpedMotionParams* wm = &pcs->ref_global_motion[frame];
+            if (wm->wmtype > IDENTITY) {
+                is_global = 1;
+                break;
+            }
+        }
+        if (is_global)
+            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
+    }
+#endif
     // offset level based on coeff_lvl
     if (coeff_lvl == HIGH_LVL)
         nsq_search_level = nsq_search_level + 2 > 18 ? 0 : nsq_search_level + 2;

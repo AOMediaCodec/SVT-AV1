@@ -958,6 +958,9 @@ typedef struct PictureParentControlSet {
     uint8_t              sc_class0;
     uint8_t              sc_class1;
     uint8_t              sc_class2;
+#if OPT_NSQ_CLASSIFIER_1
+    uint8_t              sc_class3;
+#endif
     SkipModeInfo         skip_mode_info;
     uint64_t             picture_number_alt; // The picture number overlay includes all the overlay frames
     uint8_t              is_alt_ref;
