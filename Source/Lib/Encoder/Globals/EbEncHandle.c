@@ -1624,9 +1624,10 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType *svt_enc_component)
         input_data.is_scale = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.superres_mode > SUPERRES_NONE ||
                               enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.resize_mode > RESIZE_NONE;
         input_data.rtc_tune = (enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
-        input_data.static_config = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config;
+        input_data.enable_variance_boost = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.enable_variance_boost;
         input_data.variance_boost_strength = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.variance_boost_strength;
         input_data.variance_octile = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config.variance_octile;
+        input_data.static_config = enc_handle_ptr->scs_instance_array[instance_index]->scs->static_config;
 
         EB_NEW(
             enc_handle_ptr->picture_parent_control_set_pool_ptr_array[instance_index],
@@ -3943,7 +3944,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
     // In variance boost mode, sb size is set to 64
     if (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B ||
         (scs->input_resolution == INPUT_SIZE_240p_RANGE) ||
-        scs->static_config.variance_boost_strength)
+        scs->static_config.enable_variance_boost)
         scs->super_block_size = 64;
     else
         if (scs->static_config.enc_mode <= ENC_M1)
@@ -3993,12 +3994,16 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         scs->seq_header.sb_size_log2 = 4;
     }
 
+    if (scs->static_config.enable_variance_boost && scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
+        scs->static_config.enable_variance_boost = FALSE;
+        SVT_WARN("Variance boost is incompatible with CBR rate control, disabling variance boost\n");
+    }
+    if (scs->static_config.enable_variance_boost && scs->static_config.enable_adaptive_quantization == 1) {
+        scs->static_config.enable_variance_boost = FALSE;
+        SVT_WARN("Variance AQ based on segmentation with variance boost not supported, disabling variance boost\n");
+    }
     if (scs->static_config.variance_boost_strength >= 4) {
         SVT_WARN("Aggressive variance boost strength used. This is a curve that's only useful under specific situations. Use with caution!\n");
-    }
-    if (scs->static_config.variance_boost_strength && scs->static_config.enable_adaptive_quantization == 1) {
-        scs->static_config.enable_adaptive_quantization = 0;
-        SVT_WARN("Variance AQ based on segmentation with variance boost not supported, setting AQ mode to 0\n");
     }
     // scs->static_config.hierarchical_levels = (scs->static_config.rate_control_mode > 1) ? 3 : scs->static_config.hierarchical_levels;
     if (scs->static_config.restricted_motion_vector && scs->super_block_size == 128) {
@@ -4204,7 +4209,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
     if (scs->static_config.enable_adaptive_quantization == 1 ||
         scs->static_config.scene_change_detection == 1       ||
         scs->vq_ctrls.sharpness_ctrls.tf == 1                ||
-        scs->static_config.variance_boost_strength)
+        scs->static_config.enable_variance_boost)
         scs->calculate_variance = 1;
     else if (scs->static_config.enc_mode <= ENC_M9)
         scs->calculate_variance = 1;
@@ -4585,6 +4590,7 @@ static void copy_api_from_app(
     scs->static_config.enable_roi_map = config_struct->enable_roi_map;
 
     // Variance boost
+    scs->static_config.enable_variance_boost = config_struct->enable_variance_boost;
     scs->static_config.variance_boost_strength = config_struct->variance_boost_strength;
     scs->static_config.variance_octile = config_struct->variance_octile;
     return;

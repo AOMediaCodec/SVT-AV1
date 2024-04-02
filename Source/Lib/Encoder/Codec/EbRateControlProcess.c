@@ -1432,7 +1432,7 @@ static int av1_get_deltaq_sb_variance_boost(uint8_t base_q_idx, uint16_t *varian
     return boost;
 }
 
-void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t variance_octile) {
+void svt_variance_adjust_qp(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs_ptr = pcs->ppcs;
     SequenceControlSet      *scs      = pcs->ppcs->scs;
     SuperBlock              *sb_ptr;
@@ -1470,9 +1470,9 @@ void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t va
         // adjust deltaq based on sb variance, with lower variance resulting in a lower qindex
         boost = av1_get_deltaq_sb_variance_boost(ppcs_ptr->frm_hdr.quantization_params.base_q_idx,
                                                  ppcs_ptr->variance[sb_addr],
-                                                 strength,
+                                                 scs->static_config.variance_boost_strength,
                                                  scs->static_config.encoder_bit_depth,
-                                                 variance_octile);
+                                                 scs->static_config.variance_octile);
 #if DEBUG_VAR_BOOST_STATS
         printf("%4d ", boost);
 
@@ -1492,20 +1492,20 @@ void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t va
     }
 
     // normalize and clamp frame qindex value to maximize deltaq range
-    int range          = max_qindex - min_qindex;
-    range              = AOMMIN(range, VAR_BOOST_MAX_DELTAQ_RANGE);
-    int new_base_q_idx = (int)min_qindex + (range >> 1);
+    int range                 = max_qindex - min_qindex;
+    range                     = AOMMIN(range, VAR_BOOST_MAX_DELTAQ_RANGE);
+    int normalized_base_q_idx = (int)min_qindex + (range >> 1);
 
 #if DEBUG_VAR_BOOST_QP
-    SVT_INFO("old qidx %d, min_qidx %d, max_qidx %d, delta_q_res %d, new qidx %d, range %d\n",
+    SVT_INFO("previous qidx %d, min_qidx %d, max_qidx %d, delta_q_res %d, normalized qidx %d, range %d\n",
              ppcs_ptr->frm_hdr.quantization_params.base_q_idx,
              min_qindex,
              max_qindex,
              pcs->ppcs->frm_hdr.delta_q_params.delta_q_res,
-             new_base_q_idx,
+             normalized_base_q_idx,
              range);
 #endif
-    ppcs_ptr->frm_hdr.quantization_params.base_q_idx = new_base_q_idx;
+    ppcs_ptr->frm_hdr.quantization_params.base_q_idx = normalized_base_q_idx;
 
     pcs->picture_qp = (uint8_t)CLIP3((int32_t)scs->static_config.min_qp_allowed,
                                      (int32_t)scs->static_config.max_qp_allowed,
@@ -1522,11 +1522,12 @@ void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t va
         offset     = AOMMIN(offset, VAR_BOOST_MAX_DELTAQ_RANGE >> 1);
         offset     = AOMMAX(offset, -VAR_BOOST_MAX_DELTAQ_RANGE >> 1);
 
-        uint8_t new_qindex = CLIP3(1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
-                                   MAX_Q_INDEX,
-                                   ((int16_t)ppcs_ptr->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
+        uint8_t normalized_qindex = CLIP3(
+            1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
+            MAX_Q_INDEX,
+            ((int16_t)ppcs_ptr->frm_hdr.quantization_params.base_q_idx + (int16_t)offset));
 #if DEBUG_VAR_BOOST_STATS
-        printf("%4d ", new_qindex);
+        printf("%4d ", normalized_qindex);
 
         if (pcs->frame_width <= (sb_ptr->org_x + 64)) {
             printf("\n");
@@ -1534,9 +1535,9 @@ void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t va
 #endif
 
 #if DEBUG_VAR_BOOST_QP
-        SVT_INFO("  sb %d qindex: old %d, new %d\n", sb_addr, sb_ptr->qindex, new_qindex);
+        SVT_INFO("  sb %d qindex: previous %d, normalized %d\n", sb_addr, sb_ptr->qindex, normalized_qindex);
 #endif
-        sb_ptr->qindex = new_qindex;
+        sb_ptr->qindex = normalized_qindex;
     }
 }
 
@@ -1545,7 +1546,7 @@ void svt_variance_adjust_qp(PictureControlSet *pcs, uint8_t strength, uint8_t va
  * Calculates the QP per SB based on the tpl statistics
  * used in one pass and second pass of two pass encoding
  ******************************************************/
-void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs, uint8_t variance_boost_strength) {
+void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs_ptr = pcs->ppcs;
     SequenceControlSet      *scs      = pcs->ppcs->scs;
     SuperBlock              *sb_ptr;
@@ -1577,7 +1578,7 @@ void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs, uint8_t variance_bo
                 printf("\n");
             }
 #endif
-            if (variance_boost_strength) {
+            if (scs->static_config.enable_variance_boost) {
                 // read back SB value (with variance boost offset), and add TPL boost on top
                 sb_ptr->qindex = CLIP3(1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
                                        MAXQ,
@@ -1592,7 +1593,7 @@ void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs, uint8_t variance_bo
             sb_setup_lambda(pcs, sb_ptr);
         }
 
-    } else if (!variance_boost_strength) {
+    } else if (!scs->static_config.enable_variance_boost) {
         // propagate SB values from frame
         for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
             sb_ptr = pcs->sb_ptr_array[sb_addr];
@@ -3480,16 +3481,17 @@ void *svt_aom_rate_control_kernel(void *input_ptr) {
                 sb_ptr->qindex     = frm_hdr->quantization_params.base_q_idx;
             }
 
-            // adjust SB QPs based on variance
-            if (scs->static_config.variance_boost_strength) {
-                svt_variance_adjust_qp(
-                    pcs, scs->static_config.variance_boost_strength, scs->static_config.variance_octile);
+            // adjust SB qindex based on variance
+            // note: do not enable variance boost for CBR rate control mode
+            if (scs->static_config.enable_variance_boost &&
+                scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CBR) {
+                svt_variance_adjust_qp(pcs);
             }
 
             // QPM with tpl_la
             if (scs->static_config.enable_adaptive_quantization == 2 && pcs->ppcs->tpl_ctrls.enable &&
                 pcs->ppcs->r0 != 0) {
-                svt_aom_sb_qp_derivation_tpl_la(pcs, scs->static_config.variance_boost_strength);
+                svt_aom_sb_qp_derivation_tpl_la(pcs);
             } else if (scs->static_config.enable_adaptive_quantization &&
                        scs->static_config.rate_control_mode == SVT_AV1_RC_MODE_CBR) {
                 cyclic_sb_qp_derivation(pcs);
