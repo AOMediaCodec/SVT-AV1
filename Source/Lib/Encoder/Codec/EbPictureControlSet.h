@@ -390,6 +390,9 @@ typedef struct PictureControlSet {
     Bool             pic_bypass_encdec;
     EncMode          enc_mode;
     InputCoeffLvl    coeff_lvl;
+#if OPT_MED
+    Bool med;
+#endif
     int32_t          cdef_preset[MAX_TILE_CNTS][4];
     WienerInfo       wiener_info[MAX_TILE_CNTS][MAX_MB_PLANE];
     SgrprojInfo      sgrproj_info[MAX_TILE_CNTS][MAX_MB_PLANE];
@@ -1131,6 +1134,9 @@ typedef struct PictureParentControlSet {
     uint32_t tf_ahd_error_to_central;
     // Average absolute histogram deviation of all frames in the TF window to the current (central) frame
     uint32_t tf_avg_ahd_error;
+#if TF_BRIGHTNESS_CHECK_V1
+    uint32_t tf_avg_luma;
+#endif
     bool     tf_active_region_present;
     bool     seq_param_changed;
     uint64_t norm_me_dist;

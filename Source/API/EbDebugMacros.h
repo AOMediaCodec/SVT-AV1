@@ -63,6 +63,8 @@ extern "C" {
 #define OPT_DEPTH_REMOVAL                         1 // Optimize depth_removal
 #define OPT_NSQ_GEOM                              0 // Optimize nsq_geom
 #define CLOSE_THE_SPEED_GAP_TO_1_8                1 // M5_cand_red + M5_txs
+#define OPT_MED                                   1
+#if OPT_MED
 #define OPT_DIST_DEPTHS                           1 // med-banding for depths
 #define OPT_DIST_BAND                             1 // med-banding for nsq
 #define OPT_DIST_DEPTH_REMOVAL                    0 // med-banding for depth-removal
@@ -70,14 +72,15 @@ extern "C" {
 #define OPT_DIST_TXS                              1 // med-banding for depth-removal
 #define OPT_DIST_OBMC                             0 // med-banding for depth-removal
 #define OPT_STRENGTHEN_MED                        1 // conservative med
-
-#define TUNE_SUBPEL                               1 // apply M6 subpel to M7
-
-#define OPT_NSQ_CLASSIFIER_1                      1
+#endif
+#define OPT_NSQ_CLASSIFIER_1                      1 // add/use sc_class3
 #define CALL_GLOBAL                               0
 #if CALL_GLOBAL
 #define USE_GLOBAL                                0
 #endif
+#define TUNE_SUBPEL                               1 // adopt M6_subpel in M7
+#define TF_BRIGHTNESS_CHECK_V1                    1 // prune tf reference frame(s) using the brightness deviation to the central-frame
+#define TF_HME_ME_                                0 // OPT HME of tf
 //FOR DEBUGGING - Do not remove
 
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

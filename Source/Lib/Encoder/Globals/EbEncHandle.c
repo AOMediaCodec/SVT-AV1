@@ -2996,7 +2996,11 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[2].modulate_pics = 1;
         scs->tf_params_per_type[2].max_num_past_pics = MIN((1 << scs->static_config.hierarchical_levels) / 2, svt_aom_tf_max_ref_per_struct(scs->static_config.hierarchical_levels, 2, 0));
         scs->tf_params_per_type[2].max_num_future_pics = MIN((1 << scs->static_config.hierarchical_levels) / 2, svt_aom_tf_max_ref_per_struct(scs->static_config.hierarchical_levels, 2, 1));
+#if TF_HME_ME_
+        scs->tf_params_per_type[2].hme_me_level = 2;
+#else
         scs->tf_params_per_type[2].hme_me_level = 1;
+#endif
         scs->tf_params_per_type[2].half_pel_mode = 1;
         scs->tf_params_per_type[2].quarter_pel_mode = 1;
         scs->tf_params_per_type[2].eight_pel_mode = 1;

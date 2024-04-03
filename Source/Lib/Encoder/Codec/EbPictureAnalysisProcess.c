@@ -2000,8 +2000,8 @@ void svt_aom_is_screen_content(PictureParentControlSet *pcs) {
 
 #if OPT_NSQ_CLASSIFIER_1
     pcs->sc_class3 = pcs->sc_class1 ||
-        (counts_1 * blk_h * blk_w *  8 > input_pic->width * input_pic->height) && 
-        (counts_2 * blk_h * blk_w * 50 > input_pic->width * input_pic->height) ;
+        (counts_1 * blk_h * blk_w *  8 > input_pic->width * input_pic->height  && 
+         counts_2 * blk_h * blk_w * 50 > input_pic->width * input_pic->height) ;
 #endif
 }
 

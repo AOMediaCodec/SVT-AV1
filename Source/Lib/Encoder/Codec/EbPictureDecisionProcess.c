@@ -3312,13 +3312,27 @@ static EbErrorType derive_tf_window_params(
         // Calc the avg_ahd_error
         centre_pcs->tf_avg_ahd_error = 0;
         if (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes) {
-
+#if TF_BRIGHTNESS_CHECK_V1
+            int tot_luma = 0;
             int tot_err = 0;
+
+
+            for (int i = 0; i < (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes + 1); i++) {
+                if (i != centre_pcs->past_altref_nframes) {
+                    tot_luma += pcs->temp_filt_pcs_list[i]->avg_luma;
+                    tot_err += pcs->temp_filt_pcs_list[i]->tf_ahd_error_to_central;
+                }
+            }
+            centre_pcs->tf_avg_luma = tot_luma / (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes);
+#else
+            int tot_err = 0;
+
+
             for (int i = 0; i < (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes + 1); i++) {
                 if (i != centre_pcs->past_altref_nframes)
                     tot_err += pcs->temp_filt_pcs_list[i]->tf_ahd_error_to_central;
             }
-
+#endif
             centre_pcs->tf_avg_ahd_error = tot_err / (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes);
         }
     }
@@ -3397,8 +3411,6 @@ static void mctf_frame(
             pcs,
             pd_ctx);
         pcs->temp_filt_prep_done = 0;
-
-
         pcs->tf_tot_horz_blks = pcs->tf_tot_vert_blks = 0;
 
         // Start Filtering in ME processes
@@ -3428,7 +3440,6 @@ static void mctf_frame(
             svt_block_on_semaphore(pcs->temp_filt_done_semaphore);
         }
 
-
         if (pcs->tf_tot_horz_blks > pcs->tf_tot_vert_blks * 6 / 4){
             pd_ctx->tf_motion_direction = 0;
         }
@@ -3438,7 +3449,6 @@ static void mctf_frame(
         else {
             pd_ctx->tf_motion_direction = -1;
         }
-
     }
     else
         pcs->do_tf = FALSE; // set temporal filtering flag OFF for current picture

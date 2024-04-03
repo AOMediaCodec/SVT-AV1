@@ -714,6 +714,28 @@ static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *
         break;
 
     case 2:
+#if TF_HME_ME_
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
+        if (pcs->scs->input_resolution <= INPUT_SIZE_360p_RANGE) {
+            me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){  8, 8};
+            me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){  8, 8};
+            me_ctx->hme_l1_sa = (SearchArea){ 8, 8 };
+        }
+        else if (pcs->scs->input_resolution <= INPUT_SIZE_480p_RANGE) {
+            me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){  8,  8};
+            me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){ 16, 16};
+            me_ctx->hme_l1_sa = (SearchArea){ 8, 8 };
+        }
+        else {
+            me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){ 16, 16 };
+            me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){ 32, 32 };
+            me_ctx->hme_l1_sa = (SearchArea){ 16, 16 };
+        }
+        me_ctx->hme_l2_sa                   = (SearchArea){16, 16};
+        me_ctx->me_sa.sa_min                = (SearchArea){8, 8};
+        me_ctx->me_sa.sa_max                = (SearchArea){8, 8};
+#else
         me_ctx->num_hme_sa_w                = 2;
         me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){8, 8};
@@ -722,6 +744,7 @@ static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *
         me_ctx->hme_l2_sa                   = (SearchArea){16, 16};
         me_ctx->me_sa.sa_min                = (SearchArea){8, 8};
         me_ctx->me_sa.sa_max                = (SearchArea){8, 8};
+#endif
         break;
     case 3:
         me_ctx->num_hme_sa_w                = 2;
@@ -938,7 +961,11 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
     me_ctx->enable_hme_level0_flag = pcs->tf_enable_hme_level0_flag;
     me_ctx->enable_hme_level1_flag = pcs->tf_enable_hme_level1_flag;
     me_ctx->enable_hme_level2_flag = pcs->tf_enable_hme_level2_flag;
+#if TF_HME_ME_
+    if (pcs->tf_ctrls.hme_me_level <= 2) {
+#else
     if (pcs->tf_ctrls.hme_me_level <= 1) {
+#endif
         // HME Search Method
         me_ctx->hme_search_method = FULL_SAD_SEARCH;
         // ME Search Method
@@ -949,6 +976,7 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
         // ME Search Method
         me_ctx->me_search_method = SUB_SAD_SEARCH;
     }
+
     uint8_t prehme_level = 0;
     svt_aom_set_prehme_ctrls(me_ctx, prehme_level);
 
@@ -1962,13 +1990,17 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         break;
 
     case 1:
+#if TF_HME_ME_
+    case 2:
+#endif
         pcs->tf_enable_hme_flag        = 1;
         pcs->tf_enable_hme_level0_flag = 1;
         pcs->tf_enable_hme_level1_flag = 1;
         pcs->tf_enable_hme_level2_flag = 0;
         break;
-
+#if !TF_HME_ME_
     case 2:
+#endif
     case 3:
         pcs->tf_enable_hme_flag        = 1;
         pcs->tf_enable_hme_level0_flag = 1;
@@ -6401,7 +6433,7 @@ void svt_aom_set_nsq_search_ctrls(ModeDecisionContext* ctx, uint8_t nsq_search_l
 
 
 #if OPT_DIST_BAND
-    if (pcs->slice_type != I_SLICE && nsq_search_level) {
+    if (pcs->med && nsq_search_level) {
         uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
         if (pcs->scs->super_block_size == 64) {
             dist_64 = pcs->ppcs->me_64x64_distortion[ctx->sb_index];
@@ -6417,7 +6449,7 @@ void svt_aom_set_nsq_search_ctrls(ModeDecisionContext* ctx, uint8_t nsq_search_l
 #if OPT_STRENGTHEN_MED
         int error_per_sample = 3;
         if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) &&
-            me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
+            me_8x8_cost_variance <= 10000) {
 #else
         int error_per_sample = 2;
         if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
@@ -8041,7 +8073,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
     TxsControls *txs_ctrls = &ctx->txs_ctrls;
 
 #if OPT_DIST_TXS
-    if (pcs->slice_type != I_SLICE && txs_level) {
+    if (pcs->med && txs_level) {
         // med-banding
         uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
         if (pcs->scs->super_block_size == 64) {
@@ -8057,7 +8089,7 @@ static void set_txs_controls(ModeDecisionContext *ctx, uint8_t txs_level) {
         uint32_t error_per_sample = 7;
 #if OPT_STRENGTHEN_MED
         if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) &&
-            me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
+            me_8x8_cost_variance <= 10000) {
 #else
         if (dist_8 >= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
 #endif
@@ -8810,33 +8842,6 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
 #if OPT_DIST_DEPTHS
     if (!(enc_mode <= ENC_M0) && !pcs->ppcs->sc_class1 && depth_level) {
 
-        // med-banding
-        if (pcs->slice_type != I_SLICE) {
-            uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
-            if (pcs->scs->super_block_size == 64) {
-                dist_64 = pcs->ppcs->me_64x64_distortion[ctx->sb_index];
-                dist_32 = pcs->ppcs->me_32x32_distortion[ctx->sb_index];
-                dist_16 = pcs->ppcs->me_16x16_distortion[ctx->sb_index];
-                dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
-                me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
-            }
-            else {
-                get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
-            }
-
-
-#if OPT_STRENGTHEN_MED
-            int error_per_sample = 3;
-            if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) && 
-                me_8x8_cost_variance <= 10000/*LOW_8x8_DIST_VAR_TH*/) {
-#else
-            int error_per_sample = 2;
-            if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
-#endif
-                depth_level = depth_level + 1;
-            }
-        }
-
         // QP-banding
         if (scs->static_config.qp <= 24)
             depth_level = depth_level ? depth_level + 2 : 0;
@@ -8844,6 +8849,33 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = depth_level ? depth_level + 1 : 0;
         else if (scs->static_config.qp > 55)
             depth_level = depth_level == 1 ? depth_level : depth_level - 1;
+    }
+
+    // med-banding
+    if (pcs->med && depth_level && !pcs->ppcs->sc_class1) {
+        uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;
+        if (pcs->scs->super_block_size == 64) {
+            dist_64 = pcs->ppcs->me_64x64_distortion[ctx->sb_index];
+            dist_32 = pcs->ppcs->me_32x32_distortion[ctx->sb_index];
+            dist_16 = pcs->ppcs->me_16x16_distortion[ctx->sb_index];
+            dist_8 = pcs->ppcs->me_8x8_distortion[ctx->sb_index];
+            me_8x8_cost_variance = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
+        }
+        else {
+            get_sb128_me_data(pcs, ctx, &dist_64, &dist_32, &dist_16, &dist_8, &me_8x8_cost_variance);
+        }
+
+
+#if OPT_STRENGTHEN_MED
+        int error_per_sample = 3;
+        if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample) &&
+            me_8x8_cost_variance <= 10000) {
+#else
+        int error_per_sample = 2;
+        if (dist_8 <= (pcs->scs->super_block_size * pcs->scs->super_block_size * error_per_sample)) {
+#endif
+            depth_level = depth_level + 1;
+        }
     }
 #else
     // QP-banding
@@ -9404,7 +9436,9 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
     uint32_t                 me_64x64_distortion  = (uint32_t)~0;
     uint8_t                  l0_was_skip = 0, l1_was_skip = 0;
     uint8_t                  ref_skip_perc     = pcs->ref_skip_percentage;
+#if !OPT_SUBPEL_LVLS
     const bool               is_not_last_layer = !ppcs->is_highest_layer;
+#endif
     const bool               rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
 #if OPT_DIST_BAND
     svt_aom_set_nsq_search_ctrls(pcs, ctx, pcs->nsq_search_level, input_resolution);
@@ -9563,11 +9597,10 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
         ctx->md_subpel_me_level = 1;
 #if TUNE_SUBPEL
     else if (enc_mode <= ENC_M7)
-        ctx->md_subpel_me_level = 2;
 #else
     else if (enc_mode <= ENC_M6)
-        ctx->md_subpel_me_level = 2;
 #endif
+        ctx->md_subpel_me_level = 2;
     else
         ctx->md_subpel_me_level = 3;
 #else
@@ -9812,24 +9845,24 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         return nsq_search_level;
 
 #if OPT_R0_NSQ
-#define NSQ_R0_MODULATION_MIN_LEVEL 8
-    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
+#define NSQ_MODULATION_MIN_LEVEL 8
+    if (nsq_search_level > NSQ_MODULATION_MIN_LEVEL) {
         if (pcs->ppcs->tpl_ctrls.enable && pcs->ppcs->r0_based_qps_qpm) {
             double r0_tab[MAX_TEMPORAL_LAYERS] = { 0.10, 0.15, 0.20, 0.25, 0.25, 0.25 };
             double r0_th = pcs->slice_type == I_SLICE ? 0.05 : r0_tab[pcs->temporal_layer_index];
             if (pcs->ppcs->r0 < r0_th)
-                nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
+                nsq_search_level = MIN(nsq_search_level, MAX(NSQ_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
         }
     }
 #endif
 #if OPT_NSQ_CLASSIFIER_1
-    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
+    if (nsq_search_level > NSQ_MODULATION_MIN_LEVEL) {
         if (pcs->ppcs->sc_class3)
-            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 2, 1)));
+            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 2, 1)));
     }
 #endif
 #if USE_GLOBAL
-    if (nsq_search_level > NSQ_R0_MODULATION_MIN_LEVEL) {
+    if (nsq_search_level > NSQ_MODULATION_MIN_LEVEL) {
 
         int is_global = 0;
         for (int frame = LAST_FRAME; frame <= ALTREF_FRAME; ++frame) {
@@ -9840,7 +9873,7 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
             }
         }
         if (is_global)
-            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_R0_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
+            nsq_search_level = MIN(nsq_search_level, MAX(NSQ_MODULATION_MIN_LEVEL, MAX(nsq_search_level - 4, 1)));
     }
 #endif
     // offset level based on coeff_lvl
