@@ -10346,6 +10346,9 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             }
         } else {
             if (enc_mode <= ENC_M10) {
+#if OPT_MFMV_FD
+                ppcs->frm_hdr.use_ref_frame_mvs = pcs->coeff_lvl != HIGH_LVL || input_resolution <= INPUT_SIZE_360p_RANGE ? 1 : 0;
+#else
                 uint64_t avg_me_dist = 0;
                 for (uint16_t b64_idx = 0; b64_idx < ppcs->b64_total_count; b64_idx++) {
                     avg_me_dist += ppcs->me_64x64_distortion[b64_idx];
@@ -10354,6 +10357,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 avg_me_dist /= pcs->picture_qp;
 
                 ppcs->frm_hdr.use_ref_frame_mvs = avg_me_dist < 50 || input_resolution <= INPUT_SIZE_360p_RANGE ? 1 : 0;
+#endif
             } else {
                 ppcs->frm_hdr.use_ref_frame_mvs = input_resolution <= INPUT_SIZE_360p_RANGE ? 1 : 0;
             }

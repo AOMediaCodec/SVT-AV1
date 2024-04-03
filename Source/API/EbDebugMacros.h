@@ -82,6 +82,8 @@ extern "C" {
 #define TF_BRIGHTNESS_CHECK_V1                    1 // prune tf reference frame(s) using the brightness deviation to the central-frame
 #define TF_HME_ME_                                1 // OPT HME of tf
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
+#define OPT_MFMV_FD                               1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
+
 //FOR DEBUGGING - Do not remove
 
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
