@@ -10819,7 +10819,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->txs_level = 2;
     }
 #if CLOSE_THE_SPEED_GAP_TO_1_8
+#if TUNE_TXS
+    else if (enc_mode <= ENC_M6) {
+#else
     else if (enc_mode <= ENC_M7) {
+#endif        
 #else
     else if (enc_mode <= ENC_M6) {
 #endif
