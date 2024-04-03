@@ -78,7 +78,7 @@ extern "C" {
 #if CALL_GLOBAL
 #define USE_GLOBAL                                0
 #endif
-#define TUNE_SUBPEL                               1 // adopt M6_subpel in M7
+#define TUNE_SUBPEL                               0 // adopt M6_subpel in M7
 #define TF_BRIGHTNESS_CHECK_V1                    1 // prune tf reference frame(s) using the brightness deviation to the central-frame
 #define TF_HME_ME_                                1 // OPT HME of tf
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
