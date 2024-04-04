@@ -84,9 +84,11 @@ extern "C" {
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
 #define OPT_MFMV_FD                               1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
 #define TUNE_TXS                                  0 // adopt M8_TXS in M7
+#define OPT_CDEF_0                                1 // Remove the fast-decode check from CDEF's lvl derivation
+#define OPT_CDEF_1                                0 // Modulate the cdef bias
+#define OPT_WM_PART_SG                            1 // Adopt fast-decode settings as default
 
 //FOR DEBUGGING - Do not remove
-
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

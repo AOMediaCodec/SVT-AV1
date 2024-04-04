@@ -1135,7 +1135,7 @@ typedef struct PictureParentControlSet {
     // Average absolute histogram deviation of all frames in the TF window to the current (central) frame
     uint32_t tf_avg_ahd_error;
 #if TF_BRIGHTNESS_CHECK_V1
-    uint32_t tf_avg_luma;
+    uint64_t tf_avg_luma;
 #endif
     bool     tf_active_region_present;
     bool     seq_param_changed;

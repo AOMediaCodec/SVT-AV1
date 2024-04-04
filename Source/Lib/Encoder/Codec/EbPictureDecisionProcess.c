@@ -3313,7 +3313,7 @@ static EbErrorType derive_tf_window_params(
         centre_pcs->tf_avg_ahd_error = 0;
         if (centre_pcs->past_altref_nframes + centre_pcs->future_altref_nframes) {
 #if TF_BRIGHTNESS_CHECK_V1
-            int tot_luma = 0;
+            uint64_t tot_luma = 0;
             int tot_err = 0;
 
 
