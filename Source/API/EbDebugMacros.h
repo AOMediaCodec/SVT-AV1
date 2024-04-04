@@ -87,6 +87,8 @@ extern "C" {
 #define OPT_CDEF_0                                1 // Remove the fast-decode check from CDEF's lvl derivation
 #define OPT_CDEF_1                                0 // Modulate the cdef bias
 #define OPT_WM_PART_SG                            1 // Adopt fast-decode settings as default
+#define OPT_DLF_QP_BAND                           1 // Add QP banding to DLF for fast-decode and adopt fast-decode level for M5/7
+#define OPT_MFMV_DEFAULT                          1 // Adopt fast-decode MFMV level for M5/7 default
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
