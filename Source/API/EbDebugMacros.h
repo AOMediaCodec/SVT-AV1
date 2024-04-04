@@ -83,7 +83,7 @@ extern "C" {
 #define TF_HME_ME_                                1 // OPT HME of tf
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
 #define OPT_MFMV_FD                               1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
-#define TUNE_TXS                                  1 // adopt M8_TXS in M7
+#define TUNE_TXS                                  0 // adopt M8_TXS in M7
 
 //FOR DEBUGGING - Do not remove
 
