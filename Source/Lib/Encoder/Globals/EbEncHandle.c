@@ -4196,9 +4196,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         else if (scs->static_config.enc_mode <= ENC_M4) {
             mrp_level = 5;
         }
+#if !CLN_REMOVE_USELESS_CHECKS
         else if (scs->static_config.enc_mode <= ENC_M5) {
             mrp_level = 7;
         }
+#endif
         else if (scs->static_config.enc_mode <= ENC_M6) {
             mrp_level = 7;
         }

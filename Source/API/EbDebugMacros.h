@@ -82,13 +82,14 @@ extern "C" {
 #define TF_BRIGHTNESS_CHECK_V1                    1 // prune tf reference frame(s) using the brightness deviation to the central-frame
 #define TF_HME_ME_                                1 // OPT HME of tf
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
-#define OPT_MFMV_FD                               1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
+#define OPT_MFMV_FD                               0 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
 #define TUNE_TXS                                  0 // adopt M8_TXS in M7
 #define OPT_CDEF_0                                1 // Remove the fast-decode check from CDEF's lvl derivation
 #define OPT_CDEF_1                                0 // Modulate the cdef bias
 #define OPT_WM_PART_SG                            1 // Adopt fast-decode settings as default
-#define OPT_DLF_QP_BAND                           1 // Add QP banding to DLF for fast-decode and adopt fast-decode level for M5/7
-#define OPT_MFMV_DEFAULT                          1 // Adopt fast-decode MFMV level for M5/7 default
+#define OPT_DLF_QP_BAND                           1 // Add QP banding to DLF for fast-decode
+#define OPT_MFMV_DEFAULT                          0 // Adopt fast-decode MFMV level for M5/7 default
+#define CLN_REMOVE_USELESS_CHECKS                 1 // Remove useless preset checks (lossless)
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

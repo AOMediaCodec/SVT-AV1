@@ -1862,27 +1862,10 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_not_last_layer, Bool f
     else if (fast_decode == 0 || resolution <= INPUT_SIZE_360p_RANGE) {
         if (enc_mode <= ENC_M3)
             dlf_level = 1;
-#if OPT_DLF_QP_BAND
-        else if (enc_mode <= ENC_M4) {
-            dlf_level = 2;
-        }
-        else if (enc_mode <= ENC_M9) {
-            if (resolution <= INPUT_SIZE_360p_RANGE)
-                dlf_level = 3;
-            else if (qp < 40)
-                dlf_level = 5;
-            else if (qp < 55)
-                dlf_level = 4;
-            else
-                dlf_level = 3;
-        }
-#else
         else if (enc_mode <= ENC_M6) {
             dlf_level = 2;
-
         } else if (enc_mode <= ENC_M9)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_not_last_layer ? 3 : 5);
-#endif
         else if (enc_mode <= ENC_M10)
             dlf_level = resolution <= INPUT_SIZE_360p_RANGE ? 3 : (is_not_last_layer ? 4 : 0);
         else if (enc_mode <= ENC_M11)
@@ -9949,11 +9932,13 @@ uint8_t svt_aom_get_nsq_geom_level(EncMode enc_mode, uint8_t is_base, InputCoeff
             nsq_geom_level = is_base ? 1 : 2;
     } else if (enc_mode <= ENC_M3) {
         nsq_geom_level = 2;
+#if !CLN_REMOVE_USELESS_CHECKS
     } else if (enc_mode <= ENC_M5) {
         if (coeff_lvl == HIGH_LVL)
             nsq_geom_level = 3;
         else // regular
             nsq_geom_level = 2;
+#endif
     } else if (enc_mode <= ENC_M6) {
         if (coeff_lvl == HIGH_LVL)
             nsq_geom_level = 3;
@@ -10998,10 +10983,15 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (pcs->ppcs->ref_list0_count_try > 1 || pcs->ppcs->ref_list1_count_try > 1) {
         if (enc_mode <= ENC_M1)
             pcs->dist_based_ref_pruning = is_base ? 1 : 5;
+#if CLN_REMOVE_USELESS_CHECKS
+        else if (!rtc_tune && enc_mode <= ENC_M11)
+            pcs->dist_based_ref_pruning = is_base ? 2 : 5;
+#else
         else if (enc_mode <= ENC_M5)
             pcs->dist_based_ref_pruning = is_base ? 2 : 5;
         else if (!rtc_tune && enc_mode <= ENC_M11)
             pcs->dist_based_ref_pruning = is_base ? 2 : 6;
+#endif
         else {
             if (pcs->coeff_lvl == LOW_LVL) {
                 pcs->dist_based_ref_pruning = is_base ? 2 : 6;
