@@ -10596,6 +10596,12 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->wm_level = (is_base || is_layer1) ? 2 : 3;
         }
         else if (enc_mode <= ENC_M8) {
+#if OPT_WM_BIS
+            if (hierarchical_levels <= 3)
+                pcs->wm_level = is_base ? 1 : 0;
+            else
+                pcs->wm_level = (is_base || is_layer1) ? 2 : 0;
+#else
             if (input_resolution <= INPUT_SIZE_360p_RANGE) {
                 if (hierarchical_levels <= 3)
                     pcs->wm_level = is_base ? 1 : 0;
@@ -10603,6 +10609,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                     pcs->wm_level = (is_base || is_layer1) ? 2 : 0;
             }  else
                 pcs->wm_level = is_base ? 1 : 0;
+#endif
         }
         else if (enc_mode <= ENC_M12) {
             if (input_resolution <= INPUT_SIZE_720p_RANGE)
