@@ -1778,16 +1778,14 @@ static uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resol
 }
 
 // Returns the level for self-guided restoration filter
-#if OPT_WM_SG
-static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resolution, Bool is_base) {
+#if OPT_SG
+static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resolution) {
     uint8_t sg_filter_lvl = 0;
 
     if (enc_mode <= ENC_M0)
         sg_filter_lvl = 1;
     else if (enc_mode <= ENC_M4)
         sg_filter_lvl = 3;
-    else if (enc_mode <= ENC_M7)
-        sg_filter_lvl = input_resolution <= INPUT_SIZE_360p_RANGE ? (is_base ? 4 : 0) : 0;
     else
         sg_filter_lvl = 0;
 
@@ -2251,8 +2249,8 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         svt_aom_derive_input_resolution(&init_input_resolution,
                                         scs->max_initial_input_luma_width * scs->max_initial_input_luma_height);
         wn = svt_aom_get_wn_filter_level(enc_mode, init_input_resolution, is_not_last_layer);
-#if OPT_WM_SG
-        sg = svt_aom_get_sg_filter_level(enc_mode, init_input_resolution, is_base);
+#if OPT_SG
+        sg = svt_aom_get_sg_filter_level(enc_mode, init_input_resolution);
 #else
         sg = svt_aom_get_sg_filter_level(enc_mode, fast_decode, init_input_resolution, is_base);
 #endif
@@ -2587,14 +2585,11 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
     default: assert(0); break;
     }
 }
-#if OPT_WM_SG
+#if OPT_SG
 uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution) {
     uint8_t sg = 0;
-    for (int is_base = 0; is_base < 2; is_base++) {
-        sg = svt_aom_get_sg_filter_level(enc_mode, input_resolution, is_base);
-        if (sg)
-            break;
-    }
+    sg = svt_aom_get_sg_filter_level(enc_mode, input_resolution);
+
     return (sg > 0);
 }
 #else
@@ -2612,7 +2607,7 @@ uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution, Bool f
 * return true if restoration filtering is enabled; false otherwise
   Used by signal_derivation_pre_analysis_oq and memory allocation
 */
-#if OPT_WM_SG
+#if OPT_SG
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration, uint8_t input_resolution) {
 #else
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration, uint8_t input_resolution,
@@ -2627,7 +2622,7 @@ uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_re
         if (wn)
             break;
     }
-#if OPT_WM_SG
+#if OPT_SG
     uint8_t sg = svt_aom_get_enable_sg(enc_mode, input_resolution);
 #else
     uint8_t sg = svt_aom_get_enable_sg(enc_mode, input_resolution, fast_decode);
@@ -2710,7 +2705,7 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         EbInputResolution init_input_resolution;
         svt_aom_derive_input_resolution(&init_input_resolution,
                                         scs->max_initial_input_luma_width * scs->max_initial_input_luma_height);
-#if OPT_WM_SG
+#if OPT_SG
         scs->seq_header.enable_restoration = svt_aom_get_enable_restoration(
             scs->static_config.enc_mode,
             scs->static_config.enable_restoration_filtering,
@@ -10568,7 +10563,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->ppcs->frame_superres_enabled || pcs->ppcs->frame_resize_enabled) {
         pcs->wm_level = 0;
     } else {
-#if OPT_WM_SG
+#if OPT_WM_BIS
         if (enc_mode <= ENC_M1) {
             pcs->wm_level = 1;
         }
@@ -10579,20 +10574,10 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
                 pcs->wm_level = (is_base || is_layer1) ? 2 : 3;
         }
         else if (enc_mode <= ENC_M8) {
-#if OPT_WM_BIS
             if (hierarchical_levels <= 3)
                 pcs->wm_level = is_base ? 1 : 0;
             else
                 pcs->wm_level = (is_base || is_layer1) ? 2 : 0;
-#else
-            if (input_resolution <= INPUT_SIZE_360p_RANGE) {
-                if (hierarchical_levels <= 3)
-                    pcs->wm_level = is_base ? 1 : 0;
-                else
-                    pcs->wm_level = (is_base || is_layer1) ? 2 : 0;
-            }  else
-                pcs->wm_level = is_base ? 1 : 0;
-#endif
         }
         else if (enc_mode <= ENC_M12) {
             if (input_resolution <= INPUT_SIZE_720p_RANGE)

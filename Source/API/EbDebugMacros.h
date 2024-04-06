@@ -85,7 +85,7 @@ extern "C" {
 #define OPT_MFMV_FD                               0 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
 #define TUNE_TXS                                  0 // adopt M8_TXS in M7
 #define OPT_CDEF_0                                1 // Remove the fast-decode check from CDEF's lvl derivation
-#define OPT_WM_SG                                 1 // Adopt fast-decode settings as default
+#define OPT_SG                                    1 // Tune SG settings
 #define OPT_DLF_QP_BAND                           1 // Add QP banding to DLF for fast-decode
 #define OPT_MFMV_DEFAULT                          0 // Adopt fast-decode MFMV level for M5/7 default
 #define CLN_REMOVE_USELESS_CHECKS                 1 // Remove useless preset checks (lossless)

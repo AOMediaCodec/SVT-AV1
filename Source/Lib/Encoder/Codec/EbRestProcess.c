@@ -99,7 +99,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext *thread_ctx, const EbEncHa
         enc_handle_ptr->picture_demux_results_resource_ptr, demux_index);
 
     Bool is_16bit = scs->is_16bit_pipeline;
-#if OPT_WM_SG
+#if OPT_SG
         if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
                                        config->enable_restoration_filtering,
                                        scs->input_resolution)) {
@@ -134,7 +134,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext *thread_ctx, const EbEncHa
                 context_ptr->org_rec_frame->bit_depth = EB_EIGHT_BIT;
         }
         context_ptr->rst_tmpbuf = NULL;
-#if OPT_WM_SG
+#if OPT_SG
         if (svt_aom_get_enable_sg(init_data_ptr->enc_mode, scs->input_resolution))
 #else
         if (svt_aom_get_enable_sg(init_data_ptr->enc_mode, scs->input_resolution, scs->static_config.fast_decode))
