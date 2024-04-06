@@ -1784,7 +1784,7 @@ static uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resol
 }
 
 // Returns the level for self-guided restoration filter
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
 static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resolution, Bool is_base) {
     uint8_t sg_filter_lvl = 0;
 
@@ -2257,7 +2257,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
         svt_aom_derive_input_resolution(&init_input_resolution,
                                         scs->max_initial_input_luma_width * scs->max_initial_input_luma_height);
         wn = svt_aom_get_wn_filter_level(enc_mode, init_input_resolution, is_not_last_layer);
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
         sg = svt_aom_get_sg_filter_level(enc_mode, init_input_resolution, is_base);
 #else
         sg = svt_aom_get_sg_filter_level(enc_mode, fast_decode, init_input_resolution, is_base);
@@ -2593,7 +2593,7 @@ static void set_inter_comp_controls(ModeDecisionContext *ctx, uint8_t inter_comp
     default: assert(0); break;
     }
 }
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
 uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution) {
     uint8_t sg = 0;
     for (int is_base = 0; is_base < 2; is_base++) {
@@ -2618,7 +2618,7 @@ uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution, Bool f
 * return true if restoration filtering is enabled; false otherwise
   Used by signal_derivation_pre_analysis_oq and memory allocation
 */
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration, uint8_t input_resolution) {
 #else
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration, uint8_t input_resolution,
@@ -2633,7 +2633,7 @@ uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_re
         if (wn)
             break;
     }
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
     uint8_t sg = svt_aom_get_enable_sg(enc_mode, input_resolution);
 #else
     uint8_t sg = svt_aom_get_enable_sg(enc_mode, input_resolution, fast_decode);
@@ -2716,7 +2716,7 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet *scs) {
         EbInputResolution init_input_resolution;
         svt_aom_derive_input_resolution(&init_input_resolution,
                                         scs->max_initial_input_luma_width * scs->max_initial_input_luma_height);
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
         scs->seq_header.enable_restoration = svt_aom_get_enable_restoration(
             scs->static_config.enc_mode,
             scs->static_config.enable_restoration_filtering,
@@ -10552,17 +10552,6 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     // pic_filter_intra_level specifies whether filter intra would be active
     // for a given picture.
     pcs->pic_filter_intra_level = get_filter_intra_level(enc_mode);
-#if OPT_WM_PART_SG
-    if (input_resolution <= INPUT_SIZE_360p_RANGE) {
-        pcs->ppcs->use_accurate_part_ctx = TRUE;
-    }
-    else {
-        if (pcs->enc_mode <= ENC_M4)
-            pcs->ppcs->use_accurate_part_ctx = TRUE;
-        else
-            pcs->ppcs->use_accurate_part_ctx = FALSE;
-    }
-#else
     if (fast_decode == 0 || input_resolution <= INPUT_SIZE_360p_RANGE) {
         if (pcs->enc_mode <= ENC_M9)
             pcs->ppcs->use_accurate_part_ctx = TRUE;
@@ -10571,7 +10560,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     } else {
         pcs->ppcs->use_accurate_part_ctx = FALSE;
     }
-#endif
+
     FrameHeader *frm_hdr             = &ppcs->frm_hdr;
     frm_hdr->allow_high_precision_mv = (frm_hdr->quantization_params.base_q_idx < HIGH_PRECISION_MV_QTHRESH_0 ||
                                         (pcs->ref_hp_percentage > HIGH_PRECISION_REF_PERC_TH &&
@@ -10585,7 +10574,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->ppcs->frame_superres_enabled || pcs->ppcs->frame_resize_enabled) {
         pcs->wm_level = 0;
     } else {
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
         if (enc_mode <= ENC_M1) {
             pcs->wm_level = 1;
         }

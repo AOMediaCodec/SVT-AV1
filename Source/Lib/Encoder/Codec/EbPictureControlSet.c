@@ -400,7 +400,7 @@ EbErrorType pcs_update_param(PictureControlSet *pcs) {
     if ((is_16bit) || (scs->is_16bit_pipeline)) {
         svt_picture_buffer_desc_update(pcs->input_frame16bit, (EbPtr)&coeff_buffer_desc_init_data);
     }
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
         if (svt_aom_get_enable_restoration(scs->static_config.enc_mode,
                                        scs->static_config.enable_restoration_filtering,
                                        scs->input_resolution)) {
@@ -501,7 +501,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet *object_ptr, EbPtr
     object_ptr->temp_lf_recon_pic_16bit           = (EbPictureBufferDesc *)NULL;
     object_ptr->temp_lf_recon_pic                 = (EbPictureBufferDesc *)NULL;
     object_ptr->scaled_input_pic                  = (EbPictureBufferDesc *)NULL;
-#if OPT_WM_PART_SG
+#if OPT_WM_SG
         if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
                                        init_data_ptr->static_config.enable_restoration_filtering,
                                        init_data_ptr->input_resolution)) {
