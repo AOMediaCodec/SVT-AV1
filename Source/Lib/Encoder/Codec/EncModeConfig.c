@@ -1301,7 +1301,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs    = 0;
         cdef_ctrls->subsampling_factor    = 1;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
+        cdef_ctrls->zero_fs_cost_bias = 0;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1330,7 +1330,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs           = 0;
         cdef_ctrls->subsampling_factor           = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
+        cdef_ctrls->zero_fs_cost_bias = 0;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1361,7 +1361,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs    = 1;
         cdef_ctrls->subsampling_factor    = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
+        cdef_ctrls->zero_fs_cost_bias = 0;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1391,7 +1391,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs           = 1;
         cdef_ctrls->subsampling_factor           = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
+        cdef_ctrls->zero_fs_cost_bias = 0;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1640,12 +1640,6 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
     default: assert(0); break;
     }
 
-#if OPT_CDEF_1
-    if (cdef_ctrls->zero_fs_cost_bias) {
-        if (pcs->scs->static_config.qp <= 59)
-            cdef_ctrls->zero_fs_cost_bias = cdef_ctrls->zero_fs_cost_bias - 1;
-    }
-#endif
 }
 
 static void svt_aom_set_wn_filter_ctrls(Av1Common *cm, uint8_t wn_filter_lvl) {
