@@ -1000,7 +1000,7 @@ void svt_aom_sig_deriv_me_tf(PictureParentControlSet *pcs, MeContext *me_ctx) {
         ? 0
         : BLOCK_SIZE_64 * BLOCK_SIZE_64 * 4;
 };
-#if OPT_CDEF_0
+#if 0//OPT_CDEF_0
 static void set_cdef_controls(PictureParentControlSet* pcs, uint8_t cdef_level) {
 #else
 static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, Bool fast_decode) {
@@ -1301,7 +1301,10 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs    = 0;
         cdef_ctrls->subsampling_factor    = 1;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = 0;
+        if (fast_decode == 0)
+            cdef_ctrls->zero_fs_cost_bias = 0;
+        else
+            cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1330,7 +1333,10 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs           = 0;
         cdef_ctrls->subsampling_factor           = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = 0;
+        if (fast_decode == 0)
+            cdef_ctrls->zero_fs_cost_bias = 0;
+        else
+            cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1361,7 +1367,10 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs    = 1;
         cdef_ctrls->subsampling_factor    = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = 0;
+        if (fast_decode == 0)
+            cdef_ctrls->zero_fs_cost_bias = 0;
+        else
+            cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -1391,7 +1400,10 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
         cdef_ctrls->search_best_ref_fs           = 1;
         cdef_ctrls->subsampling_factor           = 4;
 #if OPT_CDEF_0
-        cdef_ctrls->zero_fs_cost_bias = 0;
+        if (fast_decode == 0)
+            cdef_ctrls->zero_fs_cost_bias = 0;
+        else
+            cdef_ctrls->zero_fs_cost_bias = pcs->input_resolution <= INPUT_SIZE_360p_RANGE ? 0 : 63;
 #else
         if (fast_decode == 0)
             cdef_ctrls->zero_fs_cost_bias = 0;
@@ -2233,7 +2245,7 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
             pcs->cdef_level = (int8_t)(scs->static_config.cdef_level);
     } else
         pcs->cdef_level = 0;
-#if OPT_CDEF_0
+#if 0//OPT_CDEF_0
     set_cdef_controls(pcs, pcs->cdef_level);
 #else
     set_cdef_controls(pcs, pcs->cdef_level, fast_decode);
