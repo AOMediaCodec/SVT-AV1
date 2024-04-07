@@ -82,7 +82,7 @@ extern "C" {
 #define TF_BRIGHTNESS_CHECK_V1                    1 // prune tf reference frame(s) using the brightness deviation to the central-frame
 #define TF_HME_ME_                                1 // OPT HME of tf
 #define OPT_SWAP_C1_C2                            1 // Swap CAND_CLASS_1 and CAND_CLASS_2 to process MVP candidates first
-#define OPT_MFMV_FD                               0 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
+#define OPT_MFMV_FD                               1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
 #define TUNE_TXS                                  0 // adopt M8_TXS in M7
 #define OPT_CDEF_0                                1 // Remove the fast-decode check from CDEF's lvl derivation
 #define OPT_SG                                    1 // Tune SG settings
