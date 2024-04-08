@@ -571,6 +571,22 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
         }
     }
 
+#if LAMBDA_SKIP_BIAS
+    Bool use_higher_lambda;
+
+    if (pcs->enc_mode <= ENC_M5)
+        use_higher_lambda = 0;
+    else
+        use_higher_lambda = 1;
+
+    if (use_higher_lambda) {
+        ctx->full_lambda_md[0] = (ctx->full_lambda_md[0] * 140) >> 7;
+        ctx->fast_lambda_md[0] = (ctx->fast_lambda_md[0] * 140) >> 7;
+        ctx->full_lambda_md[1] = (ctx->full_lambda_md[1] * 140) >> 7;
+        ctx->fast_lambda_md[1] = (ctx->fast_lambda_md[1] * 140) >> 7;
+    }
+#endif
+
     ctx->full_lambda_md[1] *= 16;
     ctx->fast_lambda_md[1] *= 4;
 

@@ -91,6 +91,7 @@ extern "C" {
 #define CLN_REMOVE_USELESS_CHECKS                 1 // Remove useless preset checks (lossless)
 #define OPT_WM_BIS                                1 // Tune WM settings
 #define CNL_INJ_NON_SIMPLE_MODES                  1 // Use common function to inject II/WM/OBMC
+#define LAMBDA_SKIP_BIAS                          1 // Lambda tuning towards more skip selection 
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
