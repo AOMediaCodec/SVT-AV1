@@ -912,10 +912,14 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     else
         me_8x8_var_lvl = 2;
     svt_aom_set_me_8x8_var_ctrls(me_ctx, me_8x8_var_lvl);
+#if TUNE_M5
+    if (enc_mode <= ENC_M4)
+#else
 #if TUNE_SHUT_ME_CAND_PRUNE
     if (enc_mode <= ENC_M6)
 #else
     if (enc_mode <= ENC_M5)
+#endif
 #endif
         me_ctx->prune_me_candidates_th = 0;
     else
@@ -1888,6 +1892,12 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_not_last_layer, Bool f
         else
             dlf_level = is_base ? 3 : is_not_last_layer ? 5 : 0;
     } else {
+#if TUNE_M5
+        if (enc_mode <= ENC_M5)
+            dlf_level = is_base ? 3 : 4;
+        else
+            dlf_level = is_base ? 3 : is_not_last_layer ? 5 : 0;
+#else
 #if OPT_DLF_QP_BAND
         if (qp < 40)
             dlf_level = 5;
@@ -1897,6 +1907,7 @@ static uint8_t get_dlf_level(EncMode enc_mode, uint8_t is_not_last_layer, Bool f
             dlf_level = 3;
 #else
         dlf_level = is_base ? 3 : is_not_last_layer ? 5 : 0;
+#endif
 #endif
     }
     return dlf_level;
@@ -8942,7 +8953,11 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = 4;
         }
     }
+#if TUNE_M5
+    else if (enc_mode <= ENC_M5) {
+#else
     else if (enc_mode <= ENC_M4) {
+#endif
         if (pcs->coeff_lvl == LOW_LVL) {
             depth_level = 3;
         }
@@ -9679,7 +9694,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
     else
         ctx->blk_skip_decision = FALSE;
     if (pd_pass == PD_PASS_0) {
+#if TUNE_M5
+        if (enc_mode <= ENC_M5)
+#else
         if (enc_mode <= ENC_M4)
+#endif
             ctx->rdoq_level = 1;
         else
             ctx->rdoq_level = 0;
@@ -9998,7 +10017,11 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
     else if (enc_mode <= ENC_M3) {
         nsq_search_level = 9;
     }
+#if TUNE_M5
+    else if (enc_mode <= ENC_M4) {
+#else
     else if (enc_mode <= ENC_M5) {
+#endif
         nsq_search_level = 10;
     }
     else if (enc_mode <= ENC_M7) {
@@ -10220,7 +10243,11 @@ uint8_t svt_aom_get_update_cdf_level(EncMode enc_mode, SliceType is_islice, uint
 
     if (enc_mode <= ENC_M0)
         update_cdf_level = 1;
+#if TUNE_M5
+    else if (enc_mode <= ENC_M5)
+#else
     else if (enc_mode <= ENC_M4)
+#endif
         update_cdf_level = is_base ? 1 : 3;
     else if (enc_mode <= ENC_M9)
         update_cdf_level = is_islice ? 1 : 0;
@@ -10899,7 +10926,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     } else {
         if (enc_mode <= ENC_M3)
             pcs->tx_shortcut_level = 0;
+#if TUNE_M5
+        else if (enc_mode <= ENC_M5)
+#else
         else if (enc_mode <= ENC_M4)
+#endif
             pcs->tx_shortcut_level = is_base ? 0 : 1;
         else
             pcs->tx_shortcut_level = is_base ? 0 : 2;
@@ -10965,7 +10996,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (scs->bipred_3x3_inject == DEFAULT) {
         if (enc_mode <= ENC_M2)
             pcs->bipred3x3_injection = 2;
+#if TUNE_M5
+        else if (enc_mode <= ENC_M5)
+#else
         else if (enc_mode <= ENC_M4)
+#endif
             pcs->bipred3x3_injection = 4;
         else
             pcs->bipred3x3_injection = 0;

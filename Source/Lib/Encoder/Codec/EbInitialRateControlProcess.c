@@ -280,17 +280,25 @@ uint8_t svt_aom_set_tpl_group(PictureParentControlSet *pcs, uint8_t tpl_group_le
     return tpl_ctrls->synth_blk_size;
 }
 
+#if TUNE_M5
+static uint8_t get_tpl_params_level(int8_t enc_mode, SvtAv1RcMode rc_mode) {
+#else
 static uint8_t get_tpl_params_level(uint64_t dist_per_group, int8_t enc_mode, SvtAv1RcMode rc_mode) {
+#endif
     uint8_t  tpl_params_level;
+#if !TUNE_M5
     uint64_t cplx_group_th = 10000;
+#endif
 #if OPT_TPL_SUB_LVL
     if (enc_mode <= ENC_M4) {
         tpl_params_level = 1;
+#if !TUNE_M5
     } else if (enc_mode <= ENC_M6) {
         if (dist_per_group < cplx_group_th)
             tpl_params_level = 3;
         else
             tpl_params_level = 2;
+#endif
     } else if (enc_mode <= ENC_M10 || (rc_mode == SVT_AV1_RC_MODE_VBR && enc_mode <= ENC_M11)) {
         tpl_params_level = 3;
     } else {
@@ -507,6 +515,17 @@ void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContex
         }
     }
 
+#if TUNE_M5
+    for (uint32_t pic_index = 0; pic_index < pcs->tpl_group_size; pic_index++) {
+        if (!pcs->tpl_group[pic_index]->tpl_params_ready) {
+            set_tpl_params(
+                pcs->tpl_group[pic_index],
+                get_tpl_params_level(
+                    pcs->scs->static_config.enc_mode, pcs->scs->static_config.rate_control_mode));
+            pcs->tpl_group[pic_index]->tpl_params_ready = 1;
+        }
+    }
+#else
     uint32_t pic_index;
     uint64_t dist_per_group = 0;
 
@@ -526,6 +545,7 @@ void store_extended_group(PictureParentControlSet *pcs, InitialRateControlContex
             pcs->tpl_group[pic_index]->tpl_params_ready = 1;
         }
     }
+#endif
 
 #if LAD_MG_PRINT
     if (log) {

@@ -3946,12 +3946,17 @@ static void set_param_based_on_input(SequenceControlSet *scs)
     else
         if (scs->static_config.enc_mode <= ENC_M1)
             scs->super_block_size = 128;
+#if TUNE_M5
+        else if (scs->static_config.enc_mode <= ENC_M5) {
+#else
         else if (scs->static_config.enc_mode <= ENC_M4) {
+#endif
             if (scs->static_config.qp <= 56)
                 scs->super_block_size = 64;
             else
                 scs->super_block_size = 128;
         }
+#if !TUNE_M5
         else if (scs->static_config.enc_mode <= ENC_M5) {
             if(scs->input_resolution <= INPUT_SIZE_360p_RANGE)
                 scs->super_block_size = 64;
@@ -3962,6 +3967,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
                     scs->super_block_size = 128;
             }
         }
+#endif
         else if (scs->static_config.enc_mode <= ENC_M7) {
             if (scs->input_resolution <= INPUT_SIZE_480p_RANGE)
                 scs->super_block_size = 64;

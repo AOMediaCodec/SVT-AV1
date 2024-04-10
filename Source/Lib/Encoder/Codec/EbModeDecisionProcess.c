@@ -574,7 +574,11 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
 #if LAMBDA_SKIP_BIAS
     Bool use_higher_lambda;
 
+#if TUNE_M5
+    if (pcs->enc_mode <= ENC_M4)
+#else
     if (pcs->enc_mode <= ENC_M5)
+#endif
         use_higher_lambda = 0;
     else
         use_higher_lambda = 1;
