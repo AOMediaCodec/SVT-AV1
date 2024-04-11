@@ -94,7 +94,10 @@ extern "C" {
 #define LAMBDA_SKIP_BIAS                          1 // Lambda tuning towards more skip selection 
 #define OPT_MFMV_FD_NEW                           1 // Use coeff_lvl for MFMV fast-decode levels instead of current ME_dist/QP
 #define TUNE_M5                                   1 // Tune M5 features
-
+#define FASTER_DEPTH_REMOVAL                      1 // Faster depth-removal
+#define FASTER_NSQ_SEARCH                         1 // Faster nsq-search
+#define FASTER_NSQ_GEOM                           1 // Faster nsq-geom
+#define TUNE_M7                                   1 // Tune M5 features
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
