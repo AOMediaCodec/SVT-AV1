@@ -3980,7 +3980,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             if (scs->input_resolution <= INPUT_SIZE_480p_RANGE)
                 scs->super_block_size = 64;
             else {
-                if (scs->static_config.qp <= 55)
+                if (scs->static_config.qp <= 56)
                     scs->super_block_size = 64;
                 else
                     scs->super_block_size = 128;
@@ -4162,7 +4162,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         list0_only_base_lvl = 4;
 
     // QP-banding
+#if SMOOTH_RIGHT
     if (scs->static_config.qp <= 44)
+#else
+    if (scs->static_config.qp <= 43)
+#endif
         list0_only_base_lvl = list0_only_base_lvl + 1;
     else if (scs->static_config.qp > 51)
         list0_only_base_lvl = MAX(0, (int) ((int) list0_only_base_lvl - 1));

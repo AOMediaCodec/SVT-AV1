@@ -98,11 +98,11 @@ extern "C" {
 #define FASTER_NSQ_SEARCH                         1 // Faster nsq-search
 #define FASTER_NSQ_GEOM                           1 // Faster nsq-geom
 #define TUNE_M7                                   1 // Tune M5 features
+#define SMOOTH_RIGHT                              1 // Smooth QP bands for high and medium QPs
 #define SMOOTH_LEFT                               1 // Neutralize left qp-band for depth, txs, and nic
 #define HIGHER_LAMBDA_EXTREME_RIGHT_BAND          1 // Neutralize left qp-band for depth, txs, and nic
+
 //FOR DEBUGGING - Do not remove
-
-
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

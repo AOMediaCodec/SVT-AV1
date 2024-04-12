@@ -5560,13 +5560,24 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
 #else
     if (qp <= 23)
         nic_level = MIN(nic_level + 2, 19);
+#if SMOOTH_RIGHT
     else if (qp <= 42)
+#else
+    else if (qp <= 39)
+#endif
         nic_level = MIN(nic_level + 1, 19);
 #endif
+#if SMOOTH_RIGHT
     else if (qp > 61)
         nic_level = nic_level <= 1 ? 0 : nic_level - 2;
     else if (qp > 57)
         nic_level = nic_level == 0 ? 0 : nic_level - 1;
+#else
+    else if (qp > 59)
+        nic_level = nic_level <= 1 ? 0 : nic_level - 2;
+    else if (qp > 55)
+        nic_level = nic_level == 0 ? 0 : nic_level - 1;
+#endif
 #else
     if (enc_mode <= ENC_MR)
         nic_level = is_base ? 2 : 5;
@@ -9035,7 +9046,11 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
         else if (scs->static_config.qp <= 32)
             depth_level = depth_level ? depth_level + 1 : 0;
 #endif
+#if SMOOTH_RIGHT
         else if (scs->static_config.qp > 62)
+#else
+        else if (scs->static_config.qp > 55)
+#endif
             depth_level = depth_level == 1 ? depth_level : depth_level - 1;
     }
 
@@ -10127,18 +10142,28 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
     if (qp <= 39) {
         nsq_search_level = nsq_search_level + 3 > 18 ? 0 : nsq_search_level + 3;
     }
+#if SMOOTH_RIGHT
     else if (qp <= 45) {
+#else
+    else if (qp <= 43) {
+#endif
         nsq_search_level = nsq_search_level + 2 > 18 ? 0 : nsq_search_level + 2;
     }
     else if (qp <= 48) {
         nsq_search_level = nsq_search_level + 1 > 18 ? 0 : nsq_search_level + 1;
     }
-    else if (qp <= 59) {
+#if SMOOTH_RIGHT
+    else if (qp > 59) {
+        nsq_search_level = MAX(nsq_search_level - 1, 1);
+    }
+#else
+    else if (qp <= 56) {
         // no action
     }
     else {
         nsq_search_level = MAX(nsq_search_level - 1, 1);
     }
+#endif
 
     return nsq_search_level;
 }
@@ -10489,10 +10514,17 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
     if (!(enc_mode <= ENC_MR) && obmc_level) {
         if (qp <= 43)
             obmc_level = obmc_level + 2;
+#if SMOOTH_RIGHT
         else if (qp <= 53)
             obmc_level = obmc_level + 1;
         else if (qp > 60)
             obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
+#else
+        else if (qp <= 55)
+            obmc_level = obmc_level + 1;
+        else if (qp > 59)
+            obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
+#endif
     }
 
     return obmc_level;
@@ -11147,7 +11179,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         if (sq_qp <= 23) {
             pcs->txs_level = pcs->txs_level + 1;
         }
+#if SMOOTH_RIGHT
         else if (sq_qp > 58) {
+#else
+        else if (sq_qp > 55) {
+#endif
             pcs->txs_level = pcs->txs_level == 1 ? pcs->txs_level : pcs->txs_level - 1;
         }
 #endif
