@@ -584,10 +584,25 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
         use_higher_lambda = 1;
 
     if (use_higher_lambda) {
+#if HIGHER_LAMBDA_EXTREME_RIGHT_BAND
+        if (pcs->picture_qp >= 57) {
+            ctx->full_lambda_md[0] = (ctx->full_lambda_md[0] * 200) >> 7;
+            ctx->fast_lambda_md[0] = (ctx->fast_lambda_md[0] * 200) >> 7;
+            ctx->full_lambda_md[1] = (ctx->full_lambda_md[1] * 200) >> 7;
+            ctx->fast_lambda_md[1] = (ctx->fast_lambda_md[1] * 200) >> 7;
+        }
+        else {
+            ctx->full_lambda_md[0] = (ctx->full_lambda_md[0] * 150) >> 7;
+            ctx->fast_lambda_md[0] = (ctx->fast_lambda_md[0] * 150) >> 7;
+            ctx->full_lambda_md[1] = (ctx->full_lambda_md[1] * 150) >> 7;
+            ctx->fast_lambda_md[1] = (ctx->fast_lambda_md[1] * 150) >> 7;
+        }
+#else
         ctx->full_lambda_md[0] = (ctx->full_lambda_md[0] * 150) >> 7;
         ctx->fast_lambda_md[0] = (ctx->fast_lambda_md[0] * 150) >> 7;
         ctx->full_lambda_md[1] = (ctx->full_lambda_md[1] * 150) >> 7;
         ctx->fast_lambda_md[1] = (ctx->fast_lambda_md[1] * 150) >> 7;
+#endif
     }
 #endif
 

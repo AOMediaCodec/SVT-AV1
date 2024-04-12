@@ -5554,13 +5554,18 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         nic_level = 19;
 
     // QP-banding
+#if SMOOTH_LEFT
+    if (qp <= 42)
+        nic_level = MIN(nic_level + 1, 19);
+#else
     if (qp <= 23)
         nic_level = MIN(nic_level + 2, 19);
-    else if (qp <= 39)
+    else if (qp <= 42)
         nic_level = MIN(nic_level + 1, 19);
-    else if (qp > 59)
+#endif
+    else if (qp > 61)
         nic_level = nic_level <= 1 ? 0 : nic_level - 2;
-    else if (qp > 55)
+    else if (qp > 57)
         nic_level = nic_level == 0 ? 0 : nic_level - 1;
 #else
     if (enc_mode <= ENC_MR)
@@ -9021,11 +9026,16 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
     if (!(enc_mode <= ENC_M0) && !pcs->ppcs->sc_class1 && depth_level) {
 
         // QP-banding
+#if SMOOTH_LEFT
+        if (scs->static_config.qp <= 32)
+            depth_level = depth_level ? depth_level + 1 : 0;
+#else
         if (scs->static_config.qp <= 24)
             depth_level = depth_level ? depth_level + 2 : 0;
         else if (scs->static_config.qp <= 32)
             depth_level = depth_level ? depth_level + 1 : 0;
-        else if (scs->static_config.qp > 55)
+#endif
+        else if (scs->static_config.qp > 62)
             depth_level = depth_level == 1 ? depth_level : depth_level - 1;
     }
 
@@ -10117,13 +10127,13 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
     if (qp <= 39) {
         nsq_search_level = nsq_search_level + 3 > 18 ? 0 : nsq_search_level + 3;
     }
-    else if (qp <= 43) {
+    else if (qp <= 45) {
         nsq_search_level = nsq_search_level + 2 > 18 ? 0 : nsq_search_level + 2;
     }
     else if (qp <= 48) {
         nsq_search_level = nsq_search_level + 1 > 18 ? 0 : nsq_search_level + 1;
     }
-    else if (qp <= 56) {
+    else if (qp <= 59) {
         // no action
     }
     else {
@@ -10479,9 +10489,9 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
     if (!(enc_mode <= ENC_MR) && obmc_level) {
         if (qp <= 43)
             obmc_level = obmc_level + 2;
-        else if (qp <= 55)
+        else if (qp <= 53)
             obmc_level = obmc_level + 1;
-        else if (qp > 59)
+        else if (qp > 60)
             obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
     }
 
@@ -11129,12 +11139,18 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     // QP-banding
     if (pcs->txs_level) {
+#if SMOOTH_LEFT
+        if (sq_qp > 58) {
+            pcs->txs_level = pcs->txs_level == 1 ? pcs->txs_level : pcs->txs_level - 1;
+        }
+#else
         if (sq_qp <= 23) {
             pcs->txs_level = pcs->txs_level + 1;
         }
-        else if (sq_qp > 55) {
+        else if (sq_qp > 58) {
             pcs->txs_level = pcs->txs_level == 1 ? pcs->txs_level : pcs->txs_level - 1;
         }
+#endif
     }
 #else
     if (enc_mode <= ENC_M2)
