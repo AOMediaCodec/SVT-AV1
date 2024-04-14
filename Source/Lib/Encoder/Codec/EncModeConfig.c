@@ -46,7 +46,7 @@ uint8_t svt_aom_get_enable_me_16x16(EncMode enc_mode) {
 uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
     uint8_t gm_level = 0;
     if (super_res_off) {
-        if (enc_mode <= ENC_M0)
+        if (enc_mode <= ENC_M1)
             gm_level = 2;
         else if (enc_mode <= ENC_M2)
             gm_level = 4;
