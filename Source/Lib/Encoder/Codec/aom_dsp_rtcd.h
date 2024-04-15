@@ -1134,6 +1134,10 @@ extern "C" {
 
     void svt_aom_get_final_filtered_pixels_neon(struct MeContext *me_ctx, EbByte *src_center_ptr_start, uint16_t **altref_buffer_highbd_start, uint32_t **accum, uint16_t **count, const uint32_t *stride, int blk_y_src_offset, int blk_ch_src_offset, uint16_t blk_width_ch, uint16_t blk_height_ch, Bool is_highbd);
 
+    void svt_unpack_and_2bcompress_neon(uint16_t *in16b_buffer, uint32_t in16b_stride, uint8_t *out8b_buffer,
+                                    uint32_t out8b_stride, uint8_t *out2b_buffer, uint32_t out2b_stride, uint32_t width,
+                                    uint32_t height);
+
 #endif
 
 #ifdef ARCH_X86_64

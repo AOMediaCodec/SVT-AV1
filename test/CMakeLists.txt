@@ -84,15 +84,16 @@ set(arch_neutral_files
     )
 
 set(multi_arch_files
+    CdefTest.cc
     FwdTxfm2dAsmTest.cc
     InvTxfm2dAsmTest.cc
+    PackUnPackTest.cc
     PictureOperatorTest.cc
     SadTest.cc
-    selfguided_filter_test.cc
-    CdefTest.cc
     SpatialFullDistortionTest.cc
     TemporalFilterTestPlanewise.cc
     convolve_2d_test.cc
+    selfguided_filter_test.cc
     )
 
 if(HAVE_X86_PLATFORM)
@@ -116,7 +117,6 @@ if(HAVE_X86_PLATFORM)
         MotionEstimationTest.cc
         OBMCSadTest.cc
         OBMCVarianceTest.cc
-        PackUnPackTest.cc
         PaletteModeUtilTest.cc
         PsnrTest.cc
         QuantAsmTest.cc
