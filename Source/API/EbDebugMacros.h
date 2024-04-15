@@ -97,10 +97,14 @@ extern "C" {
 #define FASTER_DEPTH_REMOVAL                      1 // Faster depth-removal
 #define FASTER_NSQ_SEARCH                         1 // Faster nsq-search
 #define FASTER_NSQ_GEOM                           1 // Faster nsq-geom
-#define TUNE_M7                                   1 // Tune M5 features
+#define TUNE_M7                                   1 // Tune M7 features
 #define SMOOTH_RIGHT                              1 // Smooth QP bands for high and medium QPs
 #define SMOOTH_LEFT                               1 // Neutralize left qp-band for depth, txs, and nic
 #define HIGHER_LAMBDA_EXTREME_RIGHT_BAND          1 // Neutralize left qp-band for depth, txs, and nic
+#define TUNE_M8                                   1 // Tune M8 features
+#define TUNE_M9                                   1 // Tune M9 features
+#define TUNE_M10                                  1 // Tune M10 features
+
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay

@@ -3972,6 +3972,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
             }
         }
 #endif
+#if !TUNE_M8 // sb_128
 #if TUNE_M7
         else if (scs->static_config.enc_mode <= ENC_M8) {
 #else
@@ -3986,6 +3987,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
                     scs->super_block_size = 128;
             }
         }
+#endif
         else
             scs->super_block_size = 64;
     // When switch frame is on, all renditions must have same super block size. See spec 5.5.1, 5.9.15.
@@ -4241,7 +4243,11 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         scs->static_config.scene_change_detection == 1       ||
         scs->vq_ctrls.sharpness_ctrls.tf == 1)
         scs->calculate_variance = 1;
+#if TUNE_M9 // variance
+    else if (scs->static_config.enc_mode <= ENC_M8)
+#else
     else if (scs->static_config.enc_mode <= ENC_M9)
+#endif
         scs->calculate_variance = 1;
     else
         scs->calculate_variance = 0;
