@@ -110,6 +110,10 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
     if (super_res_off) {
         if (enc_mode <= ENC_M0)
             gm_level = 2;
+#if TUNE_M3
+        else if (enc_mode <= ENC_M3)
+            gm_level = 4;
+#else
         else if (enc_mode <= ENC_M2)
             gm_level = 4;
 #if CALL_GLOBAL
@@ -118,6 +122,7 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
         else if (enc_mode <= ENC_M3)
 #endif
             gm_level = 5;
+#endif
         else
             gm_level = 0;
     }
@@ -5574,8 +5579,10 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         nic_level = is_base ? 2 : 6;
     else if (enc_mode <= ENC_M2)
         nic_level = is_base ? 8 : 10;
+#if !TUNE_M3
     else if (enc_mode <= ENC_M3)
         nic_level = is_base ? 9 : 12;
+#endif
     else if (enc_mode <= ENC_M4)
 #if TUNE_M4
         nic_level = is_base ? 10 : 13;
@@ -9914,7 +9921,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
     md_subpel_pme_controls(ctx, ctx->md_subpel_pme_level);
     uint8_t rate_est_level = 0;
     if (pd_pass == PD_PASS_0) {
+#if TUNE_M3
+        if (enc_mode <= ENC_M2)
+#else
         if (enc_mode <= ENC_M3)
+#endif
             rate_est_level = 1;
         else
             rate_est_level = 2;
@@ -10584,8 +10595,10 @@ uint8_t get_inter_compound_level(EncMode enc_mode) {
         comp_level = 3;
     else if (enc_mode <= ENC_M2)
         comp_level = 4;
+#if !TUNE_M3
     else if (enc_mode <= ENC_M3)
         comp_level = 5;
+#endif
     else
         comp_level = 0;
 
@@ -10998,7 +11011,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (enc_mode <= ENC_M0) {
         pcs->txt_level = is_base ? 2 : 3;
     }
+#if TUNE_M3
+    else if (enc_mode <= ENC_M3) {
+#else
     else if (enc_mode <= ENC_M2) {
+#endif
         pcs->txt_level = is_base ? 2 : 5;
     }
     else if (enc_mode <= ENC_M9) {
@@ -11215,7 +11232,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 
     // Set the level for the distance-based red pruning
     if (pcs->ppcs->ref_list0_count_try > 1 || pcs->ppcs->ref_list1_count_try > 1) {
+#if TUNE_M3
+        if (enc_mode <= ENC_M3)
+#else
         if (enc_mode <= ENC_M1)
+#endif
             pcs->dist_based_ref_pruning = is_base ? 1 : 5;
 #if CLN_REMOVE_USELESS_CHECKS
         else if (!rtc_tune && enc_mode <= ENC_M11)
@@ -11273,6 +11294,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (enc_mode <= ENC_M2) {
         pcs->txs_level = 2;
     }
+#if TUNE_M3
+    else if (enc_mode <= ENC_M3) {
+        pcs->txs_level = 3;
+    }
+#endif
 #if CLOSE_THE_SPEED_GAP_TO_1_8
 #if TUNE_TXS
     else if (enc_mode <= ENC_M6) {
@@ -11374,7 +11400,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     // Set the level for PME search
     if (enc_mode <= ENC_M1)
         pcs->md_pme_level = 1;
+#if TUNE_M3
+    else if (enc_mode <= ENC_M2)
+#else
     else if (enc_mode <= ENC_M3)
+#endif
         pcs->md_pme_level = 2;
     else if (enc_mode <= ENC_M8)
         pcs->md_pme_level = 3;
