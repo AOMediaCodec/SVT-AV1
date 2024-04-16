@@ -10472,6 +10472,25 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                 else
                     pcs->pic_lpd0_lvl = (is_base || transition_present) ? 3 : 5;
             }
+#if TUNE_M10 // pic_lpd0_lvl
+        } else if (enc_mode <= ENC_M10) {
+            if (input_resolution <= INPUT_SIZE_360p_RANGE)
+                pcs->pic_lpd0_lvl = MIN(MAX_LDP0_LVL, 3 + ldp0_lvl_offset[qp_band_idx]);
+            else if (input_resolution <= INPUT_SIZE_480p_RANGE)
+                pcs->pic_lpd0_lvl = (is_base || transition_present)
+                ? MIN(MAX_LDP0_LVL, 3 + MAX((int)((int) ldp0_lvl_offset[qp_band_idx] - 1), 0))
+                : MIN(MAX_LDP0_LVL, 5 + MAX((int)((int) ldp0_lvl_offset[qp_band_idx] - 1), 0));
+            else {
+                if (coeff_lvl == HIGH_LVL || coeff_lvl == NORMAL_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 5 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0))
+                    : MIN(MAX_LDP0_LVL, 7 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0));
+                else
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 3 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0))
+                    : MIN(MAX_LDP0_LVL, 5 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0));
+            }
+#endif
         } else if (enc_mode <= ENC_M12) {
             if (input_resolution <= INPUT_SIZE_360p_RANGE)
                 pcs->pic_lpd0_lvl = MIN(MAX_LDP0_LVL, 3 + ldp0_lvl_offset[qp_band_idx]);
