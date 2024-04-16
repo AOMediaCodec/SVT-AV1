@@ -300,9 +300,18 @@ static void set_me_search_params(SequenceControlSet *scs, PictureParentControlSe
     } else if (enc_mode <= ENC_M2) {
         me_ctx->me_sa.sa_min = (SearchArea){32, 32};
         me_ctx->me_sa.sa_max = (SearchArea){128, 128};
+#if TUNE_M4
+    } else if (enc_mode <= ENC_M3) {
+        me_ctx->me_sa.sa_min = (SearchArea){ 24, 24 };
+        me_ctx->me_sa.sa_max = (SearchArea){ 104, 104 };
+    } else if (enc_mode <= ENC_M4) {
+        me_ctx->me_sa.sa_min = (SearchArea){24, 24};
+        me_ctx->me_sa.sa_max = (SearchArea){80, 80};
+#else
     } else if (enc_mode <= ENC_M4) {
         me_ctx->me_sa.sa_min = (SearchArea){24, 24};
         me_ctx->me_sa.sa_max = (SearchArea){104, 104};
+#endif
     } else if (enc_mode <= ENC_M7) {
         me_ctx->me_sa.sa_min = (SearchArea){16, 16};
         me_ctx->me_sa.sa_max = (SearchArea){64, 32};
@@ -938,7 +947,11 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         else
             me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 9;
     } else {
+#if TUNE_M4
+        if (enc_mode <= ENC_M3)
+#else
         if (enc_mode <= ENC_M4)
+#endif
             me_ctx->me_early_exit_th = 0;
         else
             me_ctx->me_early_exit_th = BLOCK_SIZE_64 * BLOCK_SIZE_64 * 8;
@@ -1799,7 +1812,11 @@ static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resol
 
     if (enc_mode <= ENC_M0)
         sg_filter_lvl = 1;
+#if TUNE_M4
+    else if (enc_mode <= ENC_M3)
+#else
     else if (enc_mode <= ENC_M4)
+#endif
         sg_filter_lvl = 3;
     else
         sg_filter_lvl = 0;
@@ -5554,8 +5571,12 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         nic_level = is_base ? 8 : 10;
     else if (enc_mode <= ENC_M3)
         nic_level = is_base ? 9 : 12;
-    else if (enc_mode <= ENC_M4) 
+    else if (enc_mode <= ENC_M4)
+#if TUNE_M4
+        nic_level = is_base ? 10 : 13;
+#else
         nic_level = is_base ? 10 : 12;
+#endif
 #if OPT_M7
     else if (enc_mode <= ENC_M7)
 #else
@@ -8987,6 +9008,19 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = 4;
         }
     }
+#if TUNE_M4
+    else if (enc_mode <= ENC_M4) {
+        if (pcs->coeff_lvl == LOW_LVL) {
+            depth_level = 2;
+        }
+        else if (pcs->coeff_lvl == HIGH_LVL) {
+            depth_level = 6;
+        }
+        else {
+            depth_level = 5;
+        }
+    }
+#endif
 #if TUNE_M5
     else if (enc_mode <= ENC_M5) {
 #else
@@ -10097,7 +10131,11 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
 #else
     else if (enc_mode <= ENC_M5) {
 #endif
+#if TUNE_M4
+        nsq_search_level = 12;
+#else
         nsq_search_level = 10;
+#endif
     }
 #if FASTER_NSQ_SEARCH
     else if (enc_mode <= ENC_M5) {
@@ -10264,7 +10302,11 @@ uint8_t svt_aom_get_bypass_encdec(EncMode enc_mode, uint8_t encoder_bit_depth) {
     uint8_t bypass_encdec = 1;
     if (encoder_bit_depth == EB_EIGHT_BIT) {
         // 8bit settings
+#if TUNE_M4
+        if (enc_mode <= ENC_M3)
+#else
         if (enc_mode <= ENC_M4)
+#endif
             bypass_encdec = 0;
         else
             bypass_encdec = 1;
@@ -10752,7 +10794,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         if (enc_mode <= ENC_M1) {
             pcs->wm_level = 1;
         }
+#if TUNE_M4
+        else if (enc_mode <= ENC_M3) {
+#else
         else if (enc_mode <= ENC_M4) {
+#endif
             if (hierarchical_levels <= 3)
                 pcs->wm_level = is_base ? 1 : 3;
             else
@@ -11695,7 +11741,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
             pcs->pic_block_based_depth_refinement_level = is_base ? 1 : 3;
         else // regular or low
             pcs->pic_block_based_depth_refinement_level = 1;
+#if TUNE_M4
+    } else if (enc_mode <= ENC_M4) {
+#else
     } else if (enc_mode <= ENC_M3) {
+#endif
         if (pcs->coeff_lvl == HIGH_LVL)
             pcs->pic_block_based_depth_refinement_level = is_base ? 2 : 3;
         else // regular or low

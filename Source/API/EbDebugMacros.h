@@ -104,7 +104,7 @@ extern "C" {
 #define TUNE_M8                                   1 // Tune M8 features
 #define TUNE_M9                                   1 // Tune M9 features
 #define TUNE_M10                                  1 // Tune M10 features
-
+#define TUNE_M4                                   1 // Tune M4
 
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
