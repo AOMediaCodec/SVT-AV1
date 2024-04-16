@@ -920,8 +920,10 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
     uint8_t me_8x8_var_lvl = 0;
     if (enc_mode <= ENC_MR)
         me_8x8_var_lvl = 1;
+#if !TUNE_M0
     else if (enc_mode <= ENC_M0)
         me_8x8_var_lvl = 2;
+#endif
     else
         me_8x8_var_lvl = 2;
     svt_aom_set_me_8x8_var_ctrls(me_ctx, me_8x8_var_lvl);
@@ -1809,8 +1811,11 @@ static uint8_t svt_aom_get_wn_filter_level(EncMode enc_mode, uint8_t input_resol
 #if OPT_SG
 static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resolution) {
     uint8_t sg_filter_lvl = 0;
-
+#if TUNE_M0 // sg_filter_lvl
+    if (enc_mode <= ENC_MR)
+#else
     if (enc_mode <= ENC_M0)
+#endif
         sg_filter_lvl = 1;
 #if TUNE_M4
     else if (enc_mode <= ENC_M3)
@@ -9088,8 +9093,11 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
 
 
 #if OPT_DIST_DEPTHS
+#if TUNE_M0 // depth-qp-banding
+    if (!(enc_mode <= ENC_MR) && !pcs->ppcs->sc_class1 && depth_level) {
+#else
     if (!(enc_mode <= ENC_M0) && !pcs->ppcs->sc_class1 && depth_level) {
-
+#endif
         // QP-banding
 #if SMOOTH_LEFT
         if (scs->static_config.qp <= 32)
@@ -9738,7 +9746,11 @@ void svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pcs, 
 
     set_cfl_ctrls(ctx, pd_pass == PD_PASS_0 ? 0 : pcs->cfl_level);
     if (pd_pass == PD_PASS_0)
+#if TUNE_M0 // pd0-nsq
+        ctx->md_disallow_nsq_search = enc_mode <= ENC_MR
+#else
         ctx->md_disallow_nsq_search = enc_mode <= ENC_M0
+#endif
             ? !ctx->nsq_geom_ctrls.enabled || !ctx->nsq_search_ctrls.enabled
             : 1;
     else {
