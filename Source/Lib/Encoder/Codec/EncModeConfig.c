@@ -873,11 +873,7 @@ void svt_aom_sig_deriv_me(SequenceControlSet *scs, PictureParentControlSet *pcs,
         else if (enc_mode <= ENC_M8) {
             me_ref_prune_level = is_base ? 1 : 5;
         }
-#if TUNE_M10 // me_ref_prune_level
-        else if (enc_mode <= ENC_M9) {
-#else
         else if (enc_mode <= ENC_M10) {
-#endif
             me_ref_prune_level = is_base ? 1 : 6;
         }
         else
@@ -11310,11 +11306,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
 #endif
         pcs->txs_level = is_base ? 3 : 0;
     }
-#if TUNE_M10 // txs_level
-    else if (enc_mode <= ENC_M9) {
-#else
     else if (enc_mode <= ENC_M10) {
-#endif
         pcs->txs_level = is_base ? 4 : 0;
     }
     else {
