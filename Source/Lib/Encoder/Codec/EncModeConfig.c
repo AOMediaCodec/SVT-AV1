@@ -5587,11 +5587,18 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
     else if (enc_mode <= ENC_M3)
         nic_level = is_base ? 9 : 12;
 #endif
+#if TUNE_M4_2
+    else if (enc_mode <= ENC_M3)
+        nic_level = is_base ? 10 : 13;
+    else if (enc_mode <= ENC_M4)
+        nic_level = 13;
+#else
     else if (enc_mode <= ENC_M4)
 #if TUNE_M4
         nic_level = is_base ? 10 : 13;
 #else
         nic_level = is_base ? 10 : 12;
+#endif
 #endif
 #if OPT_M7
     else if (enc_mode <= ENC_M7)

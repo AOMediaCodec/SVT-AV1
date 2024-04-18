@@ -612,7 +612,11 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
             pcs->med = 0;
         }
         else {
+#if TUNE_M4_2
+            if (pcs->enc_mode <= ENC_M3)
+#else
             if (pcs->enc_mode <= ENC_M4)
+#endif
                 pcs->med = 0;
             else
                 pcs->med = 1;
