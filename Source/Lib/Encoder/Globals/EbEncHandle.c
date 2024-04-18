@@ -4235,10 +4235,19 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         }
         // any changes for preset ENC_M8 and higher should be separated for VBR and CRF in the control structure below
         else if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_VBR) {
+#if TUNE_M11
+            if (scs->static_config.enc_mode <= ENC_M10)
+                mrp_level = 9;
+            else if (scs->static_config.enc_mode <= ENC_M11)
+                mrp_level = 10;
+            else
+                mrp_level = 0;
+#else
             if (scs->static_config.enc_mode <= ENC_M12)
                 mrp_level = 9;
             else
                 mrp_level = 0;
+#endif
         }
         else {
             mrp_level = 12;
