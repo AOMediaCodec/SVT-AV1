@@ -5617,9 +5617,9 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
         nic_level = MIN(nic_level + 1, 19);
 #endif
 #if SMOOTH_RIGHT
-    else if (qp > 61)
+    else if (qp > (uint32_t) (enc_mode <= ENC_M7 ? 61 : 59))
         nic_level = nic_level <= 1 ? 0 : nic_level - 2;
-    else if (qp > 57)
+    else if (qp > (uint32_t) (enc_mode <= ENC_M7 ? 57 : 55))
         nic_level = nic_level == 0 ? 0 : nic_level - 1;
 #else
     else if (qp > 59)
@@ -9112,7 +9112,7 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
             depth_level = depth_level ? depth_level + 1 : 0;
 #endif
 #if SMOOTH_RIGHT
-        else if (scs->static_config.qp > 62)
+        else if (scs->static_config.qp > (uint32_t) (enc_mode <= ENC_M7 ? 62 : 55))
 #else
         else if (scs->static_config.qp > 55)
 #endif
@@ -10232,7 +10232,7 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         nsq_search_level = nsq_search_level + 3 > 18 ? 0 : nsq_search_level + 3;
     }
 #if SMOOTH_RIGHT
-    else if (qp <= 45) {
+    else if (qp <= (uint32_t) (enc_mode <= ENC_M7 ? 45 : 43)) {
 #else
     else if (qp <= 43) {
 #endif
@@ -10242,7 +10242,7 @@ uint8_t svt_aom_get_nsq_search_level(EncMode enc_mode, InputCoeffLvl coeff_lvl, 
         nsq_search_level = nsq_search_level + 1 > 18 ? 0 : nsq_search_level + 1;
     }
 #if SMOOTH_RIGHT
-    else if (qp > 59) {
+    else if (qp > (uint32_t) (enc_mode <= ENC_M7 ? 59 : 56)) {
         nsq_search_level = MAX(nsq_search_level - 1, 1);
     }
 #else
@@ -10641,9 +10641,9 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
         if (qp <= 43)
             obmc_level = obmc_level + 2;
 #if SMOOTH_RIGHT
-        else if (qp <= 53)
+        else if (qp <= (uint32_t) (enc_mode <= ENC_M7 ? 53 : 55))
             obmc_level = obmc_level + 1;
-        else if (qp > 60)
+        else if (qp > (uint32_t) (enc_mode <= ENC_M7 ? 60 : 59))
             obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
 #else
         else if (qp <= 55)

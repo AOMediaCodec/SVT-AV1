@@ -4165,7 +4165,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
 
     // QP-banding
 #if SMOOTH_RIGHT
-    if (scs->static_config.qp <= 44)
+    if (scs->static_config.qp <= (uint32_t)(scs->static_config.enc_mode <= ENC_M7 ? 44 : 43))
 #else
     if (scs->static_config.qp <= 43)
 #endif
