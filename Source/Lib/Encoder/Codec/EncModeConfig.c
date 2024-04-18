@@ -84,7 +84,11 @@ uint8_t svt_aom_get_enable_me_8x8(EncMode enc_mode, bool rtc_tune, EbInputResolu
     } else {
         if (enc_mode <= ENC_M8)
             enable_me_8x8 = 1;
+#if TUNE_M11 // enable_me_8x8
+        else if (enc_mode <= ENC_M10)
+#else
         else if (enc_mode <= ENC_M11)
+#endif
             if (input_resolution <= INPUT_SIZE_720p_RANGE)
                 enable_me_8x8 = 1;
             else
@@ -2265,7 +2269,11 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
             else if (enc_mode <= ENC_M9)
                 pcs->cdef_level = is_base ? 8 : is_not_last_layer ? 9 : 10;
 #if OPT_CDEF_0
+#if TUNE_M11 //cdef_level
+            else if (enc_mode <= ENC_M10)
+#else
             else if (enc_mode <= ENC_M11)
+#endif
                 pcs->cdef_level = is_base ? 12 : is_not_last_layer ? 13 : 14;
             else {
                 if (input_resolution <= INPUT_SIZE_1080p_RANGE)
@@ -5597,11 +5605,17 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint8_t hierarc
     else if (enc_mode <= ENC_M9)
 #endif
         nic_level = is_base ? 15 : 16;
+#if TUNE_M11 // nic_level
+    else if (enc_mode <= ENC_M10)
+        nic_level = 16;
+    else
+        nic_level = 19;
+#else
     else if (enc_mode <= ENC_M12)
         nic_level = 16;
     else
         nic_level = 19;
-
+#endif
     // QP-banding
 #if SMOOTH_LEFT
     if (qp <= 42)
@@ -10633,7 +10647,11 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
         obmc_level = 3;
     else if (enc_mode <= ENC_M9)
         obmc_level = 4;
+#if TUNE_M11 //obmc_level
+    else if (enc_mode <= ENC_M10)
+#else
     else if (enc_mode <= ENC_M11)
+#endif
         obmc_level = is_base ? 4 : 0;
 
     // QP-banding
