@@ -3305,7 +3305,11 @@ static void derive_tf_params(SequenceControlSet *scs) {
     if (do_tf == 0) {
         tf_level = 0;
     }
+#if TUNE_SHIFT_MR_M0
+    else if (enc_mode <= ENC_M1) {
+#else
     else if (enc_mode <= ENC_M0) {
+#endif
         tf_level = 1;
     }
 #if TUNE_M4_2
@@ -4219,7 +4223,14 @@ static void set_param_based_on_input(SequenceControlSet *scs)
         }
     }
     else {
+#if TUNE_SHIFT_MR_M0
+        if (scs->static_config.enc_mode <= ENC_MR) {
+            mrp_level = 1;
+        }
+        else if (scs->static_config.enc_mode <= ENC_M2) {
+#else
         if (scs->static_config.enc_mode <= ENC_M2) {
+#endif
             mrp_level = 2;
         }
         else if (scs->static_config.enc_mode <= ENC_M4) {
