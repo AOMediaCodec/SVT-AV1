@@ -10507,7 +10507,11 @@ static uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode enc_mode, 
     uint8_t disallow_below_16x16 = 0;
     if (sc_class1)
         disallow_below_16x16 = 0;
+#if TUNE_M10 // disallow_below_16x16
+    else if (enc_mode <= ENC_M10)
+#else
     else if (enc_mode <= ENC_M9)
+#endif
         disallow_below_16x16 = 0;
     else if (enc_mode <= ENC_M12) {
         if (resolution <= INPUT_SIZE_1080p_RANGE)
