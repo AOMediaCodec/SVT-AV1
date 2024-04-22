@@ -1071,6 +1071,7 @@ TEST_P(Allsad_CalculationTest, 8x8_16x16_Test_sse4_1) {
 TEST_P(Allsad_CalculationTest, 32x32_64x64_Test_sse4_1) {
     check_get_32x32_sad(svt_ext_eight_sad_calculation_32x32_64x64_sse4_1);
 }
+
 TEST_P(Allsad_CalculationTest, 32x32_64x64_Test_avx2) {
     check_get_32x32_sad(svt_ext_eight_sad_calculation_32x32_64x64_avx2);
 }
@@ -1081,6 +1082,10 @@ TEST_P(Allsad_CalculationTest, 32x32_64x64_Test_avx2) {
 
 TEST_P(Allsad_CalculationTest, 8x8_16x16_Test_neon) {
     check_get_8x8_sad(svt_ext_all_sad_calculation_8x8_16x16_neon);
+}
+
+TEST_P(Allsad_CalculationTest, 32x32_64x64_Test_neon) {
+    check_get_32x32_sad(svt_ext_eight_sad_calculation_32x32_64x64_neon);
 }
 
 #endif

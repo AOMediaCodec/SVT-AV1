@@ -1334,6 +1334,22 @@ int32_t estimate_noise_fp16_avx2_wrapper(const uint16_t *src, int width,
 
 #endif
 
+#ifdef ARCH_AARCH64
+
+TEST_F(TemporalFilterTestApplyFilteringCentral, test_lbd_neon) {
+    for (int i = 0; i < 100; ++i) {
+        RunTest(false, svt_aom_apply_filtering_central_neon, NULL);
+    }
+}
+
+TEST_F(TemporalFilterTestApplyFilteringCentral, test_hbd_neon) {
+    for (int i = 0; i < 100; ++i) {
+        RunTest(true, NULL, svt_aom_apply_filtering_central_highbd_neon);
+    }
+}
+
+#endif  // ARCH_AARCH64
+
 typedef int32_t (*EstimateNoiseFuncFP)(const uint16_t *src, int width,
                                        int height, int stride, int bd);
 
