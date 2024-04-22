@@ -2645,7 +2645,11 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].modulate_pics = 0;
         scs->tf_params_per_type[1].max_num_past_pics = 1;
         scs->tf_params_per_type[1].max_num_future_pics = 0;
+#if FIX_TF_M13
+        scs->tf_params_per_type[1].hme_me_level = 4;
+#else
         scs->tf_params_per_type[1].hme_me_level = 3;
+#endif
         scs->tf_params_per_type[1].half_pel_mode = 0;
         scs->tf_params_per_type[1].quarter_pel_mode = 0;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
@@ -2675,7 +2679,11 @@ static void tf_ld_controls(SequenceControlSet* scs, uint8_t tf_level) {
         scs->tf_params_per_type[1].modulate_pics = 0;
         scs->tf_params_per_type[1].max_num_past_pics = 1;
         scs->tf_params_per_type[1].max_num_future_pics = 0;
+#if FIX_TF_M13
+        scs->tf_params_per_type[1].hme_me_level = 4;
+#else
         scs->tf_params_per_type[1].hme_me_level = 3;
+#endif
         scs->tf_params_per_type[1].half_pel_mode = 0;
         scs->tf_params_per_type[1].quarter_pel_mode = 0;
         scs->tf_params_per_type[1].eight_pel_mode = 0;
@@ -3239,6 +3247,58 @@ void tf_controls(SequenceControlSet* scs, uint8_t tf_level) {
         // L1 TF Params
         scs->tf_params_per_type[2].enabled = 0;
         break;
+#if FIX_TF_M13
+    case 9:
+        // I_SLICE TF Params
+        scs->tf_params_per_type[0].enabled = 1;
+        scs->tf_params_per_type[0].num_future_pics = 8;
+        scs->tf_params_per_type[0].modulate_pics = 0;
+        scs->tf_params_per_type[0].max_num_future_pics = MIN((1 << scs->static_config.hierarchical_levels), svt_aom_tf_max_ref_per_struct(scs->static_config.hierarchical_levels, 0, 1));
+        scs->tf_params_per_type[0].hme_me_level = 3;
+        scs->tf_params_per_type[0].half_pel_mode = 2;
+        scs->tf_params_per_type[0].quarter_pel_mode = 1;
+        scs->tf_params_per_type[0].eight_pel_mode = 0;
+        scs->tf_params_per_type[0].chroma_lvl = 0;
+        scs->tf_params_per_type[0].pred_error_32x32_th = (uint64_t)~0;
+        scs->tf_params_per_type[0].enable_8x8_pred = 0;
+        scs->tf_params_per_type[0].sub_sampling_shift = 1;
+        scs->tf_params_per_type[0].avoid_2d_qpel = 1;
+        scs->tf_params_per_type[0].use_2tap = 1;
+        scs->tf_params_per_type[0].use_intra_for_noise_est = 1;
+        scs->tf_params_per_type[0].use_8bit_subpel = 1;
+        scs->tf_params_per_type[0].use_pred_64x64_only_th = 35;
+        scs->tf_params_per_type[0].me_exit_th = 16 * 16;
+        scs->tf_params_per_type[0].subpel_early_exit_th = 4;
+        scs->tf_params_per_type[0].ref_frame_factor = 2;
+        scs->tf_params_per_type[0].qp_opt = 1;
+        // BASE TF Params
+        scs->tf_params_per_type[1].enabled = 1;
+        scs->tf_params_per_type[1].num_past_pics = 1;
+        scs->tf_params_per_type[1].num_future_pics = 1;
+        scs->tf_params_per_type[1].modulate_pics = 4;
+        scs->tf_params_per_type[1].max_num_past_pics = MIN((1 << scs->static_config.hierarchical_levels), svt_aom_tf_max_ref_per_struct(scs->static_config.hierarchical_levels, 1, 0));
+        scs->tf_params_per_type[1].max_num_future_pics = MIN((1 << scs->static_config.hierarchical_levels), svt_aom_tf_max_ref_per_struct(scs->static_config.hierarchical_levels, 1, 1));
+        scs->tf_params_per_type[1].hme_me_level = 3;
+        scs->tf_params_per_type[1].half_pel_mode = 2;
+        scs->tf_params_per_type[1].quarter_pel_mode = 1;
+        scs->tf_params_per_type[1].eight_pel_mode = 0;
+        scs->tf_params_per_type[1].chroma_lvl = 0;
+        scs->tf_params_per_type[1].pred_error_32x32_th = (uint64_t)~0;
+        scs->tf_params_per_type[1].enable_8x8_pred = 0;
+        scs->tf_params_per_type[1].sub_sampling_shift = 1;
+        scs->tf_params_per_type[1].avoid_2d_qpel = 1;
+        scs->tf_params_per_type[1].use_2tap = 1;
+        scs->tf_params_per_type[1].use_intra_for_noise_est = 1;
+        scs->tf_params_per_type[1].use_8bit_subpel = 1;
+        scs->tf_params_per_type[1].use_pred_64x64_only_th = 35;
+        scs->tf_params_per_type[1].me_exit_th = 16 * 16;
+        scs->tf_params_per_type[1].subpel_early_exit_th = 4;
+        scs->tf_params_per_type[1].ref_frame_factor = 1;
+        scs->tf_params_per_type[1].qp_opt = 1;
+        // L1 TF Params
+        scs->tf_params_per_type[2].enabled = 0;
+        break;
+#endif
     default:
         assert(0);
         break;
@@ -3333,9 +3393,17 @@ static void derive_tf_params(SequenceControlSet *scs) {
     else if (enc_mode <= ENC_M10) {
         tf_level = 7;
     }
+#if FIX_TF_M13
+    else if (enc_mode <= ENC_M11) {
+        tf_level = 8;
+    } else {
+        tf_level = 9;
+     }
+#else
     else {
         tf_level = 8;
     }
+#endif
     tf_controls(scs, tf_level);
 }
 
@@ -4249,7 +4317,7 @@ static void set_param_based_on_input(SequenceControlSet *scs)
 #if TUNE_M11
             if (scs->static_config.enc_mode <= ENC_M10)
                 mrp_level = 9;
-            else if (scs->static_config.enc_mode <= ENC_M11)
+            else if (scs->static_config.enc_mode <= ENC_M12)
                 mrp_level = 10;
             else
                 mrp_level = 0;
@@ -4347,10 +4415,12 @@ static void copy_api_from_app(
     svt_aom_derive_input_resolution(
         &input_resolution,
         scs->max_input_luma_width * scs->max_input_luma_height);
+#if !USE_DEFAULT_M13_FOR_360p_480p
     if (scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS && scs->static_config.enc_mode > ENC_M12 && input_resolution <= INPUT_SIZE_360p_RANGE) {
         scs->static_config.enc_mode = ENC_M12;
         SVT_WARN("Setting preset to M12 as it is the highest supported preset for 360p and lower resolutions in Random Access mode\n");
     }
+#endif
     if (scs->static_config.pred_structure == SVT_AV1_PRED_RANDOM_ACCESS && scs->static_config.enc_mode > ENC_M11 && input_resolution >= INPUT_SIZE_4K_RANGE) {
         scs->static_config.enc_mode = ENC_M11;
         SVT_WARN("Setting preset to M11 as it is the highest supported preset for 4k and higher resolutions in Random Access mode\n");

@@ -110,11 +110,16 @@ extern "C" {
 #define TUNE_M11                                  1 // Tune M11
 #define TUNE_M4_2                                 1 // Tune M4
 #define TUNE_M13                                  1 // Tune M13
-#define OPT_LPD1_M13                              1 // Tune LPD1 for M13
+#define OPT_LPD1_M13                              0 // Tune LPD1 for M13
 #define TUNE_SHIFT_MR_M0                          1 // Shift M0->M1, MR->M0, add new MR
 #define TUNE_M0_M1                                1 // Tune M0, M1
+#define FIX_TF_M13                                1 // Fix TF M13
+#define FIX_LAMBDA                                1 // Fix lambda
+#define USE_DEFAULT_M13_FOR_360p_480p             1 // Dont hard-code M12 for M13 360p/480p
 
 //FOR DEBUGGING - Do not remove
+
+
 #define OPT_LD_LATENCY2         0 // Latency optimization for low delay
 #define LOG_ENC_DONE            0 // log encoder job one
 #define NO_ENCDEC               0 // bypass encDec to test cmpliance of MD. complained achieved when skip_flag is OFF. Port sample code from VCI-SW_AV1_Candidate1 branch

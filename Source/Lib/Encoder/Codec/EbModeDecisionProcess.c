@@ -572,8 +572,14 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
     }
 
 #if LAMBDA_SKIP_BIAS
+#if FIX_LAMBDA
+    Bool use_higher_lambda = 0;
+#else
     Bool use_higher_lambda;
-
+#endif
+#if FIX_LAMBDA
+    if(pcs->scs->static_config.fast_decode) {
+#endif
 #if TUNE_M5
     if (pcs->enc_mode <= ENC_M4)
 #else
@@ -582,7 +588,9 @@ static void av1_lambda_assign_md(PictureControlSet *pcs, ModeDecisionContext *ct
         use_higher_lambda = 0;
     else
         use_higher_lambda = 1;
-
+#if FIX_LAMBDA
+    }
+#endif
     if (use_higher_lambda) {
 #if HIGHER_LAMBDA_EXTREME_RIGHT_BAND
         if (pcs->picture_qp >= 57) {

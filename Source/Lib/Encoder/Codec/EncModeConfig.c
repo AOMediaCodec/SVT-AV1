@@ -784,7 +784,21 @@ static void tf_set_me_hme_params_oq(MeContext *me_ctx, PictureParentControlSet *
         me_ctx->me_sa.sa_max                = (SearchArea){8, 8};
 #endif
         break;
+#if FIX_TF_M13
     case 3:
+        me_ctx->num_hme_sa_w                = 2;
+        me_ctx->num_hme_sa_h                = 2;
+        me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){ 8, 8 };
+        me_ctx->hme_l0_sa_default_tf.sa_max = (SearchArea){ 8, 8 };
+        me_ctx->hme_l1_sa                   = (SearchArea){8, 8};
+        me_ctx->hme_l2_sa                   = (SearchArea){8, 8};
+        me_ctx->me_sa.sa_min                = (SearchArea){8, 8};
+        me_ctx->me_sa.sa_max                = (SearchArea){8, 8};
+        break;
+    case 4:
+#else
+    case 3:
+#endif
         me_ctx->num_hme_sa_w                = 2;
         me_ctx->num_hme_sa_h                = 2;
         me_ctx->hme_l0_sa_default_tf.sa_min = (SearchArea){4, 4};
@@ -10493,17 +10507,9 @@ static uint8_t svt_aom_get_disallow_below_16x16_picture_level(EncMode enc_mode, 
     uint8_t disallow_below_16x16 = 0;
     if (sc_class1)
         disallow_below_16x16 = 0;
-#if TUNE_M10 // disallow_below_16x16
-    else if (enc_mode <= ENC_M10)
-#else
     else if (enc_mode <= ENC_M9)
-#endif
         disallow_below_16x16 = 0;
-#if TUNE_M13 // disallow_below_16x16
-    else {
-#else
     else if (enc_mode <= ENC_M12) {
-#endif
         if (resolution <= INPUT_SIZE_1080p_RANGE)
             disallow_below_16x16 = is_not_last_layer ? 0 : 1;
         else
@@ -10722,11 +10728,7 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                     : MIN(MAX_LDP0_LVL, 5 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0));
             }
 #endif
-#if TUNE_M13 // pic_lpd0_lvl
-        } else {
-#else
         } else if (enc_mode <= ENC_M12) {
-#endif
             if (input_resolution <= INPUT_SIZE_360p_RANGE)
                 pcs->pic_lpd0_lvl = MIN(MAX_LDP0_LVL, 3 + ldp0_lvl_offset[qp_band_idx]);
             else if (input_resolution <= INPUT_SIZE_480p_RANGE)
@@ -10743,9 +10745,6 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                         ? MIN(MAX_LDP0_LVL, 3 + ldp0_lvl_offset[qp_band_idx])
                         : MIN(MAX_LDP0_LVL, 5 + ldp0_lvl_offset[qp_band_idx]);
             }
-#if TUNE_M13 // pic_lpd0_lvl
-            }
-#else
         } else {
             if (coeff_lvl == LOW_LVL) {
                 pcs->pic_lpd0_lvl = (is_base || transition_present)
@@ -10757,7 +10756,7 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                     : MIN(MAX_LDP0_LVL, 8 + ldp0_lvl_offset[qp_band_idx]);
             }
         }
-#endif
+
     }
     if (pcs->scs->super_block_size == 128) {
         pcs->pic_lpd0_lvl = 0;
