@@ -1517,10 +1517,9 @@ void svt_variance_adjust_qp(PictureControlSet *pcs) {
         offset     = AOMMIN(offset, VAR_BOOST_MAX_DELTAQ_RANGE >> 1);
         offset     = AOMMAX(offset, -VAR_BOOST_MAX_DELTAQ_RANGE >> 1);
 
-        uint8_t normalized_qindex = CLIP3(
-            1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
-            MAX_Q_INDEX,
-            ((int16_t)normalized_base_q_idx + (int16_t)offset));
+        uint8_t normalized_qindex = CLIP3(1, // q_index 0 is lossless, and is currently not supported in SVT-AV1
+                                          MAX_Q_INDEX,
+                                          ((int16_t)normalized_base_q_idx + (int16_t)offset));
 #if DEBUG_VAR_BOOST_STATS
         printf("%4d ", normalized_qindex);
 
@@ -1544,8 +1543,6 @@ void svt_variance_adjust_qp(PictureControlSet *pcs) {
 void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
     PictureParentControlSet *ppcs_ptr = pcs->ppcs;
     SequenceControlSet      *scs      = pcs->ppcs->scs;
-    SuperBlock              *sb_ptr;
-    uint32_t                 sb_addr;
     if (ppcs_ptr->r0_based_qps_qpm)
         pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 1;
 
@@ -1557,15 +1554,13 @@ void svt_aom_sb_qp_derivation_tpl_la(PictureControlSet *pcs) {
 #if DEBUG_VAR_BOOST_STATS
         printf("TPL qindex boost, frame %llu, temp. level %i\n", pcs->picture_number, pcs->temporal_layer_index);
 #endif
-        for (sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
-            sb_ptr        = pcs->sb_ptr_array[sb_addr];
-            double beta   = ppcs_ptr->pa_me_data->tpl_beta[sb_addr];
-            int    offset = svt_av1_get_deltaq_offset(scs->static_config.encoder_bit_depth,
-                                                   sb_ptr->qindex,
-                                                   beta,
-                                                   pcs->ppcs->slice_type == I_SLICE);
-            offset        = AOMMIN(offset, pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
-            offset        = AOMMAX(offset, -pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
+        for (uint32_t sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
+            SuperBlock *sb_ptr = pcs->sb_ptr_array[sb_addr];
+            double      beta   = ppcs_ptr->pa_me_data->tpl_beta[sb_addr];
+            int         offset = svt_av1_get_deltaq_offset(
+                scs->static_config.encoder_bit_depth, sb_ptr->qindex, beta, pcs->ppcs->slice_type == I_SLICE);
+            offset = AOMMIN(offset, pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 - 1);
+            offset = AOMMAX(offset, -pcs->ppcs->frm_hdr.delta_q_params.delta_q_res * 9 * 4 + 1);
 
 #if DEBUG_VAR_BOOST_STATS
             printf("%4d ", -offset);
