@@ -18,10 +18,10 @@ apps:
 parts:
   svtav1:
     plugin: cmake
-    build-packages: [ 'yasm', 'g++', ]
+    build-packages: [ 'nasm', 'g++', ]
     source: .
     configflags:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_C_COMPILER=gcc
-      - -DCMAKE_ASM_NASM_COMPILER=yasm
+      - -DCMAKE_ASM_NASM_COMPILER=nasm
 
