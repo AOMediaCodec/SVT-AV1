@@ -84,21 +84,22 @@ set(arch_neutral_files
     )
 
 set(multi_arch_files
+    AdaptiveScanTest.cc
     FwdTxfm2dAsmTest.cc
     InvTxfm2dAsmTest.cc
     PictureOperatorTest.cc
     SadTest.cc
     selfguided_filter_test.cc
     CdefTest.cc
+    RestorationPickTest.cc
     SpatialFullDistortionTest.cc
     TemporalFilterTestPlanewise.cc
     convolve_2d_test.cc
-    RestorationPickTest.cc
+    quantize_func_test.cc
     )
 
 if(HAVE_X86_PLATFORM)
     set(x86_arch_files
-        AdaptiveScanTest.cc
         CompoundUtilTest.cc
         DeblockTest.cc
         EbNoiseModel_test.cc
@@ -135,7 +136,6 @@ if(HAVE_X86_PLATFORM)
         intrapred_dr_test.cc
         intrapred_edge_filter_test.cc
         intrapred_test.cc
-        quantize_func_test.cc
         subtract_avg_cfl_test.cc
         warp_filter_test.cc
         warp_filter_test_util.cc

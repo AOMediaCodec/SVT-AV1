@@ -198,3 +198,15 @@ void svt_aom_cdef_find_dir_dual_neon(const uint16_t *img1, const uint16_t *img2,
     // Process second 8x8.
     *out_dir_2nd_8x8 = svt_aom_cdef_find_dir_neon(img2, stride, var_out_2nd, coeff_shift);
 }
+
+void svt_aom_copy_rect8_8bit_to_16bit_neon(uint16_t *dst, int32_t dstride, const uint8_t *src, int32_t sstride,
+                                           int32_t v, int32_t h) {
+    int32_t i, j;
+    for (i = 0; i < v; i++) {
+        for (j = 0; j < (h & ~0x7); j += 8) {
+            const uint8x8_t row = vld1_u8(&src[i * sstride + j]);
+            vst1q_u16(&dst[i * dstride + j], vmovl_u8(row));
+        }
+        for (; j < h; j++) { dst[i * dstride + j] = src[i * sstride + j]; }
+    }
+}

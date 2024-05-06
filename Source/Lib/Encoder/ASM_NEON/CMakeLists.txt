@@ -20,6 +20,7 @@ target_sources(
   PUBLIC EbComputeSAD_neon.c
   PUBLIC EbCdef_neon.c
   PUBLIC EbTemporalFiltering_neon.c
+  PUBLIC EbTransforms_neon.c
   PUBLIC hadmard_path_neon.c
   PUBLIC highbd_fwd_txfm_neon.c
   PUBLIC obmc_sad_neon.c

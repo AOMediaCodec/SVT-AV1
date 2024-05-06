@@ -1079,6 +1079,17 @@ extern "C" {
 
     uint32_t svt_nxm_sad_kernel_helper_neon(const uint8_t *src, uint32_t src_stride, const uint8_t *ref, uint32_t ref_stride, uint32_t height, uint32_t width);
 
+    uint64_t svt_handle_transform16x64_neon(int32_t *output);
+    uint64_t svt_handle_transform32x64_neon(int32_t *output);
+    uint64_t svt_handle_transform64x16_neon(int32_t *output);
+    uint64_t svt_handle_transform64x32_neon(int32_t *output);
+    uint64_t svt_handle_transform64x64_neon(int32_t *output);
+    uint64_t svt_handle_transform16x64_N2_N4_neon(int32_t *output);
+    uint64_t svt_handle_transform32x64_N2_N4_neon(int32_t *output);
+    uint64_t svt_handle_transform64x16_N2_N4_neon(int32_t *output);
+    uint64_t svt_handle_transform64x32_N2_N4_neon(int32_t *output);
+    uint64_t svt_handle_transform64x64_N2_N4_neon(int32_t *output);
+
     void svt_av1_fwd_txfm2d_4x4_neon(int16_t *input, int32_t *coeff, uint32_t stride, TxType tx_type, uint8_t bd);
     void svt_av1_fwd_txfm2d_4x8_neon(int16_t *input, int32_t *coeff, uint32_t stride, TxType tx_type, uint8_t bd);
     void svt_av1_fwd_txfm2d_4x16_neon(int16_t *input, int32_t *coeff, uint32_t stride, TxType tx_type, uint8_t bd);
@@ -1116,6 +1127,10 @@ extern "C" {
 
     void svt_av1_get_nz_map_contexts_neon(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, TxSize tx_size, const TxClass tx_class, int8_t *const coeff_contexts);
 
+    uint64_t svt_aom_compute_cdef_dist_8bit_neon(const uint8_t *dst8, int32_t dstride, const uint8_t *src8,
+                                                 const CdefList *dlist, int32_t cdef_count, BlockSize bsize,
+                                                 int32_t coeff_shift, int32_t pli, uint8_t subsampling_factor);
+
     void svt_av1_fwd_txfm2d_16x16_N4_neon(int16_t *input, int32_t *output, uint32_t input_stride, TxType transform_type, uint8_t  bit_depth);
     void svt_av1_fwd_txfm2d_32x32_N4_neon(int16_t *input, int32_t *output, uint32_t stride, TxType tx_type, uint8_t bd);
     void svt_av1_fwd_txfm2d_64x64_N4_neon(int16_t *input, int32_t *output, uint32_t stride, TxType tx_type, uint8_t bd);
@@ -1123,7 +1138,25 @@ extern "C" {
 
     void svt_av1_apply_temporal_filter_planewise_medium_neon(struct MeContext *me_ctx, const uint8_t *y_src, int y_src_stride, const uint8_t *y_pre, int y_pre_stride, const uint8_t *u_src, const uint8_t *v_src, int uv_src_stride, const uint8_t *u_pre, const uint8_t *v_pre, int uv_pre_stride, unsigned int block_width, unsigned int block_height, int ss_x, int ss_y, uint32_t *y_accum, uint16_t *y_count, uint32_t *u_accum, uint16_t *u_count, uint32_t *v_accum, uint16_t *v_count);
 
+    uint64_t svt_handle_transform64x64_neon(int32_t *output);
+
+    void svt_ext_eight_sad_calculation_32x32_64x64_neon(uint32_t p_sad16x16[16][8], uint32_t *p_best_sad_32x32,
+                                                        uint32_t *p_best_sad_64x64, uint32_t *p_best_mv32x32,
+                                                        uint32_t *p_best_mv64x64, uint32_t mv, uint32_t p_sad32x32[4][8]);
+
+    uint8_t svt_av1_compute_cul_level_neon(const int16_t *const scan, const int32_t *const quant_coeff, uint16_t *eob);
+
+    void svt_aom_apply_filtering_central_neon(struct MeContext *me_ctx, EbPictureBufferDesc *input_picture_ptr_central,
+                                              EbByte *src, uint32_t **accum, uint16_t **count, uint16_t blk_width,
+                                              uint16_t blk_height, uint32_t ss_x, uint32_t ss_y);
+    void svt_aom_apply_filtering_central_highbd_neon(struct MeContext *me_ctx, EbPictureBufferDesc *input_picture_ptr_central,
+                                                     uint16_t **src_16bit, uint32_t **accum, uint16_t **count,
+                                                     uint16_t blk_width, uint16_t blk_height, uint32_t ss_x,
+                                                     uint32_t ss_y);
+
     int svt_aom_satd_neon(const TranLow *coeff, int length);
+
+    void svt_copy_mi_map_grid_neon(ModeInfo **mi_grid_ptr, uint32_t mi_stride, uint8_t num_rows, uint8_t num_cols);
 
     int64_t svt_aom_sse_neon(const uint8_t *src, int src_stride, const uint8_t *ref, int ref_stride, int width, int height);
     int64_t svt_av1_block_error_neon(const TranLow *coeff, const TranLow *dqcoeff, intptr_t block_size, int64_t *ssz);

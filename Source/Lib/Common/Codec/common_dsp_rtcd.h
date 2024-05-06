@@ -1324,6 +1324,9 @@ extern "C" {
     void svt_aom_v_predictor_64x32_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
     void svt_aom_v_predictor_64x64_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
 
+    void svt_aom_copy_rect8_8bit_to_16bit_neon(uint16_t *dst, int32_t dstride, const uint8_t *src, int32_t sstride,
+                                               int32_t v, int32_t h);
+
     void svt_aom_h_predictor_4x4_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
     void svt_aom_h_predictor_4x8_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
     void svt_aom_h_predictor_4x16_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
@@ -1365,6 +1368,10 @@ extern "C" {
     void svt_aom_paeth_predictor_64x64_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above,const uint8_t *left);
 
     void svt_full_distortion_kernel32_bits_neon(int32_t *coeff, uint32_t coeff_stride, int32_t *recon_coeff, uint32_t recon_coeff_stride, uint64_t distortion_result[DIST_CALC_TOTAL], uint32_t area_width, uint32_t area_height);
+
+    void svt_full_distortion_kernel_cbf_zero32_bits_neon(int32_t *coeff, uint32_t coeff_stride,
+                                                         uint64_t distortion_result[DIST_CALC_TOTAL], uint32_t area_width,
+                                                         uint32_t area_height);
 
     void svt_av1_inv_txfm2d_add_16x16_neon(const int32_t *input, uint16_t *output_r, int32_t stride_r, uint16_t *output_w, int32_t stride_w, TxType tx_type, int32_t bd);
     void svt_av1_inv_txfm2d_add_32x32_neon(const int32_t *input, uint16_t *output_r, int32_t stride_r, uint16_t *output_w, int32_t stride_w, TxType tx_type, int32_t bd);
