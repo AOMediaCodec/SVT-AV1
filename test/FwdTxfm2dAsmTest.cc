@@ -26,16 +26,8 @@
 #include <stdlib.h>
 #include <new>
 #include <algorithm>
-#include "EbTime.h"
 
-// workaround to eliminate the compiling warning on linux
-// The macro will conflict with definition in gtest.h
-#ifdef __USE_GNU
-#undef __USE_GNU  // defined in EbThreads.h
-#endif
-#ifdef _GNU_SOURCE
-#undef _GNU_SOURCE  // defined in EbThreads.h
-#endif
+#include "EbTime.h"
 #include "EbDefinitions.h"
 #include "EbTransforms.h"
 #include "random.h"
@@ -661,7 +653,7 @@ TEST_P(FwdTxfm2dAsmTest, match_test_neon_N4) {
 
 #endif /* ARCH_AARCH64 */
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     TX, FwdTxfm2dAsmTest,
     ::testing::Combine(::testing::Range(static_cast<int>(TX_4X4),
                                         static_cast<int>(TX_SIZES_ALL), 1),

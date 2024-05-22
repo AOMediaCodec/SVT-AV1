@@ -460,7 +460,7 @@ TEST_P(TemporalFilterTestPlanewise, DISABLED_Speed) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     AVX2_medium, TemporalFilterTestPlanewise,
     ::testing::Combine(
         ::testing::Values(svt_av1_apply_temporal_filter_planewise_medium_c),
@@ -472,7 +472,7 @@ INSTANTIATE_TEST_CASE_P(
 
 #ifdef ARCH_AARCH64
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     Neon_medium, TemporalFilterTestPlanewise,
     ::testing::Combine(
         ::testing::Values(svt_av1_apply_temporal_filter_planewise_medium_c),
@@ -940,6 +940,7 @@ void TemporalFilterTestPlanewiseHbd::RunTest(int width, int height,
             encoder_bit_depth);
     }
 }
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TemporalFilterTestPlanewiseHbd);
 
 TEST_P(TemporalFilterTestPlanewiseHbd, OperationCheck) {
     for (int height = 32; height <= 32; height = height * 2) {
@@ -955,7 +956,7 @@ TEST_P(TemporalFilterTestPlanewiseHbd, DISABLED_Speed) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     AVX2_medium, TemporalFilterTestPlanewiseHbd,
     ::testing::Combine(
         ::testing::Values(svt_av1_apply_temporal_filter_planewise_medium_hbd_c),
@@ -1391,6 +1392,7 @@ class EstimateNoiseTestFP
     uint32_t encoder_bit_depth;
     int stride;
 };
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(EstimateNoiseTestFP);
 
 TEST_P(EstimateNoiseTestFP, fixed_point) {
     RunTest();
@@ -1398,7 +1400,7 @@ TEST_P(EstimateNoiseTestFP, fixed_point) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     AVX2_lbd, EstimateNoiseTestFP,
     ::testing::Combine(::testing::Values(estimate_noise_fp16_c_wrapper),
                        ::testing::Values(estimate_noise_fp16_avx2_wrapper),
@@ -1406,7 +1408,7 @@ INSTANTIATE_TEST_CASE_P(
                        ::testing::Values(2160, 1080, 720, 600, 480, 240),
                        ::testing::Values(8)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     AVX2_hbd, EstimateNoiseTestFP,
     ::testing::Combine(::testing::Values(svt_estimate_noise_highbd_fp16_c),
                        ::testing::Values(svt_estimate_noise_highbd_fp16_avx2),

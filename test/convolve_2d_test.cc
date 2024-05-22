@@ -830,34 +830,34 @@ TEST_P(AV1LbdJntConvolve2DTest, DISABLED_SpeedTest) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(ConvolveTestCOPY, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 0, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 0, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 1, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 1, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCOPY, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 0, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 0, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 1, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 1, 0, 0));
 
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D_sse2, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 1, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D_ssse3, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 1, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX_sse2, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 0, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY_sse2, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 1, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestCOPY_sse2, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 0, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D_sse2, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 1, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D_ssse3, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 1, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX_sse2, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 0, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY_sse2, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 1, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCOPY_sse2, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 0, 1, 0));
 #if EN_AVX512_SUPPORT
-INSTANTIATE_TEST_CASE_P(ConvolveTestCOPY_AVX512, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 0, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX_AVX512, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 0, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY_AVX512, AV1LbdJntConvolve2DTest,
-                        BuildParams(0, 1, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D_AVX512, AV1LbdJntConvolve2DTest,
-                        BuildParams(1, 1, 3, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCOPY_AVX512, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 0, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX_AVX512, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 0, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY_AVX512, AV1LbdJntConvolve2DTest,
+                         BuildParams(0, 1, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D_AVX512, AV1LbdJntConvolve2DTest,
+                         BuildParams(1, 1, 3, 0));
 #endif
 
 #endif  // ARCH_X86_64
@@ -898,32 +898,32 @@ TEST_P(AV1LbdSrConvolve2DTest, DISABLED_SpeedTest) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(ConvolveTestCopy, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 0, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 0, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 1, 0, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 1, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCopy, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 0, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 0, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 1, 0, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 1, 0, 0));
 
-INSTANTIATE_TEST_CASE_P(ConvolveTestX_SSE2, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 0, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY_SSE2, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 1, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D_SSE2, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 1, 1, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestCopy_SSE2, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 0, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX_SSE2, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 0, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY_SSE2, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 1, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D_SSE2, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 1, 1, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCopy_SSE2, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 0, 1, 0));
 #if EN_AVX512_SUPPORT
-INSTANTIATE_TEST_CASE_P(ConvolveTestCopy_AVX512, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 0, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX_AVX512, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 0, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY_AVX512, AV1LbdSrConvolve2DTest,
-                        BuildParams(0, 1, 2, 0));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D_AVX512, AV1LbdSrConvolve2DTest,
-                        BuildParams(1, 1, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCopy_AVX512, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 0, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX_AVX512, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 0, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY_AVX512, AV1LbdSrConvolve2DTest,
+                         BuildParams(0, 1, 2, 0));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D_AVX512, AV1LbdSrConvolve2DTest,
+                         BuildParams(1, 1, 2, 0));
 #endif
 
 #endif  // ARCH_X86_64
@@ -1095,38 +1095,38 @@ TEST_P(AV1HbdJntConvolve2DTest, DISABLED_SpeedTest) {
 
 #ifdef ARCH_X86_64
 
-INSTANTIATE_TEST_CASE_P(SSE41_COPY, AV1HbdJntConvolve2DTest,
-                        BuildParams(0, 0, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSE41_ConvolveTest2D, AV1HbdJntConvolve2DTest,
-                        BuildParams(1, 1, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSE41_ConvolveTestX, AV1HbdJntConvolve2DTest,
-                        BuildParams(1, 0, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSE41_ConvolveTestY, AV1HbdJntConvolve2DTest,
-                        BuildParams(0, 1, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSE41_COPY, AV1HbdJntConvolve2DTest,
+                         BuildParams(0, 0, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSE41_ConvolveTest2D, AV1HbdJntConvolve2DTest,
+                         BuildParams(1, 1, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSE41_ConvolveTestX, AV1HbdJntConvolve2DTest,
+                         BuildParams(1, 0, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSE41_ConvolveTestY, AV1HbdJntConvolve2DTest,
+                         BuildParams(0, 1, 1, 1));
 
-INSTANTIATE_TEST_CASE_P(AVX2_COPY, AV1HbdJntConvolve2DTest,
-                        BuildParams(0, 0, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D, AV1HbdJntConvolve2DTest,
-                        BuildParams(1, 1, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTestX, AV1HbdJntConvolve2DTest,
-                        BuildParams(1, 0, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY, AV1HbdJntConvolve2DTest,
-                        BuildParams(0, 1, 0, 1));
+INSTANTIATE_TEST_SUITE_P(AVX2_COPY, AV1HbdJntConvolve2DTest,
+                         BuildParams(0, 0, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D, AV1HbdJntConvolve2DTest,
+                         BuildParams(1, 1, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX, AV1HbdJntConvolve2DTest,
+                         BuildParams(1, 0, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY, AV1HbdJntConvolve2DTest,
+                         BuildParams(0, 1, 0, 1));
 
 #endif  // ARCH_X86_64
 
 #ifdef ARCH_AARCH64
 
 // not yet ported
-// INSTANTIATE_TEST_CASE_P(NEON_COPY, AV1HbdJntConvolve2DTest,
+// INSTANTIATE_TEST_SUITE_P(NEON_COPY, AV1HbdJntConvolve2DTest,
 //                         BuildParams(0, 0, 2, 1));
-INSTANTIATE_TEST_CASE_P(NEON_ConvolveTest2D, AV1HbdJntConvolve2DTest,
-                        BuildParams(1, 1, 2, 1));
+INSTANTIATE_TEST_SUITE_P(NEON_ConvolveTest2D, AV1HbdJntConvolve2DTest,
+                         BuildParams(1, 1, 2, 1));
 // not yet ported
-// INSTANTIATE_TEST_CASE_P(NEON_ConvolveTestX, AV1HbdJntConvolve2DTest,
+// INSTANTIATE_TEST_SUITE_P(NEON_ConvolveTestX, AV1HbdJntConvolve2DTest,
 //                         BuildParams(1, 0, 2, 1));
 // not yet ported
-// INSTANTIATE_TEST_CASE_P(NEON_ConvolveTestY, AV1HbdJntConvolve2DTest,
+// INSTANTIATE_TEST_SUITE_P(NEON_ConvolveTestY, AV1HbdJntConvolve2DTest,
 //                         BuildParams(0, 1, 2, 1));
 
 #endif  // ARCH_AARCH64
@@ -1174,23 +1174,23 @@ TEST_P(AV1HbdSrConvolve2DTest, DISABLED_SpeedTest) {
     speed_test();
 }
 
-INSTANTIATE_TEST_CASE_P(SSS3E_ConvolveTestX, AV1HbdSrConvolve2DTest,
-                        BuildParams(1, 0, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSS3E_ConvolveTest2D, AV1HbdSrConvolve2DTest,
-                        BuildParams(1, 1, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSS3E_ConvolveTestY, AV1HbdSrConvolve2DTest,
-                        BuildParams(0, 1, 1, 1));
-INSTANTIATE_TEST_CASE_P(SSS3E_ConvolveTestCopy, AV1HbdSrConvolve2DTest,
-                        BuildParams(0, 0, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSS3E_ConvolveTestX, AV1HbdSrConvolve2DTest,
+                         BuildParams(1, 0, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSS3E_ConvolveTest2D, AV1HbdSrConvolve2DTest,
+                         BuildParams(1, 1, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSS3E_ConvolveTestY, AV1HbdSrConvolve2DTest,
+                         BuildParams(0, 1, 1, 1));
+INSTANTIATE_TEST_SUITE_P(SSS3E_ConvolveTestCopy, AV1HbdSrConvolve2DTest,
+                         BuildParams(0, 0, 1, 1));
 
-INSTANTIATE_TEST_CASE_P(ConvolveTestX, AV1HbdSrConvolve2DTest,
-                        BuildParams(1, 0, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTest2D, AV1HbdSrConvolve2DTest,
-                        BuildParams(1, 1, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTestY, AV1HbdSrConvolve2DTest,
-                        BuildParams(0, 1, 0, 1));
-INSTANTIATE_TEST_CASE_P(ConvolveTestCopy, AV1HbdSrConvolve2DTest,
-                        BuildParams(0, 0, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestX, AV1HbdSrConvolve2DTest,
+                         BuildParams(1, 0, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTest2D, AV1HbdSrConvolve2DTest,
+                         BuildParams(1, 1, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestY, AV1HbdSrConvolve2DTest,
+                         BuildParams(0, 1, 0, 1));
+INSTANTIATE_TEST_SUITE_P(ConvolveTestCopy, AV1HbdSrConvolve2DTest,
+                         BuildParams(0, 0, 0, 1));
 
 #endif  // ARCH_X86_64
 
