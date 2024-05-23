@@ -180,6 +180,8 @@ static const InvSqrTxfmFuncPair inv_txfm_c_neon_func_pairs[TX_64X64 + 1] = {
 
 #endif  // ARCH_AARCH64
 
+#ifdef ARCH_X86_64
+
 // from TX_4X8 to TX_SIZES_ALL
 static const InvRectTxfm2dType1Func rect_type1_ref_funcs_c[TX_SIZES_ALL] = {
     // square transform
@@ -202,8 +204,6 @@ static const InvRectTxfm2dType1Func rect_type1_ref_funcs_c[TX_SIZES_ALL] = {
     svt_av1_inv_txfm2d_add_32x8_c,
     svt_av1_inv_txfm2d_add_16x64_c,
     svt_av1_inv_txfm2d_add_64x16_c};
-
-#ifdef ARCH_X86_64
 
 static const InvRectTxfm2dType1Func rect_type1_ref_funcs_sse4_1[TX_SIZES_ALL] =
     {

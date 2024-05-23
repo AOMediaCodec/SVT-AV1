@@ -74,86 +74,72 @@ using lowbd_convolve_func = void (*)(const uint8_t *src, int src_stride,
                                      const int subpel_y_qn,
                                      ConvolveParams *conv_params);
 
-static const lowbd_convolve_func lowbd_convolve_2d_sr_func_table[] = {
 #ifdef ARCH_X86_64
+static const lowbd_convolve_func lowbd_convolve_2d_sr_func_table[] = {
     svt_av1_convolve_2d_sr_avx2,
     svt_av1_convolve_2d_sr_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_convolve_2d_sr_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_convolve_x_sr_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_convolve_x_sr_avx2,
     svt_av1_convolve_x_sr_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_convolve_x_sr_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_convolve_y_sr_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_convolve_y_sr_avx2,
     svt_av1_convolve_y_sr_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_convolve_y_sr_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_convolve_copy_sr_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_convolve_2d_copy_sr_avx2,
     svt_av1_convolve_2d_copy_sr_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_convolve_2d_copy_sr_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_jnt_convolve_2d_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_jnt_convolve_2d_avx2,
     svt_av1_jnt_convolve_2d_sse2,
     svt_av1_jnt_convolve_2d_ssse3,
 #if EN_AVX512_SUPPORT
     svt_av1_jnt_convolve_2d_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_jnt_convolve_x_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_jnt_convolve_x_avx2,
     svt_av1_jnt_convolve_x_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_jnt_convolve_x_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_jnt_convolve_y_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_jnt_convolve_y_avx2,
     svt_av1_jnt_convolve_y_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_jnt_convolve_y_avx512
 #endif
-#endif  // ARCH_X86_64
 };
 
 static const lowbd_convolve_func lowbd_jnt_convolve_copy_func_table[] = {
-#ifdef ARCH_X86_64
     svt_av1_jnt_convolve_2d_copy_avx2,
     svt_av1_jnt_convolve_2d_copy_sse2,
 #if EN_AVX512_SUPPORT
     svt_av1_jnt_convolve_2d_copy_avx512
 #endif
-#endif  // ARCH_X86_64
 };
+#endif  // ARCH_X86_64
 
 /**
  * @brief Unit test for interpolation in inter prediction:

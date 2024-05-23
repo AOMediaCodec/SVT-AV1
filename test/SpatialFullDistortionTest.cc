@@ -194,7 +194,9 @@ INSTANTIATE_TEST_SUITE_P(
 #endif
 
 typedef enum { VAL_MIN, VAL_MAX, VAL_RANDOM } TestPattern;
+#ifdef ARCH_X86_64
 TestPattern TEST_PATTERNS[] = {VAL_MIN, VAL_MAX, VAL_RANDOM};
+#endif  // ARCH_X86_64
 typedef std::tuple<uint32_t, uint32_t> AreaSize;
 
 /**
