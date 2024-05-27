@@ -17,9 +17,7 @@
 #include "EbDecBitstream.h"
 #include "EbDecBitReader.h"
 
-#define HEADER_DUMP 0
-
-#if HEADER_DUMP
+#ifdef DEC_DUMP_OBU
 #define PRINT_NL SVT_LOG("\n");
 #define PRINT(name, val) SVT_LOG("\n%s :\t%X", name, val);
 #define PRINT_NAME(name) SVT_LOG("\n%s :\t", name);

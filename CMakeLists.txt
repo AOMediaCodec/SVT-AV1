@@ -178,6 +178,13 @@ if(SVT_AV1_PGO AND NOT BUILD_APPS)
     message(FATAL_ERROR "Can't use pgo and not build the apps")
 endif()
 
+if(BUILD_DEC)
+    option(DEC_DUMP_OBU "Enable header dump in the decoder" OFF)
+    if(DEC_DUMP_OBU)
+        add_definitions(-DDEC_DUMP_OBU=1)
+    endif()
+endif()
+
 if(SVT_INTERNAL_PGO_USE)
     if(MSVC)
         set(PGO_COMPILER_FLAGS "/GL")
