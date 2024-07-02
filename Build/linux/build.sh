@@ -205,8 +205,8 @@ install_build() (
 )
 
 if [ -z "$CC" ] && [ "$(uname -a | cut -c1-5)" != "MINGW" ]; then
-    if ! CC=$(check_executable -p icc /opt/intel/bin) && ! CC=$(check_executable -p clang); then
-        ! CC=$(check_executable -p gcc) &&
+    if ! CC=$(check_executable -p icc /opt/intel/bin) && ! CC=$(check_executable -p gcc); then
+        ! CC=$(check_executable -p clang) &&
             ! CC=$(check_executable -p cc) &&
             die "No suitable c compiler found in path" \
                 "Please either install one or set it via cc=*"
@@ -216,8 +216,8 @@ if [ -z "$CC" ] && [ "$(uname -a | cut -c1-5)" != "MINGW" ]; then
 fi
 
 if [ -z "$CXX" ] && [ "$(uname -a | cut -c1-5)" != "MINGW" ]; then
-    if ! CXX=$(check_executable -p icpc /opt/intel/bin) && ! CXX=$(check_executable -p clang++); then
-        ! CXX=$(check_executable -p g++) &&
+    if ! CXX=$(check_executable -p icpc /opt/intel/bin) && ! CXX=$(check_executable -p g++); then
+        ! CXX=$(check_executable -p clang++) &&
             ! CXX=$(check_executable -p c++) &&
             die "No suitable c++ compiler found in path" \
                 "Please either install one or set it via cxx=*"
