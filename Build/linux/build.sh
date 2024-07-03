@@ -204,6 +204,11 @@ install_build() (
     } || die "Unable to run install"
 )
 
+# With GCC 14.1.1 and Clang 18.1.8, using "-O3 -march=native" on a 5950X, Clang
+# compiles the code twice as fast as GCC, but the resulting encoder is 3.5%
+# slower without PGO and 2.6% slower with PGO. This is why we give higher
+# priority to GCC over Clang.
+
 if [ -z "$CC" ] && [ "$(uname -a | cut -c1-5)" != "MINGW" ]; then
     if ! CC=$(check_executable -p icc /opt/intel/bin) && ! CC=$(check_executable -p gcc); then
         ! CC=$(check_executable -p clang) &&

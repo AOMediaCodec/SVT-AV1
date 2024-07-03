@@ -541,7 +541,6 @@ if(BUILD_APPS)
     add_subdirectory(Source/App)
 endif()
 if(SVT_AV1_PGO)
-    set_target_properties(SvtAv1EncApp PROPERTIES EXCLUDE_FROM_ALL TRUE)
     string(REPLACE ";" "::" SVT_AV1_PGO_CUSTOM_VIDEOS "${SVT_AV1_PGO_CUSTOM_VIDEOS}")
 
     add_custom_target(PGOCompileGen
@@ -559,7 +558,7 @@ if(SVT_AV1_PGO)
         set(PROFILE_MERGE_CMD sh -c "${LLVM_PROFDATA} merge --sparse=true *.profraw -o default.profdata")
     else()
         # Do nothing. GCC has no profile merging step.
-        set(PROFILE_MERGE_CMD true)
+        set(PROFILE_MERGE_CMD)
     endif()
 
     add_custom_target(PGOCompileUse
