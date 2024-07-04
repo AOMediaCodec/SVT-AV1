@@ -20,9 +20,14 @@ if(NOT EXISTS ${SvtAv1EncApp})
 endif()
 
 # Delete any existing Clang profiling data.
-execute_process(COMMAND sh -c "rm -f *.profraw *.profdata"
-    WORKING_DIRECTORY "${BUILD_DIRECTORY}"
+
+file(GLOB OLD_FILES
+    "${BUILD_DIRECTORY}/*.profraw"
+    "${BUILD_DIRECTORY}/*.profdata"
 )
+if(OLD_FILES)
+    file(REMOVE ${OLD_FILES})
+endif()
 
 unset(videofiles)
 string(REPLACE "::" ";" VIDEO_DIRECTORY "${VIDEO_DIRECTORY}")
