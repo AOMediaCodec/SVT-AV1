@@ -288,6 +288,7 @@ class SumSquareTest : public ::testing::TestWithParam<SUM_SQUARE_FUNC> {
         }
     }
 };
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SumSquareTest);
 
 TEST_P(SumSquareTest, ConstTest) {
