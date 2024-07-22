@@ -717,8 +717,7 @@ static AOM_INLINE void sum_intra_stats(PictureControlSet *pcs, BlkStruct *blk_pt
             update_cdf(cdf_v, CFL_IDX_V(idx), CFL_ALPHABET_SIZE);
         }
     }
-    if (av1_is_directional_mode(get_uv_mode(uv_mode)) &&
-        av1_use_angle_delta(bsize)) {
+    if (av1_is_directional_mode(get_uv_mode(uv_mode)) && av1_use_angle_delta(bsize)) {
         assert((uv_mode - UV_V_PRED) < DIRECTIONAL_MODES);
         assert((uv_mode - UV_V_PRED) >= 0);
         update_cdf(fc->angle_delta_cdf[uv_mode - UV_V_PRED],

@@ -1082,9 +1082,9 @@ typedef struct ModeDecisionContext {
     // Control fast_coeff_est_level per mds
     uint8_t mds_fast_coeff_est_level;
     // Control subres_step per mds
-    uint8_t mds_subres_step;
-    uint8_t md_pic_obmc_level;
-    FilterIntraCtrls filter_intra_ctrls;
+    uint8_t           mds_subres_step;
+    uint8_t           md_pic_obmc_level;
+    FilterIntraCtrls  filter_intra_ctrls;
     uint8_t           md_allow_intrabc;
     uint8_t           md_palette_level;
     uint8_t           dist_based_ref_pruning;
@@ -1230,12 +1230,12 @@ typedef struct ModeDecisionContext {
     uint8_t lpd1_bypass_tx_th_div;
     // chroma components to compensate at MDS3 of LPD1
     COMPONENT_TYPE lpd1_chroma_comp;
-    uint8_t lpd1_shift_mds0_dist;
-    uint8_t corrupted_mv_check;
-    uint8_t pred_mode_depth_refine;
+    uint8_t        lpd1_shift_mds0_dist;
+    uint8_t        corrupted_mv_check;
+    uint8_t        pred_mode_depth_refine;
     // when MD is done on 8bit, scale palette colors to 10bit (valid when bypass is 1)
-    uint8_t scale_palette;
-    uint8_t high_freq_present;
+    uint8_t  scale_palette;
+    uint8_t  high_freq_present;
     uint32_t high_freq_satd_to_me;
     uint32_t b32_satd[4];
     uint64_t rec_dist_per_quadrant[4];

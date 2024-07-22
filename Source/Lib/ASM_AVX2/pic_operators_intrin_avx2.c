@@ -2564,8 +2564,8 @@ void svt_aom_hadamard_32x32_avx2(const int16_t *src_diff, ptrdiff_t src_stride, 
     // next stage.  Output to an intermediate buffer first, then store_tran_low()
     // in the final stage.
     DECLARE_ALIGNED(32, int16_t, temp_coeff[32 * 32]);
-    int16_t *t_coeff = temp_coeff;
-    int      idx;
+    int16_t      *t_coeff = temp_coeff;
+    int           idx;
     __m256i       coeff0_lo, coeff1_lo, coeff2_lo, coeff3_lo, b0_lo, b1_lo, b2_lo, b3_lo;
     __m256i       coeff0_hi, coeff1_hi, coeff2_hi, coeff3_hi, b0_hi, b1_hi, b2_hi, b3_hi;
     __m256i       b0, b1, b2, b3;

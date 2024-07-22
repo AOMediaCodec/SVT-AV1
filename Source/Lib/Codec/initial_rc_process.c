@@ -376,7 +376,6 @@ static void set_tpl_params(PictureParentControlSet *pcs, uint8_t tpl_level) {
         break;
     default: assert(0); break;
     }
-
 }
 
 /*

@@ -633,8 +633,8 @@ uint64_t svt_aom_intra_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
         rate                      = mv_rate + ctx->md_rate_est_ctx->intrabc_fac_bits[cand->use_intrabc];
         cand_bf->fast_luma_rate   = rate;
         cand_bf->fast_chroma_rate = 0;
-        uint64_t luma_sad   = luma_distortion;
-        uint64_t chromasad_ = chroma_distortion;
+        uint64_t luma_sad         = luma_distortion;
+        uint64_t chromasad_       = chroma_distortion;
         uint64_t total_distortion = luma_sad + chromasad_;
 
         return (RDCOST(lambda, rate, total_distortion));
@@ -733,9 +733,9 @@ uint64_t svt_aom_intra_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
         // Keep the Fast Luma and Chroma rate for future use
         cand_bf->fast_luma_rate   = luma_rate;
         cand_bf->fast_chroma_rate = chroma_rate;
-        luma_sad   = luma_distortion;
-        chromasad_ = chroma_distortion;
-        total_distortion = luma_sad + chromasad_;
+        luma_sad                  = luma_distortion;
+        chromasad_                = chroma_distortion;
+        total_distortion          = luma_sad + chromasad_;
 
         rate = luma_rate + chroma_rate;
 
@@ -1112,9 +1112,9 @@ static uint64_t av1_inter_fast_cost_light(struct ModeDecisionContext *ctx, BlkSt
     // Keep the Fast Luma and Chroma rate for future use
     cand_bf->fast_luma_rate   = luma_rate;
     cand_bf->fast_chroma_rate = chroma_rate;
-    luma_sad   = luma_distortion;
-    chromasad_ = chroma_distortion;
-    total_distortion = luma_sad + chromasad_;
+    luma_sad                  = luma_distortion;
+    chromasad_                = chroma_distortion;
+    total_distortion          = luma_sad + chromasad_;
     //if (blk_geom->has_uv == 0 && chromasad_ != 0)
     //    SVT_LOG("svt_aom_inter_fast_cost: Chroma error");
     rate = luma_rate + chroma_rate;
@@ -1359,9 +1359,9 @@ uint64_t svt_aom_inter_fast_cost(PictureControlSet *pcs, struct ModeDecisionCont
     // Keep the Fast Luma and Chroma rate for future use
     cand_bf->fast_luma_rate   = luma_rate;
     cand_bf->fast_chroma_rate = chroma_rate;
-    luma_sad   = luma_distortion;
-    chromasad_ = chroma_distortion;
-    total_distortion = luma_sad + chromasad_;
+    luma_sad                  = luma_distortion;
+    chromasad_                = chroma_distortion;
+    total_distortion          = luma_sad + chromasad_;
     if (blk_geom->has_uv == 0 && chromasad_ != 0)
         SVT_ERROR("svt_aom_inter_fast_cost: Chroma error");
     rate = luma_rate + chroma_rate;

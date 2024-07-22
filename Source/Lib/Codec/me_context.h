@@ -415,7 +415,7 @@ typedef struct MeContext {
     MeSrCtrls          me_sr_adjustment_ctrls;
     Me8x8VarCtrls      me_8x8_var_ctrls;
     uint8_t            max_hme_sr_area_multipler;
-    MvBasedSearchAdj mv_based_sa_adj;
+    MvBasedSearchAdj   mv_based_sa_adj;
     // ME
     uint8_t          best_list_idx;
     uint8_t          best_ref_idx;
