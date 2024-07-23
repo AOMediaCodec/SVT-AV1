@@ -1,4 +1,4 @@
-212#!/bin/sh
+#!/bin/sh
 #
 # Copyright(c) 2019 Intel Corporation
 #
