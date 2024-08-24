@@ -403,7 +403,7 @@ static void svt_aom_set_me_hme_ref_prune_ctrls(MeContext *me_ctx, uint8_t prune_
     case 4:
         me_hme_prune_ctrls->enable_me_hme_ref_pruning               = 1;
         me_hme_prune_ctrls->prune_ref_if_hme_sad_dev_bigger_than_th = 15;
-        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = 60;
+        me_hme_prune_ctrls->prune_ref_if_me_sad_dev_bigger_than_th  = (uint16_t)~0;
         me_hme_prune_ctrls->protect_closest_refs                    = 1;
 
         me_hme_prune_ctrls->zz_sad_th    = 0;
