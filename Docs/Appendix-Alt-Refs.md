@@ -80,8 +80,9 @@ function of the encoder preset (enc_mode).
 ### Temporal filtering data flow
 
 The block diagram in Figure 2 outlines the flow of the temporal filtering operations.
-
-[altref_block_diagram](./img/altref_newfig2.svg)
+<details><summary>altref_block_diagram</summary>
+![altref_block_diagram](./img/altref_newfig2.svg)
+</details>
 
 ##### Fig. 2. Block diagram of the temporal filtering operations. (image is too large to display in md, please click the link to see)
 
