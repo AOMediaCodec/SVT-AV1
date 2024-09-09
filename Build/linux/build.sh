@@ -362,6 +362,11 @@ parse_equal_option() {
 
 parse_options enable-native
 
+# Ensure AVX512 is enabled by default unless explicitly disabled
+if ! echo "$*" | grep -q 'disable-avx512'; then
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DENABLE_AVX512=ON"
+fi
+
 if [ -z "$*" ]; then
     build_release=true
 else
