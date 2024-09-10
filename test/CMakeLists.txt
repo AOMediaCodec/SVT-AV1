@@ -88,10 +88,15 @@ set(multi_arch_files
     FilterIntraPredTest.cc
     FwdTxfm2dAsmTest.cc
     InvTxfm2dAsmTest.cc
+    OBMCSadTest.cc
+    OBMCVarianceTest.cc
     PackUnPackTest.cc
     PictureOperatorTest.cc
+    QuantAsmTest.cc
+    ResidualTest.cc
     RestorationPickTest.cc
     SadTest.cc
+    SelfGuidedUtilTest.cc
     SpatialFullDistortionTest.cc
     TemporalFilterTestPlanewise.cc
     VarianceTest.cc
@@ -119,13 +124,8 @@ if(HAVE_X86_PLATFORM)
       FwdTxfm2dTest.cc
       HbdVarianceTest.cc
       MotionEstimationTest.cc
-      OBMCSadTest.cc
-      OBMCVarianceTest.cc
       PaletteModeUtilTest.cc
       PsnrTest.cc
-      QuantAsmTest.cc
-      ResidualTest.cc
-      SelfGuidedUtilTest.cc
       WedgeUtilTest.cc
       av1_convolve_scale_test.cc
       compute_mean_test.cc
