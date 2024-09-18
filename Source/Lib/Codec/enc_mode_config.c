@@ -1320,8 +1320,7 @@ static void set_cdef_controls(PictureParentControlSet *pcs, uint8_t cdef_level, 
     }
     if (fast_decode && !(pcs->input_resolution <= INPUT_SIZE_360p_RANGE)) {
         if (fast_decode <= 1) {
-                cdef_ctrls->zero_fs_cost_bias = cdef_ctrls->zero_fs_cost_bias ? MIN(cdef_ctrls->zero_fs_cost_bias, 63)
-                                                                              : 63;
+            cdef_ctrls->zero_fs_cost_bias = cdef_ctrls->zero_fs_cost_bias ? MIN(cdef_ctrls->zero_fs_cost_bias, 63) : 63;
         } else {
             cdef_ctrls->zero_fs_cost_bias = cdef_ctrls->zero_fs_cost_bias ? MIN(cdef_ctrls->zero_fs_cost_bias, 61) : 61;
         }
@@ -1476,7 +1475,7 @@ static uint8_t svt_aom_get_sg_filter_level(EncMode enc_mode, uint8_t input_resol
     else
         sg_filter_lvl = 0;
 
-        // higher resolutions will shut restoration to save memory
+    // higher resolutions will shut restoration to save memory
     if (input_resolution >= INPUT_SIZE_8K_RANGE || (fast_decode && !(input_resolution <= INPUT_SIZE_360p_RANGE)))
         sg_filter_lvl = 0;
 
@@ -1773,10 +1772,10 @@ void svt_aom_sig_deriv_multi_processes(SequenceControlSet *scs, PictureParentCon
     const uint8_t           is_islice        = pcs->slice_type == I_SLICE;
     const uint8_t           is_base          = pcs->temporal_layer_index == 0;
     const EbInputResolution input_resolution = pcs->input_resolution;
-    const uint8_t fast_decode = scs->static_config.fast_decode;
-    const bool    rtc_tune          = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
-    const uint8_t sc_class1         = pcs->sc_class1;
-    const uint8_t is_not_last_layer = !pcs->is_highest_layer;
+    const uint8_t           fast_decode      = scs->static_config.fast_decode;
+    const bool              rtc_tune  = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const uint8_t           sc_class1 = pcs->sc_class1;
+    const uint8_t           is_not_last_layer = !pcs->is_highest_layer;
     // Set GM ctrls assuming super-res is off for gm-pp need
     svt_aom_set_gm_controls(pcs, svt_aom_derive_gm_level(pcs, true));
 
@@ -3291,9 +3290,9 @@ static void md_sq_motion_search_controls(ModeDecisionContext *ctx, uint8_t md_sq
  */
 static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t md_subpel_me_level,
                                   bool rtc_tune) {
-    const EbInputResolution input_resolution = pcs->scs->input_resolution;
-    const uint8_t           fast_decode      = pcs->scs->static_config.fast_decode;
-    MdSubPelSearchCtrls *md_subpel_me_ctrls = &ctx->md_subpel_me_ctrls;
+    const EbInputResolution input_resolution   = pcs->scs->input_resolution;
+    const uint8_t           fast_decode        = pcs->scs->static_config.fast_decode;
+    MdSubPelSearchCtrls    *md_subpel_me_ctrls = &ctx->md_subpel_me_ctrls;
 
     switch (md_subpel_me_level) {
     case 0: md_subpel_me_ctrls->enabled = 0; break;
@@ -3311,7 +3310,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 0;
         md_subpel_me_ctrls->mvp_th                = 0;
         md_subpel_me_ctrls->hp_mv_th              = MAX_SIGNED_VALUE;
-        md_subpel_me_ctrls->bias_fp = 0;
+        md_subpel_me_ctrls->bias_fp               = 0;
         break;
     case 2:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3327,7 +3326,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 18;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 0;
+        md_subpel_me_ctrls->bias_fp               = 0;
         break;
     case 3:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3359,7 +3358,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 18;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 5:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3375,7 +3374,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 6:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3391,7 +3390,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 7:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3407,7 +3406,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 8:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3423,7 +3422,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 9:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3439,7 +3438,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
     case 10:
         md_subpel_me_ctrls->enabled               = 1;
@@ -3455,7 +3454,7 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
         md_subpel_me_ctrls->min_blk_sz            = 4;
         md_subpel_me_ctrls->mvp_th                = 12;
         md_subpel_me_ctrls->hp_mv_th              = 32;
-        md_subpel_me_ctrls->bias_fp = 1;
+        md_subpel_me_ctrls->bias_fp               = 1;
         break;
 
     default: assert(0); break;
@@ -3468,9 +3467,9 @@ static void md_subpel_me_controls(PictureControlSet *pcs, ModeDecisionContext *c
  * Control Subpel search of PME MV(s)
  */
 static void md_subpel_pme_controls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t md_subpel_pme_level) {
-    const EbInputResolution input_resolution = pcs->scs->input_resolution;
-    const uint8_t           fast_decode      = pcs->scs->static_config.fast_decode;
-    MdSubPelSearchCtrls *md_subpel_pme_ctrls = &ctx->md_subpel_pme_ctrls;
+    const EbInputResolution input_resolution    = pcs->scs->input_resolution;
+    const uint8_t           fast_decode         = pcs->scs->static_config.fast_decode;
+    MdSubPelSearchCtrls    *md_subpel_pme_ctrls = &ctx->md_subpel_pme_ctrls;
 
     switch (md_subpel_pme_level) {
     case 0: md_subpel_pme_ctrls->enabled = 0; break;
@@ -3487,7 +3486,7 @@ static void md_subpel_pme_controls(PictureControlSet *pcs, ModeDecisionContext *
         md_subpel_pme_ctrls->min_blk_sz            = 0;
         md_subpel_pme_ctrls->mvp_th                = 0;
         md_subpel_pme_ctrls->hp_mv_th              = 0;
-        md_subpel_pme_ctrls->bias_fp = 0;
+        md_subpel_pme_ctrls->bias_fp               = 0;
         break;
     case 2:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -3502,7 +3501,7 @@ static void md_subpel_pme_controls(PictureControlSet *pcs, ModeDecisionContext *
         md_subpel_pme_ctrls->min_blk_sz            = 0;
         md_subpel_pme_ctrls->mvp_th                = 0;
         md_subpel_pme_ctrls->hp_mv_th              = 0;
-        md_subpel_pme_ctrls->bias_fp = 0;
+        md_subpel_pme_ctrls->bias_fp               = 0;
         break;
     case 3:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -3517,7 +3516,7 @@ static void md_subpel_pme_controls(PictureControlSet *pcs, ModeDecisionContext *
         md_subpel_pme_ctrls->min_blk_sz            = 0;
         md_subpel_pme_ctrls->mvp_th                = 0;
         md_subpel_pme_ctrls->hp_mv_th              = 0;
-        md_subpel_pme_ctrls->bias_fp = 0;
+        md_subpel_pme_ctrls->bias_fp               = 0;
         break;
     case 4:
         md_subpel_pme_ctrls->enabled               = 1;
@@ -3532,7 +3531,7 @@ static void md_subpel_pme_controls(PictureControlSet *pcs, ModeDecisionContext *
         md_subpel_pme_ctrls->min_blk_sz            = 0;
         md_subpel_pme_ctrls->mvp_th                = 0;
         md_subpel_pme_ctrls->hp_mv_th              = 0;
-        md_subpel_pme_ctrls->bias_fp = 0;
+        md_subpel_pme_ctrls->bias_fp               = 0;
         break;
     default: assert(0); break;
     }
@@ -8319,20 +8318,20 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
     return obmc_level;
 }
 void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureControlSet *pcs) {
-    PictureParentControlSet *ppcs             = pcs->ppcs;
-    EncMode                  enc_mode         = pcs->enc_mode;
-    const uint8_t            is_ref           = ppcs->is_ref;
-    const uint8_t            is_base          = ppcs->temporal_layer_index == 0;
-    const uint8_t            is_layer1        = ppcs->temporal_layer_index == 1;
-    const EbInputResolution  input_resolution = ppcs->input_resolution;
-    const uint8_t            is_islice        = pcs->slice_type == I_SLICE;
-    const uint8_t            sc_class1        = ppcs->sc_class1;
-    const uint8_t fast_decode = scs->static_config.fast_decode;
-    const uint32_t hierarchical_levels = ppcs->hierarchical_levels;
-    const Bool     transition_present  = (ppcs->transition_present == 1);
-    const bool     rtc_tune            = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
-    const bool     is_not_last_layer   = !ppcs->is_highest_layer;
-    const uint32_t sq_qp               = scs->static_config.qp;
+    PictureParentControlSet *ppcs                = pcs->ppcs;
+    EncMode                  enc_mode            = pcs->enc_mode;
+    const uint8_t            is_ref              = ppcs->is_ref;
+    const uint8_t            is_base             = ppcs->temporal_layer_index == 0;
+    const uint8_t            is_layer1           = ppcs->temporal_layer_index == 1;
+    const EbInputResolution  input_resolution    = ppcs->input_resolution;
+    const uint8_t            is_islice           = pcs->slice_type == I_SLICE;
+    const uint8_t            sc_class1           = ppcs->sc_class1;
+    const uint8_t            fast_decode         = scs->static_config.fast_decode;
+    const uint32_t           hierarchical_levels = ppcs->hierarchical_levels;
+    const Bool               transition_present  = (ppcs->transition_present == 1);
+    const bool               rtc_tune = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
+    const bool               is_not_last_layer = !ppcs->is_highest_layer;
+    const uint32_t           sq_qp             = scs->static_config.qp;
     //MFMV
     if (is_islice || scs->mfmv_enabled == 0 || pcs->ppcs->frm_hdr.error_resilient_mode) {
         ppcs->frm_hdr.use_ref_frame_mvs = 0;
@@ -8577,7 +8576,7 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (scs->low_latency_kf && is_islice)
         pcs->cfl_level = 0;
 
-        // Set the level for new/nearest/near injection
+    // Set the level for new/nearest/near injection
     if (enc_mode <= ENC_M5)
         pcs->new_nearest_near_comb_injection = is_base ? 2 : 0;
     else

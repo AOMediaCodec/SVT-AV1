@@ -43,11 +43,11 @@ void    svt_aom_sig_deriv_enc_dec(SequenceControlSet *scs, PictureControlSet *pc
 bool    svt_aom_need_gm_ref_info(EncMode enc_mode, bool super_res_off);
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet *pcs, bool super_res_off);
 
-void svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level);
+void    svt_aom_set_gm_controls(PictureParentControlSet *pcs, uint8_t gm_level);
 uint8_t svt_aom_get_enable_sg(EncMode enc_mode, uint8_t input_resolution, uint8_t fast_decode);
 uint8_t svt_aom_get_enable_restoration(EncMode enc_mode, int8_t config_enable_restoration, uint8_t input_resolution,
                                        uint8_t fast_decode);
-void svt_aom_set_dist_based_ref_pruning_controls(ModeDecisionContext *ctx, uint8_t dist_based_ref_pruning_level);
+void    svt_aom_set_dist_based_ref_pruning_controls(ModeDecisionContext *ctx, uint8_t dist_based_ref_pruning_level);
 
 bool svt_aom_get_disallow_4x4(EncMode enc_mode, uint8_t is_base);
 

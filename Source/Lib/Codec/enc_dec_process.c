@@ -2291,7 +2291,7 @@ static uint8_t is_parent_to_current_deviation_small(PictureControlSet *pcs, Mode
     if (lower_depth_split_cost_th && ctx->avail_blk_flag[parent_depth_idx_mds]) {
         const uint32_t full_lambda = ctx->hbd_md ? ctx->full_sb_lambda_md[EB_10_BIT_MD]
                                                  : ctx->full_sb_lambda_md[EB_8_BIT_MD];
-        const uint64_t split_cost = svt_aom_partition_rate_cost(pcs->ppcs,
+        const uint64_t split_cost  = svt_aom_partition_rate_cost(pcs->ppcs,
                                                                 ctx,
                                                                 parent_depth_idx_mds,
                                                                 PARTITION_SPLIT,
@@ -2407,7 +2407,7 @@ static uint8_t is_child_to_current_deviation_small(PictureControlSet *pcs, ModeD
         }
         const uint32_t full_lambda = ctx->hbd_md ? ctx->full_sb_lambda_md[EB_10_BIT_MD]
                                                  : ctx->full_sb_lambda_md[EB_8_BIT_MD];
-        const uint64_t split_cost = svt_aom_partition_rate_cost(pcs->ppcs,
+        const uint64_t split_cost  = svt_aom_partition_rate_cost(pcs->ppcs,
                                                                 ctx,
                                                                 blk_geom->sqi_mds,
                                                                 PARTITION_SPLIT,

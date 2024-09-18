@@ -2596,7 +2596,7 @@ static int md_subpel_search(SUBPEL_STAGE       search_stage, //ME or PME
         (md_subpel_ctrls.skip_zz_mv && best_mv.as_mv.col == 0 && best_mv.as_mv.row == 0) ||
         (ctx->blk_geom->sq_size <= md_subpel_ctrls.min_blk_sz);
     ms_params->var_params.bias_fp = md_subpel_ctrls.bias_fp;
-    int besterr = subpel_search_method(ctx,
+    int besterr                   = subpel_search_method(ctx,
                                        xd,
                                        (const struct AV1Common *const)cm,
                                        ms_params,
@@ -2607,8 +2607,8 @@ static int md_subpel_search(SUBPEL_STAGE       search_stage, //ME or PME
                                        pcs->picture_qp,
                                        ctx->blk_geom->bsize,
                                        early_exit);
-    *me_mv_x    = best_mv.as_mv.col;
-    *me_mv_y    = best_mv.as_mv.row;
+    *me_mv_x                      = best_mv.as_mv.col;
+    *me_mv_y                      = best_mv.as_mv.row;
 
     return besterr;
 }
@@ -9862,16 +9862,16 @@ static EbErrorType md_rtime_alloc_palette_info(BlkStruct *md_blk_arr_nsq) {
  */
 static void init_block_data(PictureControlSet *pcs, ModeDecisionContext *ctx, const uint8_t blk_split_flag,
                             uint32_t blk_idx_mds) {
-    const BlockGeom *blk_geom         = ctx->blk_geom;
-    BlkStruct       *blk_ptr          = ctx->blk_ptr;
-    ctx->scale_palette                = 0;
-    ctx->blk_org_x                    = ctx->sb_origin_x + blk_geom->org_x;
-    ctx->blk_org_y                    = ctx->sb_origin_y + blk_geom->org_y;
-    ctx->round_origin_x               = ((ctx->blk_org_x >> 3) << 3);
-    ctx->round_origin_y               = ((ctx->blk_org_y >> 3) << 3);
-    blk_ptr->mds_idx                  = blk_idx_mds;
-    blk_ptr->split_flag               = blk_split_flag; //mdc indicates smallest or non valid CUs with split flag=
-    blk_ptr->qindex                   = ctx->qp_index;
+    const BlockGeom *blk_geom = ctx->blk_geom;
+    BlkStruct       *blk_ptr  = ctx->blk_ptr;
+    ctx->scale_palette        = 0;
+    ctx->blk_org_x            = ctx->sb_origin_x + blk_geom->org_x;
+    ctx->blk_org_y            = ctx->sb_origin_y + blk_geom->org_y;
+    ctx->round_origin_x       = ((ctx->blk_org_x >> 3) << 3);
+    ctx->round_origin_y       = ((ctx->blk_org_y >> 3) << 3);
+    blk_ptr->mds_idx          = blk_idx_mds;
+    blk_ptr->split_flag       = blk_split_flag; //mdc indicates smallest or non valid CUs with split flag=
+    blk_ptr->qindex           = ctx->qp_index;
     //  MD palette info buffer
     if (svt_av1_allow_palette(pcs->ppcs->palette_level, blk_geom->bsize)) {
         if (blk_ptr->palette_mem == 0) {

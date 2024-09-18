@@ -1646,8 +1646,8 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
  * Coding Loop Context Generation
  ************************************************************/
 void svt_aom_coding_loop_context_generation(PictureControlSet *pcs, ModeDecisionContext *ctx) {
-    BlkStruct *blk_ptr = ctx->blk_ptr;
-    MacroBlockD *xd = blk_ptr->av1xd;
+    BlkStruct   *blk_ptr = ctx->blk_ptr;
+    MacroBlockD *xd      = blk_ptr->av1xd;
     if (!ctx->shut_fast_rate) {
         if (pcs->slice_type == I_SLICE) {
             svt_aom_get_kf_y_mode_ctx(xd, &ctx->intra_luma_top_ctx, &ctx->intra_luma_left_ctx);
@@ -1987,7 +1987,7 @@ uint64_t svt_aom_partition_rate_cost(PictureParentControlSet *pcs, ModeDecisionC
     const int                  bsl       = mi_size_wide_log2[bsize] - mi_size_wide_log2[BLOCK_8X8];
     assert(bsl >= 0);
 
-    const int above = (above_ctx >> bsl) & 1, left = (left_ctx >> bsl) & 1;
+    const int      above = (above_ctx >> bsl) & 1, left = (left_ctx >> bsl) & 1;
     const uint32_t context_index = (left * 2 + above) + bsl * PARTITION_PLOFFSET;
 
     uint64_t split_rate = 0;
