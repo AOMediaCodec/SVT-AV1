@@ -80,7 +80,7 @@ typedef struct SequenceControlSet {
     /*!<  */
     EbBlockMeanPrec block_mean_calc_prec;
     /*!< CDF (The signal changes per preset; 0: CDF update, 1: no CDF update) Default is 0.*/
-    uint8_t cdf_mode;
+    uint8_t  cdf_mode;
     uint32_t svt_aom_geom_idx; //geometry type
 
     /*  1..15    | 17..31  | 33..47  |

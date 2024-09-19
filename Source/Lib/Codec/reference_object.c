@@ -120,8 +120,8 @@ EbErrorType svt_reference_param_update(EbReferenceObject *ref_object, SequenceCo
     picture_buffer_desc_init_data_ptr.mfmv              = scs->mfmv_enabled;
     picture_buffer_desc_init_data_ptr.is_16bit_pipeline = scs->is_16bit_pipeline;
 
-    picture_buffer_desc_init_data_ptr.split_mode            = FALSE;
-    picture_buffer_desc_init_data_ptr.enc_mode              = scs->static_config.enc_mode;
+    picture_buffer_desc_init_data_ptr.split_mode = FALSE;
+    picture_buffer_desc_init_data_ptr.enc_mode   = scs->static_config.enc_mode;
     if (is_16bit)
         picture_buffer_desc_init_data_ptr.bit_depth = EB_TEN_BIT;
 
@@ -445,8 +445,8 @@ EbErrorType svt_tpl_reference_param_update(EbTplReferenceObject *tpl_ref_obj, Se
     ref_pic_buf_desc_init_data.is_16bit_pipeline = FALSE;
     ref_pic_buf_desc_init_data.enc_mode          = scs->static_config.enc_mode;
 
-    ref_pic_buf_desc_init_data.rest_units_per_tile   = 0;
-    ref_pic_buf_desc_init_data.sb_total_count        = scs->sb_total_count;
+    ref_pic_buf_desc_init_data.rest_units_per_tile = 0;
+    ref_pic_buf_desc_init_data.sb_total_count      = scs->sb_total_count;
 
     // Reference picture constructor
     svt_picture_buffer_desc_update(tpl_ref_obj->ref_picture_ptr, (EbPtr)&ref_pic_buf_desc_init_data);
