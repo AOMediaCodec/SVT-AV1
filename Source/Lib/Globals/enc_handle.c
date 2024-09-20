@@ -1277,6 +1277,7 @@ static int create_pa_ref_buf_descs(EbEncHandle *enc_handle_ptr, uint32_t instanc
         ref_pic_buf_desc_init_data.mfmv                = 0;
         ref_pic_buf_desc_init_data.is_16bit_pipeline   = FALSE;
         ref_pic_buf_desc_init_data.enc_mode            = scs->static_config.enc_mode;
+        ref_pic_buf_desc_init_data.sb_total_count      = scs->sb_total_count;
 
         quart_pic_buf_desc_init_data.max_width = scs->max_input_luma_width >> 1;
         quart_pic_buf_desc_init_data.max_height = scs->max_input_luma_height >> 1;
@@ -1292,6 +1293,7 @@ static int create_pa_ref_buf_descs(EbEncHandle *enc_handle_ptr, uint32_t instanc
         quart_pic_buf_desc_init_data.mfmv                = 0;
         quart_pic_buf_desc_init_data.is_16bit_pipeline   = FALSE;
         quart_pic_buf_desc_init_data.enc_mode            = scs->static_config.enc_mode;
+        quart_pic_buf_desc_init_data.sb_total_count      = scs->sb_total_count;
 
         sixteenth_pic_buf_desc_init_data.max_width = scs->max_input_luma_width >> 2;
         sixteenth_pic_buf_desc_init_data.max_height = scs->max_input_luma_height >> 2;
@@ -1307,6 +1309,7 @@ static int create_pa_ref_buf_descs(EbEncHandle *enc_handle_ptr, uint32_t instanc
         sixteenth_pic_buf_desc_init_data.mfmv                = 0;
         sixteenth_pic_buf_desc_init_data.is_16bit_pipeline   = FALSE;
         sixteenth_pic_buf_desc_init_data.enc_mode            = scs->static_config.enc_mode;
+        sixteenth_pic_buf_desc_init_data.sb_total_count      = scs->sb_total_count;
 
         eb_pa_ref_obj_ect_desc_init_data_structure.reference_picture_desc_init_data = ref_pic_buf_desc_init_data;
         eb_pa_ref_obj_ect_desc_init_data_structure.quarter_picture_desc_init_data = quart_pic_buf_desc_init_data;
