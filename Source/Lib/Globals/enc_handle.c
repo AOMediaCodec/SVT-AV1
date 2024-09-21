@@ -785,7 +785,7 @@ static EbErrorType load_default_buffer_configuration_settings(
         scs->total_process_init_count += (scs->source_based_operations_process_init_count     = 1);
         if (scs->static_config.pass == ENC_FIRST_PASS) {
             scs->total_process_init_count += (scs->picture_analysis_process_init_count        = clamp(12, 1, max_pa_proc));
-        } 
+        }
         else {
             scs->total_process_init_count += (scs->picture_analysis_process_init_count        = clamp(4, 1, max_pa_proc));
         }
