@@ -120,11 +120,12 @@
 
 .ffmpeg-before-script-clone:
   - time git clone $PWD svtav1-src
-  - time git clone https://aomedia.googlesource.com/aom aom-src
-  - time git clone https://chromium.googlesource.com/webm/libvpx libvpx-src
-  - time git clone https://code.videolan.org/videolan/dav1d.git dav1d-src
-  - time git clone https://github.com/Netflix/vmaf.git vmaf-src
-  - time git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+  - git clone https://aomedia.googlesource.com/aom aom-src &
+  - git clone https://chromium.googlesource.com/webm/libvpx libvpx-src &
+  - git clone https://code.videolan.org/videolan/dav1d.git dav1d-src &
+  - git clone https://github.com/Netflix/vmaf.git vmaf-src &
+  - git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg-src &
+  - time wait
 
 .ffmpeg-before-script-export:
   - true "${CMAKE_BUILD_TYPE:=Release}" "${BUILD_SHARED_LIBS:=OFF}" "${PREFIX_DIR:=/usr/local}"
