@@ -172,7 +172,7 @@ macOS Enc Test(m1):
 
 macOS FFmpeg (Static):
   extends: .macos-test-base
-  stage: compile
+  stage: ffmpeg
   variables:
     CFLAGS: -pipe
     CXXFLAGS: -pipe

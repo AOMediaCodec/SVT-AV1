@@ -9,8 +9,7 @@ stages:
   - check
   - compile
   - test
-  - test-2
-  - test-3
+  - ffmpeg
 
 variables:
   CMAKE_GENERATOR: Ninja
