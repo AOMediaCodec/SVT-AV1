@@ -3300,7 +3300,11 @@ static void derive_vq_params(SequenceControlSet* scs) {
 static void derive_tf_params(SequenceControlSet *scs) {
     const EbInputResolution resolution = scs->input_resolution;
     // Do not perform TF if LD or 1 Layer or 1st pass
+#if LOSSLESS_SUPPORT
+    Bool do_tf = scs->static_config.enable_tf && scs->static_config.hierarchical_levels >= 1 && !scs->static_config.lossless;
+#else
     Bool do_tf = scs->static_config.enable_tf && scs->static_config.hierarchical_levels >= 1;
+#endif
     const EncMode enc_mode = scs->static_config.enc_mode;
     const uint32_t hierarchical_levels = scs->static_config.hierarchical_levels;
     uint8_t tf_level = 0;
@@ -4289,6 +4293,30 @@ static void copy_api_from_app(
     }
     memcpy(scs->static_config.chroma_qindex_offsets, config_struct->chroma_qindex_offsets,
         MAX_TEMPORAL_LAYERS * sizeof(int32_t));
+
+#if LOSSLESS_SUPPORT
+    scs->static_config.lossless = config_struct->lossless;
+
+    scs->static_config.luma_y_dc_qindex_offset = scs->static_config.lossless
+        ? 0 
+        : ((EbSvtAv1EncConfiguration*)config_struct)->luma_y_dc_qindex_offset;
+
+    scs->static_config.chroma_u_dc_qindex_offset = scs->static_config.lossless
+        ? 0
+        : ((EbSvtAv1EncConfiguration*)config_struct)->chroma_u_dc_qindex_offset;
+
+    scs->static_config.chroma_u_ac_qindex_offset = scs->static_config.lossless
+        ? 0
+        : ((EbSvtAv1EncConfiguration*)config_struct)->chroma_u_ac_qindex_offset;
+
+    scs->static_config.chroma_v_dc_qindex_offset = scs->static_config.lossless
+        ? 0
+        : ((EbSvtAv1EncConfiguration*)config_struct)->chroma_v_dc_qindex_offset;
+
+    scs->static_config.chroma_v_ac_qindex_offset = scs->static_config.lossless
+        ? 0
+        : ((EbSvtAv1EncConfiguration*)config_struct)->chroma_v_ac_qindex_offset;
+#else
     scs->static_config.luma_y_dc_qindex_offset =
       ((EbSvtAv1EncConfiguration*)config_struct)->luma_y_dc_qindex_offset;
     scs->static_config.chroma_u_dc_qindex_offset =
@@ -4299,7 +4327,7 @@ static void copy_api_from_app(
       ((EbSvtAv1EncConfiguration*)config_struct)->chroma_v_dc_qindex_offset;
     scs->static_config.chroma_v_ac_qindex_offset =
       ((EbSvtAv1EncConfiguration*)config_struct)->chroma_v_ac_qindex_offset;
-
+#endif
     memcpy(scs->static_config.lambda_scale_factors, config_struct->lambda_scale_factors,
         SVT_AV1_FRAME_UPDATE_TYPES * sizeof(int32_t));
 
@@ -4400,6 +4428,22 @@ static void copy_api_from_app(
         scs->static_config.max_bit_rate = 0;
         SVT_WARN("Maximum bit rate only supported with tpl on. max bit rate 0 is used instead.\n");
     }
+
+
+#if LOSSLESS_SUPPORT
+    scs->static_config.max_qp_allowed = scs->static_config.lossless
+        ? MIN_QP_VALUE
+        : scs->static_config.rate_control_mode
+            ? ((EbSvtAv1EncConfiguration*)config_struct)->max_qp_allowed
+            : MAX_QP_VALUE;
+
+    scs->static_config.min_qp_allowed = scs->static_config.lossless
+        ? MIN_QP_VALUE
+        : scs->static_config.rate_control_mode
+            ? ((EbSvtAv1EncConfiguration*)config_struct)->min_qp_allowed
+            : MIN_QP_VALUE;
+
+#else
     scs->static_config.max_qp_allowed = (scs->static_config.rate_control_mode) ?
         ((EbSvtAv1EncConfiguration*)config_struct)->max_qp_allowed :
         63;
@@ -4408,6 +4452,7 @@ static void copy_api_from_app(
         (((EbSvtAv1EncConfiguration*)config_struct)->min_qp_allowed > 0) ?
         ((EbSvtAv1EncConfiguration*)config_struct)->min_qp_allowed : 1 :
         1; // lossless coding not supported
+#endif
 #if !SVT_AV1_CHECK_VERSION(2, 0, 0)
     scs->static_config.vbr_bias_pct        = ((EbSvtAv1EncConfiguration*)config_struct)->vbr_bias_pct;
 #endif
@@ -4558,6 +4603,7 @@ static void copy_api_from_app(
     scs->static_config.enable_variance_boost = config_struct->enable_variance_boost;
     scs->static_config.variance_boost_strength = config_struct->variance_boost_strength;
     scs->static_config.variance_octile = config_struct->variance_octile;
+
     return;
 }
 

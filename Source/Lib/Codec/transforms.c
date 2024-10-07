@@ -3092,12 +3092,76 @@ static EbErrorType av1_estimate_transform_default(int16_t *residual_buffer, uint
 
     return return_error;
 }
+#if FIX_QP_0
+/* 4-point reversible, orthonormal Walsh-Hadamard in 3.5 adds, 0.5 shifts per
+   pixel.
+   Shared for both high and low bit depth.
+ */
+void svt_av1_fwht4x4_c(int16_t* input, int32_t* output, uint32_t stride) {
+    int i;
+    int64_t a1, b1, c1, d1, e1;
+    const int16_t* ip_pass0 = input;
+    const int32_t* ip = NULL;
+    int32_t* op = output;
+
+    for (i = 0; i < 4; i++) {
+        a1 = ip_pass0[0 * stride];
+        b1 = ip_pass0[1 * stride];
+        c1 = ip_pass0[2 * stride];
+        d1 = ip_pass0[3 * stride];
+
+        a1 += b1;
+        d1 = d1 - c1;
+        e1 = (a1 - d1) >> 1;
+        b1 = e1 - b1;
+        c1 = e1 - c1;
+        a1 -= c1;
+        d1 += b1;
+        op[0] = (int32_t)a1;
+        op[1] = (int32_t)c1;
+        op[2] = (int32_t)d1;
+        op[3] = (int32_t)b1;
+
+        ip_pass0++;
+        op += 4;
+    }
+    ip = output;
+    op = output;
+
+    for (i = 0; i < 4; i++) {
+        a1 = ip[4 * 0];
+        b1 = ip[4 * 1];
+        c1 = ip[4 * 2];
+        d1 = ip[4 * 3];
+
+        a1 += b1;
+        d1 -= c1;
+        e1 = (a1 - d1) >> 1;
+        b1 = e1 - b1;
+        c1 = e1 - c1;
+        a1 -= c1;
+        d1 += b1;
+        op[4 * 0] = (int32_t)(a1 * UNIT_QUANT_FACTOR);
+        op[4 * 1] = (int32_t)(c1 * UNIT_QUANT_FACTOR);
+        op[4 * 2] = (int32_t)(d1 * UNIT_QUANT_FACTOR);
+        op[4 * 3] = (int32_t)(b1 * UNIT_QUANT_FACTOR);
+
+        ip++;
+        op++;
+    }
+}
+#endif
+
 /*********************************************************************
 * Transform
 *   Note there is an implicit assumption that TU Size <= PU Size,
 *   which is different than the HEVC requirements.
 *********************************************************************/
+#if FIX_QP_0
+EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionContext* ctx, int16_t* residual_buffer, uint32_t residual_stride, int32_t* coeff_buffer,
+#else
 EbErrorType svt_aom_estimate_transform(int16_t *residual_buffer, uint32_t residual_stride, int32_t *coeff_buffer,
+#endif
                                        uint32_t coeff_stride, TxSize transform_size, uint64_t *three_quad_energy,
                                        uint32_t bit_depth, TxType transform_type, PlaneType component_type,
                                        EB_TRANS_COEFF_SHAPE trans_coeff_shape)
@@ -3106,6 +3170,23 @@ EbErrorType svt_aom_estimate_transform(int16_t *residual_buffer, uint32_t residu
     (void)trans_coeff_shape;
     (void)coeff_stride;
     (void)component_type;
+
+
+#if FIX_QP_0
+    if (pcs->lossless[ctx->blk_ptr->segment_id]) {
+        assert(transform_type == DCT_DCT);
+        int32_t dst[16];
+
+        svt_av1_fwht4x4(residual_buffer, dst, residual_stride);
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                coeff_buffer[(j << 2) + i] = dst[(i << 2) + j];
+            }
+        }
+        return EB_ErrorNone;
+    }
+#endif
+
     switch (trans_coeff_shape) {
     case DEFAULT_SHAPE:
         return av1_estimate_transform_default(residual_buffer,
@@ -6916,3 +6997,4 @@ void svt_av1_fwd_txfm2d_4x8_N4_c(int16_t *input, int32_t *output, uint32_t input
     svt_aom_transform_config(transform_type, TX_4X8, &cfg);
     av1_tranform_two_d_core_N4_c(input, input_stride, output, &cfg, intermediate_transform_buffer, bit_depth);
 }
+

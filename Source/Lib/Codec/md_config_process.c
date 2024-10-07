@@ -591,6 +591,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         RateControlResults *rc_results = (RateControlResults *)rc_results_wrapper->object_ptr;
         PictureControlSet  *pcs        = (PictureControlSet *)rc_results->pcs_wrapper->object_ptr;
         SequenceControlSet *scs        = pcs->scs;
+
         pcs->min_me_clpx               = 0;
         pcs->max_me_clpx               = 0;
         pcs->avg_me_clpx               = 0;
@@ -643,6 +644,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         }
 
         FrameHeader *frm_hdr = &pcs->ppcs->frm_hdr;
+
         pcs->rtc_tune        = (scs->static_config.pred_structure == SVT_AV1_PRED_LOW_DELAY_B) ? true : false;
         // Mode Decision Configuration Kernel Signal(s) derivation
         svt_aom_sig_deriv_mode_decision_config(scs, pcs);
@@ -893,6 +895,68 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                 break;
             }
         }
+
+#if FIX_QP_0 // ---
+
+        // Loop through each segment to determine if it is coded losslessly
+        Bool has_lossless_segment = 0;
+        if (frm_hdr->segmentation_params.segmentation_enabled) {
+            for (int segment_id = 0; segment_id < MAX_SEGMENTS; segment_id++) {
+                const int seg_delta_qp = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
+                    ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[segment_id][SEG_LVL_ALT_Q]
+                    : 0;
+                pcs->lossless[segment_id] = !pcs->ppcs->frm_hdr.quantization_params.base_q_idx
+                    && !seg_delta_qp
+                    && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y]
+                    && !frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_U]
+                    && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_U]
+                    && !frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_V]
+                    && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_V];
+
+                has_lossless_segment = has_lossless_segment || pcs->lossless[segment_id];
+            }
+            // Derive coded_lossless; true if the frame is fully lossless at the coded resolution.
+            frm_hdr->coded_lossless = 1;            
+            for (int segment_id = 0; segment_id < MAX_SEGMENTS; segment_id++) {
+                if (!pcs->lossless[segment_id]) {
+                    frm_hdr->coded_lossless = 0;
+                    break;
+                }
+            }
+        }
+        else {
+            frm_hdr->coded_lossless = pcs->lossless[0] = !pcs->ppcs->frm_hdr.quantization_params.base_q_idx
+                && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y]
+                && !frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_U]
+                && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_U]
+                && !frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_V]
+                && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_V];
+        }
+
+        // Derive all_lossless; if super-resolution is used, such a frame will still NOT be lossless at the upscaled resolution.
+        frm_hdr->all_lossless = frm_hdr->coded_lossless && av1_superres_unscaled(&(pcs->ppcs->av1_cm->frm_size));
+
+        if (frm_hdr->coded_lossless) {
+            pcs->ppcs->dlf_ctrls.enabled = 0;
+            pcs->ppcs->cdef_level = 0;
+        }
+
+        if (frm_hdr->all_lossless)
+            pcs->ppcs->enable_restoration = 0;
+
+
+        // The following shortcuts are necessary to enforce the use of block_4x4, block_8x8, and Tx_4x4,
+        // these cannot be controlled at the block level, so they are invoked even if only one segment is marked as lossless
+        if (frm_hdr->coded_lossless || (frm_hdr->segmentation_params.segmentation_enabled && has_lossless_segment)) {
+            pcs->pic_depth_removal_level = 0;
+            pcs->pic_depth_removal_level_rtc = 0;
+            pcs->pic_block_based_depth_refinement_level = 0;
+            pcs->txs_level = 1;
+            pcs->pic_lpd0_lvl = 0;
+            pcs->pic_lpd1_lvl = 0;
+        }
+#endif
+
 
         // Release Rate Control Results
         svt_release_object(rc_results_wrapper);

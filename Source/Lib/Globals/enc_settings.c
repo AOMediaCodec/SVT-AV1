@@ -322,11 +322,13 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet *scs) {
     } else if ((config->min_qp_allowed) > (config->max_qp_allowed)) {
         SVT_ERROR("Instance %u:  MinQpAllowed must be smaller than MaxQpAllowed\n", channel_number + 1);
         return_error = EB_ErrorBadParameter;
+#if !FIX_QP_0
     } else if ((config->min_qp_allowed) == 0) {
         SVT_ERROR("Instance %u: MinQpAllowed must be [1 - %d]. Lossless coding not supported\n",
                   channel_number + 1,
                   MAX_QP_VALUE - 1);
         return_error = EB_ErrorBadParameter;
+#endif
     }
     if (config->use_qp_file > 1) {
         SVT_ERROR("Instance %u : Invalid use_qp_file. use_qp_file must be [0 - 1]\n", channel_number + 1);
@@ -1962,6 +1964,9 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
         {"variance-boost-strength", &config_struct->variance_boost_strength},
         {"variance-octile", &config_struct->variance_octile},
         {"fast-decode", &config_struct->fast_decode},
+#if LOSSLESS_SUPPORT
+        {"lossless", &config_struct->lossless},
+#endif
     };
     const size_t uint8_opts_size = sizeof(uint8_opts) / sizeof(uint8_opts[0]);
 

@@ -2222,7 +2222,12 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                 (blk_geom->sq_size < min_sq_size)
             ? 0
             : 1;
-
+#if FORCE_PATH
+        // Only 8x8 and 16x16 block(s) are supported if lossless
+        is_block_tagged = pcs->ppcs->frm_hdr.coded_lossless && blk_geom->sq_size > 8
+            ? 0
+            : is_block_tagged;
+#endif
         // SQ/NSQ block(s) filter based on the block validity
         if (is_block_tagged) {
             if (first_stage || results_ptr->consider_block[blk_index]) {
@@ -3287,6 +3292,8 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                     pcs,
                     scs,
                     segment_index);
+
+
                 for (y_sb_index = y_sb_start_index, sb_segment_index = sb_start_index;
                      sb_segment_index < sb_start_index + sb_segment_count;
                      ++y_sb_index) {
@@ -3401,6 +3408,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         // PD0 is only skipped if there is a single depth to test
                         if (skip_pd_pass_0)
                             md_ctx->pred_depth_only = 1;
+
                         // Multi-Pass PD
                         if (!skip_pd_pass_0 && pcs->ppcs->multi_pass_pd_level == MULTI_PASS_PD_ON) {
                             // [PD_PASS_0]
@@ -3511,6 +3519,7 @@ void *svt_aom_mode_decision_kernel(void *input_ptr) {
                         if (!ed_ctx->md_ctx->bypass_encdec) {
                             svt_aom_encode_decode(scs, pcs, sb_ptr, sb_index, sb_origin_x, sb_origin_y, ed_ctx);
                         }
+
                         svt_aom_encdec_update(scs, pcs, sb_ptr, sb_index, sb_origin_x, sb_origin_y, ed_ctx);
 
                         ed_ctx->coded_sb_count++;

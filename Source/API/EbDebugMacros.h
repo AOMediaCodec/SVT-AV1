@@ -34,6 +34,12 @@
 extern "C" {
 #endif // __cplusplus
 
+#define FIX_QP_0 1
+#if FIX_QP_0
+#define PRINT_STATS 0
+#define FORCE_PATH  1 
+#define LOSSLESS_SUPPORT  1 
+#endif
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         1 // Latency optimization for low delay - to keep the Macro for backwards testing until 3.0
 #define LOG_ENC_DONE            0 // log encoder job one

@@ -196,7 +196,9 @@
 #define ENABLE_VARIANCE_BOOST_TOKEN "--enable-variance-boost"
 #define VARIANCE_BOOST_STRENGTH_TOKEN "--variance-boost-strength"
 #define VARIANCE_OCTILE_TOKEN "--variance-octile"
-
+#if LOSSLESS_SUPPORT
+#define LOSSLESS_TOKEN "--lossless"
+#endif
 static EbErrorType validate_error(EbErrorType err, const char *token, const char *value) {
     switch (err) {
     case EB_ErrorNone: return EB_ErrorNone;
@@ -1138,7 +1140,12 @@ ConfigEntry config_entry_specific[] = {
      "Resize denominator in event, in a list separated by ',', only applicable for mode == 4",
      set_cfg_generic_token},
     // --- end: REFERENCE SCALING SUPPORT
-
+#if LOSSLESS_SUPPORT
+     {SINGLE_INPUT,
+     LOSSLESS_TOKEN,
+     "Enable lossless coding, default is 0 [0-1]",
+     set_cfg_generic_token},
+#endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
@@ -1365,6 +1372,10 @@ ConfigEntry config_entry[] = {
     {SINGLE_INPUT, VARIANCE_BOOST_STRENGTH_TOKEN, "VarianceBoostStrength", set_cfg_generic_token},
     {SINGLE_INPUT, VARIANCE_OCTILE_TOKEN, "VarianceOctile", set_cfg_generic_token},
 
+#if LOSSLESS_SUPPORT
+    // Lossless coding
+    { SINGLE_INPUT, LOSSLESS_TOKEN, "Lossless", set_cfg_generic_token },
+#endif
     // Termination
     {SINGLE_INPUT, NULL, NULL, NULL}};
 
