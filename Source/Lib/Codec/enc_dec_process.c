@@ -2224,7 +2224,7 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
             : 1;
 #if FORCE_PATH
         // Only 8x8 and 16x16 block(s) are supported if lossless
-        is_block_tagged = pcs->ppcs->frm_hdr.coded_lossless && blk_geom->sq_size > 8
+        is_block_tagged = pcs->force_max_block_to_8x8 && blk_geom->sq_size > 8
             ? 0
             : is_block_tagged;
 #endif

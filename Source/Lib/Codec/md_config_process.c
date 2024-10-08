@@ -899,14 +899,16 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 #if FIX_QP_0 // ---
 
         // Loop through each segment to determine if it is coded losslessly
+        pcs->force_max_block_to_8x8 = 0;
         Bool has_lossless_segment = 0;
         if (frm_hdr->segmentation_params.segmentation_enabled) {
             for (int segment_id = 0; segment_id < MAX_SEGMENTS; segment_id++) {
-                const int seg_delta_qp = pcs->ppcs->frm_hdr.segmentation_params.segmentation_enabled
-                    ? pcs->ppcs->frm_hdr.segmentation_params.feature_data[segment_id][SEG_LVL_ALT_Q]
-                    : 0;
-                pcs->lossless[segment_id] = !pcs->ppcs->frm_hdr.quantization_params.base_q_idx
-                    && !seg_delta_qp
+                pcs->lossless[segment_id] = 0;
+
+                //if (!pcs->ppcs->frm_hdr.segmentation_params.feature_enabled[segment_id][SEG_LVL_ALT_Q])
+                //    continue;
+
+                pcs->lossless[segment_id] = ((int16_t) ((int16_t) pcs->ppcs->frm_hdr.quantization_params.base_q_idx + pcs->ppcs->frm_hdr.segmentation_params.feature_data[segment_id][SEG_LVL_ALT_Q])) <= 0
                     && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y]
                     && !frm_hdr->quantization_params.delta_q_ac[AOM_PLANE_U]
                     && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_U]
@@ -948,6 +950,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         // The following shortcuts are necessary to enforce the use of block_4x4, block_8x8, and Tx_4x4,
         // these cannot be controlled at the block level, so they are invoked even if only one segment is marked as lossless
         if (frm_hdr->coded_lossless || (frm_hdr->segmentation_params.segmentation_enabled && has_lossless_segment)) {
+            pcs->force_max_block_to_8x8 = 1;
             pcs->pic_depth_removal_level = 0;
             pcs->pic_depth_removal_level_rtc = 0;
             pcs->pic_block_based_depth_refinement_level = 0;
