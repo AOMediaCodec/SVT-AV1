@@ -6585,7 +6585,7 @@ static void full_loop_core(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
     }
 #if FORCE_PATH // explain 
     // Force the use of TX_4X4 for 8x8 block(s) 
-    if (pcs->ppcs->frm_hdr.coded_lossless && ctx->blk_geom->sq_size == 8)
+    if (pcs->force_max_block_to_8x8 && ctx->blk_geom->sq_size == 8)
         start_tx_depth = end_tx_depth = 1;
 #endif
     // Check if should perform TX type search

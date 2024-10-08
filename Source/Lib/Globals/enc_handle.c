@@ -4482,8 +4482,13 @@ static void copy_api_from_app(
         scs->lap_rc = 0;
     //Segmentation
     //TODO: check RC mode and set only when RC is enabled in the final version.
+#if LOSSLESS_SUPPORT
+    scs->static_config.enable_adaptive_quantization = scs->static_config.lossless
+        ? 0
+        : config_struct->enable_adaptive_quantization;
+#else
     scs->static_config.enable_adaptive_quantization = config_struct->enable_adaptive_quantization;
-
+#endif
     // Misc
     scs->static_config.encoder_bit_depth = ((EbSvtAv1EncConfiguration*)config_struct)->encoder_bit_depth;
     scs->static_config.encoder_color_format = ((EbSvtAv1EncConfiguration*)config_struct)->encoder_color_format;
