@@ -4307,8 +4307,12 @@ void svt_aom_set_wm_controls(ModeDecisionContext *ctx, uint8_t wm_level) {
     }
 }
 // Get the nic_level used for each preset (to be passed to setting function: svt_aom_set_nic_controls())
+#if CLN_ADD_SEQ_QP_CTRL
+uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp, uint8_t seq_qp_mod) {
+#else
 // hierarchical_levels should be the sequence-level hierarchical structure (found in scs->static_config.hierarchical_levels
 uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp) {
+#endif
     uint8_t nic_level;
 
     if (enc_mode <= ENC_MR)
@@ -4328,6 +4332,26 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp) {
     else
         nic_level = 19;
     // QP-banding
+#if CLN_ADD_SEQ_QP_CTRL
+    if (seq_qp_mod) {
+        if (enc_mode <= ENC_M5) {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 42)
+                nic_level = MIN(nic_level + 1, 19);
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 61)
+                nic_level = nic_level <= 1 ? 0 : nic_level - 2;
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 57)
+                nic_level = nic_level == 0 ? 0 : nic_level - 1;
+        }
+        else {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 42)
+                nic_level = MIN(nic_level + 1, 19);
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 59)
+                nic_level = nic_level <= 1 ? 0 : nic_level - 2;
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 55)
+                nic_level = nic_level == 0 ? 0 : nic_level - 1;
+        }
+    }
+#else
     if (enc_mode <= ENC_M5) {
         if (qp <= 42)
             nic_level = MIN(nic_level + 1, 19);
@@ -4343,6 +4367,7 @@ uint8_t svt_aom_get_nic_level(EncMode enc_mode, uint8_t is_base, uint32_t qp) {
         else if (qp > 55)
             nic_level = nic_level == 0 ? 0 : nic_level - 1;
     }
+#endif
     return nic_level;
 }
 /*
@@ -7106,6 +7131,25 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
     } else
         depth_level = 0;
 
+#if CLN_ADD_SEQ_QP_CTRL
+    if (scs->seq_qp_mod) {
+        if (!pcs->ppcs->sc_class1 && depth_level) {
+            // QP-banding
+            if (enc_mode <= ENC_M5) {
+                if ((scs->seq_qp_mod == 2 || scs->seq_qp_mod == 3) && scs->static_config.qp <= 32)
+                    depth_level = depth_level ? depth_level + 1 : 0;
+                else if ((scs->seq_qp_mod == 1 || scs->seq_qp_mod == 2) && scs->static_config.qp > 62)
+                    depth_level = depth_level == 1 ? depth_level : depth_level - 1;
+            }
+            else {
+                if ((scs->seq_qp_mod == 2 || scs->seq_qp_mod == 3) && scs->static_config.qp <= 32)
+                    depth_level = depth_level ? depth_level + 1 : 0;
+                else if ((scs->seq_qp_mod == 1 || scs->seq_qp_mod == 2) && scs->static_config.qp > 55)
+                    depth_level = depth_level == 1 ? depth_level : depth_level - 1;
+            }
+        }
+    }
+#else
     if (!pcs->ppcs->sc_class1 && depth_level) {
         // QP-banding
         if (enc_mode <= ENC_M5) {
@@ -7120,6 +7164,7 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet *scs, PictureControlSet
                 depth_level = depth_level == 1 ? depth_level : depth_level - 1;
         }
     }
+#endif
 
     // med-banding
     if (pcs->me_dist_mod && depth_level && !pcs->ppcs->sc_class1) {
@@ -7926,6 +7971,40 @@ uint8_t svt_aom_get_nsq_search_level(PictureControlSet *pcs, EncMode enc_mode, I
     if (nsq_search_level == 0)
         return nsq_search_level;
 
+#if CLN_ADD_SEQ_QP_CTRL
+    const uint8_t seq_qp_mod = pcs->scs->seq_qp_mod;
+    // offset level based on sequence QP
+    if (seq_qp_mod) {
+        if (enc_mode <= ENC_M5) {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 39) {
+                nsq_search_level = nsq_search_level + 3 > 18 ? 0 : nsq_search_level + 3;
+            }
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 45) {
+                nsq_search_level = nsq_search_level + 2 > 18 ? 0 : nsq_search_level + 2;
+            }
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 48) {
+                nsq_search_level = nsq_search_level + 1 > 18 ? 0 : nsq_search_level + 1;
+            }
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 59) {
+                nsq_search_level = MAX(nsq_search_level - 1, 1);
+            }
+        }
+        else {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 39) {
+                nsq_search_level = nsq_search_level + 3 > 18 ? 0 : nsq_search_level + 3;
+            }
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 43) {
+                nsq_search_level = nsq_search_level + 2 > 18 ? 0 : nsq_search_level + 2;
+            }
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 48) {
+                nsq_search_level = nsq_search_level + 1 > 18 ? 0 : nsq_search_level + 1;
+            }
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 56) {
+                nsq_search_level = MAX(nsq_search_level - 1, 1);
+            }
+        }
+    }
+#else
     // offset level based on sequence QP
     if (enc_mode <= ENC_M5) {
         if (qp <= 39) {
@@ -7948,6 +8027,7 @@ uint8_t svt_aom_get_nsq_search_level(PictureControlSet *pcs, EncMode enc_mode, I
             nsq_search_level = MAX(nsq_search_level - 1, 1);
         }
     }
+#endif
 
     return nsq_search_level;
 }
@@ -8062,6 +8142,9 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
     const EbInputResolution input_resolution   = ppcs->input_resolution;
     uint8_t                 ldp0_lvl_offset[4] = {2, 2, 1, 0};
     uint8_t                 qp_band_idx        = 0;
+#if CLN_ADD_SEQ_QP_CTRL
+    const uint8_t seq_qp_mod = pcs->scs->seq_qp_mod;
+#endif
 
     if (pcs->scs->static_config.qp <= 27)
         qp_band_idx = 0;
@@ -8175,6 +8258,109 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                 else
                     pcs->pic_lpd0_lvl = (is_base || transition_present) ? 3 : 5;
             }
+#if CLN_ADD_SEQ_QP_CTRL
+        } else if (enc_mode <= ENC_M9) {
+            if (input_resolution <= INPUT_SIZE_360p_RANGE) {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : (int)ldp0_lvl_offset[qp_band_idx];
+                pcs->pic_lpd0_lvl = MIN(MAX_LDP0_LVL, 3 + qp_offset);
+            }
+            else if (input_resolution <= INPUT_SIZE_480p_RANGE) {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0);
+                pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                    : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+            }
+            else {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0);
+                if (coeff_lvl == HIGH_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 7 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 8 + qp_offset);
+                else if (coeff_lvl == NORMAL_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 5 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 7 + qp_offset);
+                else
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+            }
+
+        } else if (enc_mode <= ENC_M10) {
+            if (input_resolution <= INPUT_SIZE_480p_RANGE) {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : (int)ldp0_lvl_offset[qp_band_idx];
+                if (coeff_lvl == VLOW_LVL || coeff_lvl == LOW_LVL) {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+                } else if (coeff_lvl == NORMAL_LVL) {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 4 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 6 + qp_offset);
+                } else {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 5 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 7 + qp_offset);
+                }
+            } else {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : MAX((int)((int)ldp0_lvl_offset[qp_band_idx] - 1), 0);
+                if (coeff_lvl == HIGH_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 7 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 8 + qp_offset);
+                else if (coeff_lvl == NORMAL_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 5 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 7 + qp_offset);
+                else
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+            }
+        }
+        else {
+            if (input_resolution <= INPUT_SIZE_360p_RANGE) {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : (int)ldp0_lvl_offset[qp_band_idx];
+                if (coeff_lvl == VLOW_LVL || coeff_lvl == LOW_LVL) {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+                }
+                else if (coeff_lvl == NORMAL_LVL) {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 4 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 6 + qp_offset);
+                }
+                else {
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                        ? MIN(MAX_LDP0_LVL, 5 + qp_offset)
+                        : MIN(MAX_LDP0_LVL, 7 + qp_offset);
+                }
+            }
+            else {
+                // For seq_qp_mode 3, there is no conservative offset to disallow because the qp offset is limited to at least 0
+                const int qp_offset = (seq_qp_mod <= 1) ? 0 : (int)ldp0_lvl_offset[qp_band_idx];
+                if (coeff_lvl == HIGH_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 7 + qp_offset)
+                    : MIN(MAX_LDP0_LVL, 8 + qp_offset);
+                else if (coeff_lvl == NORMAL_LVL)
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 5 + qp_offset)
+                    : MIN(MAX_LDP0_LVL, 7 + qp_offset);
+                else
+                    pcs->pic_lpd0_lvl = (is_base || transition_present)
+                    ? MIN(MAX_LDP0_LVL, 3 + qp_offset)
+                    : MIN(MAX_LDP0_LVL, 5 + qp_offset);
+            }
+        }
+#else
         } else if (enc_mode <= ENC_M9) {
             if (input_resolution <= INPUT_SIZE_360p_RANGE)
                 pcs->pic_lpd0_lvl = MIN(MAX_LDP0_LVL, 3 + ldp0_lvl_offset[qp_band_idx]);
@@ -8256,6 +8442,7 @@ static void set_pic_lpd0_lvl(PictureControlSet *pcs, EncMode enc_mode) {
                         : MIN(MAX_LDP0_LVL, 5 + MAX((int)((int)ldp0_lvl_offset[qp_band_idx]), 0));
             }
         }
+#endif
     }
     if (pcs->scs->super_block_size == 128) {
         pcs->pic_lpd0_lvl = 0;
@@ -8297,7 +8484,11 @@ uint8_t svt_aom_get_inter_intra_level(EncMode enc_mode, uint8_t is_base, uint8_t
 
     return inter_intra_level;
 }
+#if CLN_ADD_SEQ_QP_CTRL
+uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base, uint8_t seq_qp_mod) {
+#else
 uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
+#endif
     uint8_t obmc_level = 0;
     if (enc_mode <= ENC_M0)
         obmc_level = 1;
@@ -8311,6 +8502,26 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
         obmc_level = 0;
 
     // QP-banding
+#if CLN_ADD_SEQ_QP_CTRL
+    if (!(enc_mode <= ENC_M0) && obmc_level && seq_qp_mod) {
+        if (enc_mode <= ENC_M5) {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 43)
+                obmc_level = obmc_level + 2;
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 53)
+                obmc_level = obmc_level + 1;
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 60)
+                obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
+        }
+        else {
+            if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 43)
+                obmc_level = obmc_level + 2;
+            else if ((seq_qp_mod == 2 || seq_qp_mod == 3) && qp <= 55)
+                obmc_level = obmc_level + 1;
+            else if ((seq_qp_mod == 1 || seq_qp_mod == 2) && qp > 59)
+                obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
+        }
+    }
+#else
     if (!(enc_mode <= ENC_M0) && obmc_level) {
         if (enc_mode <= ENC_M5) {
             if (qp <= 43)
@@ -8328,6 +8539,7 @@ uint8_t svt_aom_get_obmc_level(EncMode enc_mode, uint32_t qp, uint8_t is_base) {
                 obmc_level = obmc_level == 0 ? 0 : obmc_level - 1;
         }
     }
+#endif
 
     return obmc_level;
 }
@@ -8438,8 +8650,13 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
     if (hierarchical_levels <= 2) {
         pcs->wm_level = enc_mode <= ENC_M6 ? pcs->wm_level : 0;
     }
+#if CLN_ADD_SEQ_QP_CTRL
+    if (enc_mode <= ENC_M8 && scs->seq_qp_mod) {
+        if (sq_qp > 55 && (scs->seq_qp_mod == 1 || scs->seq_qp_mod == 2)) {
+#else
     if (enc_mode <= ENC_M8) {
         if (sq_qp > 55) {
+#endif
             pcs->wm_level = pcs->wm_level == 1 ? pcs->wm_level : pcs->wm_level == 0 ? MAX_WARP_LVL : pcs->wm_level - 1;
         }
     }
@@ -8453,7 +8670,11 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         scs->static_config.resize_mode == RESIZE_NONE;
 
     frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
+#if CLN_ADD_SEQ_QP_CTRL
+    ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, sq_qp, is_base, scs->seq_qp_mod);
+#else
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, sq_qp, is_base);
+#endif
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
 
@@ -8666,15 +8887,24 @@ void svt_aom_sig_deriv_mode_decision_config(SequenceControlSet *scs, PictureCont
         pcs->txs_level = 4;
 
     // QP-banding
+#if CLN_ADD_SEQ_QP_CTRL
+    if (pcs->txs_level && scs->seq_qp_mod) {
+        if (sq_qp > 58 && (scs->seq_qp_mod == 1 || scs->seq_qp_mod == 2)) {
+#else
     if (pcs->txs_level) {
         if (sq_qp > 58) {
+#endif
             pcs->txs_level = pcs->txs_level == 1 ? pcs->txs_level : pcs->txs_level - 1;
         }
     }
     // Set tx_mode for the frame header
     frm_hdr->tx_mode = (pcs->txs_level) ? TX_MODE_SELECT : TX_MODE_LARGEST;
     // Set the level for nic
+#if CLN_ADD_SEQ_QP_CTRL
+    pcs->nic_level = svt_aom_get_nic_level(enc_mode, is_base, pcs->scs->static_config.qp, scs->seq_qp_mod);
+#else
     pcs->nic_level = svt_aom_get_nic_level(enc_mode, is_base, pcs->scs->static_config.qp);
+#endif
     // Set the level for SQ me-search
     pcs->md_sq_mv_search_level = 0;
 

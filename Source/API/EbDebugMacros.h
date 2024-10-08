@@ -34,6 +34,8 @@
 extern "C" {
 #endif // __cplusplus
 
+#define CLN_ADD_SEQ_QP_CTRL         1 // Add a signal to control sequence-QP-based modulation
+
 //FOR DEBUGGING - Do not remove
 #define OPT_LD_LATENCY2         1 // Latency optimization for low delay - to keep the Macro for backwards testing until 3.0
 #define LOG_ENC_DONE            0 // log encoder job one

@@ -119,6 +119,20 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext *thread_ctx, const EbEn
                .split_mode         = FALSE,
            });
     // Mode Decision Context
+#if CLN_ADD_SEQ_QP_CTRL
+    EB_NEW(ed_ctx->md_ctx,
+           svt_aom_mode_decision_context_ctor,
+           color_format,
+           enc_handle_ptr->scs_instance_array[0]->scs->super_block_size,
+           static_config->enc_mode,
+           enc_handle_ptr->scs_instance_array[0]->scs->max_block_cnt,
+           static_config->encoder_bit_depth,
+           0,
+           0,
+           enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
+           static_config->screen_content_mode,
+           enc_handle_ptr->scs_instance_array[0]->scs->seq_qp_mod);
+#else
     EB_NEW(ed_ctx->md_ctx,
            svt_aom_mode_decision_context_ctor,
            color_format,
@@ -130,6 +144,7 @@ EbErrorType svt_aom_enc_dec_context_ctor(EbThreadContext *thread_ctx, const EbEn
            0,
            enable_hbd_mode_decision == DEFAULT ? 2 : enable_hbd_mode_decision,
            static_config->screen_content_mode);
+#endif
     if (enable_hbd_mode_decision)
         ed_ctx->md_ctx->input_sample16bit_buffer = ed_ctx->input_sample16bit_buffer;
 
