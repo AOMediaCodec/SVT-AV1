@@ -950,6 +950,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         // The following shortcuts are necessary to enforce the use of block_4x4, block_8x8, and Tx_4x4,
         // these cannot be controlled at the block level, so they are invoked even if only one segment is marked as lossless
         if (frm_hdr->coded_lossless || (frm_hdr->segmentation_params.segmentation_enabled && has_lossless_segment)) {
+            pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
             pcs->force_max_block_to_8x8 = 1;
             pcs->pic_depth_removal_level = 0;
             pcs->pic_depth_removal_level_rtc = 0;
