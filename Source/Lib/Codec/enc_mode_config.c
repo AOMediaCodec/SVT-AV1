@@ -6414,7 +6414,11 @@ void svt_aom_set_dist_based_ref_pruning_controls(ModeDecisionContext *ctx, uint8
 }
 static void set_txs_controls(PictureControlSet *pcs, ModeDecisionContext *ctx, uint8_t txs_level) {
     TxsControls *txs_ctrls = &ctx->txs_ctrls;
-
+#if FORCE_PATH
+    if (pcs->mimic_only_tx_4x4)
+        txs_level = 1;
+    else
+#endif
     if (pcs->me_dist_mod && txs_level) {
         // med-banding
         uint32_t dist_64, dist_32, dist_16, dist_8, me_8x8_cost_variance;

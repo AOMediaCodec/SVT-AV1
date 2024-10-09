@@ -3540,7 +3540,7 @@ static void write_uncompressed_header_obu(SequenceControlSet *scs /*Av1Comp *cpi
     }
 #if FIX_QP_0 
     if (frm_hdr->coded_lossless)
-        assert(1); // to do assert(frm_hdr->tx_mode == ONLY_4X4);
+        assert(pcs->mimic_only_tx_4x4); // assert(frm_hdr->tx_mode == ONLY_4X4);
     else 
 #endif
     svt_aom_wb_write_bit(wb, frm_hdr->tx_mode == TX_MODE_SELECT);

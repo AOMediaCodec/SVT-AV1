@@ -444,7 +444,7 @@ typedef struct PictureControlSet {
 #if FIX_QP_0
     // lossless[s] is true if segment 's' is coded losslessly.
     int lossless[MAX_SEGMENTS];
-    Bool force_max_block_to_8x8;
+    Bool mimic_only_tx_4x4;
 #endif
 } PictureControlSet;
 
