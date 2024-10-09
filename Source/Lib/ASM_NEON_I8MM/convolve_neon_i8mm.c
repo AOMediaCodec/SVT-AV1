@@ -200,6 +200,11 @@ void svt_av1_convolve_x_sr_neon_i8mm(const uint8_t *src, int src_stride, uint8_t
     // Halve the total because we will halve the filter values.
     const int32x4_t horiz_const = vdupq_n_s32((1 << ((ROUND0_BITS - 1)) / 2));
 
+    if (filter_taps == 2 && w > 4) {
+        convolve_x_sr_2tap_neon(src + 3, src_stride, dst, dst_stride, w, h, x_filter_ptr);
+        return;
+    }
+
     if (filter_taps <= 6) {
         convolve_x_sr_6tap_neon_i8mm(src + 1, src_stride, dst, dst_stride, w, h, x_filter_ptr, horiz_const);
         return;
@@ -861,6 +866,11 @@ void svt_av1_convolve_2d_sr_neon_i8mm(const uint8_t *src, int src_stride, uint8_
     const int16_t *y_filter_ptr = av1_get_interp_filter_subpel_kernel(*filter_params_y, subpel_y_qn & SUBPEL_MASK);
 
     DECLARE_ALIGNED(16, int16_t, im_block[(MAX_SB_SIZE + SUBPEL_TAPS - 1) * MAX_SB_SIZE]);
+
+    if (x_filter_taps == 2 && y_filter_taps == 2 && w > 4) {
+        convolve_2d_sr_2tap_neon(src, src_stride, dst, dst_stride, w, h, x_filter_ptr, y_filter_ptr);
+        return;
+    }
 
     if (x_filter_taps == 6 && y_filter_taps == 6) {
         convolve_2d_sr_6tap_neon_i8mm(src_ptr + 1, src_stride, dst, dst_stride, w, h, x_filter_ptr, y_filter_ptr);

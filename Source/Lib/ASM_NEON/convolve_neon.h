@@ -401,4 +401,98 @@ static INLINE void convolve_2d_sr_vert_8tap_neon(int16_t *src_ptr, int src_strid
     }
 }
 
+static INLINE void convolve_x_sr_2tap_neon(const uint8_t *src_ptr, int src_stride, uint8_t *dst_ptr,
+                                           const int dst_stride, int w, int h, const int16_t *x_filter_ptr) {
+    const uint16x8_t round_const = vdupq_n_u16((1 << (ROUND0_BITS - 1)) + (1 << (FILTER_BITS - 1)));
+    const uint8x8_t  f0          = vdup_n_u8(x_filter_ptr[3]);
+    const uint8x8_t  f1          = vdup_n_u8(x_filter_ptr[4]);
+
+    do {
+        int            width = w;
+        const uint8_t *src   = src_ptr;
+        uint8_t       *dst   = dst_ptr;
+
+        do {
+            uint8x8_t s0[4], s1[4];
+            load_u8_8x4(src + 0, src_stride, &s0[0], &s0[1], &s0[2], &s0[3]);
+            load_u8_8x4(src + 1, src_stride, &s1[0], &s1[1], &s1[2], &s1[3]);
+
+            uint16x8_t t0 = vmlal_u8(round_const, s0[0], f0);
+            t0            = vmlal_u8(t0, s1[0], f1);
+            uint16x8_t t1 = vmlal_u8(round_const, s0[1], f0);
+            t1            = vmlal_u8(t1, s1[1], f1);
+            uint16x8_t t2 = vmlal_u8(round_const, s0[2], f0);
+            t2            = vmlal_u8(t2, s1[2], f1);
+            uint16x8_t t3 = vmlal_u8(round_const, s0[3], f0);
+            t3            = vmlal_u8(t3, s1[3], f1);
+
+            uint8x8_t d0 = vshrn_n_u16(t0, FILTER_BITS);
+            uint8x8_t d1 = vshrn_n_u16(t1, FILTER_BITS);
+            uint8x8_t d2 = vshrn_n_u16(t2, FILTER_BITS);
+            uint8x8_t d3 = vshrn_n_u16(t3, FILTER_BITS);
+
+            store_u8_8x4(dst, dst_stride, d0, d1, d2, d3);
+
+            dst += 8;
+            src += 8;
+            width -= 8;
+        } while (width != 0);
+        src_ptr += 4 * src_stride;
+        dst_ptr += 4 * dst_stride;
+        h -= 4;
+    } while (h != 0);
+}
+static INLINE void convolve_2d_sr_2tap_neon(const uint8_t *src_ptr, int32_t src_stride, uint8_t *dst_ptr,
+                                            int dst_stride, int w, int h, const int16_t *x_filter,
+                                            const int16_t *y_filter) {
+    // All bilinear filter values are multiples of 8, so divide them to reduce
+    // intermediate precision requirements and avoid needing to do rounding at
+    // the end of horizontal convolution.
+    const uint8x8_t  x_f0 = vdup_n_u8(x_filter[3] >> 3);
+    const uint8x8_t  x_f1 = vdup_n_u8(x_filter[4] >> 3);
+    const uint16x8_t y_f0 = vdupq_n_u16(y_filter[3] >> 3);
+    const uint16x8_t y_f1 = vdupq_n_u16(y_filter[4] >> 3);
+
+    do {
+        const uint8_t *src    = src_ptr;
+        uint8_t       *dst    = dst_ptr;
+        int            height = h;
+
+        uint8x8_t s0[3], s1[3];
+        s0[0]           = vld1_u8(src);
+        s1[0]           = vld1_u8(src + 1);
+        uint16x8_t h_t0 = vmull_u8(s0[0], x_f0);
+        h_t0            = vmlal_u8(h_t0, s1[0], x_f1);
+        do {
+            s0[1] = vld1_u8(src + 1 * src_stride);
+            s1[1] = vld1_u8(src + 1 * src_stride + 1);
+            s0[2] = vld1_u8(src + 2 * src_stride);
+            s1[2] = vld1_u8(src + 2 * src_stride + 1);
+
+            uint16x8_t h_t1 = vmull_u8(s0[1], x_f0);
+            h_t1            = vmlal_u8(h_t1, s1[1], x_f1);
+            uint16x8_t h_t2 = vmull_u8(s0[2], x_f0);
+            h_t2            = vmlal_u8(h_t2, s1[2], x_f1);
+
+            uint16x8_t v_t0 = vmulq_u16(h_t0, y_f0);
+            v_t0            = vmlaq_u16(v_t0, h_t1, y_f1);
+            uint16x8_t v_t1 = vmulq_u16(h_t1, y_f0);
+            v_t1            = vmlaq_u16(v_t1, h_t2, y_f1);
+
+            uint8x8_t d0 = vrshrn_n_u16(v_t0, 8);
+            uint8x8_t d1 = vrshrn_n_u16(v_t1, 8);
+
+            store_u8_8x2(dst, dst_stride, d0, d1);
+
+            h_t0 = h_t2;
+            src += 2 * src_stride;
+            dst += 2 * dst_stride;
+            height -= 2;
+        } while (height != 0);
+        src_ptr += 8;
+        dst_ptr += 8;
+        w -= 8;
+    } while (w != 0);
+}
+
 #endif // AOM_AV1_COMMON_ARM_CONVOLVE_NEON_H_

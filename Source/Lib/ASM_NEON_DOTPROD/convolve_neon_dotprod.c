@@ -185,6 +185,11 @@ void svt_av1_convolve_x_sr_neon_dotprod(const uint8_t *src, int32_t src_stride, 
 
     int filter_taps = get_filter_tap(filter_params_x, subpel_x_qn & SUBPEL_MASK);
 
+    if (filter_taps == 2 && w > 4) {
+        convolve_x_sr_2tap_neon(src + 3, src_stride, dst, dst_stride, w, h, x_filter_ptr);
+        return;
+    }
+
     if (filter_taps <= 4) {
         convolve_x_sr_4tap_neon_dotprod(src + 2, src_stride, dst, dst_stride, w, h, x_filter_ptr);
         return;
@@ -896,6 +901,11 @@ void svt_av1_convolve_2d_sr_neon_dotprod(const uint8_t *src, int src_stride, uin
 
     const int16_t *x_filter_ptr = av1_get_interp_filter_subpel_kernel(*filter_params_x, subpel_x_qn & SUBPEL_MASK);
     const int16_t *y_filter_ptr = av1_get_interp_filter_subpel_kernel(*filter_params_y, subpel_y_qn & SUBPEL_MASK);
+
+    if (x_filter_taps == 2 && y_filter_taps == 2 && w > 4) {
+        convolve_2d_sr_2tap_neon(src, src_stride, dst, dst_stride, w, h, x_filter_ptr, y_filter_ptr);
+        return;
+    }
 
     if (x_filter_taps >= 6 && y_filter_taps == 6) {
         convolve_2d_sr_6tap_neon_dotprod(src_ptr, src_stride, dst, dst_stride, w, h, x_filter_ptr, y_filter_ptr);
