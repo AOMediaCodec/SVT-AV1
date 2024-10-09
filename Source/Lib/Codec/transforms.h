@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 #include "enc_dec_process.h"
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 #define UNIT_QUANT_SHIFT 2
 #define UNIT_QUANT_FACTOR (1 << UNIT_QUANT_SHIFT)
 #endif
@@ -112,7 +112,7 @@ typedef struct QuantParam {
 } QuantParam;
 
 static const uint32_t q_func[] = {26214, 23302, 20560, 18396, 16384, 14564};
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 extern EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionContext* ctx, int16_t* residual_buffer, uint32_t residual_stride, int32_t* coeff_buffer,
 #else
 extern EbErrorType svt_aom_estimate_transform(int16_t *residual_buffer, uint32_t residual_stride, int32_t *coeff_buffer,
@@ -136,7 +136,7 @@ void svt_av1_wht_fwd_txfm(int16_t *src_diff, int bw, int32_t *coeff, TxSize tx_s
 
 TxfmFunc svt_aom_fwd_txfm_type_to_func(TxfmType txfmtype);
 
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 void av1_fwht4x4_c(int16_t* input, int32_t* output, uint32_t stride);
 #endif
 #ifdef __cplusplus

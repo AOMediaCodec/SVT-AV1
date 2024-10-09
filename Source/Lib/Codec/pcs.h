@@ -441,7 +441,7 @@ typedef struct PictureControlSet {
     // different with input frame when reference scaling is enabled
     EbPictureBufferDesc *scaled_input_pic;
     bool                 rtc_tune;
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
     // lossless[s] is true if segment 's' is coded losslessly.
     int lossless[MAX_SEGMENTS];
     Bool mimic_only_tx_4x4;

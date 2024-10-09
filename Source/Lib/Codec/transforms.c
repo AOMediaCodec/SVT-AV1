@@ -3092,7 +3092,7 @@ static EbErrorType av1_estimate_transform_default(int16_t *residual_buffer, uint
 
     return return_error;
 }
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 /* 4-point reversible, orthonormal Walsh-Hadamard in 3.5 adds, 0.5 shifts per
    pixel.
    Shared for both high and low bit depth.
@@ -3157,7 +3157,7 @@ void svt_av1_fwht4x4_c(int16_t* input, int32_t* output, uint32_t stride) {
 *   Note there is an implicit assumption that TU Size <= PU Size,
 *   which is different than the HEVC requirements.
 *********************************************************************/
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionContext* ctx, int16_t* residual_buffer, uint32_t residual_stride, int32_t* coeff_buffer,
 #else
 EbErrorType svt_aom_estimate_transform(int16_t *residual_buffer, uint32_t residual_stride, int32_t *coeff_buffer,
@@ -3172,7 +3172,7 @@ EbErrorType svt_aom_estimate_transform(int16_t *residual_buffer, uint32_t residu
     (void)component_type;
 
 
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
     if (pcs->lossless[ctx->blk_ptr->segment_id]) {
         assert(transform_type == DCT_DCT);
         int32_t dst[16];

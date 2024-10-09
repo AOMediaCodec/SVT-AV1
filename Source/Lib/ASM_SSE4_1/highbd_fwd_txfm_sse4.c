@@ -14727,7 +14727,7 @@ void svt_av1_fwd_txfm2d_64x16_N4_sse4_1(int16_t *input, int32_t *output, uint32_
     clear_buffer_wxh_N4(outcoeff, num_col, txfm_size_row);
     (void)bd;
 }
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 static inline void transpose_32bit_4x4(const __m128i* const in,
     __m128i* const out) {
     // Unpack 32 bit elements. Goes from:

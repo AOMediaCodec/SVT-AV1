@@ -402,7 +402,7 @@ static void av1_encode_loop(PictureControlSet *pcs, EncDecContext *ed_ctx, Super
                                     is_16bit, // hbd
                                     blk_geom->tx_width[blk_ptr->tx_depth],
                                     blk_geom->tx_height[blk_ptr->tx_depth]);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_estimate_transform(pcs, ed_ctx->md_ctx, ((int16_t*)residual16bit->buffer_y) + scratch_luma_offset,
 #else
             svt_aom_estimate_transform(((int16_t *)residual16bit->buffer_y) + scratch_luma_offset,
@@ -435,23 +435,6 @@ static void av1_encode_loop(PictureControlSet *pcs, EncDecContext *ed_ctx, Super
                 blk_ptr->pred_mode,
                 md_ctx->full_lambda_md[(bit_depth == EB_TEN_BIT) ? EB_10_BIT_MD : EB_8_BIT_MD],
                 TRUE);
-#if PRINT_STATS // printf
-            static cnt = 0;
-            {
-                FILE* fp = fopen("E:\\Hsan\\stats.txt","a");
-                fprintf(fp, "%d\n", cnt);
-                //int32_t* ptr = (int32_t *) (((int32_t*)coeff_samples_sb->buffer_y) + ed_ctx->coded_area_sb);
-                int32_t* ptr = (int32_t *)  (((int32_t*)inverse_quant_buffer->buffer_y) + ed_ctx->coded_area_sb);
-                for (int i = 0; i < blk_geom->tx_height[blk_ptr->tx_depth];i++) {
-                    for (int j = 0; j < blk_geom->tx_width[blk_ptr->tx_depth]; j++) {
-                        fprintf(fp,"%d\t", ptr[i* blk_geom->tx_width[blk_ptr->tx_depth] + j]);
-                    }
-                    fprintf(fp, "\n");
-                }
-                fclose(fp);
-            }
-            cnt++;
-#endif
         }
 
         blk_ptr->y_has_coeff |= (eob[0] > 0) << ed_ctx->txb_itr;
@@ -499,7 +482,7 @@ static void av1_encode_loop(PictureControlSet *pcs, EncDecContext *ed_ctx, Super
                                     is_16bit, // hbd
                                     blk_geom->tx_width_uv[blk_ptr->tx_depth],
                                     blk_geom->tx_height_uv[blk_ptr->tx_depth]);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_estimate_transform(pcs, ed_ctx->md_ctx, ((int16_t*)residual16bit->buffer_cb) + scratch_cb_offset,
 #else
             svt_aom_estimate_transform(((int16_t *)residual16bit->buffer_cb) + scratch_cb_offset,
@@ -548,7 +531,7 @@ static void av1_encode_loop(PictureControlSet *pcs, EncDecContext *ed_ctx, Super
                                     is_16bit, // hbd
                                     blk_geom->tx_width_uv[blk_ptr->tx_depth],
                                     blk_geom->tx_height_uv[blk_ptr->tx_depth]);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_estimate_transform(pcs, ed_ctx->md_ctx, ((int16_t*)residual16bit->buffer_cr) + scratch_cb_offset,
 #else
             svt_aom_estimate_transform(((int16_t *)residual16bit->buffer_cr) + scratch_cb_offset,
@@ -611,7 +594,7 @@ static void av1_encode_loop(PictureControlSet *pcs, EncDecContext *ed_ctx, Super
 *   Recon  (position independent)
 *
 **********************************************************/
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 static void av1_encode_generate_recon(PictureControlSet* pcs, EncDecContext* ed_ctx, uint32_t org_x, uint32_t org_y,
 #else
 static void av1_encode_generate_recon(EncDecContext *ed_ctx, uint32_t org_x, uint32_t org_y,
@@ -628,7 +611,7 @@ static void av1_encode_generate_recon(EncDecContext *ed_ctx, uint32_t org_x, uin
         if ((blk_ptr->y_has_coeff & (1 << ed_ctx->txb_itr)) && blk_ptr->skip_mode == FALSE) {
             const uint32_t pred_luma_offset = (pred_samples->org_y + org_y) * pred_samples->stride_y +
                 (pred_samples->org_x + org_x);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_inv_transform_recon_wrapper(pcs, ed_ctx->md_ctx, pred_samples->buffer_y,
 #else
             svt_aom_inv_transform_recon_wrapper(pred_samples->buffer_y,
@@ -661,7 +644,7 @@ static void av1_encode_generate_recon(EncDecContext *ed_ctx, uint32_t org_x, uin
         if ((blk_ptr->u_has_coeff & (1 << ed_ctx->txb_itr)) && blk_ptr->skip_mode == FALSE) {
             const uint32_t pred_offset_cb = (((pred_samples->org_y + round_origin_y) >> 1) * pred_samples->stride_cb) +
                 ((pred_samples->org_x + round_origin_x) >> 1);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_inv_transform_recon_wrapper(pcs, ed_ctx->md_ctx, pred_samples->buffer_cb,
 #else
             svt_aom_inv_transform_recon_wrapper(pred_samples->buffer_cb,
@@ -686,7 +669,7 @@ static void av1_encode_generate_recon(EncDecContext *ed_ctx, uint32_t org_x, uin
         if ((blk_ptr->v_has_coeff & (1 << ed_ctx->txb_itr)) && blk_ptr->skip_mode == FALSE) {
             const uint32_t pred_offset_cr = (((pred_samples->org_y + round_origin_y) >> 1) * pred_samples->stride_cr) +
                 ((pred_samples->org_x + round_origin_x) >> 1);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_inv_transform_recon_wrapper(pcs, ed_ctx->md_ctx, pred_samples->buffer_cr,
 #else
             svt_aom_inv_transform_recon_wrapper(pred_samples->buffer_cr,
@@ -915,7 +898,7 @@ static void perform_intra_coding_loop(PictureControlSet *pcs, SuperBlock *sb_ptr
                         inverse_quant_buffer,
                         PICTURE_BUFFER_DESC_LUMA_MASK,
                         eobs[ed_ctx->txb_itr]);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
         av1_encode_generate_recon(pcs, ed_ctx,
 #else
         av1_encode_generate_recon(ed_ctx,
@@ -1186,7 +1169,7 @@ static void perform_intra_coding_loop(PictureControlSet *pcs, SuperBlock *sb_ptr
                         inverse_quant_buffer,
                         PICTURE_BUFFER_DESC_CHROMA_MASK,
                         eobs[ed_ctx->txb_itr]);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
         av1_encode_generate_recon(pcs, ed_ctx,
 #else
         av1_encode_generate_recon(ed_ctx,
@@ -1533,7 +1516,7 @@ static void perform_inter_coding_loop(SequenceControlSet *scs, PictureControlSet
 
         //inter mode
         av1_encode_generate_recon(
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             pcs,
 #endif
             ctx,
@@ -2255,7 +2238,7 @@ EB_EXTERN EbErrorType svt_aom_encdec_update(SequenceControlSet *scs, PictureCont
                     pcs->ep_txfm_context_na[tile_idx]->top_array[txfm_context_above_index]);
                 blk_ptr->av1xd->left_txfm_context = &(
                     pcs->ep_txfm_context_na[tile_idx]->left_array[txfm_context_left_index]);
-#if FIX_QP_0 
+#if LOSSLESS_SUPPORT 
                 svt_aom_tx_size_bits(pcs, ctx->blk_ptr->segment_id, md_ctx->md_rate_est_ctx,
 #else
                 svt_aom_tx_size_bits(md_ctx->md_rate_est_ctx,

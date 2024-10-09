@@ -3522,7 +3522,7 @@ static void write_uncompressed_header_obu(SequenceControlSet *scs /*Av1Comp *cpi
     }
 
     if (frm_hdr->all_lossless) {
-#if FIX_QP_0 
+#if LOSSLESS_SUPPORT 
         assert(av1_superres_unscaled(&(pcs->av1_cm->frm_size)));
 #else
         SVT_ERROR("all_lossless\n");
@@ -3538,7 +3538,7 @@ static void write_uncompressed_header_obu(SequenceControlSet *scs /*Av1Comp *cpi
         if (scs->seq_header.enable_restoration)
             encode_restoration_mode(pcs, wb);
     }
-#if FIX_QP_0 
+#if LOSSLESS_SUPPORT 
     if (frm_hdr->coded_lossless)
         assert(pcs->mimic_only_tx_4x4); // assert(frm_hdr->tx_mode == ONLY_4X4);
     else 
@@ -4517,7 +4517,7 @@ static void write_selected_tx_size(const MacroBlockD *xd, FRAME_CONTEXT *ec_ctx,
         aom_write_symbol(w, depth, ec_ctx->tx_size_cdf[tx_size_cat][tx_size_ctx], max_depths + 1);
     }
 }
-#if FIX_QP_0 
+#if LOSSLESS_SUPPORT 
 static EbErrorType av1_code_tx_size(PictureControlSet* pcs, int segment_id, FRAME_CONTEXT* ec_ctx, AomWriter* w, MacroBlockD* xd, const MbModeInfo* mbmi,
     TxSize tx_size, TxMode tx_mode, BlockSize bsize, uint8_t skip) {
     FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
@@ -4530,7 +4530,7 @@ static EbErrorType av1_code_tx_size(FRAME_CONTEXT *ec_ctx, AomWriter *w, MacroBl
     //int skip = mbmi->skip;
     //int segment_id = 0;// mbmi->segment_id;
     if (tx_mode == TX_MODE_SELECT && block_signals_txsize(bsize) &&
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
         !(is_inter_tx && skip) && !pcs->lossless[segment_id]) {
 #else
         !(is_inter_tx && skip) /*&& !xd->lossless[segment_id]*/) {
@@ -4596,7 +4596,7 @@ void set_mi_row_col(PictureControlSet *pcs, MacroBlockD *xd, TileInfo *tile, int
         if (mi_row & (xd->n8_w - 1))
             xd->is_sec_rect = 1;
 }
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 static INLINE int svt_aom_get_segment_id(Av1Common* cm, const uint8_t* segment_ids, BlockSize bsize, int mi_row,
     int mi_col) {
     const int mi_offset = mi_row * cm->mi_cols + mi_col;
@@ -4634,7 +4634,7 @@ static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t bl
     xd->above_txfm_context       = &txfm_context_array->top_array[txfm_context_above_index];
     xd->left_txfm_context        = &txfm_context_array->left_array[txfm_context_left_index];
     TxSize tx_size = blk_geom->txsize[mbmi->block_mi.tx_depth]; // inherit tx_size from 1st transform block;
-#if FIX_QP_0   
+#if LOSSLESS_SUPPORT   
     FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
     SegmentationNeighborMap* segmentation_map = pcs->segmentation_neighbor_map;
     av1_code_tx_size(pcs, frm_hdr->segmentation_params.segmentation_enabled ? svt_aom_get_segment_id(cm, segmentation_map->data, BLOCK_4X4, mi_row, mi_col) : 0, ec_ctx, w, xd, mbmi, tx_size, tx_mode, bsize, skip);
@@ -4642,7 +4642,7 @@ static void code_tx_size(PictureControlSet *pcs, uint32_t blk_org_x, uint32_t bl
     av1_code_tx_size(ec_ctx, w, xd, mbmi, tx_size, tx_mode, bsize, skip);
 #endif
 }
-#if !FIX_QP_0
+#if !LOSSLESS_SUPPORT
 static INLINE int svt_aom_get_segment_id(Av1Common *cm, const uint8_t *segment_ids, BlockSize bsize, int mi_row,
                                          int mi_col) {
     const int mi_offset = mi_row * cm->mi_cols + mi_col;

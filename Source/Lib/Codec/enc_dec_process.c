@@ -2222,7 +2222,7 @@ static void build_cand_block_array(SequenceControlSet *scs, PictureControlSet *p
                 (blk_geom->sq_size < min_sq_size)
             ? 0
             : 1;
-#if FORCE_PATH
+#if LOSSLESS_SUPPORT
         // Only 8x8 and 16x16 block(s) are supported if lossless
         is_block_tagged = pcs->mimic_only_tx_4x4 && blk_geom->sq_size > 8
             ? 0

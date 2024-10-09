@@ -1563,7 +1563,7 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet *pcs, ModeDecisionContex
     Bool perform_rdoq;
 
     // If rdoq_level is specified in the command line instruction, set perform_rdoq accordingly.
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
     perform_rdoq = !pcs->lossless[ctx->blk_ptr->segment_id] && ((ctx->mds_skip_rdoq == FALSE || is_encode_pass) && ctx->rdoq_level);
 #else
     perform_rdoq            = ((ctx->mds_skip_rdoq == FALSE || is_encode_pass) && ctx->rdoq_level);
@@ -1688,7 +1688,7 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet *pcs, ModeDecisionContex
     // Derive cul_level
     return svt_av1_compute_cul_level(scan_order->scan, quant_coeff, eob);
 }
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 void svt_aom_inv_transform_recon_wrapper(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t* pred_buffer, uint32_t pred_offset, uint32_t pred_stride,
 #else
 void svt_aom_inv_transform_recon_wrapper(uint8_t *pred_buffer, uint32_t pred_offset, uint32_t pred_stride,
@@ -1707,7 +1707,7 @@ void svt_aom_inv_transform_recon_wrapper(uint8_t *pred_buffer, uint32_t pred_off
                                     transform_type,
                                     component_type,
                                     eob,
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
                                     pcs->lossless[ctx->blk_ptr->segment_id]);
 #else
                                     0 /*lossless*/);
@@ -1722,7 +1722,7 @@ void svt_aom_inv_transform_recon_wrapper(uint8_t *pred_buffer, uint32_t pred_off
                                         transform_type,
                                         component_type,
                                         eob,
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
                                         pcs->lossless[ctx->blk_ptr->segment_id]);
 #else
                                         0 /*lossless*/);
@@ -1780,7 +1780,7 @@ void svt_aom_full_loop_chroma_light_pd1(PictureControlSet *pcs, ModeDecisionCont
                                 ctx->blk_geom->bheight_uv);
 
         // Cb Transform
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
         svt_aom_estimate_transform(pcs, ctx, &(((int16_t*)cand_bf->residual->buffer_cb)[blk_chroma_origin_index]),
 #else
         svt_aom_estimate_transform(&(((int16_t *)cand_bf->residual->buffer_cb)[blk_chroma_origin_index]),
@@ -1863,7 +1863,7 @@ void svt_aom_full_loop_chroma_light_pd1(PictureControlSet *pcs, ModeDecisionCont
                                 ctx->blk_geom->bwidth_uv,
                                 ctx->blk_geom->bheight_uv);
         // Cr Transform
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
         svt_aom_estimate_transform(pcs, ctx, &(((int16_t*)cand_bf->residual->buffer_cr)[blk_chroma_origin_index]),
 #else
         svt_aom_estimate_transform(&(((int16_t *)cand_bf->residual->buffer_cr)[blk_chroma_origin_index]),
@@ -2016,7 +2016,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 &(((int16_t *)cand_bf->residual->buffer_cb)[tu_cb_origin_index]);
 
             // Cb Transform
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_estimate_transform(pcs, ctx, chroma_residual_ptr,
 #else
             svt_aom_estimate_transform(chroma_residual_ptr,
@@ -2057,7 +2057,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 uint32_t cb_has_coeff = cand_bf->eob.u[txb_itr] > 0;
 
                 if (cb_has_coeff)
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
                     svt_aom_inv_transform_recon_wrapper(pcs, ctx, cand_bf->pred->buffer_cb,
 #else
                     svt_aom_inv_transform_recon_wrapper(cand_bf->pred->buffer_cb,
@@ -2204,7 +2204,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 &(((int16_t *)cand_bf->residual->buffer_cr)[tu_cr_origin_index]);
 
             // Cr Transform
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
             svt_aom_estimate_transform(pcs, ctx, chroma_residual_ptr,
 #else
             svt_aom_estimate_transform(chroma_residual_ptr,
@@ -2243,7 +2243,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                 uint32_t cr_has_coeff = cand_bf->eob.v[txb_itr] > 0;
 
                 if (cr_has_coeff)
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
                     svt_aom_inv_transform_recon_wrapper(pcs, ctx, cand_bf->pred->buffer_cr,
 #else
                     svt_aom_inv_transform_recon_wrapper(cand_bf->pred->buffer_cr,
