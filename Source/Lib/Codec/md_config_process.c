@@ -897,16 +897,11 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         }
 
 #if FIX_QP_0 // ---
-
-        // Loop through each segment to determine if it is coded losslessly
-        pcs->force_max_block_to_8x8 = 0;
-        Bool has_lossless_segment = 0;
         if (frm_hdr->segmentation_params.segmentation_enabled) {
+            Bool has_lossless_segment = 0;
+            // Loop through each segment to determine if it is coded losslessly
             for (int segment_id = 0; segment_id < MAX_SEGMENTS; segment_id++) {
                 pcs->lossless[segment_id] = 0;
-
-                //if (!pcs->ppcs->frm_hdr.segmentation_params.feature_enabled[segment_id][SEG_LVL_ALT_Q])
-                //    continue;
 
                 pcs->lossless[segment_id] = ((int16_t) ((int16_t) pcs->ppcs->frm_hdr.quantization_params.base_q_idx + pcs->ppcs->frm_hdr.segmentation_params.feature_data[segment_id][SEG_LVL_ALT_Q])) <= 0
                     && !frm_hdr->quantization_params.delta_q_dc[AOM_PLANE_Y]
@@ -925,6 +920,9 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
                     break;
                 }
             }
+            // To Do: fix the case of lossy and lossless segments in the same frame
+            if (!frm_hdr->coded_lossless && has_lossless_segment)
+                frm_hdr->segmentation_params.segmentation_enabled = 0;
         }
         else {
             frm_hdr->coded_lossless = pcs->lossless[0] = !pcs->ppcs->frm_hdr.quantization_params.base_q_idx
@@ -939,6 +937,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
         frm_hdr->all_lossless = frm_hdr->coded_lossless && av1_superres_unscaled(&(pcs->ppcs->av1_cm->frm_size));
 
         if (frm_hdr->coded_lossless) {
+            pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
             pcs->ppcs->dlf_ctrls.enabled = 0;
             pcs->ppcs->cdef_level = 0;
         }
@@ -949,15 +948,15 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
 
         // The following shortcuts are necessary to enforce the use of block_4x4, block_8x8, and Tx_4x4,
         // these cannot be controlled at the block level, so they are invoked even if only one segment is marked as lossless
-        if (frm_hdr->coded_lossless || (frm_hdr->segmentation_params.segmentation_enabled && has_lossless_segment)) {
-            pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
-            pcs->force_max_block_to_8x8 = 1;
-            pcs->pic_depth_removal_level = 0;
-            pcs->pic_depth_removal_level_rtc = 0;
-            pcs->pic_block_based_depth_refinement_level = 0;
-            pcs->txs_level = 1;
-            pcs->pic_lpd0_lvl = 0;
-            pcs->pic_lpd1_lvl = 0;
+        pcs->mimic_only_tx_4x4 = 0;
+        if (frm_hdr->coded_lossless) {
+          
+            pcs->mimic_only_tx_4x4                            = 1;
+            pcs->pic_depth_removal_level                      = 0;
+            pcs->pic_depth_removal_level_rtc                  = 0;
+            pcs->pic_block_based_depth_refinement_level       = 0;
+            pcs->pic_lpd0_lvl                                 = 0;
+            pcs->pic_lpd1_lvl                                 = 0;
         }
 #endif
 

@@ -6583,9 +6583,9 @@ static void full_loop_core(PictureControlSet *pcs, ModeDecisionContext *ctx, Mod
         start_tx_depth = 0;
         end_tx_depth   = 0;
     }
-#if FORCE_PATH // explain 
+#if FORCE_PATH
     // Force the use of TX_4X4 for 8x8 block(s) 
-    if (pcs->force_max_block_to_8x8 && ctx->blk_geom->sq_size == 8)
+    if (pcs->mimic_only_tx_4x4 && ctx->blk_geom->sq_size == 8)
         start_tx_depth = end_tx_depth = 1;
 #endif
     // Check if should perform TX type search
@@ -7202,8 +7202,8 @@ static void search_best_mds3_uv_mode(PictureControlSet *pcs, EbPictureBufferDesc
         cand_array[uv_mode_total_count].motion_mode               = SIMPLE_TRANSLATION;
         cand_array[uv_mode_total_count].transform_type_uv         = svt_aom_get_intra_uv_tx_type(
             cand_array[uv_mode_total_count].intra_chroma_mode, ctx->blk_geom->txsize_uv[0], frm_hdr->reduced_tx_set);
-#if FIX_QP_0
-        if (cand_array[uv_mode_total_count].transform_type_uv != DCT_DCT)
+#if FIX_QP_0 // fix
+        if (pcs->lossless[ctx->blk_ptr->segment_id] && cand_array[uv_mode_total_count].transform_type_uv != DCT_DCT)
             continue;
 #endif
         uv_mode_total_count++;
@@ -7403,8 +7403,8 @@ static void search_best_independent_uv_mode(PictureControlSet *pcs, EbPictureBuf
                 cand_array[uv_mode_total_count].motion_mode                = SIMPLE_TRANSLATION;
                 cand_array[uv_mode_total_count].transform_type_uv          = svt_aom_get_intra_uv_tx_type(
                     uv_mode, ctx->blk_geom->txsize_uv[0], frm_hdr->reduced_tx_set);
-#if FIX_QP_0
-                if (cand_array[uv_mode_total_count].transform_type_uv != DCT_DCT)
+#if FIX_QP_0 // fix
+                if (pcs->lossless[ctx->blk_ptr->segment_id] && cand_array[uv_mode_total_count].transform_type_uv != DCT_DCT)
                     continue;
 #endif
                 uv_mode_total_count++;

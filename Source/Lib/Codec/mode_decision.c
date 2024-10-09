@@ -3921,7 +3921,7 @@ static void inject_intra_candidates(
                     frm_hdr->reduced_tx_set);
 
 #if FIX_QP_0
-                if (cand_array[cand_total_cnt].transform_type_uv != DCT_DCT)
+                if (pcs->lossless[ctx->blk_ptr->segment_id] && cand_array[cand_total_cnt].transform_type_uv != DCT_DCT)
                     continue;
 #endif
             cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
@@ -3977,7 +3977,7 @@ static void inject_filter_intra_candidates(
                     ctx->blk_geom->txsize_uv[0],
                     frm_hdr->reduced_tx_set);
 #if FIX_QP_0
-                if (cand_array[cand_total_cnt].transform_type_uv != DCT_DCT)
+                if (pcs->lossless[ctx->blk_ptr->segment_id] && cand_array[cand_total_cnt].transform_type_uv != DCT_DCT)
                     continue;
 #endif
             cand_array[cand_total_cnt].ref_frame_type = INTRA_FRAME;
@@ -4095,7 +4095,7 @@ void  inject_palette_candidates(
                 ctx->blk_geom->txsize_uv[0],
                 pcs->ppcs->frm_hdr.reduced_tx_set);
 #if FIX_QP_0
-            if (cand_array[can_total_cnt].transform_type_uv != DCT_DCT)
+            if (pcs->lossless[ctx->blk_ptr->segment_id] && cand_array[can_total_cnt].transform_type_uv != DCT_DCT)
                 continue;
 #endif
         cand_array[can_total_cnt].ref_frame_type = INTRA_FRAME;
