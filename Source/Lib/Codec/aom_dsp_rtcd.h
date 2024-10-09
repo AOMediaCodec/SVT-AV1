@@ -203,7 +203,7 @@ extern "C" {
     RTCD_EXTERN void(*svt_av1_fwd_txfm2d_8x8_N4)(int16_t *input, int32_t *output, uint32_t input_stride, TxType transform_type, uint8_t  bit_depth);
     void svt_aom_transform_two_d_4x4_N4_c(int16_t *input, int32_t *output, uint32_t input_stride, TxType transform_type, uint8_t  bit_depth);    
     RTCD_EXTERN void(*svt_av1_fwd_txfm2d_4x4_N4)(int16_t *input, int32_t *output, uint32_t input_stride, TxType transform_type, uint8_t  bit_depth);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
     void svt_av1_fwht4x4_c(int16_t* input, int32_t* output, uint32_t stride);
     void svt_av1_fwht4x4_sse4_1(int16_t* input, int32_t* output, uint32_t stride);
     RTCD_EXTERN void (*svt_av1_fwht4x4)(int16_t* input, int32_t* output, uint32_t stride);

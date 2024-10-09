@@ -896,7 +896,7 @@ void *svt_aom_mode_decision_configuration_kernel(void *input_ptr) {
             }
         }
 
-#if FIX_QP_0 // ---
+#if LOSSLESS_SUPPORT // ---
         if (frm_hdr->segmentation_params.segmentation_enabled) {
             Bool has_lossless_segment = 0;
             // Loop through each segment to determine if it is coded losslessly

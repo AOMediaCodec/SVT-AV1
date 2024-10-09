@@ -56,7 +56,7 @@ void svt_aom_full_cost(PictureControlSet *pcs, ModeDecisionContext *ctx, struct 
                        uint64_t cb_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
                        uint64_t cr_distortion[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t *y_coeff_bits,
                        uint64_t *cb_coeff_bits, uint64_t *cr_coeff_bits);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 uint64_t svt_aom_tx_size_bits(PictureControlSet* pcs, uint8_t segment_id, MdRateEstimationContext* md_rate_est_ctx, MacroBlockD* xd, const MbModeInfo* mbmi,
 #else
 uint64_t svt_aom_tx_size_bits(MdRateEstimationContext *md_rate_est_ctx, MacroBlockD *xd, const MbModeInfo *mbmi,

@@ -34,7 +34,7 @@ void svt_aom_full_loop_uv(PictureControlSet *pcs, ModeDecisionContext *ctx, Mode
                           uint64_t cb_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL],
                           uint64_t cr_full_distortion[DIST_TOTAL][DIST_CALC_TOTAL], uint64_t *cb_coeff_bits,
                           uint64_t *cr_coeff_bits, Bool is_full_loop);
-#if FIX_QP_0
+#if LOSSLESS_SUPPORT
 void svt_aom_inv_transform_recon_wrapper(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t* pred_buffer, uint32_t pred_offset, uint32_t pred_stride,
 #else
 void svt_aom_inv_transform_recon_wrapper(uint8_t *pred_buffer, uint32_t pred_offset, uint32_t pred_stride,
