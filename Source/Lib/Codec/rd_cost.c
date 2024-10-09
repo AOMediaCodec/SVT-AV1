@@ -1890,7 +1890,6 @@ be updated. */
 uint64_t svt_aom_tx_size_bits(PictureControlSet* pcs, uint8_t segment_id, MdRateEstimationContext* md_rate_est_ctx, MacroBlockD* xd, const MbModeInfo* mbmi,
     TxSize tx_size, TxMode tx_mode, BlockSize bsize, uint8_t skip, FRAME_CONTEXT* ec_ctx,
     uint8_t allow_update_cdf) {
-    FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
 #else
 uint64_t svt_aom_tx_size_bits(MdRateEstimationContext *md_rate_est_ctx, MacroBlockD *xd, const MbModeInfo *mbmi,
                               TxSize tx_size, TxMode tx_mode, BlockSize bsize, uint8_t skip, FRAME_CONTEXT *ec_ctx,

@@ -4520,7 +4520,6 @@ static void write_selected_tx_size(const MacroBlockD *xd, FRAME_CONTEXT *ec_ctx,
 #if LOSSLESS_SUPPORT 
 static EbErrorType av1_code_tx_size(PictureControlSet* pcs, int segment_id, FRAME_CONTEXT* ec_ctx, AomWriter* w, MacroBlockD* xd, const MbModeInfo* mbmi,
     TxSize tx_size, TxMode tx_mode, BlockSize bsize, uint8_t skip) {
-    FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
 #else
 static EbErrorType av1_code_tx_size(FRAME_CONTEXT *ec_ctx, AomWriter *w, MacroBlockD *xd, const MbModeInfo *mbmi,
                                     TxSize tx_size, TxMode tx_mode, BlockSize bsize, uint8_t skip) {
