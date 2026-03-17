@@ -251,6 +251,7 @@ typedef enum SqWeightOffsets {
     AGGRESSIVE_OFFSET_0   = -5,
     AGGRESSIVE_OFFSET_1   = -10
 } SqWeightOffsets;
+
 #define COEFF_LVL_INTRA_TH_0 25
 #define COEFF_LVL_INTRA_TH_1 50
 #define COEFF_LVL_INTRA_TH_2 150
@@ -258,6 +259,7 @@ typedef enum SqWeightOffsets {
 #define COEFF_LVL_INTER_TH_0 (5833 / 96)
 #define COEFF_LVL_INTER_TH_1 (5833 / 48)
 #define COEFF_LVL_INTER_TH_2 (16666 / 48)
+
 typedef enum InputCoeffLvl {
     VLOW_LVL    = 0,
     LOW_LVL     = 1,
@@ -693,6 +695,7 @@ typedef enum CandClass {
     CAND_CLASS_4,
     CAND_CLASS_TOTAL
 } CandClass;
+
 typedef enum MdStage { MD_STAGE_0, MD_STAGE_1, MD_STAGE_2, MD_STAGE_3, MD_STAGE_TOTAL, INVALID_MD_STAGE } MdStage;
 
 typedef enum MdStagingMode {

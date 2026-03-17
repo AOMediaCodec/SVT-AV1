@@ -875,6 +875,7 @@ static INLINE uint8_t is_dc_only_safe(PictureControlSet* pcs, ModeDecisionContex
 
     return (blk_var < 2000 && spread_var < 4000);
 }
+
 // Inject inter-intra, WM, OBMC for unipred simple-trans candidate
 //
 // total_cand_count is the index to ctx->fast_cand_array for the next candidate injected (which is the
@@ -3004,6 +3005,7 @@ static void assert_release(int statement) {
         SVT_LOG("ASSERT_ERRRR\n");
     }
 }
+
 static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, const SequenceControlSet* scs,
                             BlkStruct* blk_ptr, Mv* dv_cand, uint8_t* num_dv_cand) {
     IntraBcContext  x_st;
@@ -3155,6 +3157,7 @@ static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, co
         EB_FREE_ARRAY(x->hash_value_buffer[i]);
     }
 }
+
 static void inject_intra_bc_candidates(PictureControlSet* pcs, ModeDecisionContext* ctx, const SequenceControlSet* scs,
                                        BlkStruct* blk_ptr, uint32_t* cand_cnt) {
     Mv      dv_cand[2];
@@ -3590,6 +3593,7 @@ void generate_md_stage_0_cand_light_pd1(ModeDecisionContext* ctx, uint32_t* cand
 
     *candidate_total_count_ptr = cand_total_cnt;
 }
+
 EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext* ctx, const PC_TREE* const pc_tree,
                                      uint32_t* candidate_total_count_ptr) {
     const SequenceControlSet* scs            = pcs->scs;
@@ -3642,8 +3646,7 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
                     }
                 }
 
-                if (do_intra_bc)
-                {
+                if (do_intra_bc) {
                     inject_intra_bc_candidates(pcs, ctx, scs, ctx->blk_ptr, &cand_total_cnt);
                 }
             }

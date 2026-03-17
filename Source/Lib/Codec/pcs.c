@@ -368,7 +368,7 @@ pcs_update_param: update the parameters in PictureParentControlSet for changing 
 EbErrorType pcs_update_param(PictureControlSet* pcs) {
     SequenceControlSet* scs      = pcs->scs;
     const bool          rtc_tune = scs->static_config.rtc;
-    const bool allintra = scs->allintra;
+    const bool          allintra = scs->allintra;
     // Max/Min CU Sizes
     const uint32_t max_blk_size = scs->super_block_size;
     // SBs
@@ -444,8 +444,8 @@ EbErrorType pcs_update_param(PictureControlSet* pcs) {
 static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr object_init_data_ptr) {
     PictureControlSetInitData* init_data_ptr = (PictureControlSetInitData*)object_init_data_ptr;
 
-    const bool allintra = init_data_ptr->allintra;
-    const bool rtc_tune = init_data_ptr->rtc_tune;
+    const bool                  allintra = init_data_ptr->allintra;
+    const bool                  rtc_tune = init_data_ptr->rtc_tune;
     EbPictureBufferDescInitData coeff_buffer_desc_init_data;
 
     // Max/Min CU Sizes
@@ -489,14 +489,14 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
     object_ptr->temp_lf_recon_pic_16bit           = NULL;
     object_ptr->temp_lf_recon_pic                 = NULL;
     object_ptr->scaled_input_pic                  = NULL;
-    bool enable_restoration = allintra
-        ? svt_aom_get_enable_restoration_allintra(init_data_ptr->enc_mode,
+    bool enable_restoration                       = allintra
+                              ? svt_aom_get_enable_restoration_allintra(init_data_ptr->enc_mode,
                                                   init_data_ptr->static_config.enable_restoration_filtering)
-        : rtc_tune ? svt_aom_get_enable_restoration_rtc(init_data_ptr->enc_mode,
+                              : rtc_tune ? svt_aom_get_enable_restoration_rtc(init_data_ptr->enc_mode,
                                                         init_data_ptr->static_config.enable_restoration_filtering,
                                                         init_data_ptr->input_resolution,
                                                         init_data_ptr->static_config.fast_decode)
-                   : svt_aom_get_enable_restoration_default(init_data_ptr->enc_mode,
+                                         : svt_aom_get_enable_restoration_default(init_data_ptr->enc_mode,
                                                             init_data_ptr->static_config.enable_restoration_filtering,
                                                             init_data_ptr->input_resolution,
                                                             init_data_ptr->static_config.fast_decode);
@@ -1083,11 +1083,11 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
                             : MIN(disallow_4x4, svt_aom_get_disallow_4x4_default(init_data_ptr->enc_mode));
 
     object_ptr->disallow_4x4_all_frames = disallow_4x4;
-    disallow_8x8 = allintra ? MIN(disallow_8x8, svt_aom_get_disallow_8x8_allintra())
-        : rtc_tune          ? MIN(disallow_8x8,
+    disallow_8x8                        = allintra ? MIN(disallow_8x8, svt_aom_get_disallow_8x8_allintra())
+                               : rtc_tune          ? MIN(disallow_8x8,
                          svt_aom_get_disallow_8x8_rtc(
                              init_data_ptr->enc_mode, init_data_ptr->picture_width, init_data_ptr->picture_height))
-                            : MIN(disallow_8x8, svt_aom_get_disallow_8x8_default());
+                                                   : MIN(disallow_8x8, svt_aom_get_disallow_8x8_default());
     object_ptr->disallow_8x8_all_frames = disallow_8x8;
     /* If 4x4 blocks are disallowed for all frames, the the MI blocks only need to be allocated for
     8x8 blocks.  The mi_grid will still be 4x4 so that the data can be accessed the same way throughout

@@ -74,7 +74,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext* thread_ctx, const EbEncHa
     const EbSvtAv1EncConfiguration* config = &scs->static_config;
     RestContext*                    context_ptr;
     const bool                      allintra = scs->allintra;
-    const bool rtc_tune = scs->static_config.rtc;
+    const bool                      rtc_tune = scs->static_config.rtc;
     EB_CALLOC_ARRAY(context_ptr, 1);
     thread_ctx->priv  = context_ptr;
     thread_ctx->dctor = rest_context_dctor;
@@ -87,7 +87,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext* thread_ctx, const EbEncHa
     context_ptr->picture_demux_fifo_ptr = svt_system_resource_get_producer_fifo(
         enc_handle_ptr->picture_demux_results_resource_ptr, demux_index);
 
-    bool is_16bit = scs->is_16bit_pipeline;
+    bool    is_16bit           = scs->is_16bit_pipeline;
     uint8_t enable_restoration = allintra
         ? svt_aom_get_enable_restoration_allintra(config->enc_mode, config->enable_restoration_filtering)
         : rtc_tune

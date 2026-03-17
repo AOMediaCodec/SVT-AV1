@@ -71,10 +71,10 @@ extern AomVarianceFnPtr svt_aom_mefn_ptr[BLOCK_SIZES_ALL];
 void av1_init_dsmotion_compensation(SearchSiteConfig* cfg, int stride);
 void svt_av1_init3smotion_compensation(SearchSiteConfig* cfg, int stride);
 void svt_av1_set_mv_search_range(MvLimits* mv_limits, const Mv* mv);
-int svt_av1_full_pixel_search(struct PictureControlSet* pcs, IntraBcContext /*MACROBLOCK*/* x, BlockSize bsize,
-                              Mv* mvp_full, int step_param, int error_per_bit, int* cost_list, const Mv* ref_mv);
-int svt_aom_mv_err_cost(const Mv* mv, const Mv* ref, const int* mvjcost, const int* mvcost[2], int error_per_bit);
-int svt_aom_mv_err_cost_light(const Mv* mv, const Mv* ref);
+int  svt_av1_full_pixel_search(struct PictureControlSet* pcs, IntraBcContext /*MACROBLOCK*/* x, BlockSize bsize,
+                               Mv* mvp_full, int step_param, int error_per_bit, int* cost_list, const Mv* ref_mv);
+int  svt_aom_mv_err_cost(const Mv* mv, const Mv* ref, const int* mvjcost, const int* mvcost[2], int error_per_bit);
+int  svt_aom_mv_err_cost_light(const Mv* mv, const Mv* ref);
 int svt_av1_get_mvpred_var(const IntraBcContext* x, const Mv* best_mv, const Mv* center_mv, const AomVarianceFnPtr* vfp,
                            int use_mvcost);
 void svt_av1_intrabc_hash_search(struct PictureControlSet* pcs, IntraBcContext* x, BlockSize bsize, int x_pos,

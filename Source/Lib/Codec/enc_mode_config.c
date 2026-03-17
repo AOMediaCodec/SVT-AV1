@@ -12,6 +12,7 @@
 static uint8_t pf_gi[16] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60};
 #define MAX_INTRA_LEVEL 10
 static const uint8_t angular_pred_level[MAX_INTRA_LEVEL] = {0, 1, 2, 2, 3, 4, 4, 4, 4, 0};
+
 void svt_aom_get_qp_based_th_scaling_factors(bool enable_qp_based_th_scaling, uint32_t* ret_q_weight,
                                              uint32_t* ret_q_weight_denom, uint32_t qp) {
     if (enable_qp_based_th_scaling) {
@@ -1027,7 +1028,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 1;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 2:
         // pf_set {0,1,2,4,5,6,8,9,10,12,13,14}
@@ -1067,7 +1068,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 1;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 3:
         // pf_set {0,4,8,12,15}
@@ -1100,7 +1101,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 1;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 4:
         // pf_set {0,7,15}
@@ -1131,7 +1132,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 1;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 5:
         // pf_set {0,7,15}
@@ -1158,7 +1159,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 1;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 6:
         // pf_set {0,15}
@@ -1184,7 +1185,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 4;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 7:
         // pf_set {0,15}
@@ -1209,7 +1210,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 4;
         cdef_ctrls->use_skip_detector     = is_base ? 0 : 1;
         cdef_ctrls->uv_from_y             = false;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
     case 8:
         // pf_set {0,15}
@@ -1234,7 +1235,7 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         cdef_ctrls->subsampling_factor    = 4;
         cdef_ctrls->use_skip_detector     = 0;
         cdef_ctrls->uv_from_y             = true;
-        cdef_ctrls->use_qp_strength = false;
+        cdef_ctrls->use_qp_strength       = false;
         break;
 
     case 9:
@@ -1507,6 +1508,7 @@ static uint8_t svt_aom_get_sg_filter_level_allintra() {
 
     return sg_filter_lvl;
 }
+
 static void dlf_level_modulation(PictureControlSet* pcs, uint8_t* default_dlf_level, uint8_t modulation_mode) {
     uint8_t dlf_level = *default_dlf_level;
 
@@ -1530,6 +1532,7 @@ static void dlf_level_modulation(PictureControlSet* pcs, uint8_t* default_dlf_le
 
     *default_dlf_level = dlf_level;
 }
+
 static uint8_t get_dlf_level_default(PictureControlSet* pcs, EncMode enc_mode, uint8_t is_not_last_layer,
                                      uint8_t fast_decode, ResolutionRange resolution, int is_base) {
     const uint8_t sc_class1       = pcs->ppcs->sc_class1;
@@ -1637,6 +1640,7 @@ static uint8_t get_dlf_level_allintra(EncMode enc_mode, uint8_t fast_decode, Res
 
     return dlf_level;
 }
+
 static void svt_aom_set_dlf_controls(PictureParentControlSet* pcs, uint8_t dlf_level) {
     DlfCtrls* ctrls = &pcs->dlf_ctrls;
 
@@ -1911,6 +1915,7 @@ static void set_intrabc_level(PictureParentControlSet* pcs, uint8_t ibc_level) {
         break;
     }
 }
+
 /*
     set controls for Palette prediction
 */
@@ -1950,6 +1955,7 @@ static void set_palette_level(PictureParentControlSet* pcs, uint8_t palette_leve
         break;
     }
 }
+
 /*
 * return the max canidate count for MDS0
   Used by candidate injection and memory allocation
@@ -2334,7 +2340,7 @@ void svt_aom_sig_deriv_multi_processes_allintra(SequenceControlSet* scs, Picture
     EncMode               enc_mode         = pcs->enc_mode;
     const ResolutionRange input_resolution = pcs->input_resolution;
     const uint8_t         fast_decode      = scs->static_config.fast_decode;
-    const uint8_t sc_class1 = pcs->sc_class1;
+    const uint8_t         sc_class1        = pcs->sc_class1;
     // Set the Multi-Pass PD level
     pcs->multi_pass_pd_level = MULTI_PASS_PD_ON;
 
@@ -2639,6 +2645,7 @@ static void set_inter_comp_controls(ModeDecisionContext* ctx, uint8_t inter_comp
         break;
     }
 }
+
 uint8_t svt_aom_get_enable_sg_default(EncMode enc_mode, uint8_t input_resolution, uint8_t fast_decode) {
     uint8_t sg = 0;
     sg         = svt_aom_get_sg_filter_level_default(enc_mode, input_resolution, fast_decode);
@@ -2656,6 +2663,7 @@ uint8_t svt_aom_get_enable_sg_allintra() {
     sg         = svt_aom_get_sg_filter_level_allintra();
     return (sg > 0);
 }
+
 /*
 * return true if restoration filtering is enabled; false otherwise
   Used by signal_derivation_pre_analysis_oq and memory allocation
@@ -3783,47 +3791,47 @@ static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
         rdoq_ctrls->enabled = 0;
         break;
     case 1:
-        rdoq_ctrls->enabled = 1;
-        rdoq_ctrls->cut_off_num = 0;
+        rdoq_ctrls->enabled      = 1;
+        rdoq_ctrls->cut_off_num  = 0;
         rdoq_ctrls->skip_uv      = 0;
         rdoq_ctrls->dct_dct_only = 0;
         rdoq_ctrls->eob_th       = (uint8_t)~0;
         rdoq_ctrls->eob_fast_th  = (uint8_t)~0;
         break;
     case 2:
-        rdoq_ctrls->enabled = 1;
+        rdoq_ctrls->enabled       = 1;
         rdoq_ctrls->cut_off_num   = 80;
         rdoq_ctrls->cut_off_denum = 100;
-        rdoq_ctrls->skip_uv      = 0;
-        rdoq_ctrls->dct_dct_only = 0;
-        rdoq_ctrls->eob_th       = (uint8_t)~0;
+        rdoq_ctrls->skip_uv       = 0;
+        rdoq_ctrls->dct_dct_only  = 0;
+        rdoq_ctrls->eob_th        = (uint8_t)~0;
         rdoq_ctrls->eob_fast_th  = (uint8_t)~0;
         break;
     case 3:
-        rdoq_ctrls->enabled = 1;
+        rdoq_ctrls->enabled       = 1;
         rdoq_ctrls->cut_off_num   = 60;
         rdoq_ctrls->cut_off_denum = 100;
-        rdoq_ctrls->skip_uv      = 1;
-        rdoq_ctrls->dct_dct_only = 1;
-        rdoq_ctrls->eob_th       = (uint8_t)~0;
+        rdoq_ctrls->skip_uv       = 1;
+        rdoq_ctrls->dct_dct_only  = 1;
+        rdoq_ctrls->eob_th        = (uint8_t)~0;
         rdoq_ctrls->eob_fast_th  = (uint8_t)~0;
         break;
     case 4:
-        rdoq_ctrls->enabled = 1;
+        rdoq_ctrls->enabled       = 1;
         rdoq_ctrls->cut_off_num   = 60;
         rdoq_ctrls->cut_off_denum = 100;
-        rdoq_ctrls->skip_uv      = 1;
-        rdoq_ctrls->dct_dct_only = 1;
-        rdoq_ctrls->eob_th       = (uint8_t)~0;
+        rdoq_ctrls->skip_uv       = 1;
+        rdoq_ctrls->dct_dct_only  = 1;
+        rdoq_ctrls->eob_th        = (uint8_t)~0;
         rdoq_ctrls->eob_fast_th  = 30;
         break;
     case 5:
-        rdoq_ctrls->enabled = 1;
+        rdoq_ctrls->enabled       = 1;
         rdoq_ctrls->cut_off_num   = 60;
         rdoq_ctrls->cut_off_denum = 100;
-        rdoq_ctrls->skip_uv      = 1;
-        rdoq_ctrls->dct_dct_only = 1;
-        rdoq_ctrls->eob_th       = 85;
+        rdoq_ctrls->skip_uv       = 1;
+        rdoq_ctrls->dct_dct_only  = 1;
+        rdoq_ctrls->eob_th        = 85;
         rdoq_ctrls->eob_fast_th  = 0;
         break;
     default:
@@ -4487,6 +4495,7 @@ uint8_t svt_aom_get_nic_level_allintra(EncMode enc_mode) {
 
     return nic_level;
 }
+
 /*
 * Set the NIC scaling and pruning controls.
 *
@@ -4509,9 +4518,9 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
 
         if (nic_pruning_ctrls) {
             // Class pruning settings
-            nic_pruning_ctrls->mds1_class_th = (uint64_t)~0;
-            nic_pruning_ctrls->mds2_class_th = (uint64_t)~0;
-            nic_pruning_ctrls->mds3_class_th = (uint64_t)~0;
+            nic_pruning_ctrls->mds1_class_th        = (uint64_t)~0;
+            nic_pruning_ctrls->mds2_class_th        = (uint64_t)~0;
+            nic_pruning_ctrls->mds3_class_th        = (uint64_t)~0;
             nic_pruning_ctrls->i_mds3_class_th_mult = 0;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4540,8 +4549,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 25;
             nic_pruning_ctrls->mds2_band_cnt = 4;
 
-            nic_pruning_ctrls->mds3_class_th = 25;
-            nic_pruning_ctrls->mds3_band_cnt = 4;
+            nic_pruning_ctrls->mds3_class_th        = 25;
+            nic_pruning_ctrls->mds3_band_cnt        = 4;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4570,8 +4579,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 25;
             nic_pruning_ctrls->mds2_band_cnt = 4;
 
-            nic_pruning_ctrls->mds3_class_th = 25;
-            nic_pruning_ctrls->mds3_band_cnt = 8;
+            nic_pruning_ctrls->mds3_class_th        = 25;
+            nic_pruning_ctrls->mds3_band_cnt        = 8;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4600,8 +4609,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 25;
             nic_pruning_ctrls->mds2_band_cnt = 4;
 
-            nic_pruning_ctrls->mds3_class_th = 25;
-            nic_pruning_ctrls->mds3_band_cnt = 8;
+            nic_pruning_ctrls->mds3_class_th        = 25;
+            nic_pruning_ctrls->mds3_band_cnt        = 8;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4630,8 +4639,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 25;
             nic_pruning_ctrls->mds2_band_cnt = 8;
 
-            nic_pruning_ctrls->mds3_class_th = 20;
-            nic_pruning_ctrls->mds3_band_cnt = 12;
+            nic_pruning_ctrls->mds3_class_th        = 20;
+            nic_pruning_ctrls->mds3_band_cnt        = 12;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4660,8 +4669,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 25;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 15;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 15;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4690,8 +4699,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 10;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 5;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 5;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4720,8 +4729,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 10;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 5;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 5;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 0;
 
@@ -4750,8 +4759,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 10;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 5;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 5;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 1;
 
@@ -4781,8 +4790,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 10;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 5;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 5;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 1;
 
@@ -4812,8 +4821,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 5;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 5;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 5;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 1;
 
@@ -4843,8 +4852,8 @@ uint8_t svt_aom_set_nic_controls(ModeDecisionContext* ctx, uint8_t nic_level) {
             nic_pruning_ctrls->mds2_class_th = 0;
             nic_pruning_ctrls->mds2_band_cnt = 10;
 
-            nic_pruning_ctrls->mds3_class_th = 0;
-            nic_pruning_ctrls->mds3_band_cnt = 16;
+            nic_pruning_ctrls->mds3_class_th        = 0;
+            nic_pruning_ctrls->mds3_band_cnt        = 16;
             nic_pruning_ctrls->i_mds3_class_th_mult = 50;
             nic_pruning_ctrls->enable_skipping_mds1 = 1;
 
@@ -5287,6 +5296,7 @@ static void set_nsq_search_ctrls(PictureControlSet* pcs, ModeDecisionContext* ct
 
     set_sq_txs_ctrls(ctx, ctx->nsq_search_ctrls.psq_txs_lvl);
 }
+
 void svt_aom_get_intra_mode_levels_default(EncMode enc_mode, bool is_islice, bool is_base, int transition_present,
                                            uint32_t* intra_level_ptr, uint32_t* dist_based_ang_intra_level_ptr) {
     uint32_t intra_level;
@@ -5308,7 +5318,7 @@ void svt_aom_get_intra_mode_levels_default(EncMode enc_mode, bool is_islice, boo
         intra_level                = (is_islice || transition_present == 1) ? 4 : 6;
         dist_based_ang_intra_level = is_islice ? 0 : 2;
     } else {
-        intra_level = MAX_INTRA_LEVEL - 1;
+        intra_level                = MAX_INTRA_LEVEL - 1;
         dist_based_ang_intra_level = 0;
     }
 
@@ -5332,7 +5342,7 @@ void svt_aom_get_intra_mode_levels_rtc(EncMode enc_mode, bool is_islice, bool sc
         intra_level                = (is_islice || transition_present == 1) ? 4 : 6;
         dist_based_ang_intra_level = 2;
     } else {
-        intra_level = MAX_INTRA_LEVEL - 1;
+        intra_level                = MAX_INTRA_LEVEL - 1;
         dist_based_ang_intra_level = 0;
     }
 
@@ -6563,9 +6573,9 @@ static void set_intra_ctrls(PictureControlSet* pcs, ModeDecisionContext* ctx, ui
         ctrls->prune_using_edge_info = 1;
         break;
     case MAX_INTRA_LEVEL - 1:
-        ctrls->enable_intra       = 1;
-        ctrls->intra_mode_end     = DC_PRED;
-        ctrls->angular_pred_level = angular_pred_level[intra_level];
+        ctrls->enable_intra          = 1;
+        ctrls->intra_mode_end        = DC_PRED;
+        ctrls->angular_pred_level    = angular_pred_level[intra_level];
         ctrls->prune_using_best_mode = 0;
         ctrls->prune_using_edge_info = 0;
         break;
@@ -6696,6 +6706,7 @@ static void set_skip_sub_depth_ctrls(SkipSubDepthCtrls* skip_sub_depth_ctrls, ui
         break;
     }
 }
+
 void set_block_based_depth_refinement_controls(ModeDecisionContext* ctx, uint8_t block_based_depth_refinement_level) {
     DepthRefinementCtrls* depth_refinement_ctrls = &ctx->depth_refinement_ctrls;
 
@@ -6870,6 +6881,7 @@ void set_block_based_depth_refinement_controls(ModeDecisionContext* ctx, uint8_t
         break;
     }
 }
+
 static void get_max_block_size_default(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     ctx->max_block_size = pcs->scs->super_block_size;
 }
@@ -6911,6 +6923,7 @@ static void get_max_block_size_allintra(PictureControlSet* pcs, ModeDecisionCont
     // Set max block size
     ctx->max_block_size = (variance <= var_th_cap) ? pcs->scs->super_block_size : pcs->scs->super_block_size >> 1;
 }
+
 /*
  * Generate per-SB MD settings (do not change per-PD)
  */
@@ -7449,6 +7462,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1(PictureControlSet* pcs, ModeDecisionCon
     ctx->subres_ctrls.odd_to_even_deviation_th      = 0;
     set_inter_intra_ctrls(ctx, 0);
 }
+
 void svt_aom_sig_deriv_enc_dec_default(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     EncMode                  enc_mode             = pcs->enc_mode;
     uint8_t                  pd_pass              = ctx->pd_pass;
@@ -8023,6 +8037,7 @@ void svt_aom_sig_deriv_enc_dec_allintra(PictureControlSet* pcs, ModeDecisionCont
     set_skip_sub_depth_ctrls(&ctx->skip_sub_depth_ctrls, skip_sub_depth_lvl);
     ctx->tune_ssim_level = SSIM_LVL_0;
 }
+
 /*
 * return the 4x4 level
 Used by svt_aom_sig_deriv_enc_dec and memory allocation
@@ -8050,6 +8065,7 @@ bool svt_aom_get_disallow_4x4_allintra(EncMode enc_mode) {
         return true;
     }
 }
+
 /*
 * return the 8x8 level
 Used by svt_aom_sig_deriv_enc_dec and memory allocation
@@ -8076,6 +8092,7 @@ bool svt_aom_get_disallow_8x8_rtc(EncMode enc_mode, const uint16_t aligned_width
 bool svt_aom_get_disallow_8x8_allintra() {
     return false;
 }
+
 uint8_t svt_aom_get_nsq_geom_level_default(EncMode enc_mode, InputCoeffLvl coeff_lvl) {
     uint8_t nsq_geom_level;
     if (enc_mode <= ENC_M0) {
@@ -8332,6 +8349,7 @@ uint8_t svt_aom_get_nsq_search_level_allintra(PictureControlSet* pcs, EncMode en
     }
     return nsq_search_level;
 }
+
 /*
 * return by-pass encdec
 */
@@ -8468,6 +8486,7 @@ uint8_t svt_aom_get_update_cdf_level_allintra(EncMode enc_mode) {
 
     return update_cdf_level;
 }
+
 uint8_t svt_aom_get_chroma_level_default(EncMode enc_mode, const uint8_t is_islice) {
     uint8_t chroma_level;
 
@@ -8839,6 +8858,7 @@ static void mfmv_controls(PictureControlSet* pcs, uint8_t mfmv_level) {
         }
     }
 }
+
 void svt_aom_sig_deriv_mode_decision_config_default(SequenceControlSet* scs, PictureControlSet* pcs) {
     PictureParentControlSet* ppcs                = pcs->ppcs;
     EncMode                  enc_mode            = pcs->enc_mode;
@@ -9887,7 +9907,7 @@ void svt_aom_sig_deriv_mode_decision_config_allintra(SequenceControlSet* scs, Pi
     const uint8_t            fast_decode      = scs->static_config.fast_decode;
     const uint32_t           sq_qp            = scs->static_config.qp;
     FrameHeader*             frm_hdr          = &ppcs->frm_hdr;
-    const uint8_t sc_class1 = ppcs->sc_class1;
+    const uint8_t            sc_class1        = ppcs->sc_class1;
     //MFMV
     mfmv_controls(pcs, 0);
 

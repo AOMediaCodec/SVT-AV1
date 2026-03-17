@@ -2316,6 +2316,7 @@ static void lpd1_detector_skip_pd0(PictureControlSet* pcs, ModeDecisionContext* 
         }
     }
 }
+
 static void lpd0_detector_allintra(PictureControlSet* pcs, ModeDecisionContext* md_ctx) {
     if (md_ctx->lpd0_ctrls.pd0_level != VERY_LIGHT_PD0) {
         return;
@@ -2364,6 +2365,7 @@ static void lpd0_detector_allintra(PictureControlSet* pcs, ModeDecisionContext* 
         md_ctx->lpd0_ctrls.pd0_level--;
     }
 }
+
 /* Light-PD0 classifier. */
 static void lpd0_detector(PictureControlSet* pcs, ModeDecisionContext* md_ctx, uint32_t pic_width_in_sb) {
     Lpd0Ctrls* lpd0_ctrls = &md_ctx->lpd0_ctrls;
@@ -2924,7 +2926,6 @@ void* svt_aom_mode_decision_kernel(void* input_ptr) {
                         if (scs->allintra) {
                             lpd0_detector_allintra(pcs, md_ctx);
                         } else {
-
                             // If LPD0 is used, a more conservative level can be set for complex SBs
                             const bool use_lpd0_classifier = !scs->static_config.rtc || pcs->ppcs->sc_class1 ||
                                 pcs->enc_mode <= ENC_M9;
@@ -3157,8 +3158,8 @@ void* svt_aom_mode_decision_kernel(void* input_ptr) {
                             if ((pcs->ppcs->cdef_search_ctrls.enabled &&
                                  !pcs->ppcs->cdef_search_ctrls.use_qp_strength &&
                                  !pcs->ppcs->cdef_search_ctrls.use_reference_cdef_fs) ||
-                                pcs->ppcs->enable_restoration ||
-                                pcs->ppcs->is_ref || scs->static_config.recon_enabled) {
+                                pcs->ppcs->enable_restoration || pcs->ppcs->is_ref ||
+                                scs->static_config.recon_enabled) {
                                 if (pcs->ppcs->frm_hdr.loop_filter_params.filter_level[0] ||
                                     pcs->ppcs->frm_hdr.loop_filter_params.filter_level[1]) {
                                     EbPictureBufferDesc* recon_buffer;

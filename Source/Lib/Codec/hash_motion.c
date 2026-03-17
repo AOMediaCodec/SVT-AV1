@@ -15,6 +15,7 @@
 
 static const int crc_bits        = 16;
 static const int block_size_bits = 3;
+
 static void hash_table_clear_all(HashTable* p_hash_table) {
     if (p_hash_table->p_lookup_table == NULL) {
         return;
@@ -109,6 +110,7 @@ EbErrorType svt_aom_rtime_alloc_svt_av1_hash_table_create(HashTable* p_hash_tabl
 
     return err_code;
 }
+
 static bool hash_table_add_to_table(HashTable* p_hash_table, uint32_t hash_value, const BlockHash* curr_block_hash,
                                     uint16_t max_cand_per_bucket) {
     if (p_hash_table->p_lookup_table[hash_value] == NULL) {
@@ -213,6 +215,7 @@ void svt_av1_generate_block_hash_value(const Yv12BufferConfig* picture, int bloc
         pos += block_size - 1;
     }
 }
+
 bool svt_aom_rtime_alloc_svt_av1_add_to_hash_map_by_row_with_precal_data(HashTable* p_hash_table, uint32_t* pic_hash,
                                                                          int pic_width, int pic_height, int block_size,
                                                                          uint16_t max_cand_per_bucket) {

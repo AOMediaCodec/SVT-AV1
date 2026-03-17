@@ -615,6 +615,7 @@ static void generate_ibc_data(PictureControlSet* pcs) {
         EB_FREE_ARRAY(block_hash_values[j]);
     }
 }
+
 static void derive_intra_coeff_level(PictureControlSet* pcs) {
     uint64_t cmplx = pcs->ppcs->pic_avg_variance / MAX(1, pcs->scs->static_config.qp);
 
@@ -645,6 +646,7 @@ static void derive_intra_coeff_level(PictureControlSet* pcs) {
         pcs->coeff_lvl = HIGH_LVL;
     }
 }
+
 static void derive_inter_coeff_level(PictureControlSet* pcs) {
     // Derive the input nois level
     EbPictureBufferDesc* input_pic = pcs->ppcs->enhanced_pic;
@@ -656,8 +658,8 @@ static void derive_inter_coeff_level(PictureControlSet* pcs) {
                                                        input_pic->height,
                                                        input_pic->y_stride);
 
-    noise_level_fp16 = svt_aom_noise_log1p_fp16(noise_level_fp16);
-    uint64_t cmplx   = pcs->ppcs->norm_me_dist / MAX(1, pcs->scs->static_config.qp);
+    noise_level_fp16             = svt_aom_noise_log1p_fp16(noise_level_fp16);
+    uint64_t cmplx               = pcs->ppcs->norm_me_dist / MAX(1, pcs->scs->static_config.qp);
     uint64_t coeff_vlow_level_th = COEFF_LVL_INTER_TH_0;
     uint64_t coeff_low_level_th  = COEFF_LVL_INTER_TH_1;
     uint64_t coeff_high_level_th = COEFF_LVL_INTER_TH_2;

@@ -38,6 +38,7 @@ typedef struct WarpSampleInfo {
 // Create incomplete struct definition for the following function pointer typedefs
 struct ModeDecisionContext;
 struct PC_TREE;
+
 /**************************************
     * Mode Decision Candidate
     **************************************/

@@ -268,6 +268,7 @@ static AOM_INLINE void optimize_palette_colors(uint16_t* color_cache, int n_cach
         }
     }
 }
+
 // Extends 'color_map' array from 'orig_width x orig_height' to 'new_width x
 // new_height'. Extra rows and columns are filled in by copying last valid
 // row/column.
@@ -325,6 +326,7 @@ static void palette_rd_y(PaletteInfo* palette_info, uint8_t* palette_size_array,
 
 int svt_av1_count_colors(const uint8_t* src, int stride, int rows, int cols, int* val_count);
 int svt_av1_count_colors_highbd(uint16_t* src, int stride, int rows, int cols, int bit_depth, int* val_count);
+
 static void cache_based_centroid_refinement(int* data, int rows, int cols, int n, int* centroids,
                                             uint8_t* color_idx_map, uint16_t* color_cache, int n_cache) {
     const int total = rows * cols;
@@ -757,8 +759,8 @@ static int cost_and_tokenize_map(Av1ColorMapParam* param, TOKENEXTRA** t, int pl
 
     for (int k = 1; k < rows + cols - 1; ++k) {
         for (int j = AOMMIN(k, cols - 1); j >= AOMMAX(0, k - rows + 1); --j) {
-            int i = k - j;
-            int color_new_idx;
+            int       i = k - j;
+            int       color_new_idx;
             const int color_ctx = av1_fast_palette_color_index_context(
                 color_map, plane_block_width, i, j, &color_new_idx);
             assert(color_new_idx >= 0 && color_new_idx < n);

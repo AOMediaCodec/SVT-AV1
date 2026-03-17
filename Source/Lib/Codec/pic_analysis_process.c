@@ -1343,6 +1343,7 @@ void svt_aom_is_screen_content_antialiasing_aware(PictureParentControlSet* pcs) 
             pcs->sc_class5);
 #endif
 }
+
 // Estimate if the source frame is screen content, based on the portion of
 // blocks that have no more than 4 (experimentally selected) luma colors.
 void svt_aom_is_screen_content(PictureParentControlSet* pcs) {

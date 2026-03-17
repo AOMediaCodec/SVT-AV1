@@ -7329,9 +7329,9 @@ static void post_mds0_nic_pruning(PictureControlSet* pcs, ModeDecisionContext* c
                                             &q_weight,
                                             &q_weight_denom,
                                             pcs->ppcs->scs->static_config.qp);
-    uint64_t mds1_class_th = (pcs->slice_type == I_SLICE || pruning_ctrls.mds1_class_th == (uint64_t)~0)
-        ? (uint64_t)~0
-        : DIVIDE_AND_ROUND(pruning_ctrls.mds1_class_th * q_weight, q_weight_denom);
+    uint64_t mds1_class_th            = (pcs->slice_type == I_SLICE || pruning_ctrls.mds1_class_th == (uint64_t)~0)
+                   ? (uint64_t)~0
+                   : DIVIDE_AND_ROUND(pruning_ctrls.mds1_class_th * q_weight, q_weight_denom);
     uint8_t  mds1_band_cnt            = pruning_ctrls.mds1_band_cnt;
     uint16_t mds1_cand_th_rank_factor = pruning_ctrls.mds1_cand_th_rank_factor;
 
@@ -7400,12 +7400,12 @@ static void post_mds1_nic_pruning(PictureControlSet* pcs, ModeDecisionContext* c
         ? pruning_ctrls.mds2_cand_base_th
         : DIVIDE_AND_ROUND(pruning_ctrls.mds2_cand_base_th * q_weight, q_weight_denom);
 
-    const uint64_t mds2_class_th = (pcs->slice_type == I_SLICE || pruning_ctrls.mds2_class_th == (uint64_t)~0)
-        ? (uint64_t)~0
-        : DIVIDE_AND_ROUND(pruning_ctrls.mds2_class_th * q_weight, q_weight_denom);
-    const uint8_t                 mds2_band_cnt        = pruning_ctrls.mds2_band_cnt;
-    const uint16_t                mds2_relative_dev_th = pruning_ctrls.mds2_relative_dev_th;
-    ModeDecisionCandidateBuffer** cand_bf_arr          = ctx->cand_bf_ptr_array;
+    const uint64_t mds2_class_th        = (pcs->slice_type == I_SLICE || pruning_ctrls.mds2_class_th == (uint64_t)~0)
+               ? (uint64_t)~0
+               : DIVIDE_AND_ROUND(pruning_ctrls.mds2_class_th * q_weight, q_weight_denom);
+    const uint8_t  mds2_band_cnt        = pruning_ctrls.mds2_band_cnt;
+    const uint16_t mds2_relative_dev_th = pruning_ctrls.mds2_relative_dev_th;
+    ModeDecisionCandidateBuffer** cand_bf_arr = ctx->cand_bf_ptr_array;
     for (CandClass cidx = CAND_CLASS_0; cidx < CAND_CLASS_TOTAL; cidx++) {
         if ((mds2_cand_th != (uint64_t)~0 || mds2_class_th != (uint64_t)~0) && ctx->md_stage_1_count[cidx] > 0 &&
             ctx->md_stage_2_count[cidx] > 0) {
@@ -7736,7 +7736,7 @@ static INLINE uint32_t compute_vlpd0_cost_allintra(PictureControlSet* pcs, ModeD
 static void md_encode_block_light_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx,
                                       EbPictureBufferDesc* input_pic) {
     const BlockGeom* blk_geom = ctx->blk_geom;
-    BlkStruct* blk_ptr = ctx->blk_ptr;
+    BlkStruct*       blk_ptr  = ctx->blk_ptr;
     if (pcs->scs->allintra && ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0) {
         blk_ptr->cost = compute_vlpd0_cost_allintra(pcs, ctx);
         return;
@@ -8907,7 +8907,7 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
     ctx->mds0_best_class_it     = 0;
     // Enable Hadamard cost at block level only when enabled for the SB
     // and when multiple fast candidates exist (no benefit for single candidate).
-    ctx->mds0_use_hadamard_blk = ctx->mds0_use_hadamard_sb && fast_candidate_total_count > 1;
+    ctx->mds0_use_hadamard_blk  = ctx->mds0_use_hadamard_sb && fast_candidate_total_count > 1;
     ctx->mds1_best_idx          = 0;
     ctx->mds1_best_class_it     = 0;
     ctx->perform_mds1           = 1;
@@ -9860,10 +9860,10 @@ static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet
         return false;
     }
 
-    const uint32_t full_lambda = ctx->full_sb_lambda_md[EB_8_BIT_MD];
-    int64_t above_split_rate = (scs->allintra && ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0)
-        ? 0
-        : svt_aom_partition_rate_cost(pcs->ppcs,
+    const uint32_t full_lambda      = ctx->full_sb_lambda_md[EB_8_BIT_MD];
+    int64_t        above_split_rate = (scs->allintra && ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0)
+               ? 0
+               : svt_aom_partition_rate_cost(pcs->ppcs,
                                       pc_tree->bsize,
                                       mi_row,
                                       mi_col,
@@ -10296,8 +10296,8 @@ static bool test_split_partition(SequenceControlSet* scs, PictureControlSet* pcs
 
 static bool test_depth(SequenceControlSet* scs, PictureControlSet* pcs, ModeDecisionContext* ctx, MdScan* mds,
                        PC_TREE* pc_tree, const int mi_row, const int mi_col) {
-    const bool allintra = scs->allintra;
-    const bool rtc_tune = scs->static_config.rtc;
+    const bool           allintra         = scs->allintra;
+    const bool           rtc_tune         = scs->static_config.rtc;
     EbPictureBufferDesc* input_pic        = ctx->hbd_md ? pcs->input_frame16bit : pcs->ppcs->enhanced_pic;
     const uint32_t       base_blk_idx_mds = mds->mds_idx;
 

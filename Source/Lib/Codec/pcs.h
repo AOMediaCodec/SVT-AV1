@@ -133,6 +133,7 @@ typedef struct CdfControls {
     uint8_t update_se; // cdf update for various syntax elements
     uint8_t update_coef; // cdf update for coeffs
 } CdfControls;
+
 typedef struct EncDecSet {
     EbDctor                         dctor;
     EbPictureBufferDesc*            recon_pic;
@@ -611,6 +612,7 @@ typedef struct PaletteCtrls {
     uint8_t kmean_color_step;
     bool    centroid_refinement;
 } PaletteCtrls;
+
 /*!
  * \brief The structure of Cyclic_Refresh.
  * \ingroup cyclic_refresh
@@ -917,9 +919,9 @@ typedef struct PictureParentControlSet {
 
     uint8_t sc_class2;
 
-    uint8_t sc_class3;
-    uint8_t sc_class4;
-    uint8_t sc_class5;
+    uint8_t      sc_class3;
+    uint8_t      sc_class4;
+    uint8_t      sc_class5;
     SkipModeInfo skip_mode_info;
 
     uint64_t picture_number_alt; // The picture number overlay includes all the overlay frames
@@ -1069,8 +1071,8 @@ typedef struct PictureParentControlSet {
     uint8_t                         enable_me_8x8;
     uint8_t                         enable_me_16x16;
     uint8_t                         use_best_me_unipred_cand_only; // if MRP is OFF, use one ME unipred candidate only
-    IntrabcCtrls intrabc_ctrls;
-    PaletteCtrls palette_ctrls;
+    IntrabcCtrls                    intrabc_ctrls;
+    PaletteCtrls                    palette_ctrls;
 
     uint32_t         tf_tot_vert_blks; // total vertical motion blocks in TF
     uint32_t         tf_tot_horz_blks; // total horizontal motion blocks in TF

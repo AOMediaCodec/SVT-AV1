@@ -2758,6 +2758,7 @@ void svt_av1_reset_cdf_symbol_counters(FRAME_CONTEXT* fc) {
     RESET_CDF_COUNTER(fc->cfl_sign_cdf, CFL_JOINT_SIGNS);
     RESET_CDF_COUNTER(fc->cfl_alpha_cdf, CFL_ALPHABET_SIZE);
 }
+
 #undef NUM_PALETTE_NEIGHBORS
 #undef MAX_COLOR_CONTEXT_HASH
 

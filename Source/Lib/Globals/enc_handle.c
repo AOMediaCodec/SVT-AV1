@@ -3516,7 +3516,7 @@ void set_qp_based_th_scaling_ctrls_default(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 0;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     } else {
         qp_ctrls->tf_me_qp_based_th_scaling        = 1;
         qp_ctrls->tf_ref_qp_based_th_scaling       = 1;
@@ -3530,7 +3530,7 @@ void set_qp_based_th_scaling_ctrls_default(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 1;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     }
 }
 
@@ -3551,7 +3551,7 @@ void set_qp_based_th_scaling_ctrls_rtc(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 0;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     } else {
         qp_ctrls->tf_me_qp_based_th_scaling        = 1;
         qp_ctrls->tf_ref_qp_based_th_scaling       = 1;
@@ -3565,7 +3565,7 @@ void set_qp_based_th_scaling_ctrls_rtc(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 1;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     }
 }
 
@@ -3586,7 +3586,7 @@ void set_qp_based_th_scaling_ctrls_all_intra(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 1;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     } else if (enc_mode <= ENC_M6) {
         qp_ctrls->tf_me_qp_based_th_scaling        = 0;
         qp_ctrls->tf_ref_qp_based_th_scaling       = 0;
@@ -3600,7 +3600,7 @@ void set_qp_based_th_scaling_ctrls_all_intra(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 1;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     } else {
         qp_ctrls->tf_me_qp_based_th_scaling        = 1;
         qp_ctrls->tf_ref_qp_based_th_scaling       = 1;
@@ -3614,7 +3614,7 @@ void set_qp_based_th_scaling_ctrls_all_intra(SequenceControlSet* scs) {
         qp_ctrls->txt_qp_based_th_scaling          = 1;
         qp_ctrls->cap_max_size_qp_based_th_scaling = 1;
         qp_ctrls->lpd0_qp_based_th_scaling         = 1;
-        qp_ctrls->intra_bc_mesh_qp_scaling = 1;
+        qp_ctrls->intra_bc_mesh_qp_scaling         = 1;
     }
 }
 

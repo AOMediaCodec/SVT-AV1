@@ -1024,6 +1024,7 @@ static INLINE void update_coeff_eob_fast(uint16_t* eob, int shift, const int16_t
     }
     *eob = eob_out;
 }
+
 static void svt_fast_optimize_b(const TranLow* coeff_ptr, const MacroblockPlane* p, TranLow* qcoeff_ptr,
                                 TranLow* dqcoeff_ptr, uint16_t* eob, TxSize tx_size, TxType tx_type)
 
@@ -1060,9 +1061,9 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
     const int             non_skip_cost  = txb_costs->txb_skip_cost[txb_skip_context][0];
     const int             skip_cost      = txb_costs->txb_skip_cost[txb_skip_context][1];
     const int             eob_cost       = get_eob_cost(*eob, txb_eob_costs, txb_costs, tx_class);
-    int           rweight       = 100;
-    const int32_t sharpness_val = CLIP3(0, 7, pcs->scs->static_config.sharpness);
-    const int     rshift        = MAX(2, (int)sharpness_val);
+    int                   rweight        = 100;
+    const int32_t         sharpness_val  = CLIP3(0, 7, pcs->scs->static_config.sharpness);
+    const int             rshift         = MAX(2, (int)sharpness_val);
     if (use_sharpness && delta_q_present && plane == 0) {
         int diff = ctx->sb_ptr->qindex - quantizer_to_qindex[picture_qp];
         if (diff < 0) {

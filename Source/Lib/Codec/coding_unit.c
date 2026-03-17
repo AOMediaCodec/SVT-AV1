@@ -88,12 +88,12 @@ EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock* larget_coding_unit_ptr,
             }
         }
     }
-    bool disallow_4x4 = allintra ? svt_aom_get_disallow_4x4_allintra(enc_mode)
-        : rtc                    ? svt_aom_get_disallow_4x4_rtc(enc_mode)
-                                 : svt_aom_get_disallow_4x4_default(enc_mode);
-    bool disallow_8x8 = allintra ? svt_aom_get_disallow_8x8_allintra()
-        : rtc                    ? svt_aom_get_disallow_8x8_rtc(enc_mode, pcs->frame_width, pcs->frame_height)
-                                 : svt_aom_get_disallow_8x8_default();
+    bool     disallow_4x4 = allintra ? svt_aom_get_disallow_4x4_allintra(enc_mode)
+            : rtc                    ? svt_aom_get_disallow_4x4_rtc(enc_mode)
+                                     : svt_aom_get_disallow_4x4_default(enc_mode);
+    bool     disallow_8x8 = allintra ? svt_aom_get_disallow_8x8_allintra()
+            : rtc                    ? svt_aom_get_disallow_8x8_rtc(enc_mode, pcs->frame_width, pcs->frame_height)
+                                     : svt_aom_get_disallow_8x8_default();
     uint32_t tot_blk_num;
     if (sb_size_pix == 128) {
         if (disallow_8x8 && disallow_sub_16x16_nsq) {

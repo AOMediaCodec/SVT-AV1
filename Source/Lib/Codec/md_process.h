@@ -774,10 +774,10 @@ typedef struct IntraCtrls {
     // 0: angular off; 1: angular full; 2/3: limit num. angular candidates; 4: H + V only
     uint8_t angular_pred_level;
     uint8_t prune_using_best_mode;
-    bool prune_using_edge_info;
-    int8_t skip_angular_delta1_th;
-    int8_t skip_angular_delta2_th;
-    int8_t skip_angular_delta3_th;
+    bool    prune_using_edge_info;
+    int8_t  skip_angular_delta1_th;
+    int8_t  skip_angular_delta2_th;
+    int8_t  skip_angular_delta3_th;
 } IntraCtrls;
 
 typedef struct TxShortcutCtrls {
@@ -823,6 +823,7 @@ typedef struct SkipSubDepthCtrls {
     uint8_t coeff_perc;
 
 } SkipSubDepthCtrls;
+
 typedef struct FilterIntraCtrls {
     bool enabled;
     // Set the max filter intra mode to test. The max filter intra level will also depend on ctx->intra_ctrls.intra_mode_end.
@@ -1095,9 +1096,9 @@ typedef struct ModeDecisionContext {
     DepthRemovalCtrls    depth_removal_ctrls;
     DepthRefinementCtrls depth_refinement_ctrls;
     SkipSubDepthCtrls    skip_sub_depth_ctrls;
-    SubresCtrls subres_ctrls;
-    uint8_t     is_subres_safe;
-    PfCtrls     pf_ctrls;
+    SubresCtrls          subres_ctrls;
+    uint8_t              is_subres_safe;
+    PfCtrls              pf_ctrls;
     // Control signals for MD sparse search (used for increasing ME search for active clips)
     MdSqMotionSearchCtrls  md_sq_me_ctrls;
     MdNsqMotionSearchCtrls md_nsq_me_ctrls;
@@ -1151,8 +1152,8 @@ typedef struct ModeDecisionContext {
     NicCtrls        nic_ctrls;
     Mv              ref_mv;
     uint16_t        sb_index;
-    bool mds0_use_hadamard_sb;
-    bool mds0_use_hadamard_blk;
+    bool            mds0_use_hadamard_sb;
+    bool            mds0_use_hadamard_blk;
     uint8_t         max_block_size;
     uint64_t        mds0_best_cost_per_class[CAND_CLASS_TOTAL];
     uint64_t        mds0_best_cost;
@@ -1287,7 +1288,7 @@ extern void svt_aom_reset_mode_decision(SequenceControlSet* scs, ModeDecisionCon
 
 extern void svt_aom_mode_decision_configure_sb(ModeDecisionContext* ctx, PictureControlSet* pcs, uint8_t sb_qp,
                                                uint8_t me_sb_qp);
-void svt_aom_get_blk_var_map(int block_size, int org_x, int org_y, int* blk_idx, int sub_idx[4]);
+void        svt_aom_get_blk_var_map(int block_size, int org_x, int org_y, int* blk_idx, int sub_idx[4]);
 #ifdef __cplusplus
 }
 #endif
