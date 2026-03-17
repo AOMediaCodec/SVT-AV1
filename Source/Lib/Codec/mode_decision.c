@@ -36,9 +36,7 @@
 #include "src_ops_process.h"
 #include "utility.h"
 #include "adaptive_mv_pred.h"
-#if OPT_INTRA_BC_PATH
 #include "av1me.h"
-#endif
 static const uint32_t intra_luma_to_chroma[INTRA_MODES] = {
     UV_DC_PRED, // Average of above and left pixels
     UV_V_PRED, // Vertical
@@ -842,9 +840,7 @@ static int8_t allow_refinement_flag[BIPRED_3x3_REFINMENT_POSITIONS] = {1, 0, 1, 
 static int8_t bipred_3x3_x_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {-1, -1, 0, 1, 1, 1, 0, -1};
 static int8_t bipred_3x3_y_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {0, 1, 1, 1, 0, -1, -1, -1};
 
-#if OPT_PER_BLK_INTRA
 static INLINE uint8_t is_dc_only_safe(PictureControlSet* pcs, ModeDecisionContext* ctx) {
-#if FIX_IS_DC_ONLY_SAFE
     // Early exit if pruning not enabled, SB-128, NSQ, or 4x4 (no variance available)
     if (!ctx->intra_ctrls.prune_using_edge_info || pcs->scs->super_block_size == 128 || ctx->shape != PART_N ||
         ctx->blk_geom->sq_size == 4) {
@@ -878,38 +874,7 @@ static INLINE uint8_t is_dc_only_safe(PictureControlSet* pcs, ModeDecisionContex
     uint32_t spread_var = max_var - min_var;
 
     return (blk_var < 2000 && spread_var < 4000);
-#else
-    // Early exit if pruning not enabled, SB-128, NSQ
-    if (!ctx->intra_ctrls.prune_using_edge_info || pcs->scs->super_block_size == 128 || ctx->shape != PART_N) {
-        return 0;
-    }
-
-    // Block variance lookup
-    int blk_idx;
-    int sub_idx[4];
-    // Get origin of the block relative to SB origin
-    const Position blk_org = {.x = ctx->blk_org_x - ctx->sb_origin_x, .y = ctx->blk_org_y - ctx->sb_origin_y};
-    svt_aom_get_blk_var_map(ctx->blk_geom->sq_size, blk_org.x, blk_org.y, &blk_idx, sub_idx);
-
-    uint16_t* sb_var  = pcs->ppcs->variance[ctx->sb_index];
-    uint32_t  blk_var = sb_var[blk_idx];
-
-    uint32_t min_var = UINT32_MAX;
-    uint32_t max_var = 0;
-
-    for (int i = 0; i < 4; i++) {
-        uint32_t v = sb_var[sub_idx[i]];
-        min_var    = MIN(min_var, v);
-        max_var    = MAX(max_var, v);
-    }
-
-    uint32_t spread_var = max_var - min_var;
-
-    // Safe if uniform block
-    return (blk_var < 2000 && spread_var < 4000);
-#endif
 }
-#endif
 // Inject inter-intra, WM, OBMC for unipred simple-trans candidate
 //
 // total_cand_count is the index to ctx->fast_cand_array for the next candidate injected (which is the
@@ -3039,7 +3004,6 @@ static void assert_release(int statement) {
         SVT_LOG("ASSERT_ERRRR\n");
     }
 }
-#if OPT_INTRA_BC_PATH
 static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, const SequenceControlSet* scs,
                             BlkStruct* blk_ptr, Mv* dv_cand, uint8_t* num_dv_cand) {
     IntraBcContext  x_st;
@@ -3111,18 +3075,9 @@ static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, co
     // setup src for DV search same as ref
     x->plane[0].src = x->xdplane[0].pre[0];
 
-#if OPT_INTRA_BC_PATH
     enum IntrabcMotionDirection max_dir = pcs->ppcs->intrabc_ctrls.search_dir ? IBC_MOTION_LEFT : IBC_MOTION_DIRECTIONS;
 
     for (enum IntrabcMotionDirection dir = IBC_MOTION_ABOVE; dir < max_dir; ++dir) {
-#else
-    // up to two dv candidates will be generated
-    // IBC Modes:   0: OFF 1:Slow   2:Faster   3:Fastest
-    enum IntrabcMotionDirection max_dir = pcs->ppcs->intraBC_ctrls.ibc_direction ? IBC_MOTION_LEFT
-                                                                                 : IBC_MOTION_DIRECTIONS;
-
-    for (enum IntrabcMotionDirection dir = IBC_MOTION_ABOVE; dir < max_dir; ++dir) {
-#endif
         const MvLimits tmp_mv_limits = x->mv_limits;
 
         switch (dir) {
@@ -3200,158 +3155,6 @@ static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, co
         EB_FREE_ARRAY(x->hash_value_buffer[i]);
     }
 }
-#else
-static void intra_bc_search(PictureControlSet* pcs, ModeDecisionContext* ctx, const SequenceControlSet* scs,
-                            BlkStruct* blk_ptr, Mv* dv_cand, uint8_t* num_dv_cand) {
-    IntraBcContext  x_st;
-    IntraBcContext* x           = &x_st;
-    uint32_t        full_lambda = ctx->hbd_md ? ctx->full_lambda_md[EB_10_BIT_MD] : ctx->full_lambda_md[EB_8_BIT_MD];
-    //fill x with what needed.
-    x->is_exhaustive_allowed = ctx->blk_geom->bwidth == 4 || ctx->blk_geom->bheight == 4 ? 1 : 0;
-    svt_memcpy(&x->crc_calculator, &pcs->crc_calculator, sizeof(pcs->crc_calculator));
-    x->approx_inter_rate = ctx->approx_inter_rate;
-    x->xd                = blk_ptr->av1xd;
-    x->nmv_vec_cost      = ctx->md_rate_est_ctx->nmv_vec_cost;
-    x->mv_cost_stack     = ctx->md_rate_est_ctx->nmvcoststack;
-    BlockSize bsize      = ctx->blk_geom->bsize;
-    assert(bsize < BLOCK_SIZES_ALL);
-    FrameHeader*           frm_hdr    = &pcs->ppcs->frm_hdr;
-    const Av1Common* const cm         = pcs->ppcs->av1_cm;
-    MvReferenceFrame       ref_frame  = INTRA_FRAME;
-    const int              num_planes = 3;
-    MacroBlockD*           xd         = blk_ptr->av1xd;
-    const TileInfo*        tile       = &xd->tile;
-    const int              mi_row     = -xd->mb_to_top_edge / (8 * MI_SIZE);
-    const int              mi_col     = -xd->mb_to_left_edge / (8 * MI_SIZE);
-    const int              w          = block_size_wide[bsize];
-    const int              h          = block_size_high[bsize];
-    const int              sb_row     = mi_row >> scs->seq_header.sb_size_log2;
-    const int              sb_col     = mi_col >> scs->seq_header.sb_size_log2;
-
-    // Set up limit values for MV components.
-    // Mv beyond the range do not produce new/different prediction block.
-    const int mi_width   = mi_size_wide[bsize];
-    const int mi_height  = mi_size_high[bsize];
-    x->mv_limits.row_min = -(((mi_row + mi_height) * MI_SIZE) + AOM_INTERP_EXTEND);
-    x->mv_limits.col_min = -(((mi_col + mi_width) * MI_SIZE) + AOM_INTERP_EXTEND);
-    x->mv_limits.row_max = (cm->mi_rows - mi_row) * MI_SIZE + AOM_INTERP_EXTEND;
-    x->mv_limits.col_max = (cm->mi_cols - mi_col) * MI_SIZE + AOM_INTERP_EXTEND;
-    //set search paramters
-    x->sadperbit16 = svt_aom_get_sad_per_bit(frm_hdr->quantization_params.base_q_idx, 0);
-    x->errorperbit = full_lambda >> RD_EPB_SHIFT;
-    x->errorperbit += (x->errorperbit == 0);
-    //temp buffer for hash me
-    for (int i = 0; i < 2; i++) {
-        EB_MALLOC_ARRAY_NO_CHECK(x->hash_value_buffer[i], AOM_BUFFER_SIZE_FOR_BLOCK_HASH);
-    }
-
-    Mv nearestmv, nearmv;
-    svt_av1_find_best_ref_mvs_from_stack(0, ctx->ref_mv_stack /*mbmi_ext*/, xd, ref_frame, &nearestmv, &nearmv, 0);
-    if (nearestmv.as_int == INVALID_MV) {
-        nearestmv.as_int = 0;
-    }
-    if (nearmv.as_int == INVALID_MV) {
-        nearmv.as_int = 0;
-    }
-    Mv dv_ref = nearestmv.as_int == 0 ? nearmv : nearestmv;
-    if (dv_ref.as_int == 0) {
-        svt_aom_find_ref_dv(&dv_ref, tile, scs->seq_header.sb_mi_size, mi_row, mi_col);
-    }
-    // Ref DV should not have sub-pel.
-    assert((dv_ref.x & 7) == 0);
-    assert((dv_ref.y & 7) == 0);
-    ctx->ref_mv_stack[INTRA_FRAME][0].this_mv = dv_ref;
-
-    /* pointer to current frame */
-    Yv12BufferConfig cur_buf;
-    svt_aom_link_eb_to_aom_buffer_desc_8bit(pcs->ppcs->enhanced_pic, &cur_buf);
-    struct Buf2D yv12_mb[MAX_PLANES];
-    svt_av1_setup_pred_block(bsize, yv12_mb, &cur_buf, mi_row, mi_col);
-    for (int i = 0; i < num_planes; ++i) {
-        x->xdplane[i].pre[0] = yv12_mb[i]; // ref in ME
-    }
-    // setup src for DV search same as ref
-    x->plane[0].src = x->xdplane[0].pre[0];
-    // up to two dv candidates will be generated
-    // IBC Modes:   0: OFF 1:Slow   2:Faster   3:Fastest
-    enum IntrabcMotionDirection max_dir = pcs->ppcs->intraBC_ctrls.ibc_direction ? IBC_MOTION_LEFT
-                                                                                 : IBC_MOTION_DIRECTIONS;
-
-    for (enum IntrabcMotionDirection dir = IBC_MOTION_ABOVE; dir < max_dir; ++dir) {
-        const MvLimits tmp_mv_limits = x->mv_limits;
-
-        switch (dir) {
-        case IBC_MOTION_ABOVE:
-            x->mv_limits.col_min = (tile->mi_col_start - mi_col) * MI_SIZE;
-            x->mv_limits.col_max = (tile->mi_col_end - mi_col) * MI_SIZE - w;
-            x->mv_limits.row_min = (tile->mi_row_start - mi_row) * MI_SIZE;
-            x->mv_limits.row_max = (sb_row * scs->seq_header.sb_mi_size - mi_row) * MI_SIZE - h;
-            break;
-        case IBC_MOTION_LEFT:
-            x->mv_limits.col_min = (tile->mi_col_start - mi_col) * MI_SIZE;
-            x->mv_limits.col_max = (sb_col * scs->seq_header.sb_mi_size - mi_col) * MI_SIZE - w;
-            // TODO: Minimize the overlap between above and
-            // left areas.
-            x->mv_limits.row_min     = (tile->mi_row_start - mi_row) * MI_SIZE;
-            int bottom_coded_mi_edge = AOMMIN((sb_row + 1) * scs->seq_header.sb_mi_size, tile->mi_row_end);
-            x->mv_limits.row_max     = (bottom_coded_mi_edge - mi_row) * MI_SIZE - h;
-            break;
-        default:
-            assert(0);
-        }
-        assert_release(x->mv_limits.col_min >= tmp_mv_limits.col_min);
-        assert_release(x->mv_limits.col_max <= tmp_mv_limits.col_max);
-        assert_release(x->mv_limits.row_min >= tmp_mv_limits.row_min);
-        assert_release(x->mv_limits.row_max <= tmp_mv_limits.row_max);
-
-        svt_av1_set_mv_search_range(&x->mv_limits, &dv_ref);
-
-        if (x->mv_limits.col_max < x->mv_limits.col_min || x->mv_limits.row_max < x->mv_limits.row_min) {
-            x->mv_limits = tmp_mv_limits;
-            continue;
-        }
-
-        int step_param = 0;
-        Mv  mvp_full   = dv_ref;
-        // TODO: should use get_fullmv_from_mv instead of shifting
-        mvp_full.x >>= 3;
-        mvp_full.y >>= 3;
-        const int sadpb   = x->sadperbit16;
-        x->best_mv.as_int = 0;
-
-#define INT_VAR_MAX 2147483647 // maximum (signed) int value
-
-        const int bestsme = svt_av1_full_pixel_search(
-            pcs, x, bsize, &mvp_full, step_param, sadpb, NULL, &dv_ref, MI_SIZE * mi_col, MI_SIZE * mi_row, 1);
-
-        x->mv_limits = tmp_mv_limits;
-        if (bestsme == INT_VAR_MAX) {
-            continue;
-        }
-        mvp_full = x->best_mv;
-
-        const Mv dv = {.x = mvp_full.x * 8, .y = mvp_full.y * 8};
-        if (mv_check_bounds(&x->mv_limits, &dv)) {
-            continue;
-        }
-        if (!svt_aom_is_dv_valid(dv, xd, mi_row, mi_col, bsize, scs->seq_header.sb_size_log2)) {
-            continue;
-        }
-
-        // DV should not have sub-pel.
-        assert_release((dv.x & 7) == 0);
-        assert_release((dv.y & 7) == 0);
-
-        //store output
-        dv_cand[*num_dv_cand] = dv;
-        (*num_dv_cand)++;
-    }
-
-    for (int i = 0; i < 2; i++) {
-        EB_FREE_ARRAY(x->hash_value_buffer[i]);
-    }
-}
-#endif
 static void inject_intra_bc_candidates(PictureControlSet* pcs, ModeDecisionContext* ctx, const SequenceControlSet* scs,
                                        BlkStruct* blk_ptr, uint32_t* cand_cnt) {
     Mv      dv_cand[2];
@@ -3763,11 +3566,7 @@ void generate_md_stage_0_cand_light_pd1(ModeDecisionContext* ctx, uint32_t* cand
     //----------------------
     // Intra
     if (ctx->intra_ctrls.enable_intra && ctx->blk_geom->sq_size < 128) {
-#if OPT_PER_BLK_INTRA // max
         uint8_t dc_cand_only_flag = ctx->intra_ctrls.intra_mode_end == DC_PRED || is_dc_only_safe(pcs, ctx);
-#else
-        uint8_t dc_cand_only_flag = (ctx->intra_ctrls.intra_mode_end == DC_PRED);
-#endif
         if (ctx->cand_reduction_ctrls.cand_elimination_ctrls.enabled && !dc_cand_only_flag &&
             ctx->md_me_dist != (uint32_t)~0) {
             uint32_t th = ctx->cand_reduction_ctrls.cand_elimination_ctrls.dc_only_th;
@@ -3791,13 +3590,8 @@ void generate_md_stage_0_cand_light_pd1(ModeDecisionContext* ctx, uint32_t* cand
 
     *candidate_total_count_ptr = cand_total_cnt;
 }
-#if OPT_NSQ_INTRABC_PARENT_GATE
 EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext* ctx, const PC_TREE* const pc_tree,
                                      uint32_t* candidate_total_count_ptr) {
-#else
-EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext* ctx,
-                                     uint32_t* candidate_total_count_ptr) {
-#endif
     const SequenceControlSet* scs            = pcs->scs;
     const SliceType           slice_type     = pcs->slice_type;
     uint32_t                  cand_total_cnt = 0;
@@ -3805,29 +3599,19 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
     ctx->injected_mv_count = 0;
     ctx->inject_new_me     = 1;
     ctx->inject_new_pme    = 1;
-#if !OPT_PER_BLK_INTRA // max
-    uint8_t dc_cand_only_flag = ctx->intra_ctrls.enable_intra && (ctx->intra_ctrls.intra_mode_end == DC_PRED);
-    if (ctx->cand_reduction_ctrls.cand_elimination_ctrls.enabled) {
-        eliminate_candidate_based_on_pme_me_results(ctx, &dc_cand_only_flag);
-    }
-#endif
     //----------------------
     // Intra
     if (ctx->intra_ctrls.enable_intra) {
-#if OPT_PER_BLK_INTRA
         uint8_t dc_cand_only_flag = ctx->intra_ctrls.intra_mode_end == DC_PRED || is_dc_only_safe(pcs, ctx);
         if (ctx->cand_reduction_ctrls.cand_elimination_ctrls.enabled) {
             eliminate_candidate_based_on_pme_me_results(ctx, &dc_cand_only_flag);
         }
-#endif
         if (ctx->blk_geom->sq_size < 128) {
             inject_intra_candidates(pcs, ctx, dc_cand_only_flag, &cand_total_cnt);
         }
         if (ctx->filter_intra_ctrls.enabled && svt_aom_filter_intra_allowed_bsize(ctx->blk_geom->bsize)) {
             inject_filter_intra_candidates(pcs, ctx, &cand_total_cnt);
         }
-
-#if OPT_INTRABC_PALETTE_HINT
 
         bool eval_intrabc = true;
 
@@ -3841,7 +3625,6 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
 
         if (ctx->md_allow_intrabc) {
             if (!pcs->ppcs->intrabc_ctrls.palette_hint || eval_intrabc) {
-#if OPT_B4_INTRABC_B8_GATE
                 bool do_intra_bc = true;
 
                 if (ctx->shape == PART_N) {
@@ -3860,29 +3643,11 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
                 }
 
                 if (do_intra_bc)
-#else
-                BlkStruct* sq_blk_ptr = &ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds];
-
-#if OPT_NSQ_INTRABC_PARENT_GATE
-                if (!pcs->ppcs->intraBC_ctrls.nsq_parent_gating ||
-                    (ctx->blk_geom->shape == PART_N ||
-                     (ctx->avail_blk_flag[ctx->blk_geom->sqi_mds] && sq_blk_ptr->block_mi.use_intrabc)))
-#endif
-#endif
                 {
                     inject_intra_bc_candidates(pcs, ctx, scs, ctx->blk_ptr, &cand_total_cnt);
                 }
             }
         }
-#else
-        if (ctx->md_allow_intrabc) {
-            inject_intra_bc_candidates(pcs, ctx, scs, ctx->blk_ptr, &cand_total_cnt);
-        }
-
-        if (svt_av1_allow_palette(ctx->md_palette_level, ctx->blk_geom->bsize)) {
-            inject_palette_candidates(pcs, ctx, &cand_total_cnt);
-        }
-#endif
     }
     if (slice_type != I_SLICE) {
         svt_aom_inject_inter_candidates(pcs, ctx, &cand_total_cnt);
@@ -3912,7 +3677,6 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
         ModeDecisionCandidate* cand = &ctx->fast_cand_array[cand_i];
         if (is_intra_mode(cand->block_mi.mode)) {
             // Intra prediction
-#if OPT_INTRA_BC_CLASS
             if ((cand->palette_info == NULL || cand->palette_size[0] == 0) && cand->block_mi.use_intrabc == 0) {
                 cand->cand_class = CAND_CLASS_0;
                 ctx->md_stage_0_count[CAND_CLASS_0]++;
@@ -3925,16 +3689,6 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
                 cand->cand_class = CAND_CLASS_4;
                 ctx->md_stage_0_count[CAND_CLASS_4]++;
             }
-#else
-            if (cand->palette_info == NULL || cand->palette_size[0] == 0) {
-                cand->cand_class = CAND_CLASS_0;
-                ctx->md_stage_0_count[CAND_CLASS_0]++;
-            } else {
-                // Palette Prediction
-                cand->cand_class = CAND_CLASS_3;
-                ctx->md_stage_0_count[CAND_CLASS_3]++;
-            }
-#endif
         } else { // INTER
             if (cand->block_mi.mode == NEWMV || cand->block_mi.mode == NEW_NEWMV || merge_inter_cands) {
                 // MV Prediction

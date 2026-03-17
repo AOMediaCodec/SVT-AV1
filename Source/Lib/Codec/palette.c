@@ -247,7 +247,6 @@ void svt_aom_get_block_dimensions(BlockSize bsize, int plane, const MacroBlockD*
 
 // Bias toward using colors in the cache.
 // TODO: Try other schemes to improve compression.
-#if OPT_PALETTE_PATH
 static AOM_INLINE void optimize_palette_colors(uint16_t* color_cache, int n_cache, int n_colors, int stride,
                                                int* centroids, int bit_depth, uint8_t qp_index) {
     if (n_cache <= 0) {
@@ -269,28 +268,6 @@ static AOM_INLINE void optimize_palette_colors(uint16_t* color_cache, int n_cach
         }
     }
 }
-#else
-static AOM_INLINE void optimize_palette_colors(uint16_t* color_cache, int n_cache, int n_colors, int stride,
-                                               int* centroids) {
-    if (n_cache <= 0) {
-        return;
-    }
-    for (int i = 0; i < n_colors * stride; i += stride) {
-        int min_diff = abs(centroids[i] - (int)color_cache[0]);
-        int idx      = 0;
-        for (int j = 1; j < n_cache; ++j) {
-            const int this_diff = abs(centroids[i] - color_cache[j]);
-            if (this_diff < min_diff) {
-                min_diff = this_diff;
-                idx      = j;
-            }
-        }
-        if (min_diff <= 1) {
-            centroids[i] = color_cache[idx];
-        }
-    }
-}
-#endif
 // Extends 'color_map' array from 'orig_width x orig_height' to 'new_width x
 // new_height'. Extra rows and columns are filled in by copying last valid
 // row/column.
@@ -315,22 +292,12 @@ static AOM_INLINE void extend_palette_color_map(uint8_t* const color_map, int or
     }
 }
 
-#if OPT_PALETTE_PATH
 static void palette_rd_y(PaletteInfo* palette_info, uint8_t* palette_size_array, ModeDecisionContext* ctx,
                          bool opt_colors, BlockSize bsize, const int* data, int* centroids, int n,
                          uint16_t* color_cache, int n_cache, int bit_depth) {
-#else
-static void palette_rd_y(PaletteInfo* palette_info, uint8_t* palette_size_array, ModeDecisionContext* ctx,
-                         BlockSize bsize, const int* data, int* centroids, int n, uint16_t* color_cache, int n_cache,
-                         int bit_depth) {
-#endif
-#if OPT_PALETTE_PATH
     if (opt_colors) {
         optimize_palette_colors(color_cache, n_cache, n, 1, centroids, bit_depth, ctx->qp_index);
     }
-#else
-    optimize_palette_colors(color_cache, n_cache, n, 1, centroids);
-#endif
     int k = av1_remove_duplicates(centroids, n);
     if (k < PALETTE_MIN_SIZE) {
         // Too few unique colors to create a palette. And DC_PRED will work
@@ -358,7 +325,6 @@ static void palette_rd_y(PaletteInfo* palette_info, uint8_t* palette_size_array,
 
 int svt_av1_count_colors(const uint8_t* src, int stride, int rows, int cols, int* val_count);
 int svt_av1_count_colors_highbd(uint16_t* src, int stride, int rows, int cols, int bit_depth, int* val_count);
-#if OPT_PALETTE_PATH
 static void cache_based_centroid_refinement(int* data, int rows, int cols, int n, int* centroids,
                                             uint8_t* color_idx_map, uint16_t* color_cache, int n_cache) {
     const int total = rows * cols;
@@ -558,145 +524,6 @@ void search_palette_luma(PictureControlSet* pcs, ModeDecisionContext* ctx, Palet
         }
     }
 }
-#else
-/****************************************
-   determine all palette luma candidates
- ****************************************/
-void search_palette_luma(PictureControlSet* pcs, ModeDecisionContext* ctx, PaletteInfo* palette_cand,
-                         uint8_t* palette_size_array, uint32_t* tot_palette_cands) {
-    int  colors;
-    bool is16bit = ctx->hbd_md > 0;
-
-    EbPictureBufferDesc* src_pic    = is16bit ? pcs->input_frame16bit : pcs->ppcs->enhanced_pic;
-    const int            src_stride = src_pic->y_stride;
-    // bit depth for palette search
-    unsigned             bit_depth_pal = is16bit ? EB_TEN_BIT : EB_EIGHT_BIT;
-    const uint8_t* const src           = src_pic->y_buffer +
-        (((ctx->blk_org_x) + (ctx->blk_org_y) * src_pic->y_stride) << is16bit);
-    int          block_width, block_height, rows, cols;
-    MacroBlockD* xd    = ctx->blk_ptr->av1xd;
-    BlockSize    bsize = ctx->blk_geom->bsize;
-    svt_aom_get_block_dimensions(
-        ctx->blk_geom->bsize, 0, ctx->blk_ptr->av1xd, &block_width, &block_height, &rows, &cols);
-
-    int count_buf[1 << 12]; // Maximum (1 << 12) color levels.
-
-    unsigned bit_depth = pcs->ppcs->scs->encoder_bit_depth;
-    if (is16bit) {
-        colors = svt_av1_count_colors_highbd((uint16_t*)src, src_stride, rows, cols, bit_depth, count_buf);
-    } else {
-        colors = svt_av1_count_colors(src, src_stride, rows, cols, count_buf);
-    }
-
-    if (colors > 1 && colors <= 64) {
-        int        r, c, i;
-        const int  max_itr = 50;
-        int* const data    = ctx->palette_buffer->kmeans_data_buf;
-        int        centroids[PALETTE_MAX_SIZE];
-        int        lb, ub;
-
-#define GENERATE_KMEANS_DATA(src_data_type)                                    \
-    do {                                                                       \
-        lb = ub = ((src_data_type)src)[0];                                     \
-        for (r = 0; r < rows; ++r) {                                           \
-            for (c = 0; c < cols; ++c) {                                       \
-                int val            = ((src_data_type)src)[r * src_stride + c]; \
-                data[r * cols + c] = val;                                      \
-                if (val < lb)                                                  \
-                    lb = val;                                                  \
-                else if (val > ub)                                             \
-                    ub = val;                                                  \
-            }                                                                  \
-        }                                                                      \
-    } while (0)
-
-        if (is16bit) {
-            GENERATE_KMEANS_DATA(uint16_t*);
-        } else {
-            GENERATE_KMEANS_DATA(uint8_t*);
-        }
-
-        uint16_t  color_cache[2 * PALETTE_MAX_SIZE];
-        const int n_cache = svt_get_palette_cache_y(xd, color_cache);
-        // Find the dominant colors, stored in top_colors[].
-        int top_colors[PALETTE_MAX_SIZE] = {0};
-        for (i = 0; i < AOMMIN(colors, PALETTE_MAX_SIZE); ++i) {
-            int max_count = 0;
-            for (int j = 0; j < (1 << bit_depth_pal); ++j) {
-                if (count_buf[j] > max_count) {
-                    max_count     = count_buf[j];
-                    top_colors[i] = j;
-                }
-            }
-            assert(max_count > 0);
-            count_buf[top_colors[i]] = 0;
-        }
-
-        // Try the dominant colors directly.
-        // TODO: Try to avoid duplicate computation in cases
-        // where the dominant colors and the k-means results are similar.
-        int step = pcs->ppcs->palette_ctrls.dominant_color_step;
-        for (int n = AOMMIN(colors, PALETTE_MAX_SIZE); n >= 2; n -= step) {
-            for (i = 0; i < n; ++i) {
-                centroids[i] = top_colors[i];
-            }
-
-            palette_rd_y(&palette_cand[*tot_palette_cands],
-                         &palette_size_array[*tot_palette_cands],
-                         ctx,
-                         bsize,
-                         data,
-                         centroids,
-                         n,
-                         color_cache,
-                         n_cache,
-                         bit_depth_pal);
-
-            //consider this candidate if it has some non zero palette
-
-            if (palette_size_array[*tot_palette_cands] > 2) {
-                (*tot_palette_cands)++;
-            }
-            assert((*tot_palette_cands) <= 14);
-        }
-
-        // K-means clustering.
-        for (int n = AOMMIN(colors, PALETTE_MAX_SIZE); n >= 2; --n) {
-            if (colors == PALETTE_MIN_SIZE) {
-                // Special case: These colors automatically become the centroids.
-                assert(colors == n);
-                centroids[0] = lb;
-                centroids[1] = ub;
-            } else {
-                for (i = 0; i < n; ++i) {
-                    centroids[i] = lb + (2 * i + 1) * (ub - lb) / n / 2;
-                }
-                uint8_t* const color_map = palette_cand[*tot_palette_cands].color_idx_map;
-                av1_k_means(data, centroids, color_map, rows * cols, n, 1, max_itr);
-            }
-
-            palette_rd_y(&palette_cand[*tot_palette_cands],
-                         &palette_size_array[*tot_palette_cands],
-                         ctx,
-                         bsize,
-                         data,
-                         centroids,
-                         n,
-                         color_cache,
-                         n_cache,
-                         bit_depth_pal);
-
-            //consider this candidate if it has some non zero palette
-
-            if (palette_size_array[*tot_palette_cands] > 2) {
-                (*tot_palette_cands)++;
-            }
-
-            assert((*tot_palette_cands) <= 14);
-        }
-    }
-}
-#endif
 
 typedef AomCdfProb (*MapCdf)[PALETTE_COLOR_INDEX_CONTEXTS][CDF_SIZE(PALETTE_COLORS)];
 typedef const int (*ColorCost)[PALETTE_SIZES][PALETTE_COLOR_INDEX_CONTEXTS][PALETTE_COLORS];
@@ -762,7 +589,6 @@ static void get_color_map_params_rate(ModeDecisionCandidate* cand, MdRateEstimat
     }
 }
 
-#if OPT_PALETTE_PATH
 #define SWAP(i, j)                               \
     do {                                         \
         const uint8_t tmp_score = score_rank[i]; \
@@ -914,7 +740,6 @@ static inline int av1_fast_palette_color_index_context(const uint8_t* color_map,
 
 #undef INVALID_COLOR_IDX
 #undef SWAP
-#endif
 
 static int cost_and_tokenize_map(Av1ColorMapParam* param, TOKENEXTRA** t, int plane, int calc_rate,
                                  int allow_update_cdf, MapCdf map_pb_cdf) {
@@ -934,13 +759,8 @@ static int cost_and_tokenize_map(Av1ColorMapParam* param, TOKENEXTRA** t, int pl
         for (int j = AOMMIN(k, cols - 1); j >= AOMMAX(0, k - rows + 1); --j) {
             int i = k - j;
             int color_new_idx;
-#if OPT_PALETTE_PATH
             const int color_ctx = av1_fast_palette_color_index_context(
                 color_map, plane_block_width, i, j, &color_new_idx);
-#else
-            const int color_ctx = svt_aom_get_palette_color_index_context_optimized(
-                color_map, plane_block_width, i, j, &color_new_idx);
-#endif
             assert(color_new_idx >= 0 && color_new_idx < n);
             if (calc_rate) {
                 this_rate += (*color_cost)[palette_size_idx][color_ctx][color_new_idx];

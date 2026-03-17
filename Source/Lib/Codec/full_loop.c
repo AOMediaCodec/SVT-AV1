@@ -1024,12 +1024,6 @@ static INLINE void update_coeff_eob_fast(uint16_t* eob, int shift, const int16_t
     }
     *eob = eob_out;
 }
-#if !OPT_RDOQ_BIS
-// look-up table for sqrt of number of pixels in a transform block
-// rounded up to the nearest integer.
-static const int sqrt_tx_pixels_2d[TX_SIZES_ALL] = {
-    4, 8, 16, 32, 32, 6, 6, 12, 12, 23, 23, 32, 32, 8, 8, 16, 16, 23, 23};
-#endif
 static void svt_fast_optimize_b(const TranLow* coeff_ptr, const MacroblockPlane* p, TranLow* qcoeff_ptr,
                                 TranLow* dqcoeff_ptr, uint16_t* eob, TxSize tx_size, TxType tx_type)
 
@@ -1049,14 +1043,6 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
     bool                   allintra   = scs->allintra;
     bool                   rtc        = scs->static_config.rtc;
     int                    sharpness  = 0; // No Sharpness
-#if !OPT_RDOQ_BIS
-    int fast_mode = (ctx->rdoq_ctrls.eob_fast_y_inter && is_inter && !plane) ||
-            (ctx->rdoq_ctrls.eob_fast_y_intra && !is_inter && !plane) ||
-            (ctx->rdoq_ctrls.eob_fast_uv_inter && is_inter && plane) ||
-            (ctx->rdoq_ctrls.eob_fast_uv_intra && !is_inter && plane)
-        ? 1
-        : 0;
-#endif
     const ScanOrder* const scan_order = get_scan_order(tx_size, tx_type);
     const int16_t*         scan       = scan_order->scan;
     const int              shift      = av1_get_tx_scale_tab[tx_size];
@@ -1074,21 +1060,6 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
     const int             non_skip_cost  = txb_costs->txb_skip_cost[txb_skip_context][0];
     const int             skip_cost      = txb_costs->txb_skip_cost[txb_skip_context][1];
     const int             eob_cost       = get_eob_cost(*eob, txb_eob_costs, txb_costs, tx_class);
-#if !OPT_RDOQ_BIS
-    int sq_size_idx = 7 - (int)svt_log2f(ctx->blk_geom->sq_size);
-    if (eob_cost < (int)(width * height * sq_size_idx * ctx->rdoq_ctrls.early_exit_th)) {
-        if (skip_cost < non_skip_cost) {
-            return;
-        }
-    }
-
-    if (fast_mode) {
-        update_coeff_eob_fast(eob, shift, p->dequant_qtx, scan, coeff_ptr, qcoeff_ptr, dqcoeff_ptr);
-        if (*eob == 0) {
-            return;
-        }
-    }
-#endif
     int           rweight       = 100;
     const int32_t sharpness_val = CLIP3(0, 7, pcs->scs->static_config.sharpness);
     const int     rshift        = MAX(2, (int)sharpness_val);
@@ -1151,7 +1122,6 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
         accu_dist += dist - dist0;
         --si;
     }
-#if OPT_RDOQ_BIS
 #define UPDATE_COEFF_EOB_CASE(tx_class_literal)         \
     case tx_class_literal:                              \
         for (; si >= 0 && nz_num <= max_nz_num; --si) { \
@@ -1180,36 +1150,6 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
                              qparam->iqmatrix);         \
         }                                               \
         break;
-#else
-#define UPDATE_COEFF_EOB_CASE(tx_class_literal)                       \
-    case tx_class_literal:                                            \
-        for (; si >= 0 && nz_num <= max_nz_num && !fast_mode; --si) { \
-            update_coeff_eob(&accu_rate,                              \
-                             &accu_dist,                              \
-                             eob,                                     \
-                             &nz_num,                                 \
-                             nz_ci,                                   \
-                             si,                                      \
-                             tx_size,                                 \
-                             tx_class_literal,                        \
-                             bwl,                                     \
-                             height,                                  \
-                             dc_sign_context,                         \
-                             rdmult,                                  \
-                             shift,                                   \
-                             p->dequant_qtx,                          \
-                             scan,                                    \
-                             txb_eob_costs,                           \
-                             txb_costs,                               \
-                             coeff_ptr,                               \
-                             qcoeff_ptr,                              \
-                             dqcoeff_ptr,                             \
-                             levels,                                  \
-                             sharpness,                               \
-                             qparam->iqmatrix);                       \
-        }                                                             \
-        break;
-#endif
     switch (tx_class) {
         UPDATE_COEFF_EOB_CASE(TX_CLASS_2D);
         UPDATE_COEFF_EOB_CASE(TX_CLASS_HORIZ);
@@ -1234,18 +1174,11 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
     }
 
     int si_end = 1; // default: full RDOQ
-#if OPT_RDOQ_BIS
     if (ctx->rdoq_ctrls.cut_off_num) {
         const int cut_off_coeff = AOMMAX((width * height) >> 7,
                                          (*eob * ctx->rdoq_ctrls.cut_off_num) / ctx->rdoq_ctrls.cut_off_denum);
         si_end                  = AOMMAX(1, *eob - cut_off_coeff);
     }
-#else
-    if (ctx->rdoq_ctrls.cut_off_div) {
-        int area = (width * height) / ctx->rdoq_ctrls.cut_off_div;
-        si_end   = AOMMAX(1, *eob - area);
-    }
-#endif
 #define UPDATE_COEFF_SIMPLE_CASE(tx_class_literal) \
     case tx_class_literal:                         \
         for (; si >= si_end; --si) {               \
@@ -1548,34 +1481,13 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet* pcs, ModeDecisionContex
     // If rdoq_level is specified in the command line instruction, set perform_rdoq accordingly.
     perform_rdoq = !svt_av1_is_lossless_segment(pcs, ctx->blk_ptr->segment_id) &&
         ((ctx->mds_do_rdoq || is_encode_pass) && ctx->rdoq_ctrls.enabled);
-#if !OPT_RDOQ_BIS
-    const int dequant_shift = ctx->hbd_md ? pcs->ppcs->enhanced_pic->bit_depth - 5 : 3;
-    const int qstep         = candidate_plane.dequant_qtx[1] /*[AC]*/ >> dequant_shift;
-#endif
     if (!is_encode_pass) {
         if ((ctx->rdoq_ctrls.dct_dct_only && tx_type != DCT_DCT) ||
             (ctx->rdoq_ctrls.skip_uv && component_type != COMPONENT_LUMA)) {
             perform_rdoq = 0;
         }
     }
-#if OPT_RDOQ_BIS
     if (perform_rdoq) {
-#else
-    if (perform_rdoq && ctx->rdoq_ctrls.satd_factor != ((uint8_t)~0)) {
-        int       satd  = svt_aom_satd(coeff, n_coeffs);
-        const int shift = (MAX_TX_SCALE - av1_get_tx_scale_tab[txsize]);
-
-        satd = RIGHT_SIGNED_SHIFT(satd, shift);
-        satd >>= (pcs->ppcs->enhanced_pic->bit_depth - 8);
-        const int skip_block_trellis = ((uint64_t)satd >
-                                        (uint64_t)ctx->rdoq_ctrls.satd_factor * qstep * sqrt_tx_pixels_2d[txsize]);
-        if (skip_block_trellis) {
-            perform_rdoq = 0;
-        }
-    }
-
-    if (perform_rdoq && ((!component_type && ctx->rdoq_ctrls.fp_q_y) || (component_type && ctx->rdoq_ctrls.fp_q_uv))) {
-#endif
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
         if ((bit_depth > EB_EIGHT_BIT) || (is_encode_pass && scs->is_16bit_pipeline)) {
             svt_av1_highbd_quantize_fp_facade((TranLow*)coeff,
@@ -2440,9 +2352,7 @@ uint8_t svt_aom_do_md_recon(PictureParentControlSet* pcs, ModeDecisionContext* c
         encdec_bypass; // for inter prediction of future frame or if recon is being output
     const uint8_t need_md_rec_for_dlf_search  = pcs->dlf_ctrls.enabled; // for DLF levels
     const uint8_t need_md_rec_for_cdef_search = pcs->cdef_search_ctrls.enabled &&
-#if OPT_Q_CDEF
         !pcs->cdef_search_ctrls.use_qp_strength &&
-#endif
         !pcs->cdef_search_ctrls.use_reference_cdef_fs; // CDEF search levels needing the recon samples
     const uint8_t need_md_rec_for_restoration_search = pcs->enable_restoration; // any resoration search level
     const uint8_t need_md_rec_for_quality            = (pcs->compute_psnr || pcs->compute_ssim) &&

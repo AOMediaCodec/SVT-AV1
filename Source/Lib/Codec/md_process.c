@@ -213,13 +213,8 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
                                                EbFifo* mode_decision_configuration_input_fifo_ptr,
                                                EbFifo* mode_decision_output_fifo_ptr, uint8_t enable_hbd_mode_decision,
                                                uint8_t seq_qp_mod) {
-#if !TUNE_STILL_IMAGE
-    const ResolutionRange input_resolution = scs->input_resolution;
-#endif
     const bool allintra = scs->allintra;
-#if TUNE_STILL_IMAGE
     const bool rtc_tune = scs->static_config.rtc;
-#endif
     uint32_t buffer_index;
     uint32_t cand_index;
 
@@ -240,7 +235,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     // determine MAX_NICS for a given preset
     // get the min scaling level (the smallest scaling level is the most conservative)
     uint8_t min_nic_scaling_level = NICS_SCALING_LEVELS - 1;
-#if TUNE_STILL_IMAGE
     uint8_t stage1_scaling_num;
     if (allintra) {
         uint8_t nic_level  = svt_aom_get_nic_level_allintra(enc_mode);
@@ -259,21 +253,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
 
         stage1_scaling_num = MD_STAGE_NICS_SCAL_NUM[min_nic_scaling_level][MD_STAGE_1];
     }
-#else
-    for (uint8_t sc_class1 = 0; sc_class1 < 2; sc_class1++) {
-        for (uint8_t rtc_itr = 0; rtc_itr < 2; rtc_itr++) {
-            bool rtc_tune = (bool)rtc_itr;
-            for (uint8_t is_base = 0; is_base < 2; is_base++) {
-                uint8_t nic_level         = svt_aom_get_nic_level(scs, enc_mode, is_base, rtc_tune, sc_class1);
-                uint8_t nic_scaling_level = svt_aom_set_nic_controls(NULL, nic_level);
-                min_nic_scaling_level     = MIN(min_nic_scaling_level, nic_scaling_level);
-            }
-        }
-    }
-
-    uint8_t stage1_scaling_num = MD_STAGE_NICS_SCAL_NUM[min_nic_scaling_level][MD_STAGE_1];
-
-#endif
     // scale max_nics
     uint32_t max_nics = 0;
     {
@@ -298,7 +277,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     }
 
     // If independent chroma search is used, need to allocate additional 84 candidate buffers
-#if TUNE_STILL_IMAGE
     bool is_chroma_mode_0;
     if (allintra) {
         is_chroma_mode_0 = svt_aom_set_chroma_controls(NULL, svt_aom_get_chroma_level_allintra(enc_mode)) ==
@@ -320,16 +298,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
             }
         }
     }
-#else
-    bool is_chroma_mode_0 = false;
-    for (uint8_t is_i_slice = 0; is_i_slice < 2; is_i_slice++) {
-        is_chroma_mode_0 = svt_aom_set_chroma_controls(
-                               NULL, svt_aom_get_chroma_level(enc_mode, is_i_slice, allintra)) == CHROMA_MODE_0;
-        if (is_chroma_mode_0) {
-            break;
-        }
-    }
-#endif
     const uint8_t ind_uv_cands = is_chroma_mode_0 ? 84 : 0;
     max_nics += CAND_CLASS_TOTAL; //need one extra temp buffer for each fast loop call
     ctx->max_nics    = max_nics;
@@ -343,7 +311,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     }
     EB_MALLOC_ALIGNED(ctx->pred_buf_q3, CFL_BUF_SQUARE);
     uint8_t use_update_cdf = 0;
-#if TUNE_STILL_IMAGE
     if (allintra) {
         use_update_cdf = svt_aom_get_update_cdf_level_allintra(enc_mode);
     } else if (rtc_tune) {
@@ -369,19 +336,6 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
             }
         }
     }
-#else
-    for (uint8_t sc_class1 = 0; sc_class1 < 2; sc_class1++) {
-        for (uint8_t is_islice = 0; is_islice < 2; is_islice++) {
-            for (uint8_t is_base = 0; is_base < 2; is_base++) {
-                if (use_update_cdf) {
-                    break;
-                }
-                use_update_cdf |= svt_aom_get_update_cdf_level(
-                    enc_mode, is_islice, is_base, sc_class1, input_resolution, allintra);
-            }
-        }
-    }
-#endif
     if (use_update_cdf) {
         EB_CALLOC_ARRAY(ctx->rate_est_table, 1);
     } else {
@@ -525,18 +479,12 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     EB_MALLOC_ARRAY(ctx->md_blk_arr_nsq[0].av1xd, block_max_count_sb);
 
     // Alloc mds and pc_tree, which are used to track tested blocks in MD
-#if TUNE_STILL_IMAGE
     bool disallow_4x4 = allintra ? svt_aom_get_disallow_4x4_allintra(enc_mode)
         : rtc_tune               ? svt_aom_get_disallow_4x4_rtc(enc_mode)
                                  : svt_aom_get_disallow_4x4_default(enc_mode);
     bool disallow_8x8 = allintra ? svt_aom_get_disallow_8x8_allintra()
         : rtc_tune ? svt_aom_get_disallow_8x8_rtc(enc_mode, scs->max_input_luma_width, scs->max_input_luma_height)
                    : svt_aom_get_disallow_8x8_default();
-#else
-    bool disallow_4x4 = svt_aom_get_disallow_4x4(enc_mode);
-    bool disallow_8x8 = svt_aom_get_disallow_8x8(
-        enc_mode, allintra, scs->static_config.rtc, scs->max_input_luma_width, scs->max_input_luma_height);
-#endif
     uint8_t min_bsize        = disallow_8x8 ? 16 : disallow_4x4 ? 8 : 4;
     int     blocks_per_depth = (sb_size / min_bsize) * (sb_size / min_bsize);
     int     blocks_to_alloc  = 0;
@@ -552,20 +500,14 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     setup_pc_tree(ctx->pc_tree, ctx->tested_blk, 0, scs->seq_header.sb_size, min_bsize);
     ctx->blocks_to_alloc = blocks_to_alloc;
 
-#if TUNE_STILL_IMAGE
     bool bypass_encdec = allintra ? svt_aom_get_bypass_encdec_allintra(enc_mode)
         : rtc_tune                ? svt_aom_get_bypass_encdec_rtc(enc_mode, encoder_bit_depth)
                                   : svt_aom_get_bypass_encdec_default(enc_mode, encoder_bit_depth);
-#endif
     for (coded_leaf_index = 0; coded_leaf_index < block_max_count_sb; ++coded_leaf_index) {
         ctx->md_blk_arr_nsq[coded_leaf_index].av1xd      = ctx->md_blk_arr_nsq[0].av1xd + coded_leaf_index;
         ctx->md_blk_arr_nsq[coded_leaf_index].segment_id = 0;
         const BlockGeom* blk_geom                        = get_blk_geom_mds(scs->blk_geom_mds, coded_leaf_index);
-#if TUNE_STILL_IMAGE
         if (bypass_encdec) {
-#else
-        if (svt_aom_get_bypass_encdec(enc_mode, encoder_bit_depth)) {
-#endif
             EbPictureBufferDescInitData init_data;
 
             init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;

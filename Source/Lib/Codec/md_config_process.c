@@ -30,33 +30,10 @@
 #include "enc_mode_config.h"
 #include "global_me.h"
 #include "aom_dsp_rtcd.h"
-#if !OPT_INTRA_BC_PATH
-#define MAX_MESH_SPEED 5 // Max speed setting for mesh motion method
-#endif
 #define MAX_OFFSET_WIDTH 64
 #define MAX_OFFSET_HEIGHT 0
 #define MFMV_STACK_SIZE 3
 
-#if !OPT_INTRA_BC_PATH
-static const MeshPattern good_quality_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
-    {{64, 8}, {28, 4}, {15, 1}, {7, 1}},
-    {{64, 8}, {28, 4}, {15, 1}, {7, 1}},
-    {{64, 8}, {14, 2}, {7, 1}, {7, 1}},
-    {{64, 16}, {24, 8}, {12, 4}, {7, 1}},
-    {{64, 16}, {24, 8}, {12, 4}, {7, 1}},
-    {{64, 16}, {24, 8}, {12, 4}, {7, 1}},
-};
-// TODO: These settings are pretty relaxed, tune them for
-// each speed setting
-static const MeshPattern intrabc_mesh_patterns[MAX_MESH_SPEED + 1][MAX_MESH_STEP] = {
-    {{256, 1}, {256, 1}, {0, 0}, {0, 0}},
-    {{256, 1}, {256, 1}, {0, 0}, {0, 0}},
-    {{64, 1}, {64, 1}, {0, 0}, {0, 0}},
-    {{64, 1}, {64, 1}, {0, 0}, {0, 0}},
-    {{64, 4}, {16, 1}, {0, 0}, {0, 0}},
-    {{64, 4}, {16, 1}, {0, 0}, {0, 0}},
-};
-#endif
 static void set_global_motion_field(PictureControlSet* pcs) {
     // Init Global Motion Vector
     uint8_t frame_index;
@@ -603,7 +580,6 @@ static void av1_setup_motion_field(Av1Common* cm, PictureControlSet* pcs) {
 EbErrorType svt_av1_hash_table_create(HashTable* p_hash_table);
 int32_t     svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
 
-#if OPT_INTRA_BC_PATH
 static void generate_ibc_data(PictureControlSet* pcs) {
     const int pic_width  = pcs->ppcs->aligned_width;
     const int pic_height = pcs->ppcs->aligned_height;
@@ -639,70 +615,6 @@ static void generate_ibc_data(PictureControlSet* pcs) {
         EB_FREE_ARRAY(block_hash_values[j]);
     }
 }
-#else
-static void generate_ibc_data(PictureControlSet* pcs) {
-    if (!pcs->ppcs->frm_hdr.allow_intrabc) {
-        return;
-    }
-
-    int            i;
-    int            speed = 1;
-    SpeedFeatures* sf    = &pcs->sf;
-
-    const int mesh_speed           = AOMMIN(speed, MAX_MESH_SPEED);
-    sf->exhaustive_searches_thresh = (1 << 25);
-    if (mesh_speed > 0) {
-        sf->exhaustive_searches_thresh = sf->exhaustive_searches_thresh << 1;
-    }
-
-    for (i = 0; i < MAX_MESH_STEP; ++i) {
-        sf->mesh_patterns[i].range    = good_quality_mesh_patterns[mesh_speed][i].range;
-        sf->mesh_patterns[i].interval = good_quality_mesh_patterns[mesh_speed][i].interval;
-    }
-
-    if (pcs->slice_type == I_SLICE) {
-        for (i = 0; i < MAX_MESH_STEP; ++i) {
-            sf->mesh_patterns[i].range    = intrabc_mesh_patterns[mesh_speed][i].range;
-            sf->mesh_patterns[i].interval = intrabc_mesh_patterns[mesh_speed][i].interval;
-        }
-    }
-
-    {
-        // add to hash table
-        const int pic_width  = pcs->ppcs->aligned_width;
-        const int pic_height = pcs->ppcs->aligned_height;
-
-        uint32_t* block_hash_values[2];
-        int       j;
-
-        for (j = 0; j < 2; j++) {
-            EB_MALLOC_ARRAY_NO_CHECK(block_hash_values[j], pic_width * pic_height);
-        }
-        svt_aom_rtime_alloc_svt_av1_hash_table_create(&pcs->hash_table);
-        Yv12BufferConfig cpi_source;
-        svt_aom_link_eb_to_aom_buffer_desc_8bit(pcs->ppcs->enhanced_pic, &cpi_source);
-        svt_av1_crc32c_calculator_init(&pcs->crc_calculator);
-        svt_av1_generate_block_2x2_hash_value(&cpi_source, block_hash_values[0], pcs);
-        uint8_t       src_idx     = 0;
-        const uint8_t max_sb_size = pcs->ppcs->intraBC_ctrls.max_block_size_hash;
-        for (int size = 4; size <= max_sb_size; size <<= 1, src_idx = !src_idx) {
-            const uint8_t dst_idx = !src_idx;
-            svt_av1_generate_block_hash_value(
-                &cpi_source, size, block_hash_values[src_idx], block_hash_values[dst_idx], pcs);
-            if (size != 4 || pcs->ppcs->intraBC_ctrls.hash_4x4_blocks) {
-                svt_aom_rtime_alloc_svt_av1_add_to_hash_map_by_row_with_precal_data(
-                    &pcs->hash_table, block_hash_values[dst_idx], pic_width, pic_height, size);
-            }
-        }
-        for (j = 0; j < 2; j++) {
-            EB_FREE_ARRAY(block_hash_values[j]);
-        }
-    }
-
-    svt_av1_init3smotion_compensation(&pcs->ss_cfg, pcs->ppcs->enhanced_pic->y_stride);
-}
-#endif
-#if FTR_INTRA_COEFF_LVL
 static void derive_intra_coeff_level(PictureControlSet* pcs) {
     uint64_t cmplx = pcs->ppcs->pic_avg_variance / MAX(1, pcs->scs->static_config.qp);
 
@@ -734,11 +646,6 @@ static void derive_intra_coeff_level(PictureControlSet* pcs) {
     }
 }
 static void derive_inter_coeff_level(PictureControlSet* pcs) {
-#else
-/* Determine the frame complexity level (stored under pcs->coeff_lvl) based
-on the ME distortion and QP. */
-static void set_frame_coeff_lvl(PictureControlSet* pcs) {
-#endif
     // Derive the input nois level
     EbPictureBufferDesc* input_pic = pcs->ppcs->enhanced_pic;
 
@@ -751,15 +658,9 @@ static void set_frame_coeff_lvl(PictureControlSet* pcs) {
 
     noise_level_fp16 = svt_aom_noise_log1p_fp16(noise_level_fp16);
     uint64_t cmplx   = pcs->ppcs->norm_me_dist / MAX(1, pcs->scs->static_config.qp);
-#if FTR_INTRA_COEFF_LVL
     uint64_t coeff_vlow_level_th = COEFF_LVL_INTER_TH_0;
     uint64_t coeff_low_level_th  = COEFF_LVL_INTER_TH_1;
     uint64_t coeff_high_level_th = COEFF_LVL_INTER_TH_2;
-#else
-    uint64_t coeff_vlow_level_th = COEFF_LVL_TH_0;
-    uint64_t coeff_low_level_th  = COEFF_LVL_TH_1;
-    uint64_t coeff_high_level_th = COEFF_LVL_TH_2;
-#endif
     if (pcs->ppcs->input_resolution == INPUT_SIZE_240p_RANGE) {
         coeff_vlow_level_th = (uint64_t)((double)coeff_vlow_level_th * 1.7);
         coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.7);
@@ -1011,17 +912,11 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
             pcs->avg_me_clpx = avg_me_clpx / pcs->ppcs->b64_total_count;
         }
         pcs->coeff_lvl = INVALID_LVL;
-#if FTR_INTRA_COEFF_LVL
         if (scs->allintra) {
             derive_intra_coeff_level(pcs);
         } else if (!scs->static_config.rtc && pcs->slice_type != I_SLICE && !pcs->ppcs->sc_class1) {
             derive_inter_coeff_level(pcs);
         }
-#else
-        if (!scs->static_config.rtc && pcs->slice_type != I_SLICE && !pcs->ppcs->sc_class1) {
-            set_frame_coeff_lvl(pcs);
-        }
-#endif
         // -------
         // Scale references if resolution of the reference is different than the input
         // super-res reference frame size is same as original input size, only check current frame scaled flag;
@@ -1042,7 +937,6 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
 
         FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
         // Mode Decision Configuration Kernel Signal(s) derivation
-#if TUNE_STILL_IMAGE
         if (scs->allintra) {
             svt_aom_sig_deriv_mode_decision_config_allintra(scs, pcs);
         } else if (scs->static_config.rtc) {
@@ -1050,9 +944,6 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
         } else {
             svt_aom_sig_deriv_mode_decision_config_default(scs, pcs);
         }
-#else
-        svt_aom_sig_deriv_mode_decision_config(scs, pcs);
-#endif
 
         if (pcs->slice_type != I_SLICE && scs->mfmv_enabled) {
             av1_setup_motion_field(pcs->ppcs->av1_cm, pcs);
@@ -1068,7 +959,6 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
         svt_av1_qm_init(pcs->ppcs);
         // Initialize the rate estimation tables for the frame
         init_frame_rate_tables(pcs);
-#if OPT_INTRA_BC_PATH
         if (frm_hdr->allow_intrabc) {
             IntrabcCtrls* intraBC_ctrls = &(pcs->ppcs->intrabc_ctrls);
             // Generate hash table for intra-Bc if max block size is set
@@ -1079,7 +969,6 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
             // Initialize search sites for diamond/3-step search for intra-Bc
             svt_av1_init3smotion_compensation(&pcs->ss_cfg, pcs->ppcs->enhanced_pic->y_stride);
 
-#if OPT_MESH_QP
             if (intraBC_ctrls->mesh_qp_scaling) {
                 // QP-scaled thresholds
                 uint32_t q_weight, q_weight_denom;
@@ -1094,14 +983,7 @@ void* svt_aom_mode_decision_configuration_kernel(void* input_ptr) {
                     mesh_patterns[i].range = DIVIDE_AND_ROUND(mesh_patterns[i].range * q_weight, q_weight_denom);
                 }
             }
-#endif
         }
-#else
-        // generate hash table for IBC, if enabled
-        if (frm_hdr->allow_intrabc) {
-            generate_ibc_data(pcs);
-        }
-#endif
         CdefSearchControls* cdef_ctrls = &pcs->ppcs->cdef_search_ctrls;
         const uint8_t       skip_perc  = pcs->ref_skip_percentage;
         if (me_based_cdef_skip(pcs) || (skip_perc > 75 && cdef_ctrls->use_skip_detector) ||

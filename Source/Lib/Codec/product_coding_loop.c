@@ -1240,11 +1240,7 @@ void fast_loop_core(ModeDecisionCandidateBuffer* cand_bf, PictureControlSet* pcs
     ctx->uv_intra_comp_only = false;
     product_prediction_fun_table[is_inter_mode(cand->block_mi.mode) || cand->block_mi.use_intrabc](
         ctx->hbd_md, ctx, pcs, cand_bf);
-#if OPT_PER_BLK_INTRA
     if (ctx->mds0_use_hadamard_blk) {
-#else
-    if (ctx->mds0_use_hadamard) {
-#endif
         uint32_t satd           = hadamard_path(cand_bf, ctx, input_pic, loc);
         cand_bf->luma_fast_dist = satd;
 
@@ -4443,15 +4439,7 @@ static void tx_type_search(PictureControlSet* pcs, ModeDecisionContext* ctx, Mod
     for (int tx_type_group_idx = 0; tx_type_group_idx < tx_type_tot_group; ++tx_type_group_idx) {
         uint32_t best_tx_non_coeff = 64 * 64;
         for (int tx_type_idx = 0; tx_type_idx < TX_TYPES; ++tx_type_idx) {
-#if OPT_UNIFY_TXT_SC_NSC
             tx_type = tx_type_group[tx_type_group_idx][tx_type_idx];
-#else
-            if (pcs->ppcs->sc_class1) {
-                tx_type = tx_type_group_sc[tx_type_group_idx][tx_type_idx];
-            } else {
-                tx_type = tx_type_group[tx_type_group_idx][tx_type_idx];
-            }
-#endif
             if (tx_type == INVALID_TX_TYPE) {
                 break;
             }
@@ -6437,9 +6425,7 @@ static void full_loop_core(PictureControlSet* pcs, ModeDecisionContext* ctx, Mod
     }
     // Check if should perform TX type search
     if (ctx->blk_geom->sq_size <= 64 && start_tx_depth == 0 && end_tx_depth == 0 && // TXS off
-#if OPT_UNIFY_TXT_SC_NSC
         !pcs->ppcs->sc_class1 && // Can't be SC b/c SC tries DCT_DCT and IDTX when only_dct_dct is 1
-#endif
         search_dct_dct_only(pcs,
                             ctx,
                             cand_bf,
@@ -7343,15 +7329,9 @@ static void post_mds0_nic_pruning(PictureControlSet* pcs, ModeDecisionContext* c
                                             &q_weight,
                                             &q_weight_denom,
                                             pcs->ppcs->scs->static_config.qp);
-#if OPT_NIC_SC
     uint64_t mds1_class_th = (pcs->slice_type == I_SLICE || pruning_ctrls.mds1_class_th == (uint64_t)~0)
         ? (uint64_t)~0
         : DIVIDE_AND_ROUND(pruning_ctrls.mds1_class_th * q_weight, q_weight_denom);
-#else
-    uint64_t mds1_class_th = (pruning_ctrls.mds1_class_th == (uint64_t)~0)
-        ? pruning_ctrls.mds1_class_th
-        : DIVIDE_AND_ROUND(pruning_ctrls.mds1_class_th * q_weight, q_weight_denom);
-#endif
     uint8_t  mds1_band_cnt            = pruning_ctrls.mds1_band_cnt;
     uint16_t mds1_cand_th_rank_factor = pruning_ctrls.mds1_cand_th_rank_factor;
 
@@ -7420,15 +7400,9 @@ static void post_mds1_nic_pruning(PictureControlSet* pcs, ModeDecisionContext* c
         ? pruning_ctrls.mds2_cand_base_th
         : DIVIDE_AND_ROUND(pruning_ctrls.mds2_cand_base_th * q_weight, q_weight_denom);
 
-#if OPT_NIC_SC
     const uint64_t mds2_class_th = (pcs->slice_type == I_SLICE || pruning_ctrls.mds2_class_th == (uint64_t)~0)
         ? (uint64_t)~0
         : DIVIDE_AND_ROUND(pruning_ctrls.mds2_class_th * q_weight, q_weight_denom);
-#else
-    const uint64_t mds2_class_th = (pruning_ctrls.mds2_class_th == (uint64_t)~0)
-        ? pruning_ctrls.mds2_class_th
-        : DIVIDE_AND_ROUND(pruning_ctrls.mds2_class_th * q_weight, q_weight_denom);
-#endif
     const uint8_t                 mds2_band_cnt        = pruning_ctrls.mds2_band_cnt;
     const uint16_t                mds2_relative_dev_th = pruning_ctrls.mds2_relative_dev_th;
     ModeDecisionCandidateBuffer** cand_bf_arr          = ctx->cand_bf_ptr_array;
@@ -7504,18 +7478,12 @@ static void post_mds2_nic_pruning(PictureControlSet* pcs, ModeDecisionContext* c
         ? pruning_ctrls.mds3_cand_base_th
         : DIVIDE_AND_ROUND(pruning_ctrls.mds3_cand_base_th * q_weight, q_weight_denom);
 
-#if OPT_NIC_SC
     uint64_t mds3_class_th = (pruning_ctrls.mds3_class_th == (uint64_t)~0)
         ? pruning_ctrls.mds3_class_th
         : DIVIDE_AND_ROUND(pruning_ctrls.mds3_class_th * q_weight, q_weight_denom);
     if (pcs->slice_type == I_SLICE && mds3_class_th != (uint64_t)~0) {
         mds3_class_th = MAX(25, mds3_class_th * pruning_ctrls.i_mds3_class_th_mult);
     }
-#else
-    const uint64_t mds3_class_th = (pruning_ctrls.mds3_class_th == (uint64_t)~0)
-        ? pruning_ctrls.mds3_class_th
-        : DIVIDE_AND_ROUND(pruning_ctrls.mds3_class_th * q_weight, q_weight_denom);
-#endif
 
     const uint8_t                 mds3_band_cnt = pruning_ctrls.mds3_band_cnt;
     ModeDecisionCandidateBuffer** cand_bf_arr   = ctx->cand_bf_ptr_array;
@@ -7673,7 +7641,6 @@ static uint8_t is_intra_bordered(const ModeDecisionContext* ctx) {
     }
 }
 
-#if FTR_VLPD0
 static const uint8_t var_log2_lut[4] = {6, 5, 4, 3};
 static const uint8_t var_grid_lut[4] = {1, 2, 4, 8};
 static const uint8_t var_base_lut[4] = {0, 1, 5, 21};
@@ -7766,23 +7733,17 @@ static INLINE uint32_t compute_vlpd0_cost_allintra(PictureControlSet* pcs, ModeD
     return (area * bias) / 1000;
 }
 
-#endif
 static void md_encode_block_light_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx,
                                       EbPictureBufferDesc* input_pic) {
     const BlockGeom* blk_geom = ctx->blk_geom;
-#if FTR_VLPD0 // score
     BlkStruct* blk_ptr = ctx->blk_ptr;
     if (pcs->scs->allintra && ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0) {
         blk_ptr->cost = compute_vlpd0_cost_allintra(pcs, ctx);
         return;
     }
-#endif
     uint32_t       fast_candidate_total_count;
     const uint32_t input_origin_index = (ctx->blk_org_y) * input_pic->y_stride + (ctx->blk_org_x);
     const uint32_t blk_origin_index   = 0;
-#if !FTR_VLPD0
-    BlkStruct* blk_ptr = ctx->blk_ptr;
-#endif
     if (!ctx->skip_intra) {
         svt_aom_init_xd(pcs, ctx);
         ctx->mds_do_chroma      = false;
@@ -8889,7 +8850,6 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
         search_best_independent_uv_mode(
             pcs, input_pic, loc.input_cb_origin_in_index, loc.input_cb_origin_in_index, 0, ctx);
     }
-#if TUNE_STILL_IMAGE
     if (pcs->slice_type != I_SLICE) {
         ctx->is_intra_bordered  = ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled ? is_intra_bordered(ctx)
                                                                                                 : 0;
@@ -8925,48 +8885,9 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
             svt_aom_precompute_intra_pred_for_inter_intra(pcs, ctx);
         }
     }
-#else
-    ctx->is_intra_bordered = ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled ? is_intra_bordered(ctx) : 0;
-    ctx->updated_enable_pme = ctx->md_pme_ctrls.enabled;
-    ctx->updated_enable_pme = ctx->is_intra_bordered && ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled
-        ? 0
-        : ctx->updated_enable_pme;
-
-    // Read MVPs (rounded-up to the closest integer) for use in md_sq_motion_search() and/or predictive_me_search() and/or perform_md_reference_pruning()
-    if (pcs->slice_type != I_SLICE &&
-        ((ctx->md_subpel_me_ctrls.enabled && ctx->md_subpel_me_ctrls.mvp_th > 0) || ctx->md_sq_me_ctrls.enabled ||
-         ctx->updated_enable_pme || ctx->ref_pruning_ctrls.enabled)) {
-        build_single_ref_mvp_array(pcs, ctx);
-    }
-    if (pcs->slice_type != I_SLICE) {
-        // Read and (if needed) perform 1/8 Pel ME MVs refinement
-        read_refine_me_mvs(pcs, ctx, pc_tree);
-    }
-    ctx->md_pme_dist = (uint32_t)~0;
-    for (uint8_t list_idx = 0; list_idx < MAX_NUM_OF_REF_PIC_LIST; list_idx++) {
-        for (uint8_t ref_idx = 0; ref_idx < REF_LIST_MAX_DEPTH; ref_idx++) {
-            ctx->pme_res[list_idx][ref_idx].dist = (uint32_t)~0;
-        }
-    }
-    // Perform md reference pruning
-    if (ctx->ref_pruning_ctrls.enabled) {
-        perform_md_reference_pruning(pcs, ctx);
-    }
-    // Perform ME search around the best MVP
-    if (ctx->updated_enable_pme) {
-        pme_search(pcs, ctx, input_pic);
-    }
-    if (ctx->inter_intra_comp_ctrls.enabled && svt_aom_is_interintra_allowed_bsize(ctx->blk_geom->bsize)) {
-        svt_aom_precompute_intra_pred_for_inter_intra(pcs, ctx);
-    }
-#endif
     uint32_t fast_candidate_total_count;
     ctx->md_stage = MD_STAGE_0;
-#if OPT_NSQ_INTRABC_PARENT_GATE
     generate_md_stage_0_cand(pcs, ctx, pc_tree, &fast_candidate_total_count);
-#else
-    generate_md_stage_0_cand(pcs, ctx, &fast_candidate_total_count);
-#endif
     if (pcs->slice_type != I_SLICE && ctx->approx_inter_rate < 2) {
         if (!ctx->shut_fast_rate) {
             estimate_ref_frames_num_bits(ctx, pcs);
@@ -8984,11 +8905,9 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
     uint64_t best_md_stage_cost = (uint64_t)~0;
     ctx->mds0_best_idx          = 0;
     ctx->mds0_best_class_it     = 0;
-#if OPT_PER_BLK_INTRA // use_hadamard
     // Enable Hadamard cost at block level only when enabled for the SB
     // and when multiple fast candidates exist (no benefit for single candidate).
     ctx->mds0_use_hadamard_blk = ctx->mds0_use_hadamard_sb && fast_candidate_total_count > 1;
-#endif
     ctx->mds1_best_idx          = 0;
     ctx->mds1_best_class_it     = 0;
     ctx->perform_mds1           = 1;
@@ -9047,11 +8966,7 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
     // Use detector for applying TX shortcuts at MDS3; if MDS1 is performed, use that info to apply
     // shortcuts instead of MDS0 info
 
-#if OPT_PER_BLK_INTRA // use_hadamard
     if (ctx->perform_mds1 == 0 && ctx->tx_shortcut_ctrls.use_mds3_shortcuts_th > 0 && !ctx->mds0_use_hadamard_blk) {
-#else
-    if (ctx->perform_mds1 == 0 && ctx->tx_shortcut_ctrls.use_mds3_shortcuts_th > 0 && !ctx->mds0_use_hadamard) {
-#endif
         tx_shortcut_detector(ctx, cand_bf_ptr_array);
     }
     // 1st Full-Loop
@@ -9774,40 +9689,6 @@ static void init_block_data(PictureControlSet* pcs, ModeDecisionContext* ctx, co
     }
 }
 
-#if !FTR_VLPD0
-static const uint8_t var_log2_lut[4] = {6, 5, 4, 3};
-static const uint8_t var_grid_lut[4] = {1, 2, 4, 8};
-static const uint8_t var_base_lut[4] = {0, 1, 5, 21};
-
-static void get_blk_var_map(int block_size, int org_x, int org_y, int* blk_idx, int sub_idx[4]) {
-    // Map block size to level: 64->0, 32->1, 16->2, 8->3
-    const int lvl = 6 - svt_log2f(block_size);
-
-    // Parent block
-    const int shift = var_log2_lut[lvl];
-    const int grid  = var_grid_lut[lvl];
-    const int base  = var_base_lut[lvl];
-
-    const int gx = org_x >> shift;
-    const int gy = org_y >> shift;
-
-    *blk_idx = base + gy * grid + gx;
-
-    // Sub-blocks
-    const int sub_lvl   = lvl + 1;
-    const int sub_shift = var_log2_lut[sub_lvl];
-    const int sub_base  = var_base_lut[sub_lvl];
-    const int sub_grid  = var_grid_lut[sub_lvl];
-
-    const int sx = org_x >> sub_shift;
-    const int sy = org_y >> sub_shift;
-
-    sub_idx[0] = sub_base + (sy + 0) * sub_grid + (sx + 0);
-    sub_idx[1] = sub_base + (sy + 0) * sub_grid + (sx + 1);
-    sub_idx[2] = sub_base + (sy + 1) * sub_grid + (sx + 0);
-    sub_idx[3] = sub_base + (sy + 1) * sub_grid + (sx + 1);
-}
-#endif
 /*
  * Check if a block is redundant, and if so, copy the data from the original block
  * return 1 if block is redundant and updated, 0 otherwise
@@ -9968,66 +9849,6 @@ static void faster_md_settings_nsq(PictureControlSet* pcs, ModeDecisionContext* 
         ctx->params_status                         = 1;
     }
 }
-#if !CLN_REMOVE_VAR_SUB_DEPTH
-// Use variance to determine if sub depths should be skipped. Returns true when sub depths should be skipped,
-// false when the sub depths should be tested.
-static bool var_skip_sub_depth(PictureControlSet* pcs, ModeDecisionContext* ctx) {
-    int blk_idx;
-    int sub_idx[4];
-#if FTR_VLPD0
-    svt_aom_get_blk_var_map(ctx->blk_geom->sq_size, ctx->blk_geom->org_x, ctx->blk_geom->org_y, &blk_idx, sub_idx);
-#else
-    get_blk_var_map(ctx->blk_geom->sq_size, ctx->blk_geom->org_x, ctx->blk_geom->org_y, &blk_idx, sub_idx);
-#endif
-    uint16_t* sb_var = pcs->ppcs->variance[ctx->sb_index];
-
-    uint32_t sub_var[4] = {sb_var[sub_idx[0]], sb_var[sub_idx[1]], sb_var[sub_idx[2]], sb_var[sub_idx[3]]};
-
-    uint32_t min_var = UINT32_MAX;
-    uint32_t max_var = 0;
-    uint32_t sum_var = 0;
-
-    for (int i = 0; i < 4; i++) {
-        uint32_t v = sub_var[i];
-        sum_var += v;
-        if (v < min_var) {
-            min_var = v;
-        }
-        if (v > max_var) {
-            max_var = v;
-        }
-    }
-
-    uint32_t spread_var = max_var - min_var;
-
-    uint32_t count_non_zero_coeffs = ctx->md_blk_arr_nsq[ctx->blk_geom->sqi_mds].cnt_nz_coeff;
-    uint32_t total_samples         = (ctx->blk_geom->sq_size * ctx->blk_geom->sq_size);
-    uint32_t coeff_perc            = (count_non_zero_coeffs * 100) / total_samples;
-
-    uint32_t q_weight, q_weight_denom;
-    svt_aom_get_qp_based_th_scaling_factors(pcs->scs->qp_based_th_scaling_ctrls.var_skip_sub_depth_qp_based_th_scaling,
-                                            &q_weight,
-                                            &q_weight_denom,
-                                            pcs->scs->static_config.qp);
-
-    uint8_t  th_idx  = 6 - svt_log2f(ctx->blk_geom->sq_size);
-    uint32_t abs_th  = ctx->var_skip_sub_depth_ctrls.edge_th[th_idx][0];
-    abs_th           = DIVIDE_AND_ROUND(abs_th * q_weight, q_weight_denom);
-    uint32_t rel_th  = ctx->var_skip_sub_depth_ctrls.edge_th[th_idx][1];
-    rel_th           = DIVIDE_AND_ROUND(rel_th * q_weight, q_weight_denom);
-    uint32_t peak_th = ctx->var_skip_sub_depth_ctrls.edge_th[th_idx][2];
-    peak_th          = DIVIDE_AND_ROUND(peak_th * q_weight, q_weight_denom);
-#if FTR_VLPD0
-    const bool is_edge = (ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0 ||
-                          coeff_perc > ctx->var_skip_sub_depth_ctrls.coeff_th) &&
-#else
-    const bool is_edge = (coeff_perc > ctx->var_skip_sub_depth_ctrls.coeff_th) &&
-#endif
-        (100 * spread_var > abs_th * sum_var) && (100 * max_var > rel_th * sum_var) && (spread_var > peak_th);
-
-    return !is_edge;
-}
-#endif
 
 static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet* pcs, ModeDecisionContext* ctx,
                                       MdScan* mds, PC_TREE* pc_tree, int mi_row, int mi_col) {
@@ -10040,7 +9861,6 @@ static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet
     }
 
     const uint32_t full_lambda = ctx->full_sb_lambda_md[EB_8_BIT_MD];
-#if FTR_VLPD0 //
     int64_t above_split_rate = (scs->allintra && ctx->lpd0_ctrls.pd0_level == VERY_LIGHT_PD0)
         ? 0
         : svt_aom_partition_rate_cost(pcs->ppcs,
@@ -10051,16 +9871,6 @@ static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet
                                       PARTITION_SPLIT,
                                       0, //left_neighbor_partition,
                                       0); // above_neighbor_partition);
-#else
-    int64_t above_split_rate = svt_aom_partition_rate_cost(pcs->ppcs,
-                                                           pc_tree->bsize,
-                                                           mi_row,
-                                                           mi_col,
-                                                           ctx->md_rate_est_ctx,
-                                                           PARTITION_SPLIT,
-                                                           0, //left_neighbor_partition,
-                                                           0); // above_neighbor_partition);
-#endif
     // If not using accurate partition rate, bias against splitting by increasing the rate of SPLIT partition
     if (!pcs->ppcs->use_accurate_part_ctx) {
         above_split_rate *= 2;
@@ -10080,9 +9890,7 @@ static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet
         }
 
         // Check current depth cost; if larger than parent, exit early
-#if FTR_VLPD0
         if (!pcs->scs->allintra || ctx->lpd0_ctrls.pd0_level != VERY_LIGHT_PD0) {
-#endif
             if (pc_tree->rdc.valid) {
                 const uint32_t th = (i == 0)
                     ? (ctx->depth_early_exit_ctrls.split_cost_th == 0 ? 1000
@@ -10093,9 +9901,7 @@ static bool test_split_partition_lpd0(SequenceControlSet* scs, PictureControlSet
                     return false;
                 }
             }
-#if FTR_VLPD0
         }
-#endif
         const bool valid_split_partition = svt_aom_pick_partition_lpd0(
             scs, pcs, ctx, mds->split[i], pc_tree->split[i], mi_row + y_idx, mi_col + x_idx);
 
@@ -10181,14 +9987,6 @@ bool svt_aom_pick_partition_lpd0(SequenceControlSet* scs, PictureControlSet* pcs
         pc_tree->rdc.rd_cost = pc_tree->block_data[shape][0]->cost;
         pc_tree->rdc.valid   = 1;
         pc_tree->partition   = from_shape_to_part[shape];
-#if !CLN_REMOVE_VAR_SUB_DEPTH
-        if (ctx->var_skip_sub_depth_ctrls.enabled && mds->split_flag && pc_tree->tested_blk[PART_N][0]) {
-            if (ctx->blk_geom->sq_size <= ctx->var_skip_sub_depth_ctrls.max_size &&
-                ctx->blk_geom->sq_size >= ctx->var_skip_sub_depth_ctrls.min_size && var_skip_sub_depth(pcs, ctx)) {
-                mds->split_flag = false;
-            }
-        }
-#endif
     }
 
     if (mds->split_flag) {
@@ -10498,24 +10296,18 @@ static bool test_split_partition(SequenceControlSet* scs, PictureControlSet* pcs
 
 static bool test_depth(SequenceControlSet* scs, PictureControlSet* pcs, ModeDecisionContext* ctx, MdScan* mds,
                        PC_TREE* pc_tree, const int mi_row, const int mi_col) {
-#if TUNE_STILL_IMAGE
     const bool allintra = scs->allintra;
     const bool rtc_tune = scs->static_config.rtc;
-#endif
     EbPictureBufferDesc* input_pic        = ctx->hbd_md ? pcs->input_frame16bit : pcs->ppcs->enhanced_pic;
     const uint32_t       base_blk_idx_mds = mds->mds_idx;
 
     // Reset settings, in case they were over-written by previous block
     // Only reset settings when features that change settings are used.
     if (ctx->params_status == 1) {
-#if TUNE_STILL_IMAGE
         allintra       ? svt_aom_sig_deriv_enc_dec_allintra(pcs, ctx)
             : rtc_tune ? svt_aom_sig_deriv_enc_dec_rtc(pcs, ctx)
                        : svt_aom_sig_deriv_enc_dec_default(pcs, ctx);
 
-#else
-        svt_aom_sig_deriv_enc_dec(scs, pcs, ctx);
-#endif
         ctx->params_status = 0;
     }
 

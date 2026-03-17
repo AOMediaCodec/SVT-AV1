@@ -15,9 +15,6 @@
 
 static const int crc_bits        = 16;
 static const int block_size_bits = 3;
-#if !OPT_INTRA_BC_PATH
-static const int max_candidates_per_hash_bucket = 256;
-#endif
 static void hash_table_clear_all(HashTable* p_hash_table) {
     if (p_hash_table->p_lookup_table == NULL) {
         return;
@@ -112,12 +109,8 @@ EbErrorType svt_aom_rtime_alloc_svt_av1_hash_table_create(HashTable* p_hash_tabl
 
     return err_code;
 }
-#if OPT_INTRA_BC_PATH
 static bool hash_table_add_to_table(HashTable* p_hash_table, uint32_t hash_value, const BlockHash* curr_block_hash,
                                     uint16_t max_cand_per_bucket) {
-#else
-static bool hash_table_add_to_table(HashTable* p_hash_table, uint32_t hash_value, const BlockHash* curr_block_hash) {
-#endif
     if (p_hash_table->p_lookup_table[hash_value] == NULL) {
         EB_MALLOC_OBJECT_NO_CHECK(p_hash_table->p_lookup_table[hash_value]);
         if (p_hash_table->p_lookup_table[hash_value] == NULL) {
@@ -132,11 +125,7 @@ static bool hash_table_add_to_table(HashTable* p_hash_table, uint32_t hash_value
     // block candidates, and ignore subsequent ones. Considering more can
     // unnecessarily slow down encoding for virtually no efficiency gain.
     if (svt_aom_vector_byte_size(p_hash_table->p_lookup_table[hash_value]) <
-#if OPT_INTRA_BC_PATH
         max_cand_per_bucket * sizeof(*curr_block_hash)) {
-#else
-        max_candidates_per_hash_bucket * sizeof(*curr_block_hash)) {
-#endif
         if (svt_aom_vector_push_back(p_hash_table->p_lookup_table[hash_value], (void*)curr_block_hash) ==
             VECTOR_ERROR) {
             return false;
@@ -224,15 +213,9 @@ void svt_av1_generate_block_hash_value(const Yv12BufferConfig* picture, int bloc
         pos += block_size - 1;
     }
 }
-#if OPT_INTRA_BC_PATH
 bool svt_aom_rtime_alloc_svt_av1_add_to_hash_map_by_row_with_precal_data(HashTable* p_hash_table, uint32_t* pic_hash,
                                                                          int pic_width, int pic_height, int block_size,
                                                                          uint16_t max_cand_per_bucket) {
-#else
-bool svt_aom_rtime_alloc_svt_av1_add_to_hash_map_by_row_with_precal_data(HashTable* p_hash_table, uint32_t* pic_hash,
-                                                                         int pic_width, int pic_height,
-                                                                         int block_size) {
-#endif
     const int x_end = pic_width - block_size + 1;
     const int y_end = pic_height - block_size + 1;
 
@@ -284,11 +267,7 @@ bool svt_aom_rtime_alloc_svt_av1_add_to_hash_map_by_row_with_precal_data(HashTab
 
                 const uint32_t hash_value1  = (pic_hash[pos] & crc_mask) + add_value;
                 curr_block_hash.hash_value2 = pic_hash[pos];
-#if OPT_INTRA_BC_PATH
                 if (!hash_table_add_to_table(p_hash_table, hash_value1, &curr_block_hash, max_cand_per_bucket)) {
-#else
-                if (!hash_table_add_to_table(p_hash_table, hash_value1, &curr_block_hash)) {
-#endif
                     return false;
                 }
             }

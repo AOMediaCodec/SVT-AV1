@@ -683,28 +683,13 @@ void svt_aom_loop_filter_sb(EbPictureBufferDesc* frame_buffer, //reconpicture,
 void svt_av1_loop_filter_frame(EbPictureBufferDesc* frame_buffer, PictureControlSet* pcs, int32_t plane_start,
                                int32_t plane_end) {
     SequenceControlSet* scs = pcs->scs;
-#if !OPT_DLF
-    //SuperBlock                     *sb_ptr;
-    //uint16_t                                   sb_index;
-    uint8_t  sb_size_log2 = (uint8_t)svt_log2f(scs->sb_size);
-    uint32_t x_sb_index;
-    uint32_t y_sb_index;
-    uint32_t sb_origin_x;
-    uint32_t sb_origin_y;
-    bool     end_of_row_flag;
-#endif
     uint32_t pic_width_in_sb      = (pcs->ppcs->aligned_width + scs->sb_size - 1) / scs->sb_size;
     uint32_t picture_height_in_sb = (pcs->ppcs->aligned_height + scs->sb_size - 1) / scs->sb_size;
 
     svt_av1_loop_filter_frame_init(&pcs->ppcs->frm_hdr, &pcs->ppcs->lf_info, plane_start, plane_end);
-#if OPT_DLF
-#if OPT_Q_CDEF
     if ((pcs->ppcs->cdef_search_ctrls.enabled && !pcs->ppcs->cdef_search_ctrls.use_qp_strength &&
          !pcs->ppcs->cdef_search_ctrls.use_reference_cdef_fs) ||
         pcs->ppcs->enable_restoration || pcs->ppcs->is_ref ||
-#else
-    if (pcs->ppcs->cdef_search_ctrls.enabled || pcs->ppcs->enable_restoration || pcs->ppcs->is_ref ||
-#endif
         scs->static_config.recon_enabled) {
         uint8_t sb_size_log2 = (uint8_t)svt_log2f(scs->sb_size);
         bool    end_of_row_flag;
@@ -720,20 +705,6 @@ void svt_av1_loop_filter_frame(EbPictureBufferDesc* frame_buffer, PictureControl
             }
         }
     }
-#else
-    for (y_sb_index = 0; y_sb_index < picture_height_in_sb; ++y_sb_index) {
-        for (x_sb_index = 0; x_sb_index < pic_width_in_sb; ++x_sb_index) {
-            //sb_index        = (uint16_t)(y_sb_index * pic_width_in_sb + x_sb_index);
-            //sb_ptr          = pcs->sb_ptr_array[sb_index];
-            sb_origin_x     = x_sb_index << sb_size_log2;
-            sb_origin_y     = y_sb_index << sb_size_log2;
-            end_of_row_flag = (x_sb_index == pic_width_in_sb - 1) ? true : false;
-
-            svt_aom_loop_filter_sb(
-                frame_buffer, pcs, sb_origin_y >> 2, sb_origin_x >> 2, plane_start, plane_end, end_of_row_flag);
-        }
-    }
-#endif
 }
 
 static void svt_copy_buffer(EbPictureBufferDesc* src, EbPictureBufferDesc* dst, Plane plane) {

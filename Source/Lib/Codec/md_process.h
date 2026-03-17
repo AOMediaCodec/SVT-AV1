@@ -431,30 +431,9 @@ typedef struct NsqPsqTxsCtrls {
 
 typedef struct RdoqCtrls {
     uint8_t enabled;
-#if OPT_RDOQ_BIS
     // 0: do not apply cutoff; >=1: apply RDOQ only to the percentage of coefficients near EOB defined by cut_off_num / cut_off_denum, skipping the rest (low frequencies)
     uint16_t cut_off_num;
     uint16_t cut_off_denum;
-#else
-    // 0: do not use cut off div; >=1: limit rdoq to a fixed low-frequency cut-off (DC + first AC coefficients) and skip rdoq on all higher frequencies
-    uint16_t cut_off_div;
-    // 0: do not use eob_fast for luma inter; 1: use eob_fast for luma inter
-    uint8_t eob_fast_y_inter;
-    // 0: do not use eob_fast for luma intra; 1: use eob_fast for luma intra
-    uint8_t eob_fast_y_intra;
-    // 0: do not use eob_fast for chroma inter; 1: use eob_fast for chroma inter
-    uint8_t eob_fast_uv_inter;
-    // 0: do not use eob_fast for chroma intra; 1: use eob_fast for chroma intra
-    uint8_t eob_fast_uv_intra;
-    // 0: use default quant for luma; 1: use fp_quant for luma
-    uint8_t fp_q_y;
-    // 0: use default quant for chroma; 1: use fp_quant for chroma
-    uint8_t fp_q_uv;
-    // Do not perform rdoq if the tx satd > satd_factor
-    uint8_t satd_factor;
-    // Do not perform rdoq based on an early skip/non-skip cost
-    uint8_t early_exit_th;
-#endif
     // [MD Only] 0: RDOQ for both Luma & Chroma, 1: RDOQ for only Luma
     uint8_t skip_uv;
     // [MD Only] 0: RDOQ for All txt type(s), 1: RDOQ for only DCT_DCT
@@ -487,23 +466,12 @@ typedef struct NicPruningCtrls {
     // band_index |0       |1         |2        |
     // band       |0 to 10 |10 to 20  |20 to +? |
     // action     |nic * 1 |nic * 1/2 |nic * 0  |
-#if OPT_NIC_SC
     uint64_t mds1_class_th; // Class threshold after MDS0 (ignored for intra frames)
     uint8_t  mds1_band_cnt;
     uint64_t mds2_class_th; // Class threshold after MDS1 (ignored for intra frames)
     uint8_t  mds2_band_cnt;
     uint64_t mds3_class_th; // Class threshold after MDS2
     uint8_t  i_mds3_class_th_mult; // Multiplier applied to MDS3 class pruning for intra frames only
-#else
-    // Post mds0
-    uint64_t mds1_class_th;
-    // Post mds1
-    uint8_t  mds1_band_cnt;
-    uint64_t mds2_class_th;
-    // >=2 Post mds2
-    uint8_t  mds2_band_cnt;
-    uint64_t mds3_class_th;
-#endif
     // cand pruning signal(s)
     // mdsx_cand_th (for single cand removal per class); remove cand if
     // deviation to the best_cand for @ the target class is higher than mdsx_cand_th
@@ -806,9 +774,7 @@ typedef struct IntraCtrls {
     // 0: angular off; 1: angular full; 2/3: limit num. angular candidates; 4: H + V only
     uint8_t angular_pred_level;
     uint8_t prune_using_best_mode;
-#if OPT_PER_BLK_INTRA
     bool prune_using_edge_info;
-#endif
     int8_t skip_angular_delta1_th;
     int8_t skip_angular_delta2_th;
     int8_t skip_angular_delta3_th;
@@ -857,15 +823,6 @@ typedef struct SkipSubDepthCtrls {
     uint8_t coeff_perc;
 
 } SkipSubDepthCtrls;
-#if !CLN_REMOVE_VAR_SUB_DEPTH
-typedef struct VarSkipSubDepthCtrls {
-    uint8_t  enabled;
-    uint32_t coeff_th;
-    uint8_t  min_size;
-    uint8_t  max_size;
-    uint32_t edge_th[4][3];
-} VarSkipSubDepthCtrls;
-#endif
 typedef struct FilterIntraCtrls {
     bool enabled;
     // Set the max filter intra mode to test. The max filter intra level will also depend on ctx->intra_ctrls.intra_mode_end.
@@ -1138,9 +1095,6 @@ typedef struct ModeDecisionContext {
     DepthRemovalCtrls    depth_removal_ctrls;
     DepthRefinementCtrls depth_refinement_ctrls;
     SkipSubDepthCtrls    skip_sub_depth_ctrls;
-#if !CLN_REMOVE_VAR_SUB_DEPTH
-    VarSkipSubDepthCtrls var_skip_sub_depth_ctrls;
-#endif
     SubresCtrls subres_ctrls;
     uint8_t     is_subres_safe;
     PfCtrls     pf_ctrls;
@@ -1197,12 +1151,8 @@ typedef struct ModeDecisionContext {
     NicCtrls        nic_ctrls;
     Mv              ref_mv;
     uint16_t        sb_index;
-#if OPT_PER_BLK_INTRA
     bool mds0_use_hadamard_sb;
     bool mds0_use_hadamard_blk;
-#else
-    bool mds0_use_hadamard;
-#endif
     uint8_t         max_block_size;
     uint64_t        mds0_best_cost_per_class[CAND_CLASS_TOTAL];
     uint64_t        mds0_best_cost;
@@ -1337,9 +1287,7 @@ extern void svt_aom_reset_mode_decision(SequenceControlSet* scs, ModeDecisionCon
 
 extern void svt_aom_mode_decision_configure_sb(ModeDecisionContext* ctx, PictureControlSet* pcs, uint8_t sb_qp,
                                                uint8_t me_sb_qp);
-#if FTR_VLPD0
 void svt_aom_get_blk_var_map(int block_size, int org_x, int org_y, int* blk_idx, int sub_idx[4]);
-#endif
 #ifdef __cplusplus
 }
 #endif

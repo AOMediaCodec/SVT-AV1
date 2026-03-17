@@ -571,11 +571,7 @@ void* svt_aom_cdef_kernel(void* input_ptr) {
         Av1Common* cm                         = pcs->ppcs->av1_cm;
         frm_hdr                               = &pcs->ppcs->frm_hdr;
         CdefSearchControls* cdef_search_ctrls = &pcs->ppcs->cdef_search_ctrls;
-#if OPT_Q_CDEF
         if (!cdef_search_ctrls->use_reference_cdef_fs && !cdef_search_ctrls->use_qp_strength) {
-#else
-        if (!cdef_search_ctrls->use_reference_cdef_fs) {
-#endif
             if (scs->seq_header.cdef_level && pcs->ppcs->cdef_level) {
                 cdef_seg_search(pcs, scs, dlf_results->segment_index);
             }

@@ -4468,16 +4468,12 @@ static void init_pic_settings(SequenceControlSet* scs, PictureParentControlSet* 
     copy_tf_params(scs, pcs, ctx);
     // TODO: put this in EbMotionEstimationProcess?
     // ME Kernel Multi-Processes Signal(s) derivation
-#if TUNE_STILL_IMAGE
     const bool rtc_tune = scs->static_config.rtc;
     const bool allintra = scs->allintra;
 
     allintra       ? svt_aom_sig_deriv_multi_processes_allintra(scs, pcs)
         : rtc_tune ? svt_aom_sig_deriv_multi_processes_rtc(scs, pcs)
                    : svt_aom_sig_deriv_multi_processes_default(scs, pcs);
-#else
-    svt_aom_sig_deriv_multi_processes(scs, pcs);
-#endif
 
     update_count_try(scs, pcs);
 

@@ -368,9 +368,7 @@ pcs_update_param: update the parameters in PictureParentControlSet for changing 
 EbErrorType pcs_update_param(PictureControlSet* pcs) {
     SequenceControlSet* scs      = pcs->scs;
     const bool          rtc_tune = scs->static_config.rtc;
-#if TUNE_STILL_IMAGE
     const bool allintra = scs->allintra;
-#endif
     // Max/Min CU Sizes
     const uint32_t max_blk_size = scs->super_block_size;
     // SBs
@@ -395,7 +393,6 @@ EbErrorType pcs_update_param(PictureControlSet* pcs) {
     if ((is_16bit) || (scs->is_16bit_pipeline)) {
         svt_picture_buffer_desc_update(pcs->input_frame16bit, (EbPtr)&coeff_buffer_desc_init_data);
     }
-#if TUNE_STILL_IMAGE
     if (allintra       ? svt_aom_get_enable_restoration_allintra(scs->static_config.enc_mode,
                                                            scs->static_config.enable_restoration_filtering)
             : rtc_tune ? svt_aom_get_enable_restoration_rtc(scs->static_config.enc_mode,
@@ -408,16 +405,6 @@ EbErrorType pcs_update_param(PictureControlSet* pcs) {
                                                                 scs->static_config.fast_decode)) {
         set_restoration_unit_size(scs->max_input_luma_width, scs->max_input_luma_height, 1, 1, pcs->rst_info);
     }
-#else
-    if (svt_aom_get_enable_restoration(scs->static_config.enc_mode,
-                                       scs->static_config.enable_restoration_filtering,
-                                       scs->input_resolution,
-                                       scs->static_config.fast_decode,
-                                       scs->allintra,
-                                       rtc_tune)) {
-        set_restoration_unit_size(scs->max_input_luma_width, scs->max_input_luma_height, 1, 1, pcs->rst_info);
-    }
-#endif
     pcs->frame_width  = scs->max_input_luma_width;
     pcs->frame_height = scs->max_input_luma_height;
     // SB Array
@@ -458,9 +445,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
     PictureControlSetInitData* init_data_ptr = (PictureControlSetInitData*)object_init_data_ptr;
 
     const bool allintra = init_data_ptr->allintra;
-#if TUNE_STILL_IMAGE
     const bool rtc_tune = init_data_ptr->rtc_tune;
-#endif
     EbPictureBufferDescInitData coeff_buffer_desc_init_data;
 
     // Max/Min CU Sizes
@@ -504,7 +489,6 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
     object_ptr->temp_lf_recon_pic_16bit           = NULL;
     object_ptr->temp_lf_recon_pic                 = NULL;
     object_ptr->scaled_input_pic                  = NULL;
-#if TUNE_STILL_IMAGE
     bool enable_restoration = allintra
         ? svt_aom_get_enable_restoration_allintra(init_data_ptr->enc_mode,
                                                   init_data_ptr->static_config.enable_restoration_filtering)
@@ -531,28 +515,6 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
         EB_CALLOC_ARRAY(object_ptr->rusi_picture[1], ntiles[1]);
         EB_CALLOC_ARRAY(object_ptr->rusi_picture[2], ntiles[1]);
     }
-#else
-    if (svt_aom_get_enable_restoration(init_data_ptr->enc_mode,
-                                       init_data_ptr->static_config.enable_restoration_filtering,
-                                       init_data_ptr->input_resolution,
-                                       init_data_ptr->static_config.fast_decode,
-                                       allintra,
-                                       init_data_ptr->rtc_tune)) {
-        set_restoration_unit_size(
-            init_data_ptr->picture_width, init_data_ptr->picture_height, 1, 1, object_ptr->rst_info);
-
-        return_error = svt_av1_alloc_restoration_buffers(object_ptr, init_data_ptr->av1_cm);
-
-        int32_t ntiles[2];
-        for (int32_t is_uv = 0; is_uv < 2; ++is_uv) {
-            ntiles[is_uv] = object_ptr->rst_info[is_uv].units_per_tile; //CHKN res_tiles_in_plane
-        }
-        assert(ntiles[1] <= ntiles[0]);
-        EB_CALLOC_ARRAY(object_ptr->rusi_picture[0], ntiles[0]);
-        EB_CALLOC_ARRAY(object_ptr->rusi_picture[1], ntiles[1]);
-        EB_CALLOC_ARRAY(object_ptr->rusi_picture[2], ntiles[1]);
-    }
-#endif
 
     if ((is_16bit) || (init_data_ptr->is_16bit_pipeline)) {
         EB_NEW(object_ptr->input_frame16bit, svt_picture_buffer_desc_ctor, (EbPtr)&coeff_buffer_desc_init_data);
@@ -595,7 +557,6 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
     object_ptr->sb_total_count_unscaled = all_sb;
     EB_ALLOC_PTR_ARRAY(object_ptr->sb_ptr_array, object_ptr->sb_total_count_unscaled);
     for (sb_index = 0; sb_index < all_sb; ++sb_index) {
-#if TUNE_STILL_IMAGE
         EB_NEW(object_ptr->sb_ptr_array[sb_index],
                svt_aom_largest_coding_unit_ctor,
                (uint8_t)init_data_ptr->sb_size,
@@ -606,19 +567,6 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
                init_data_ptr->static_config.rtc,
                allintra,
                object_ptr);
-#else
-        EB_NEW(object_ptr->sb_ptr_array[sb_index],
-               svt_aom_largest_coding_unit_ctor,
-               (uint8_t)init_data_ptr->sb_size,
-               (uint16_t)(sb_origin_x * max_blk_size),
-               (uint16_t)(sb_origin_y * max_blk_size),
-               (uint16_t)sb_index,
-               init_data_ptr->enc_mode,
-               init_data_ptr->static_config.rtc,
-               allintra,
-               init_data_ptr->input_resolution,
-               object_ptr);
-#endif
         // Increment the Order in coding order (Raster Scan Order)
         sb_origin_y = (sb_origin_x == picture_sb_w - 1) ? sb_origin_y + 1 : sb_origin_y;
         sb_origin_x = (sb_origin_x == picture_sb_w - 1) ? 0 : sb_origin_x + 1;
@@ -1114,17 +1062,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
         if (!disallow_4x4 && !disallow_8x8) {
             break;
         }
-#if TUNE_STILL_IMAGE
         uint8_t nsq_geom_lvl = allintra ? svt_aom_get_nsq_geom_level_allintra(init_data_ptr->enc_mode)
             : rtc_tune                  ? svt_aom_get_nsq_geom_level_rtc(init_data_ptr->enc_mode)
                                         : svt_aom_get_nsq_geom_level_default(init_data_ptr->enc_mode, coeff_lvl);
-#else
-        const uint8_t nsq_geom_lvl = svt_aom_get_nsq_geom_level(allintra,
-                                                                init_data_ptr->input_resolution,
-                                                                init_data_ptr->enc_mode,
-                                                                coeff_lvl,
-                                                                init_data_ptr->static_config.rtc);
-#endif
         // nsq_geom_lvl level 0 means NSQ shapes are disallowed so don't adjust based on the level
         if (nsq_geom_lvl) {
             uint8_t allow_HVA_HVB, allow_HV4, min_nsq_bsize;
@@ -1138,29 +1078,16 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
         }
     }
 
-#if TUNE_STILL_IMAGE
     disallow_4x4 = allintra ? MIN(disallow_4x4, svt_aom_get_disallow_4x4_allintra(init_data_ptr->enc_mode))
         : rtc_tune          ? MIN(disallow_4x4, svt_aom_get_disallow_4x4_rtc(init_data_ptr->enc_mode))
                             : MIN(disallow_4x4, svt_aom_get_disallow_4x4_default(init_data_ptr->enc_mode));
-#else
-    disallow_4x4 = MIN(disallow_4x4, svt_aom_get_disallow_4x4(init_data_ptr->enc_mode));
-#endif
 
     object_ptr->disallow_4x4_all_frames = disallow_4x4;
-#if TUNE_STILL_IMAGE
     disallow_8x8 = allintra ? MIN(disallow_8x8, svt_aom_get_disallow_8x8_allintra())
         : rtc_tune          ? MIN(disallow_8x8,
                          svt_aom_get_disallow_8x8_rtc(
                              init_data_ptr->enc_mode, init_data_ptr->picture_width, init_data_ptr->picture_height))
                             : MIN(disallow_8x8, svt_aom_get_disallow_8x8_default());
-#else
-    disallow_8x8 = MIN(disallow_8x8,
-                       svt_aom_get_disallow_8x8(init_data_ptr->enc_mode,
-                                                allintra,
-                                                init_data_ptr->static_config.rtc,
-                                                init_data_ptr->picture_width,
-                                                init_data_ptr->picture_height));
-#endif
     object_ptr->disallow_8x8_all_frames = disallow_8x8;
     /* If 4x4 blocks are disallowed for all frames, the the MI blocks only need to be allocated for
     8x8 blocks.  The mi_grid will still be 4x4 so that the data can be accessed the same way throughout

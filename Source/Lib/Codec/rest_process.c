@@ -74,9 +74,7 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext* thread_ctx, const EbEncHa
     const EbSvtAv1EncConfiguration* config = &scs->static_config;
     RestContext*                    context_ptr;
     const bool                      allintra = scs->allintra;
-#if TUNE_STILL_IMAGE
     const bool rtc_tune = scs->static_config.rtc;
-#endif
     EB_CALLOC_ARRAY(context_ptr, 1);
     thread_ctx->priv  = context_ptr;
     thread_ctx->dctor = rest_context_dctor;
@@ -90,7 +88,6 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext* thread_ctx, const EbEncHa
         enc_handle_ptr->picture_demux_results_resource_ptr, demux_index);
 
     bool is_16bit = scs->is_16bit_pipeline;
-#if TUNE_STILL_IMAGE
     uint8_t enable_restoration = allintra
         ? svt_aom_get_enable_restoration_allintra(config->enc_mode, config->enable_restoration_filtering)
         : rtc_tune
@@ -133,45 +130,6 @@ EbErrorType svt_aom_rest_context_ctor(EbThreadContext* thread_ctx, const EbEncHa
             EB_MALLOC_ALIGNED(context_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
         }
     }
-#else
-    if (svt_aom_get_enable_restoration(config->enc_mode,
-                                       config->enable_restoration_filtering,
-                                       scs->input_resolution,
-                                       config->fast_decode,
-                                       allintra,
-                                       config->rtc)) {
-        EbPictureBufferDescInitData init_data;
-
-        init_data.buffer_enable_mask = PICTURE_BUFFER_DESC_FULL_MASK;
-        init_data.max_width          = (uint16_t)scs->max_input_luma_width;
-        init_data.max_height         = (uint16_t)scs->max_input_luma_height;
-        init_data.bit_depth          = is_16bit ? EB_SIXTEEN_BIT : EB_EIGHT_BIT;
-        init_data.color_format       = config->encoder_color_format;
-        init_data.left_padding       = AOM_RESTORATION_FRAME_BORDER;
-        init_data.right_padding      = AOM_RESTORATION_FRAME_BORDER;
-        init_data.top_padding        = AOM_RESTORATION_FRAME_BORDER;
-        init_data.bot_padding        = AOM_RESTORATION_FRAME_BORDER;
-        init_data.split_mode         = false;
-        init_data.is_16bit_pipeline  = is_16bit;
-
-        EB_NEW(context_ptr->trial_frame_rst, svt_picture_buffer_desc_ctor, (EbPtr)&init_data);
-        if (scs->use_boundaries_in_rest_search) {
-            EB_NEW(context_ptr->org_rec_frame, svt_picture_buffer_desc_ctor, (EbPtr)&init_data);
-        } else {
-            context_ptr->org_rec_frame = NULL;
-        }
-        if (!is_16bit) {
-            context_ptr->trial_frame_rst->bit_depth = EB_EIGHT_BIT;
-            if (scs->use_boundaries_in_rest_search) {
-                context_ptr->org_rec_frame->bit_depth = EB_EIGHT_BIT;
-            }
-        }
-        context_ptr->rst_tmpbuf = NULL;
-        if (svt_aom_get_enable_sg(config->enc_mode, scs->input_resolution, config->fast_decode, allintra)) {
-            EB_MALLOC_ALIGNED(context_ptr->rst_tmpbuf, RESTORATION_TMPBUF_SIZE);
-        }
-    }
-#endif
 
     return EB_ErrorNone;
 }

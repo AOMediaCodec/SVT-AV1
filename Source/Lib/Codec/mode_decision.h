@@ -37,9 +37,7 @@ typedef struct WarpSampleInfo {
 } WarpSampleInfo;
 // Create incomplete struct definition for the following function pointer typedefs
 struct ModeDecisionContext;
-#if OPT_NSQ_INTRABC_PARENT_GATE
 struct PC_TREE;
-#endif
 /**************************************
     * Mode Decision Candidate
     **************************************/
@@ -133,13 +131,8 @@ uint8_t     svt_aom_wm_motion_refinement(PictureControlSet* pcs, struct ModeDeci
                                          ModeDecisionCandidate* cand, const bool shut_approx);
 uint8_t     svt_aom_obmc_motion_refinement(PictureControlSet* pcs, struct ModeDecisionContext* ctx,
                                            ModeDecisionCandidate* cand, int refine_level);
-#if OPT_NSQ_INTRABC_PARENT_GATE
 EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, struct ModeDecisionContext* ctx,
                                      const struct PC_TREE* const pc_tree, uint32_t* fast_candidate_total_count);
-#else
-EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, struct ModeDecisionContext* ctx,
-                                     uint32_t* fast_candidate_total_count);
-#endif
 void        generate_md_stage_0_cand_light_pd1(struct ModeDecisionContext* ctx, uint32_t* fast_candidate_total_count,
                                                PictureControlSet* pcs);
 EbErrorType generate_md_stage_0_cand_light_pd0(struct ModeDecisionContext* ctx, uint32_t* fast_candidate_total_count,

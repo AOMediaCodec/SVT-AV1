@@ -101,13 +101,6 @@ const CodedBlockStats* svt_aom_get_coded_blk_stats(const uint32_t cu_idx);
 #define CLIP3(min_val, max_val, a) (((a) < (min_val)) ? (min_val) : (((a) > (max_val)) ? (max_val) : (a)))
 #define CLIP3EQ(min_val, max_val, a) (((a) <= (min_val)) ? (min_val) : (((a) >= (max_val)) ? (max_val) : (a)))
 #define BITDEPTH_MIDRANGE_VALUE(precision) (1 << ((precision) - 1))
-#if !OPT_PALETTE_PATH
-#define SWAP(a, b)                    \
-    MULTI_LINE_MACRO_BEGIN(a) ^= (b); \
-    (b) ^= (a);                       \
-    (a) ^= (b);                       \
-    MULTI_LINE_MACRO_END
-#endif
 #define ABS(a) (((a) < 0) ? (-(a)) : (a))
 #define EB_ABS_DIFF(a, b) ((a) > (b) ? ((a) - (b)) : ((b) - (a)))
 #define EB_DIFF_SQR(a, b) (((a) - (b)) * ((a) - (b)))

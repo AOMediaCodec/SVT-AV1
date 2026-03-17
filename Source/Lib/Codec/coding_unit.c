@@ -55,27 +55,16 @@ Tasks & Questions
     -Need a ReconPicture for each candidate.
     -I don't see a way around doing the copies in temp memory and then copying it in...
 */
-#if TUNE_STILL_IMAGE
 EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock* larget_coding_unit_ptr, uint8_t sb_size_pix,
                                              uint16_t sb_origin_x, uint16_t sb_origin_y, uint16_t sb_index,
                                              EncMode enc_mode, bool rtc, bool allintra, PictureControlSet* pcs) {
-#else
-EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock* larget_coding_unit_ptr, uint8_t sb_size_pix,
-                                             uint16_t sb_origin_x, uint16_t sb_origin_y, uint16_t sb_index,
-                                             EncMode enc_mode, bool rtc, bool allintra,
-                                             ResolutionRange input_resolution, PictureControlSet* picture_control_set) {
-#endif
     larget_coding_unit_ptr->dctor = svt_aom_largest_coding_unit_dctor;
 
     // ************ SB ***************
     // Which borderLargestCuSize is not a power of two
 
     // Which borderLargestCuSize is not a power of two
-#if TUNE_STILL_IMAGE
     larget_coding_unit_ptr->pcs = pcs;
-#else
-    larget_coding_unit_ptr->pcs = picture_control_set;
-#endif
 
     larget_coding_unit_ptr->org_x = sb_origin_x;
     larget_coding_unit_ptr->org_y = sb_origin_y;
@@ -84,13 +73,9 @@ EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock* larget_coding_unit_ptr,
     bool disallow_sub_8x8_nsq     = true;
     bool disallow_sub_16x16_nsq   = true;
     for (uint8_t coeff_lvl = 0; coeff_lvl <= HIGH_LVL + 1; coeff_lvl++) {
-#if TUNE_STILL_IMAGE
         uint8_t nsq_geom_lvl = allintra ? svt_aom_get_nsq_geom_level_allintra(enc_mode)
             : rtc                       ? svt_aom_get_nsq_geom_level_rtc(enc_mode)
                                         : svt_aom_get_nsq_geom_level_default(enc_mode, coeff_lvl);
-#else
-        const uint8_t nsq_geom_lvl = svt_aom_get_nsq_geom_level(allintra, input_resolution, enc_mode, coeff_lvl, rtc);
-#endif
         // nsq_geom_lvl level 0 means NSQ shapes are disallowed so don't adjust based on the level
         if (nsq_geom_lvl) {
             uint8_t allow_HVA_HVB, allow_HV4, min_nsq_bsize;
@@ -103,18 +88,12 @@ EbErrorType svt_aom_largest_coding_unit_ctor(SuperBlock* larget_coding_unit_ptr,
             }
         }
     }
-#if TUNE_STILL_IMAGE
     bool disallow_4x4 = allintra ? svt_aom_get_disallow_4x4_allintra(enc_mode)
         : rtc                    ? svt_aom_get_disallow_4x4_rtc(enc_mode)
                                  : svt_aom_get_disallow_4x4_default(enc_mode);
     bool disallow_8x8 = allintra ? svt_aom_get_disallow_8x8_allintra()
         : rtc                    ? svt_aom_get_disallow_8x8_rtc(enc_mode, pcs->frame_width, pcs->frame_height)
                                  : svt_aom_get_disallow_8x8_default();
-#else
-    bool disallow_4x4 = svt_aom_get_disallow_4x4(enc_mode);
-    bool disallow_8x8 = svt_aom_get_disallow_8x8(
-        enc_mode, allintra, rtc, picture_control_set->frame_width, picture_control_set->frame_height);
-#endif
     uint32_t tot_blk_num;
     if (sb_size_pix == 128) {
         if (disallow_8x8 && disallow_sub_16x16_nsq) {
