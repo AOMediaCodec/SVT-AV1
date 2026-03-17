@@ -3805,7 +3805,7 @@ static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
         rdoq_ctrls->skip_uv       = 0;
         rdoq_ctrls->dct_dct_only  = 0;
         rdoq_ctrls->eob_th        = (uint8_t)~0;
-        rdoq_ctrls->eob_fast_th  = (uint8_t)~0;
+        rdoq_ctrls->eob_fast_th   = (uint8_t)~0;
         break;
     case 3:
         rdoq_ctrls->enabled       = 1;
@@ -3814,7 +3814,7 @@ static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
         rdoq_ctrls->skip_uv       = 1;
         rdoq_ctrls->dct_dct_only  = 1;
         rdoq_ctrls->eob_th        = (uint8_t)~0;
-        rdoq_ctrls->eob_fast_th  = (uint8_t)~0;
+        rdoq_ctrls->eob_fast_th   = (uint8_t)~0;
         break;
     case 4:
         rdoq_ctrls->enabled       = 1;
@@ -3823,7 +3823,7 @@ static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
         rdoq_ctrls->skip_uv       = 1;
         rdoq_ctrls->dct_dct_only  = 1;
         rdoq_ctrls->eob_th        = (uint8_t)~0;
-        rdoq_ctrls->eob_fast_th  = 30;
+        rdoq_ctrls->eob_fast_th   = 30;
         break;
     case 5:
         rdoq_ctrls->enabled       = 1;
@@ -3832,7 +3832,7 @@ static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
         rdoq_ctrls->skip_uv       = 1;
         rdoq_ctrls->dct_dct_only  = 1;
         rdoq_ctrls->eob_th        = 85;
-        rdoq_ctrls->eob_fast_th  = 0;
+        rdoq_ctrls->eob_fast_th   = 0;
         break;
     default:
         assert(0);
