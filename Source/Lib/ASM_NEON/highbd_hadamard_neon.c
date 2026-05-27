@@ -14,39 +14,10 @@
 #include "aom_dsp_rtcd.h"
 #include "coding_loop.h"
 #include "definitions.h"
+#include "hadamard_path_neon.h"
 #include "mem_neon.h"
 #include "sum_neon.h"
 #include "transpose_neon.h"
-
-static inline void hadamard_highbd_col8_first_pass(int16x8_t* a0, int16x8_t* a1, int16x8_t* a2, int16x8_t* a3,
-                                                   int16x8_t* a4, int16x8_t* a5, int16x8_t* a6, int16x8_t* a7) {
-    int16x8_t b0 = vaddq_s16(*a0, *a1);
-    int16x8_t b1 = vsubq_s16(*a0, *a1);
-    int16x8_t b2 = vaddq_s16(*a2, *a3);
-    int16x8_t b3 = vsubq_s16(*a2, *a3);
-    int16x8_t b4 = vaddq_s16(*a4, *a5);
-    int16x8_t b5 = vsubq_s16(*a4, *a5);
-    int16x8_t b6 = vaddq_s16(*a6, *a7);
-    int16x8_t b7 = vsubq_s16(*a6, *a7);
-
-    int16x8_t c0 = vaddq_s16(b0, b2);
-    int16x8_t c2 = vsubq_s16(b0, b2);
-    int16x8_t c1 = vaddq_s16(b1, b3);
-    int16x8_t c3 = vsubq_s16(b1, b3);
-    int16x8_t c4 = vaddq_s16(b4, b6);
-    int16x8_t c6 = vsubq_s16(b4, b6);
-    int16x8_t c5 = vaddq_s16(b5, b7);
-    int16x8_t c7 = vsubq_s16(b5, b7);
-
-    *a0 = vaddq_s16(c0, c4);
-    *a2 = vsubq_s16(c0, c4);
-    *a7 = vaddq_s16(c1, c5);
-    *a6 = vsubq_s16(c1, c5);
-    *a3 = vaddq_s16(c2, c6);
-    *a1 = vsubq_s16(c2, c6);
-    *a4 = vaddq_s16(c3, c7);
-    *a5 = vsubq_s16(c3, c7);
-}
 
 static inline void hadamard_highbd_col4_second_pass(int16x4_t a0, int16x4_t a1, int16x4_t a2, int16x4_t a3,
                                                     int16x4_t a4, int16x4_t a5, int16x4_t a6, int16x4_t a7,
@@ -91,43 +62,45 @@ static inline void hadamard_highbd_col4_second_pass(int16x4_t a0, int16x4_t a1, 
 void svt_aom_highbd_hadamard_8x8_neon(const int16_t* src_diff, ptrdiff_t src_stride, int32_t* coeff) {
     int16x4_t b0, b1, b2, b3, b4, b5, b6, b7;
 
-    int16x8_t s0 = vld1q_s16(src_diff + 0 * src_stride);
-    int16x8_t s1 = vld1q_s16(src_diff + 1 * src_stride);
-    int16x8_t s2 = vld1q_s16(src_diff + 2 * src_stride);
-    int16x8_t s3 = vld1q_s16(src_diff + 3 * src_stride);
-    int16x8_t s4 = vld1q_s16(src_diff + 4 * src_stride);
-    int16x8_t s5 = vld1q_s16(src_diff + 5 * src_stride);
-    int16x8_t s6 = vld1q_s16(src_diff + 6 * src_stride);
-    int16x8_t s7 = vld1q_s16(src_diff + 7 * src_stride);
+    int16x8_t s[8] = {
+        vld1q_s16(src_diff + 0 * src_stride),
+        vld1q_s16(src_diff + 1 * src_stride),
+        vld1q_s16(src_diff + 2 * src_stride),
+        vld1q_s16(src_diff + 3 * src_stride),
+        vld1q_s16(src_diff + 4 * src_stride),
+        vld1q_s16(src_diff + 5 * src_stride),
+        vld1q_s16(src_diff + 6 * src_stride),
+        vld1q_s16(src_diff + 7 * src_stride),
+    };
 
     // For the first pass we can stay in 16-bit elements (4095*8 = 32760).
-    hadamard_highbd_col8_first_pass(&s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7);
+    hadamard_8x8_one_pass(s);
 
-    transpose_elems_inplace_s16_8x8(&s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7);
+    transpose_elems_inplace_s16_8x8(&s[0], &s[1], &s[2], &s[3], &s[4], &s[5], &s[6], &s[7]);
 
     // For the second pass we need to widen to 32-bit elements, so we're
     // processing 4 columns at a time.
     // Skip the second transpose because it is not required.
 
-    b0 = vget_low_s16(s0);
-    b1 = vget_low_s16(s1);
-    b2 = vget_low_s16(s2);
-    b3 = vget_low_s16(s3);
-    b4 = vget_low_s16(s4);
-    b5 = vget_low_s16(s5);
-    b6 = vget_low_s16(s6);
-    b7 = vget_low_s16(s7);
+    b0 = vget_low_s16(s[0]);
+    b1 = vget_low_s16(s[1]);
+    b2 = vget_low_s16(s[2]);
+    b3 = vget_low_s16(s[3]);
+    b4 = vget_low_s16(s[4]);
+    b5 = vget_low_s16(s[5]);
+    b6 = vget_low_s16(s[6]);
+    b7 = vget_low_s16(s[7]);
 
     hadamard_highbd_col4_second_pass(b0, b1, b2, b3, b4, b5, b6, b7, coeff);
 
-    b0 = vget_high_s16(s0);
-    b1 = vget_high_s16(s1);
-    b2 = vget_high_s16(s2);
-    b3 = vget_high_s16(s3);
-    b4 = vget_high_s16(s4);
-    b5 = vget_high_s16(s5);
-    b6 = vget_high_s16(s6);
-    b7 = vget_high_s16(s7);
+    b0 = vget_high_s16(s[0]);
+    b1 = vget_high_s16(s[1]);
+    b2 = vget_high_s16(s[2]);
+    b3 = vget_high_s16(s[3]);
+    b4 = vget_high_s16(s[4]);
+    b5 = vget_high_s16(s[5]);
+    b6 = vget_high_s16(s[6]);
+    b7 = vget_high_s16(s[7]);
 
     hadamard_highbd_col4_second_pass(b0, b1, b2, b3, b4, b5, b6, b7, coeff + 32);
 }
@@ -170,24 +143,26 @@ static inline void hadamard_highbd_8x8(const uint16_t* src, ptrdiff_t src_stride
     load_u16_8x8(src, src_stride, &s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7);
     load_u16_8x8(pred, pred_stride, &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7);
 
-    int16x8_t d0 = vreinterpretq_s16_u16(vsubq_u16(s0, p0));
-    int16x8_t d1 = vreinterpretq_s16_u16(vsubq_u16(s1, p1));
-    int16x8_t d2 = vreinterpretq_s16_u16(vsubq_u16(s2, p2));
-    int16x8_t d3 = vreinterpretq_s16_u16(vsubq_u16(s3, p3));
-    int16x8_t d4 = vreinterpretq_s16_u16(vsubq_u16(s4, p4));
-    int16x8_t d5 = vreinterpretq_s16_u16(vsubq_u16(s5, p5));
-    int16x8_t d6 = vreinterpretq_s16_u16(vsubq_u16(s6, p6));
-    int16x8_t d7 = vreinterpretq_s16_u16(vsubq_u16(s7, p7));
-    hadamard_highbd_col8_first_pass(&d0, &d1, &d2, &d3, &d4, &d5, &d6, &d7);
+    int16x8_t d[8];
+    d[0] = vreinterpretq_s16_u16(vsubq_u16(s0, p0));
+    d[1] = vreinterpretq_s16_u16(vsubq_u16(s1, p1));
+    d[2] = vreinterpretq_s16_u16(vsubq_u16(s2, p2));
+    d[3] = vreinterpretq_s16_u16(vsubq_u16(s3, p3));
+    d[4] = vreinterpretq_s16_u16(vsubq_u16(s4, p4));
+    d[5] = vreinterpretq_s16_u16(vsubq_u16(s5, p5));
+    d[6] = vreinterpretq_s16_u16(vsubq_u16(s6, p6));
+    d[7] = vreinterpretq_s16_u16(vsubq_u16(s7, p7));
 
-    const int16x8_t a0 = vtrn1q_s16(d0, d1);
-    const int16x8_t a1 = vtrn2q_s16(d0, d1);
-    const int16x8_t a2 = vtrn1q_s16(d2, d3);
-    const int16x8_t a3 = vtrn2q_s16(d2, d3);
-    const int16x8_t a4 = vtrn1q_s16(d4, d5);
-    const int16x8_t a5 = vtrn2q_s16(d4, d5);
-    const int16x8_t a6 = vtrn1q_s16(d6, d7);
-    const int16x8_t a7 = vtrn2q_s16(d6, d7);
+    hadamard_8x8_one_pass(d);
+
+    const int16x8_t a0 = vtrn1q_s16(d[0], d[1]);
+    const int16x8_t a1 = vtrn2q_s16(d[0], d[1]);
+    const int16x8_t a2 = vtrn1q_s16(d[2], d[3]);
+    const int16x8_t a3 = vtrn2q_s16(d[2], d[3]);
+    const int16x8_t a4 = vtrn1q_s16(d[4], d[5]);
+    const int16x8_t a5 = vtrn2q_s16(d[4], d[5]);
+    const int16x8_t a6 = vtrn1q_s16(d[6], d[7]);
+    const int16x8_t a7 = vtrn2q_s16(d[6], d[7]);
 
     int32x4_t b0  = vaddl_s16(vget_low_s16(a0), vget_low_s16(a1));
     int32x4_t b1  = vsubl_s16(vget_low_s16(a0), vget_low_s16(a1));
@@ -265,61 +240,63 @@ int svt_av1_highbd_hadamard_satd_8x8_neon(const uint16_t* src, ptrdiff_t src_str
     load_u16_8x8(src, src_stride, &s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7);
     load_u16_8x8(pred, pred_stride, &p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7);
 
-    int16x8_t a0 = vreinterpretq_s16_u16(vsubq_u16(s0, p0));
-    int16x8_t a1 = vreinterpretq_s16_u16(vsubq_u16(s1, p1));
-    int16x8_t a2 = vreinterpretq_s16_u16(vsubq_u16(s2, p2));
-    int16x8_t a3 = vreinterpretq_s16_u16(vsubq_u16(s3, p3));
-    int16x8_t a4 = vreinterpretq_s16_u16(vsubq_u16(s4, p4));
-    int16x8_t a5 = vreinterpretq_s16_u16(vsubq_u16(s5, p5));
-    int16x8_t a6 = vreinterpretq_s16_u16(vsubq_u16(s6, p6));
-    int16x8_t a7 = vreinterpretq_s16_u16(vsubq_u16(s7, p7));
+    int16x8_t a[8] = {
+        vreinterpretq_s16_u16(vsubq_u16(s0, p0)),
+        vreinterpretq_s16_u16(vsubq_u16(s1, p1)),
+        vreinterpretq_s16_u16(vsubq_u16(s2, p2)),
+        vreinterpretq_s16_u16(vsubq_u16(s3, p3)),
+        vreinterpretq_s16_u16(vsubq_u16(s4, p4)),
+        vreinterpretq_s16_u16(vsubq_u16(s5, p5)),
+        vreinterpretq_s16_u16(vsubq_u16(s6, p6)),
+        vreinterpretq_s16_u16(vsubq_u16(s7, p7)),
+    };
 
-    hadamard_highbd_col8_first_pass(&a0, &a1, &a2, &a3, &a4, &a5, &a6, &a7);
+    hadamard_8x8_one_pass(a);
 
-    int16x8_t b0 = vtrn1q_s16(a0, a1);
-    int16x8_t b1 = vtrn2q_s16(a0, a1);
-    int16x8_t b2 = vtrn1q_s16(a2, a3);
-    int16x8_t b3 = vtrn2q_s16(a2, a3);
-    int16x8_t b4 = vtrn1q_s16(a4, a5);
-    int16x8_t b5 = vtrn2q_s16(a4, a5);
-    int16x8_t b6 = vtrn1q_s16(a6, a7);
-    int16x8_t b7 = vtrn2q_s16(a6, a7);
+    int16x8_t b0 = vtrn1q_s16(a[0], a[1]);
+    int16x8_t b1 = vtrn2q_s16(a[0], a[1]);
+    int16x8_t b2 = vtrn1q_s16(a[2], a[3]);
+    int16x8_t b3 = vtrn2q_s16(a[2], a[3]);
+    int16x8_t b4 = vtrn1q_s16(a[4], a[5]);
+    int16x8_t b5 = vtrn2q_s16(a[4], a[5]);
+    int16x8_t b6 = vtrn1q_s16(a[6], a[7]);
+    int16x8_t b7 = vtrn2q_s16(a[6], a[7]);
 
-    a0 = vaddq_s16(b0, b1);
-    a1 = vsubq_s16(b0, b1);
-    a2 = vaddq_s16(b2, b3);
-    a3 = vsubq_s16(b2, b3);
-    a4 = vaddq_s16(b4, b5);
-    a5 = vsubq_s16(b4, b5);
-    a6 = vaddq_s16(b6, b7);
-    a7 = vsubq_s16(b6, b7);
+    a[0] = vaddq_s16(b0, b1);
+    a[1] = vsubq_s16(b0, b1);
+    a[2] = vaddq_s16(b2, b3);
+    a[3] = vsubq_s16(b2, b3);
+    a[4] = vaddq_s16(b4, b5);
+    a[5] = vsubq_s16(b4, b5);
+    a[6] = vaddq_s16(b6, b7);
+    a[7] = vsubq_s16(b6, b7);
 
-    b0 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a0), vreinterpretq_s32_s16(a1)));
-    b1 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a0), vreinterpretq_s32_s16(a1)));
-    b2 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a2), vreinterpretq_s32_s16(a3)));
-    b3 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a2), vreinterpretq_s32_s16(a3)));
-    b4 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a4), vreinterpretq_s32_s16(a5)));
-    b5 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a4), vreinterpretq_s32_s16(a5)));
-    b6 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a6), vreinterpretq_s32_s16(a7)));
-    b7 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a6), vreinterpretq_s32_s16(a7)));
+    b0 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a[0]), vreinterpretq_s32_s16(a[1])));
+    b1 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a[0]), vreinterpretq_s32_s16(a[1])));
+    b2 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a[2]), vreinterpretq_s32_s16(a[3])));
+    b3 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a[2]), vreinterpretq_s32_s16(a[3])));
+    b4 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a[4]), vreinterpretq_s32_s16(a[5])));
+    b5 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a[4]), vreinterpretq_s32_s16(a[5])));
+    b6 = vreinterpretq_s16_s32(vtrn1q_s32(vreinterpretq_s32_s16(a[6]), vreinterpretq_s32_s16(a[7])));
+    b7 = vreinterpretq_s16_s32(vtrn2q_s32(vreinterpretq_s32_s16(a[6]), vreinterpretq_s32_s16(a[7])));
 
-    a0 = vabsq_s16(vaddq_s16(b0, b1));
-    a1 = vabdq_s16(b0, b1);
-    a2 = vabsq_s16(vaddq_s16(b2, b3));
-    a3 = vabdq_s16(b2, b3);
-    a4 = vabsq_s16(vaddq_s16(b4, b5));
-    a5 = vabdq_s16(b4, b5);
-    a6 = vabsq_s16(vaddq_s16(b6, b7));
-    a7 = vabdq_s16(b6, b7);
+    a[0] = vabsq_s16(vaddq_s16(b0, b1));
+    a[1] = vabdq_s16(b0, b1);
+    a[2] = vabsq_s16(vaddq_s16(b2, b3));
+    a[3] = vabdq_s16(b2, b3);
+    a[4] = vabsq_s16(vaddq_s16(b4, b5));
+    a[5] = vabdq_s16(b4, b5);
+    a[6] = vabsq_s16(vaddq_s16(b6, b7));
+    a[7] = vabdq_s16(b6, b7);
 
-    b0 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a0), vreinterpretq_s64_s16(a1)));
-    b1 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a0), vreinterpretq_s64_s16(a1)));
-    b2 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a2), vreinterpretq_s64_s16(a3)));
-    b3 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a2), vreinterpretq_s64_s16(a3)));
-    b4 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a4), vreinterpretq_s64_s16(a5)));
-    b5 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a4), vreinterpretq_s64_s16(a5)));
-    b6 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a6), vreinterpretq_s64_s16(a7)));
-    b7 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a6), vreinterpretq_s64_s16(a7)));
+    b0 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a[0]), vreinterpretq_s64_s16(a[1])));
+    b1 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a[0]), vreinterpretq_s64_s16(a[1])));
+    b2 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a[2]), vreinterpretq_s64_s16(a[3])));
+    b3 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a[2]), vreinterpretq_s64_s16(a[3])));
+    b4 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a[4]), vreinterpretq_s64_s16(a[5])));
+    b5 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a[4]), vreinterpretq_s64_s16(a[5])));
+    b6 = vreinterpretq_s16_s64(vtrn1q_s64(vreinterpretq_s64_s16(a[6]), vreinterpretq_s64_s16(a[7])));
+    b7 = vreinterpretq_s16_s64(vtrn2q_s64(vreinterpretq_s64_s16(a[6]), vreinterpretq_s64_s16(a[7])));
 
     int16x8_t max[4];
     max[0] = vmaxq_s16(b0, b1);
