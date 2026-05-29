@@ -14,6 +14,7 @@
 #include "aom_dsp_rtcd.h"
 #include "coding_loop.h"
 #include "definitions.h"
+#include "hadamard_path_neon.h"
 #include "mem_neon.h"
 #include "sum_neon.h"
 #include "transpose_neon.h"
@@ -46,35 +47,6 @@ void svt_aom_hadamard_4x4_neon(const int16_t* src_diff, ptrdiff_t src_stride, tr
     store_s16_to_tran_low(coeff + 4, a1);
     store_s16_to_tran_low(coeff + 8, a2);
     store_s16_to_tran_low(coeff + 12, a3);
-}
-
-static inline void hadamard_8x8_one_pass(int16x8_t* a) {
-    const int16x8_t b0 = vaddq_s16(a[0], a[1]);
-    const int16x8_t b1 = vsubq_s16(a[0], a[1]);
-    const int16x8_t b2 = vaddq_s16(a[2], a[3]);
-    const int16x8_t b3 = vsubq_s16(a[2], a[3]);
-    const int16x8_t b4 = vaddq_s16(a[4], a[5]);
-    const int16x8_t b5 = vsubq_s16(a[4], a[5]);
-    const int16x8_t b6 = vaddq_s16(a[6], a[7]);
-    const int16x8_t b7 = vsubq_s16(a[6], a[7]);
-
-    const int16x8_t c0 = vaddq_s16(b0, b2);
-    const int16x8_t c1 = vaddq_s16(b1, b3);
-    const int16x8_t c2 = vsubq_s16(b0, b2);
-    const int16x8_t c3 = vsubq_s16(b1, b3);
-    const int16x8_t c4 = vaddq_s16(b4, b6);
-    const int16x8_t c5 = vaddq_s16(b5, b7);
-    const int16x8_t c6 = vsubq_s16(b4, b6);
-    const int16x8_t c7 = vsubq_s16(b5, b7);
-
-    a[0] = vaddq_s16(c0, c4);
-    a[1] = vsubq_s16(c2, c6);
-    a[2] = vsubq_s16(c0, c4);
-    a[3] = vaddq_s16(c2, c6);
-    a[4] = vaddq_s16(c3, c7);
-    a[5] = vsubq_s16(c3, c7);
-    a[6] = vsubq_s16(c1, c5);
-    a[7] = vaddq_s16(c1, c5);
 }
 
 void svt_aom_hadamard_8x8_neon(const int16_t* src_diff, ptrdiff_t src_stride, int32_t* coeff) {
