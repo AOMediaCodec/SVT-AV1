@@ -415,6 +415,10 @@ TEST_P(PsyDistortionTest, ExtremeValues) {
 INSTANTIATE_TEST_SUITE_P(NEON, PsyDistortionTest,
                          ::testing::Values(&svt_psy_distortion_neon));
 
+#if HAVE_SVE2
+INSTANTIATE_TEST_SUITE_P(SVE2, PsyDistortionTest,
+                         ::testing::Values(&svt_psy_distortion_sve2));
+#endif  // HAVE_SVE2
 #endif  // ARCH_AARCH64
 
 #if HAVE_SVE2
@@ -500,6 +504,10 @@ TEST_P(HighbdPsyDistortionTest, ExtremeValues) {
 INSTANTIATE_TEST_SUITE_P(NEON, HighbdPsyDistortionTest,
                          ::testing::Values(&svt_psy_distortion_hbd_neon));
 
+#if HAVE_SVE2
+INSTANTIATE_TEST_SUITE_P(SVE2, HighbdPsyDistortionTest,
+                         ::testing::Values(&svt_psy_distortion_hbd_sve2));
+#endif  // HAVE_SVE2
 #endif  // ARCH_AARCH64
 
 class HadamardHighbdTest : public HadamardTestBase<int32_t, HadamardFunc> {
