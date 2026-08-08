@@ -1042,7 +1042,7 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
     SET_ONLY_C(svt_aom_flat_block_finder_extract_block, svt_aom_flat_block_finder_extract_block_c);
 #endif
 #if CONFIG_ENABLE_OBMC
-    SET_ONLY_C(svt_av1_calc_target_weighted_pred_above, svt_av1_calc_target_weighted_pred_above_c);
+    SET_NEON(svt_av1_calc_target_weighted_pred_above, svt_av1_calc_target_weighted_pred_above_c, svt_av1_calc_target_weighted_pred_above_neon);
     SET_NEON(svt_av1_calc_target_weighted_pred_left, svt_av1_calc_target_weighted_pred_left_c, svt_av1_calc_target_weighted_pred_left_neon);
 #endif
 #if CONFIG_ENABLE_RESIZE
