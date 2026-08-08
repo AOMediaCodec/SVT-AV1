@@ -855,11 +855,22 @@ EbErrorType svt_aom_rate_control_kernel_iter(void* context) {
                 svt_aom_setup_segmentation(pcs, scs);
             } else if (use_rtc_cbr_path(scs)) {
                 svt_av1_rc_calc_qindex_rtc_cbr(pcs);
+                // A region-of-interest map (enable_roi_map + per-picture
+                // ROI_MAP_EVENT) is otherwise only honored on the AOM_Q path:
+                // svt_aom_setup_segmentation() is not reached for CBR, so the map
+                // is silently ignored. Apply it here too when a map is present.
+                if (pcs->ppcs->roi_map_evt != NULL) {
+                    svt_aom_setup_segmentation(pcs, scs);
+                }
             } else {
                 if (!is_superres_recode_task) {
                     svt_av1_rc_process_rate_allocation(pcs, scs);
                 }
                 svt_av1_rc_calc_qindex_rate_control(pcs, scs);
+                // Same fix for the VBR / generic rate-control path.
+                if (pcs->ppcs->roi_map_evt != NULL) {
+                    svt_aom_setup_segmentation(pcs, scs);
+                }
             }
             ppcs->picture_qp = clamp_qp(scs, (ppcs->frm_hdr.quantization_params.base_q_idx + 2) >> 2);
         }
