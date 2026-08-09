@@ -306,6 +306,49 @@ void set_segments_numbers(SequenceControlSet* scs) {
     scs->rest_segment_row_count    = (lp == PARALLEL_LEVEL_1) ? 1
            : scs->input_resolution <= INPUT_SIZE_1080p_RANGE  ? MIN(rest_seg_h, 4)
                                                               : MIN(rest_seg_h, 6);
+
+    // Low-delay ME segment right-sizing.
+    //
+    // The ME grid set above is resolution-blind: it is a flat 8x6 = 48 segments for every
+    // resolution >= 640x360, which at 360p is only ~1.25 superblocks of work per segment. In
+    // low delay n_extra_mg is 0, so max_me == 1 and max_me_proc == tot_me_segs (see below):
+    // the ME segment count *is* the ME worker pool, and with a single picture in flight a
+    // segment's cost lands directly on the frame's critical path. Segments beyond what the
+    // configured parallelism can consume are therefore pure per-segment overhead.
+    //
+    // Trim towards whichever floor binds first, and never below it:
+    //   - two segments per core that this parallelism level represents, so the ME pool keeps
+    //     slack to absorb the cost variance between segments, and
+    //   - a bound on the work per segment, so a large frame is never reduced to a handful of
+    //     coarse segments that serialize the ME stage.
+    // Both floors err towards more segments: getting them wrong costs some of the saving, it
+    // does not cost throughput. VOD/RA, lp1, and resolutions already at a 1x1 grid (CIF and
+    // below) are untouched.
+    if (scs->static_config.pred_structure == LOW_DELAY && lp != PARALLEL_LEVEL_1 && lp <= PARALLEL_LEVEL_4) {
+        const uint32_t max_sbs_per_seg = 20;
+        const uint32_t lp_cores        = (lp == PARALLEL_LEVEL_2) ? PARALLEL_LEVEL_2_RANGE
+                   : (lp == PARALLEL_LEVEL_3)                     ? PARALLEL_LEVEL_3_RANGE
+                                                                  : PARALLEL_LEVEL_4_RANGE;
+        const uint32_t sb_total        = ((scs->max_input_luma_width + BLOCK_SIZE_64 - 1) / BLOCK_SIZE_64) *
+            ((scs->max_input_luma_height + BLOCK_SIZE_64 - 1) / BLOCK_SIZE_64);
+        const uint32_t min_segs = MAX(2 * lp_cores, (sb_total + max_sbs_per_seg - 1) / max_sbs_per_seg);
+
+        uint32_t rows = scs->me_segment_row_count_array;
+        uint32_t cols = scs->me_segment_col_count_array;
+        // Shrink the longer axis one step at a time while staying at or above the floor. Only
+        // ever shrinks, so a grid that is already at or below the floor is left alone.
+        for (;;) {
+            const uint32_t next_rows = (rows >= cols && rows > 1) ? rows - 1 : rows;
+            const uint32_t next_cols = (next_rows == rows && cols > 1) ? cols - 1 : cols;
+            if ((next_rows == rows && next_cols == cols) || next_rows * next_cols < min_segs) {
+                break;
+            }
+            rows = next_rows;
+            cols = next_cols;
+        }
+        scs->me_segment_row_count_array = scs->tf_segment_row_count = rows;
+        scs->me_segment_col_count_array = scs->tf_segment_column_count = cols;
+    }
 }
 
 static EbErrorType load_default_buffer_configuration_settings(SequenceControlSet* scs) {
