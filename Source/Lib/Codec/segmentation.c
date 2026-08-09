@@ -166,9 +166,20 @@ static void roi_map_setup_segmentation(PictureControlSet* pcs, SequenceControlSe
     segmentation_params->segmentation_update_map      = true;
     segmentation_params->segmentation_temporal_update = false;
 
+    // A per-segment qindex of 0 is lossless, which SVT-AV1 does not support, and
+    // base_q_idx + delta > 255 overflows the qindex range. Clamp the user's ROI
+    // delta so the resulting segment qindex stays in [1, MAXQ]. This keeps every
+    // block in its intended ROI segment instead of relying on the fallback walk
+    // in roi_map_apply_segmentation_based_quantization(), which would otherwise
+    // silently reassign the block to another segment's QP (or, if no segment
+    // qualifies, fall through leaving segment_id unset once asserts are compiled
+    // out in release builds). Reachable under CBR/VBR where rate control can
+    // drive base_q_idx low. Matches libaom's ROI clamp (aomedia 46eb4e460).
+    const int base_q_idx = pcs->ppcs->frm_hdr.quantization_params.base_q_idx;
     for (int i = 0; i <= roi_map->max_seg_id; i++) {
-        segmentation_params->feature_enabled[i][SEG_LVL_ALT_Q]      = 1;
-        segmentation_params->feature_data[i][SEG_LVL_ALT_Q]         = roi_map->seg_qp[i];
+        segmentation_params->feature_enabled[i][SEG_LVL_ALT_Q] = 1;
+        segmentation_params->feature_data[i][SEG_LVL_ALT_Q]    = CLIP3(
+            1 - base_q_idx, MAXQ - base_q_idx, roi_map->seg_qp[i]);
         segmentation_params->feature_enabled[i][SEG_LVL_ALT_LF_Y_V] = 1;
         segmentation_params->feature_enabled[i][SEG_LVL_ALT_LF_Y_H] = 1;
         segmentation_params->feature_enabled[i][SEG_LVL_ALT_LF_U]   = 1;
