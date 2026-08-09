@@ -1163,6 +1163,8 @@ EbErrorType svt_aom_resource_coordination_kernel_iter(void* context) {
         pcs->is_alt_ref         = 0;
         pcs->transition_present = -1;
         pcs->is_noise_level     = 0;
+        pcs->r0                 = 1.0;
+        pcs->tpl_is_valid       = 0;
         if (loop_index) {
             pcs->is_overlay = 1;
             // set the overlay_ppcs_ptr in the original (ALT_REF) ppcs to the current ppcs

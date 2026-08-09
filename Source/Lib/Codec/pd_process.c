@@ -4337,6 +4337,8 @@ static void send_picture_out(SequenceControlSet* scs, PictureParentControlSet* p
         svt_get_empty_object(ctx->me_fifo_ptr, &me_wrapper);
         pcs->me_data_wrapper = me_wrapper;
         pcs->pa_me_data      = (MotionEstimationData*)me_wrapper->object_ptr;
+        // the object is recycled, scrub it before configuring it for this picture
+        me_reset_carryover(pcs->pa_me_data);
         me_update_param(pcs->pa_me_data, scs);
     }
 

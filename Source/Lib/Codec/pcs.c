@@ -1291,7 +1291,8 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet* obje
         }
     }
 
-    object_ptr->r0 = 0;
+    // Match the per-picture reset in resource coordination.
+    object_ptr->r0 = 1.0;
 
     EB_MALLOC_ARRAY(object_ptr->rc_me_distortion, object_ptr->b64_total_count);
     EB_MALLOC_ARRAY(object_ptr->rc_me_allow_gm, object_ptr->b64_total_count);
@@ -1418,6 +1419,18 @@ EbErrorType me_update_param(MotionEstimationData* me_data, SequenceControlSet* s
     return return_error;
 }
 
+/*
+me_reset_carryover: a recycled MotionEstimationData still holds its previous tenant's output. Clear what
+a picture can read without having written it first. 
+Only 2 fields have side effect now.
+*/
+void me_reset_carryover(MotionEstimationData* me_data) {
+    if (me_data->tpl_stats) {
+        memset(me_data->tpl_stats[0], 0, me_data->tpl_stats_count * sizeof(TplStats));
+    }
+    me_data->base_rdmult = 0;
+}
+
 static EbErrorType me_ctor(MotionEstimationData* object_ptr, EbPtr object_init_data_ptr) {
     PictureControlSetInitData* init_data_ptr = (PictureControlSetInitData*)object_init_data_ptr;
 
@@ -1462,8 +1475,8 @@ static EbErrorType me_ctor(MotionEstimationData* object_ptr, EbPtr object_init_d
             adaptive_picture_width_in_mb  = (uint16_t)((init_data_ptr->picture_width + 31) / 32);
             adaptive_picture_height_in_mb = (uint16_t)((init_data_ptr->picture_height + 31) / 32);
         }
-        EB_MALLOC_2D(
-            object_ptr->tpl_stats, (uint32_t)((adaptive_picture_width_in_mb) * (adaptive_picture_height_in_mb)), 1);
+        object_ptr->tpl_stats_count = (uint32_t)((adaptive_picture_width_in_mb) * (adaptive_picture_height_in_mb));
+        EB_MALLOC_2D(object_ptr->tpl_stats, object_ptr->tpl_stats_count, 1);
         if (init_data_ptr->tpl_lad_mg > 0) {
             EB_MALLOC_ARRAY(object_ptr->tpl_src_stats_buffer,
                             (uint32_t)picture_width_in_mb * (uint32_t)picture_height_in_mb);
