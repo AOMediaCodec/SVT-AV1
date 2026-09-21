@@ -692,6 +692,28 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Values(svt_av1_down2_symeven_neon)));
 #endif  // ARCH_AARCH64
 
+#ifdef ARCH_X86_64
+// svt_av1_down2_symeven_avx2 always calls down2_symeven_w16_init_part_avx2
+// unconditionally, which reads up to input+36 and writes a fixed 16-byte
+// output batch - unsafe below length 38, and for odd lengths (see the fix
+// in resize_avx2.c). Separately, down2_symeven_w16_mid_part_avx2's last
+// processed chunk reads 4 bytes beyond its nominal consumption; that
+// overreads past `length` specifically when (length - 32 - mid) is 3 or 4,
+// which recurs at every length = 68 + 32*k for k = 0, 1, 2, ... (not just
+// short inputs). The length list below hits: every branch below 38
+// (including odd, since the fallback there must match the C reference for
+// any length), the 37/38 boundary, and both the failing (68, 100, 132, 164)
+// and neighboring safe (66, 70, 98, 102) points of that periodic case.
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, Down2SymevenTest,
+    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
+                                         18, 20, 22, 23, 24, 25, 30, 36, 37, 38,
+                                         39, 40, 64, 66, 68, 70, 98, 100, 102,
+                                         130, 132, 134, 162, 164, 166, 255, 256,
+                                         257, 511, 512, 640, 1024, 1920, 3840),
+                       ::testing::Values(svt_av1_down2_symeven_avx2)));
+#endif  // ARCH_X86_64
+
 typedef void (*InterpolateCoreFunc)(const uint8_t *const input, int in_length,
                                     uint8_t *output, int out_length,
                                     const int16_t *interp_filters);

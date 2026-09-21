@@ -824,6 +824,58 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
     const int      filter_len_half = sizeof(svt_aom_av1_down2_symeven_half_filter) / 2;
     const int      steps           = 32;
 
+    // down2_symeven_w16_init_part_avx2 below unconditionally reads up to
+    // input+36 and writes a fixed 16-byte output batch, regardless of
+    // length; that's only in-bounds once length is large enough (>=38) and
+    // even (this whole kernel assumes an even-length input throughout - the
+    // batch write below has no room for an odd trailing sample). Below that,
+    // fall back to the exact scalar computation the C reference uses,
+    // including its own short-input path.
+    if (length < 38 || (length & 1)) {
+        int      i, j;
+        uint8_t* optr = output;
+        int      l1   = filter_len_half;
+        int      l2   = (length - filter_len_half);
+        l1 += (l1 & 1);
+        l2 += (l2 & 1);
+        if (l1 > l2) {
+            for (i = 0; i < length; i += 2) {
+                int sum = (1 << (FILTER_BITS - 1));
+                for (j = 0; j < filter_len_half; ++j) {
+                    sum += (input[AOMMAX(i - j, 0)] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
+                }
+                sum >>= FILTER_BITS;
+                *optr++ = clip_pixel(sum);
+            }
+        } else {
+            for (i = 0; i < l1; i += 2) {
+                int sum = (1 << (FILTER_BITS - 1));
+                for (j = 0; j < filter_len_half; ++j) {
+                    sum += (input[AOMMAX(i - j, 0)] + input[i + 1 + j]) * filter[j];
+                }
+                sum >>= FILTER_BITS;
+                *optr++ = clip_pixel(sum);
+            }
+            for (; i < l2; i += 2) {
+                int sum = (1 << (FILTER_BITS - 1));
+                for (j = 0; j < filter_len_half; ++j) {
+                    sum += (input[i - j] + input[i + 1 + j]) * filter[j];
+                }
+                sum >>= FILTER_BITS;
+                *optr++ = clip_pixel(sum);
+            }
+            for (; i < length; i += 2) {
+                int sum = (1 << (FILTER_BITS - 1));
+                for (j = 0; j < filter_len_half; ++j) {
+                    sum += (input[i - j] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
+                }
+                sum >>= FILTER_BITS;
+                *optr++ = clip_pixel(sum);
+            }
+        }
+        return;
+    }
+
     const __m128i filter_1x = _mm_loadl_epi64((const __m128i*)filter);
     const __m256i filter_4x = _mm256_broadcastq_epi64(filter_1x);
 
@@ -839,6 +891,16 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
 
     // Middle part.
     int mid = (l2 - l1 + 1) & (~(steps - 1));
+    // down2_symeven_w16_mid_part_avx2's last processed chunk always reads 4
+    // bytes beyond its nominal `mid`-byte consumption (its lookahead margin).
+    // That's only in-bounds if there's real trailing data left afterward:
+    // when the leftover (length - l1 - mid) is exactly 3 or 4, the peek
+    // reads past `length`. Pull one chunk out of mid so the leftover grows
+    // past that window and end_part_avx2 (blend-load, safe for any
+    // remaining length) takes over instead.
+    if (mid > 0 && (length - l1 - mid) < 5) {
+        mid -= steps;
+    }
     if (mid > 0) {
         down2_symeven_w16_mid_part_avx2(input + i, mid, &optr, &filter_4x);
         i += mid;
