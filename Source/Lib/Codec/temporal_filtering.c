@@ -585,21 +585,29 @@ int32_t svt_aom_noise_log1p_fp16(int32_t noise_level_fp16) {
     }
 }
 
+// decay_control * (0.7 + log1p(noise_level)), in fp10.
+int32_t svt_aom_tf_n_decay_fp10(int32_t decay_control, int32_t noise_log1p_fp16) {
+    const int32_t const_0dot7_fp16 = 45875; //0.7
+    // An unreliable noise estimate (-1) gives log1p = INT32_MIN (-inf), which
+    // would overflow here. Real estimates are never negative, so treat it as
+    // no noise, like vmaf_get_noise_gate() does.
+    return (decay_control * (const_0dot7_fp16 + AOMMAX(noise_log1p_fp16, 0))) / ((int32_t)1 << 6);
+}
+
 // Calculate decay factor for temporal filtering
 static inline void svt_av1_calculate_decay_factor(uint32_t* tf_decay_factor_fp16, int32_t* n_decay_fp10,
                                                   uint32_t q_decay_fp8, int decay_control_cu, int decay_control_cv,
-                                                  const int32_t  const_0dot7_fp16,
                                                   const int32_t* noise_levels_log1p_fp16, const uint8_t shift_factor,
                                                   uint8_t tf_chroma) {
     *(tf_decay_factor_fp16 +
       PLANE_Y) = (uint32_t)((((((int64_t)*n_decay_fp10) * ((int64_t)*n_decay_fp10))) * q_decay_fp8) >> shift_factor);
 
     if (tf_chroma) {
-        *n_decay_fp10 = (decay_control_cu * (const_0dot7_fp16 + noise_levels_log1p_fp16[PLANE_U])) / ((int32_t)1 << 6);
+        *n_decay_fp10 = svt_aom_tf_n_decay_fp10(decay_control_cu, noise_levels_log1p_fp16[PLANE_U]);
         *(tf_decay_factor_fp16 +
           PLANE_U)    = (uint32_t)((((((int64_t)*n_decay_fp10) * ((int64_t)*n_decay_fp10))) * q_decay_fp8) >>
                                    shift_factor);
-        *n_decay_fp10 = (decay_control_cv * (const_0dot7_fp16 + noise_levels_log1p_fp16[PLANE_V])) / ((int32_t)1 << 6);
+        *n_decay_fp10 = svt_aom_tf_n_decay_fp10(decay_control_cv, noise_levels_log1p_fp16[PLANE_V]);
         *(tf_decay_factor_fp16 +
           PLANE_V)    = (uint32_t)((((((int64_t)*n_decay_fp10) * ((int64_t)*n_decay_fp10))) * q_decay_fp8) >>
                                    shift_factor);
@@ -2726,11 +2734,9 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
     } else {
         q_decay_fp8 = MAX(q << 2, 1);
     }
-    const int32_t const_0dot7_fp16 = 45875; //0.7
     /*Calculation of log and dceay_factor possible to move to estimate_noise() and calculate one time for GOP*/
     //decay_control * (0.7 + log1p(noise_levels[PLANE_Y]))
-    int32_t n_decay_fp10 = (decay_control[PLANE_Y] * (const_0dot7_fp16 + noise_levels_log1p_fp16[PLANE_Y])) /
-        ((int32_t)1 << 6);
+    int32_t n_decay_fp10 = svt_aom_tf_n_decay_fp10(decay_control[PLANE_Y], noise_levels_log1p_fp16[PLANE_Y]);
     //2 * n_decay * n_decay * q_decay * (s_decay always is 1);
     /*
          * TF STRENGTH CALCULATION
@@ -2754,7 +2760,6 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
                                            q_decay_fp8,
                                            decay_control[PLANE_U],
                                            decay_control[PLANE_V],
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            kf_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -2764,7 +2769,6 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
                                            q_decay_fp8,
                                            decay_control[PLANE_U],
                                            decay_control[PLANE_V],
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            adaptive_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -2797,7 +2801,6 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
                                            q_decay_fp8,
                                            decay_control[PLANE_U],
                                            decay_control[PLANE_V],
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            kf_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -2807,7 +2810,6 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
                                            q_decay_fp8,
                                            decay_control[PLANE_U],
                                            decay_control[PLANE_V],
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            tf_shift_factor,
                                            ctx->tf_chroma);
@@ -3255,10 +3257,9 @@ static EbErrorType produce_temporally_filtered_pic_ld(PictureParentControlSet** 
     FP_ASSERT(TF_Q_DECAY_THRESHOLD == 20);
     const uint32_t q_decay_fp8 = 256;
 
-    const int32_t const_0dot7_fp16 = 45875; //0.7
     /*Calculation of log and dceay_factor possible to move to estimate_noise() and calculate one time for GOP*/
     //decay_control * (0.7 + log1p(noise_levels[PLANE_Y]))
-    int32_t n_decay_fp10 = (decay_control * (const_0dot7_fp16 + noise_levels_log1p_fp16[PLANE_Y])) / ((int32_t)1 << 6);
+    int32_t n_decay_fp10 = svt_aom_tf_n_decay_fp10(decay_control, noise_levels_log1p_fp16[PLANE_Y]);
     //2 * n_decay * n_decay * q_decay * (s_decay always is 1);
     /*
      * TF STRENGTH CALCULATION (2)
@@ -3282,7 +3283,6 @@ static EbErrorType produce_temporally_filtered_pic_ld(PictureParentControlSet** 
                                            q_decay_fp8,
                                            decay_control,
                                            decay_control,
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            kf_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -3292,7 +3292,6 @@ static EbErrorType produce_temporally_filtered_pic_ld(PictureParentControlSet** 
                                            q_decay_fp8,
                                            decay_control,
                                            decay_control,
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            adaptive_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -3325,7 +3324,6 @@ static EbErrorType produce_temporally_filtered_pic_ld(PictureParentControlSet** 
                                            q_decay_fp8,
                                            decay_control,
                                            decay_control,
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            kf_tf_shift_factor,
                                            ctx->tf_chroma);
@@ -3335,7 +3333,6 @@ static EbErrorType produce_temporally_filtered_pic_ld(PictureParentControlSet** 
                                            q_decay_fp8,
                                            decay_control,
                                            decay_control,
-                                           const_0dot7_fp16,
                                            noise_levels_log1p_fp16,
                                            tf_shift_factor,
                                            ctx->tf_chroma);

@@ -98,6 +98,7 @@ void svt_av1_apply_temporal_filter_planewise_medium_hbd_c(
     uint32_t encoder_bit_depth);
 
 int32_t svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
+int32_t svt_aom_tf_n_decay_fp10(int32_t decay_control, int32_t noise_log1p_fp16);
 
 typedef struct {
     uint8_t      subpel_pel_mode;
