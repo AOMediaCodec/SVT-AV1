@@ -10,6 +10,7 @@
  */
 
 #include <immintrin.h>
+#include "aom_dsp_rtcd.h"
 #include "definitions.h"
 #include "memory_avx2.h"
 #include "common_dsp_rtcd.h"
@@ -827,60 +828,16 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
     // down2_symeven_w16_init_part_avx2 below unconditionally reads up to
     // input+36 and writes a fixed 16-byte output batch regardless of length
     // - in-bounds (both the read and the write) only once length>=37; below
-    // that it's unsafe at any length, odd or even (verified by exhaustive
-    // guard-page testing down to length=1). This kernel is only ever called
-    // with an even length in production (down2_symodd handles the odd
-    // case), so routing every odd length to the scalar fallback here too
-    // costs nothing in practice and keeps the guard a single simple check
-    // rather than one that has to reason about init_part's read/write floor
-    // and the downstream mid/end chunk sizing (`l2`/`mid`/`steps` below,
-    // which do assume an even length) separately. Below length 38 (the
-    // smallest even length clearing the length>=37 floor) or for any odd
-    // length, skip all of that and fall back to the exact scalar
-    // computation the C reference uses, including its own
-    // short-input path.
+    // that it's unsafe at any length, odd or even. The downstream mid/end
+    // chunk sizing (`l2`/`mid`/`steps` below) also assumes an even length,
+    // and this kernel's only production caller (resize_multistep) dispatches
+    // odd lengths to down2_symodd instead, so there's no case where routing
+    // an odd length here to the plain C reference loses anything. Below
+    // length 38 (the smallest even length clearing the length>=37 floor) or
+    // for any odd length, just call the C reference directly rather than
+    // duplicate its short-input/initial/middle/end branches here.
     if (length < 38 || (length & 1)) {
-        int      i, j;
-        uint8_t* optr = output;
-        int      l1   = filter_len_half;
-        int      l2   = (length - filter_len_half);
-        l1 += (l1 & 1);
-        l2 += (l2 & 1);
-        if (l1 > l2) {
-            for (i = 0; i < length; i += 2) {
-                int sum = (1 << (FILTER_BITS - 1));
-                for (j = 0; j < filter_len_half; ++j) {
-                    sum += (input[AOMMAX(i - j, 0)] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
-                }
-                sum >>= FILTER_BITS;
-                *optr++ = clip_pixel(sum);
-            }
-        } else {
-            for (i = 0; i < l1; i += 2) {
-                int sum = (1 << (FILTER_BITS - 1));
-                for (j = 0; j < filter_len_half; ++j) {
-                    sum += (input[AOMMAX(i - j, 0)] + input[i + 1 + j]) * filter[j];
-                }
-                sum >>= FILTER_BITS;
-                *optr++ = clip_pixel(sum);
-            }
-            for (; i < l2; i += 2) {
-                int sum = (1 << (FILTER_BITS - 1));
-                for (j = 0; j < filter_len_half; ++j) {
-                    sum += (input[i - j] + input[i + 1 + j]) * filter[j];
-                }
-                sum >>= FILTER_BITS;
-                *optr++ = clip_pixel(sum);
-            }
-            for (; i < length; i += 2) {
-                int sum = (1 << (FILTER_BITS - 1));
-                for (j = 0; j < filter_len_half; ++j) {
-                    sum += (input[i - j] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
-                }
-                sum >>= FILTER_BITS;
-                *optr++ = clip_pixel(sum);
-            }
-        }
+        svt_av1_down2_symeven_c(input, length, output);
         return;
     }
 

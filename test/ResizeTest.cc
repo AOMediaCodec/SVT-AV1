@@ -704,144 +704,169 @@ INSTANTIATE_TEST_SUITE_P(
 #ifdef ARCH_X86_64
 // svt_av1_down2_symeven_avx2 always calls down2_symeven_w16_init_part_avx2
 // unconditionally, which reads up to input+36 and writes a fixed 16-byte
-// output batch - in-bounds on its own only once length>=37, and the batched
-// pipeline as a whole further assumes an even length throughout (the fix in
-// resize_avx2.c routes length<38 or any odd length to a scalar fallback
-// instead). Separately, down2_symeven_w16_mid_part_avx2's last processed
-// chunk reads 4 bytes beyond its nominal consumption; for even length that
-// overreads specifically when (length - 32 - mid) is 3 or 4, recurring at
-// every length = 68 + 32*k for k = 0, 1, 2, ... (not just short inputs) -
-// and the same arithmetic gives odd length = 67 + 32*k as the analogous
-// failure point on the original code (also fixed here, since all odd
-// lengths take the scalar path). The length list below hits: every branch
-// below 38 (including odd, since the fallback there must match the C
-// reference for any length), the 37/38 boundary, and both the failing
-// (68, 100, 132, 164 and the odd 67, 99, 131, 163) and neighboring safe
-// points of those periodic cases.
+// output batch - unsafe below length 37, and the batched pipeline as a whole
+// further assumes an even length throughout (the fix in resize_avx2.c routes
+// length<38 or any odd length to the C reference instead). Separately,
+// down2_symeven_w16_mid_part_avx2's last processed chunk reads past its
+// nominal consumption; for even length that overreads specifically when
+// (length - 32 - mid) is 3 or 4, recurring at every length = 68 + 32*k for
+// k = 0, 1, 2, ... (not just short inputs) - and the same arithmetic gives
+// odd length = 67 + 32*k as the analogous failure point on the original
+// code. The length list covers every integer below 38 (so both the
+// short-input and initial/middle/end C-reference branches, and the parity
+// check, are exercised at each boundary), the 37/38 floor, both periodic
+// failure points (even 68/100/132/164, odd 67/99/131/163) with their
+// immediate neighbors, and realistic plane widths.
 INSTANTIATE_TEST_SUITE_P(
     AVX2, Down2SymevenTest,
-    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
-                                         18, 20, 22, 23, 24, 25, 30, 36, 37, 38,
-                                         39, 40, 64, 66, 67, 68, 69, 70, 98, 99,
-                                         100, 101, 102, 130, 131, 132, 133, 134,
-                                         162, 163, 164, 165, 166, 255, 256, 257,
-                                         511, 512, 640, 1024, 1920, 3840),
+    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                         13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                                         23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+                                         33, 34, 35, 36, 37, 38, 39, 40, 64, 65,
+                                         66, 67, 68, 69, 70, 98, 99, 100, 101,
+                                         102, 130, 131, 132, 133, 134, 162, 163,
+                                         164, 165, 166, 255, 256, 257, 511, 512,
+                                         640, 1024, 1920, 3840),
                        ::testing::Values(svt_av1_down2_symeven_avx2)));
 
-// The sentinel-based Down2SymevenTest above checks output correctness and
-// catches a write past the output buffer, but an input overread that
-// happens not to change the output is invisible to it - and that's exactly
-// the shape of the periodic bug fixed above: the 4 extra bytes
-// down2_symeven_w16_mid_part_avx2's last chunk reads are never used in the
-// output. AddressSanitizer normally catches a heap-buffer-overflow read via
-// its redzones, but was found (while developing this fix) to miss some
-// instances of this specific single-byte-class overread depending on heap
-// layout. Reproduce the guarantee deterministically instead, independent of
-// allocator behavior: place the input right against an unmapped guard page,
-// so any byte read past it is a hard fault.
+// The sentinel-based Down2SymevenTest above only checks output correctness,
+// so it can't catch the periodic bug fixed above on its own: the last 2 of
+// the bytes down2_symeven_w16_mid_part_avx2's last chunk reads past its
+// nominal window are genuinely unused (the rest feed real filter taps), but
+// whether the overread is caught depends on whether AddressSanitizer's
+// redzone happens to sit there - which is heap-layout dependent for an
+// overread this small. Make the detection deterministic instead: place the
+// input right against a guard page with its access removed, so any byte
+// read past it is a hard fault no matter how the allocator laid things out.
+// Owns a buffer placed directly against a page whose access is removed, so
+// any read or write past `usable_size` bytes past `data()` is a hard fault.
+// Construction never fails loudly: if the platform calls themselves fail,
+// `data()` returns nullptr rather than a usable-looking but unprotected
+// pointer, so callers that ASSERT_NE(data(), nullptr) catch it instead of
+// silently losing the guarantee.
 class GuardedInputBuffer {
   public:
-    explicit GuardedInputBuffer(size_t usable_size)
-        : usable_size_(usable_size) {
+    explicit GuardedInputBuffer(size_t usable_size) {
 #ifdef _WIN32
         SYSTEM_INFO sys_info;
         GetSystemInfo(&sys_info);
-        page_size_ = sys_info.dwPageSize;
+        const size_t page_size = sys_info.dwPageSize;
 #else
-        page_size_ = (size_t)sysconf(_SC_PAGESIZE);
+        const long page_size_result = sysconf(_SC_PAGESIZE);
+        if (page_size_result <= 0)
+            return;
+        const size_t page_size = (size_t)page_size_result;
 #endif
-        const size_t guard_pages = 1;
-        total_pages_ =
-            (usable_size_ + page_size_ - 1) / page_size_ + guard_pages;
-        total_size_ = total_pages_ * page_size_;
+        const size_t total_pages =
+            (usable_size + page_size - 1) / page_size + 1;
+        total_size_ = total_pages * page_size;
 #ifdef _WIN32
         base_ = (uint8_t *)VirtualAlloc(
             nullptr, total_size_, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #else
-        base_ = (uint8_t *)mmap(nullptr,
-                                total_size_,
-                                PROT_READ | PROT_WRITE,
-                                MAP_PRIVATE | MAP_ANONYMOUS,
-                                -1,
-                                0);
-        if (base_ == MAP_FAILED)
-            base_ = nullptr;
+        void *mapped = mmap(nullptr,
+                            total_size_,
+                            PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS,
+                            -1,
+                            0);
+        base_ = (mapped == MAP_FAILED) ? nullptr : (uint8_t *)mapped;
 #endif
-        if (base_ != nullptr) {
-            uint8_t *guard_page =
-                base_ + (total_pages_ - guard_pages) * page_size_;
-#ifdef _WIN32
-            DWORD old_protect;
-            VirtualProtect(guard_page, page_size_, PAGE_NOACCESS, &old_protect);
-#else
-            mprotect(guard_page, page_size_, PROT_NONE);
-#endif
-            ptr_ = guard_page - usable_size_;
+        if (base_ == nullptr) {
+            total_size_ = 0;
+            return;
         }
+        uint8_t *guard_page = base_ + total_size_ - page_size;
+#ifdef _WIN32
+        DWORD old_protect;
+        const bool protected_ok =
+            VirtualProtect(
+                guard_page, page_size, PAGE_NOACCESS, &old_protect) != 0;
+#else
+        const bool protected_ok =
+            mprotect(guard_page, page_size, PROT_NONE) == 0;
+#endif
+        if (protected_ok)
+            ptr_ = guard_page - usable_size;
     }
+
+    GuardedInputBuffer(const GuardedInputBuffer &) = delete;
+    GuardedInputBuffer &operator=(const GuardedInputBuffer &) = delete;
 
     ~GuardedInputBuffer() {
-        if (base_ != nullptr) {
+        if (base_ == nullptr)
+            return;
 #ifdef _WIN32
-            VirtualFree(base_, 0, MEM_RELEASE);
+        VirtualFree(base_, 0, MEM_RELEASE);
 #else
-            munmap(base_, total_size_);
+        munmap(base_, total_size_);
 #endif
-        }
     }
 
+    // nullptr if setup failed (allocation or the protection call itself);
+    // never a pointer backed by an unprotected guard page.
     uint8_t *data() const {
         return ptr_;
     }
 
   private:
-    size_t usable_size_;
-    size_t page_size_ = 0;
-    size_t total_pages_ = 0;
     size_t total_size_ = 0;
     uint8_t *base_ = nullptr;
     uint8_t *ptr_ = nullptr;
 };
 
-class Down2SymevenAvx2GuardPageTest : public ::testing::TestWithParam<int> {};
+class Down2SymevenAvx2GuardPageTest : public ::testing::TestWithParam<int> {
+  public:
+    Down2SymevenAvx2GuardPageTest()
+        : length_(GetParam()), out_len_((length_ + 1) / 2), rnd_(0, 255) {
+    }
+
+    void SetUp() override {
+        ref_output_ = (uint8_t *)svt_aom_memalign(32, out_len_);
+        ASSERT_NE(ref_output_, nullptr);
+        tst_output_ = (uint8_t *)svt_aom_memalign(32, out_len_);
+        ASSERT_NE(tst_output_, nullptr);
+    }
+
+    void TearDown() override {
+        svt_aom_free(ref_output_);
+        svt_aom_free(tst_output_);
+    }
+
+  protected:
+    int length_;
+    int out_len_;
+    SVTRandom rnd_;
+    uint8_t *ref_output_ = nullptr;
+    uint8_t *tst_output_ = nullptr;
+};
 
 TEST_P(Down2SymevenAvx2GuardPageTest, NoOverreadPastInputEnd) {
-    const int length = GetParam();
-    const int out_len = (length + 1) / 2;
-    SVTRandom rnd(0, 255);
-
-    GuardedInputBuffer guarded(length);
+    GuardedInputBuffer guarded(length_);
     uint8_t *input = guarded.data();
     ASSERT_NE(input, nullptr);
-    for (int i = 0; i < length; i++) {
-        input[i] = (uint8_t)rnd.random();
+    for (int i = 0; i < length_; i++) {
+        input[i] = (uint8_t)rnd_.random();
     }
 
-    uint8_t *ref_output = (uint8_t *)svt_aom_memalign(32, out_len);
-    ASSERT_NE(ref_output, nullptr);
-    uint8_t *tst_output = (uint8_t *)svt_aom_memalign(32, out_len);
-    ASSERT_NE(tst_output, nullptr);
-
-    svt_av1_down2_symeven_c(input, length, ref_output);
+    svt_av1_down2_symeven_c(input, length_, ref_output_);
     // Faults here (not at ASSERT_EQ below) if the kernel reads past the
     // guard page.
-    svt_av1_down2_symeven_avx2(input, length, tst_output);
+    svt_av1_down2_symeven_avx2(input, length_, tst_output_);
 
-    for (int i = 0; i < out_len; i++) {
-        ASSERT_EQ(ref_output[i], tst_output[i])
-            << "mismatch at output index " << i << " for length " << length;
+    for (int i = 0; i < out_len_; i++) {
+        ASSERT_EQ(ref_output_[i], tst_output_[i])
+            << "mismatch at output index " << i << " for length " << length_;
     }
-
-    svt_aom_free(ref_output);
-    svt_aom_free(tst_output);
 }
 
-INSTANTIATE_TEST_SUITE_P(AVX2, Down2SymevenAvx2GuardPageTest,
-                         ::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 30, 36, 37,
-                                           38, 39, 40, 64, 66, 67, 68, 69, 70,
-                                           98, 99, 100, 101, 102, 130, 131, 132,
-                                           133, 134, 162, 163, 164, 165, 166,
-                                           256, 1920));
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, Down2SymevenAvx2GuardPageTest,
+    ::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                      18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                      32, 33, 34, 35, 36, 37, 38, 39, 40, 64, 65, 66, 67, 68,
+                      69, 70, 98, 99, 100, 101, 102, 130, 131, 132, 133, 134,
+                      162, 163, 164, 165, 166, 256, 1920));
 #endif  // ARCH_X86_64
 
 typedef void (*InterpolateCoreFunc)(const uint8_t *const input, int in_length,
