@@ -825,12 +825,20 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
     const int      steps           = 32;
 
     // down2_symeven_w16_init_part_avx2 below unconditionally reads up to
-    // input+36 and writes a fixed 16-byte output batch, regardless of
-    // length; that's only in-bounds once length is large enough (>=38) and
-    // even (this whole kernel assumes an even-length input throughout - the
-    // batch write below has no room for an odd trailing sample). Below that,
-    // fall back to the exact scalar computation the C reference uses,
-    // including its own short-input path.
+    // input+36 and writes a fixed 16-byte output batch regardless of length
+    // - in-bounds (both the read and the write) only once length>=37; below
+    // that it's unsafe at any length, odd or even (verified by exhaustive
+    // guard-page testing down to length=1). This kernel is only ever called
+    // with an even length in production (down2_symodd handles the odd
+    // case), so routing every odd length to the scalar fallback here too
+    // costs nothing in practice and keeps the guard a single simple check
+    // rather than one that has to reason about init_part's read/write floor
+    // and the downstream mid/end chunk sizing (`l2`/`mid`/`steps` below,
+    // which do assume an even length) separately. Below length 38 (the
+    // smallest even length clearing the length>=37 floor) or for any odd
+    // length, skip all of that and fall back to the exact scalar
+    // computation the C reference uses, including its own
+    // short-input path.
     if (length < 38 || (length & 1)) {
         int      i, j;
         uint8_t* optr = output;
@@ -896,8 +904,9 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
     // That's only in-bounds if there's real trailing data left afterward:
     // when the leftover (length - l1 - mid) is exactly 3 or 4, the peek
     // reads past `length`. Pull one chunk out of mid so the leftover grows
-    // past that window and end_part_avx2 (blend-load, safe for any
-    // remaining length) takes over instead.
+    // past that window - the `length - i >= steps` check below then routes
+    // it to end_part_avx2 instead, whose blend-load safely absorbs any
+    // boundary within that guarded range.
     if (mid > 0 && (length - l1 - mid) < 5) {
         mid -= steps;
     }
