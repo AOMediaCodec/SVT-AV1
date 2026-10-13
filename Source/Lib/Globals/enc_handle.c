@@ -4332,7 +4332,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     scs->static_config.rtc            = config_struct->rtc;
     if (scs->static_config.rtc && scs->static_config.pred_structure != LOW_DELAY) {
         scs->static_config.pred_structure = LOW_DELAY;
-        SVT_WARN("Instance %u: Force low delay pred structure to be used for rtc.\n");
+        SVT_WARN("Forcing low delay pred structure for RTC.\n");
     }
     scs->enable_qp_scaling_flag = scs->allintra ? 0 : 1;
     // Set Picture Parameters for statistics gathering
