@@ -388,6 +388,9 @@ static void resize_multistep(const uint8_t* const input, int length, uint8_t* ou
             if (filteredlength & 1) {
                 down2_symodd(in, filteredlength, out);
             } else {
+                // odd lengths are handled by down2_symodd above; this branch
+                // is even-only, matching what svt_av1_down2_symeven expects.
+                assert(!(filteredlength & 1));
                 svt_av1_down2_symeven(in, filteredlength, out);
             }
             filteredlength = proj_filteredlength;
