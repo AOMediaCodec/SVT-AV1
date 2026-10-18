@@ -879,15 +879,8 @@ EbErrorType svt_aom_picture_manager_kernel_iter(void* context) {
             // off in low layers.
             child_pcs->ppcs->refresh_frame_context = REFRESH_FRAME_CONTEXT_BACKWARD;
         }
-        EbObjectWrapper* out_results_wrapper;
-        // Get Empty Results Object
-        svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr, &out_results_wrapper);
-        RateControlTasks* rc_tasks = (RateControlTasks*)out_results_wrapper->object_ptr;
-        rc_tasks->pcs_wrapper      = child_pcs->c_pcs_wrapper_ptr;
-        rc_tasks->task_type        = RC_INPUT;
-
-        // Post the Full Results Object
-        svt_post_full_object(out_results_wrapper);
+        // Read entry_ppcs before posting to RC: once posted, the parent PCS can be
+        // released and reused for the next input (single-PPCS pool in low delay).
         // Remove the Input Entry from the Input Queue
         input_entry->input_object_ptr = NULL;
         svt_block_on_mutex(enc_ctx->ref_pic_list_mutex);
@@ -902,6 +895,16 @@ EbErrorType svt_aom_picture_manager_kernel_iter(void* context) {
             }
         }
         svt_release_mutex(enc_ctx->ref_pic_list_mutex);
+
+        EbObjectWrapper* out_results_wrapper;
+        // Get Empty Results Object
+        svt_get_empty_object(context_ptr->picture_manager_output_fifo_ptr, &out_results_wrapper);
+        RateControlTasks* rc_tasks = (RateControlTasks*)out_results_wrapper->object_ptr;
+        rc_tasks->pcs_wrapper      = child_pcs->c_pcs_wrapper_ptr;
+        rc_tasks->task_type        = RC_INPUT;
+
+        // Post the Full Results Object
+        svt_post_full_object(out_results_wrapper);
     }
 
     svt_block_on_mutex(enc_ctx->ref_pic_list_mutex);
