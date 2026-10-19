@@ -6259,9 +6259,12 @@ static bool lpd1_should_perform_tx(PictureControlSet* pcs, ModeDecisionContext* 
 
     int score = 0;
 
-    const BlockGeom* const blk_geom           = ctx->blk_geom;
-    const uint64_t         best_md_stage_dist = cand_bf->luma_fast_dist;
-    const uint64_t         th_normalizer      = (uint64_t)blk_geom->bheight * blk_geom->bwidth * ctx->qp_index;
+    const BlockGeom* const blk_geom = ctx->blk_geom;
+    // The SSE of the MDS0 prediction, which light-PD1's MDS0 and its bypass store in full_dist. luma_fast_dist is
+    // the residual's variance, which drops its mean: a prediction off by a near-uniform offset would read as nearly
+    // distortion-free and lose its residual.
+    const uint64_t best_md_stage_dist = cand_bf->full_dist;
+    const uint64_t th_normalizer      = (uint64_t)blk_geom->bheight * blk_geom->bwidth * ctx->qp_index;
 
     // Fast dist/energy-based skip signal
     const bool dist_skip_cond = (100 * best_md_stage_dist) <
