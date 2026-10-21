@@ -119,11 +119,11 @@ static INLINE unsigned int svt_check_better_fast(Mv this_mv, Mv* best_mv, const 
         }
         thismse = svt_estimated_pref_error(this_mv, var_params);
         cost += thismse;
-        int weight = 100;
+        uint64_t biased_cost = cost;
         if (var_params->bias_fp && best_mv->x % 8 == 0 && best_mv->y % 8 == 0) {
-            weight = var_params->bias_fp;
+            biased_cost = ((uint64_t)cost * var_params->bias_fp) / 100;
         }
-        if ((((uint64_t)cost * weight) / 100) < *besterr) {
+        if (biased_cost < *besterr) {
             *besterr    = cost;
             *best_mv    = this_mv;
             *distortion = thismse;
@@ -145,11 +145,11 @@ static AOM_FORCE_INLINE unsigned int svt_check_better(MacroBlockD* xd, const str
         thismse = svt_upsampled_pref_error(xd, cm, this_mv, var_params);
         cost    = svt_aom_fp_mv_err_cost(this_mv, mv_cost_params);
         cost += thismse;
-        int weight = 100;
+        uint64_t biased_cost = cost;
         if (var_params->bias_fp && best_mv->x % 8 == 0 && best_mv->y % 8 == 0) {
-            weight = var_params->bias_fp;
+            biased_cost = ((uint64_t)cost * var_params->bias_fp) / 100;
         }
-        if ((((uint64_t)cost * weight) / 100) < *besterr) {
+        if (biased_cost < *besterr) {
             *besterr = cost;
             *best_mv = this_mv;
         }
