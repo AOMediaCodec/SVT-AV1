@@ -111,6 +111,16 @@ void svt_ext_sad_calculation_8x8_16x16_avx2_intrin(uint8_t* src, uint32_t src_st
     }
 }
 
+// SADs of the last width (< 4) columns of one row at 8 consecutive search positions.
+static INLINE __m128i sad_loop_kernel_tail_8pos_sse4_1(const uint8_t* src, const uint8_t* ref, uint32_t width) {
+    __m128i sum = _mm_setzero_si128();
+    for (uint32_t l = 0; l < width; l++) {
+        const __m128i r = _mm_cvtepu8_epi16(_mm_loadl_epi64((const __m128i*)(ref + l)));
+        sum             = _mm_add_epi16(sum, _mm_abs_epi16(_mm_sub_epi16(r, _mm_set1_epi16(src[l]))));
+    }
+    return sum;
+}
+
 /*******************************************************************************
  * Requirement: block_height < 64
  * General version for SAD computing that support any block width and height
@@ -126,7 +136,7 @@ static void sad_loop_kernel_generalized_avx2(
     uint32_t src_stride_raw, // input parameter, source stride (no line skipping)
     int16_t search_area_width, int16_t search_area_height, __m128i leftover_mask) {
     int16_t        i, j;
-    uint32_t       k, l;
+    uint32_t       k;
     const uint8_t *p_ref, *p_src;
     __m128i        s0, s1, s2, s3, s4, s5;
     __m256i        ss0, ss1, ss2, ss3, ss4, ss5, ss6, ss7;
@@ -224,16 +234,9 @@ static void sad_loop_kernel_generalized_avx2(
                     temp_ref += 4;
                 }
                 if (width_calc > 0) {
-                    DECLARE_ALIGNED(16, uint16_t, tsum[8]);
-                    memset(tsum, 0, 8 * sizeof(uint16_t));
-                    for (uint32_t search_area = 0; search_area < 8; search_area++) {
-                        for (l = 0; l < width_calc; l++) {
-                            tsum[search_area] += EB_ABS_DIFF(temp_src[l], temp_ref[l]) +
-                                EB_ABS_DIFF(temp_src[src_stride + l], temp_ref[ref_stride + l]);
-                        }
-                        temp_ref += 1;
-                    }
-                    s4  = _mm_loadu_si128((__m128i*)tsum);
+                    s4 = _mm_add_epi16(
+                        sad_loop_kernel_tail_8pos_sse4_1(temp_src, temp_ref, width_calc),
+                        sad_loop_kernel_tail_8pos_sse4_1(temp_src + src_stride, temp_ref + ref_stride, width_calc));
                     ss0 = _mm256_insertf128_si256(_mm256_setzero_si256(), s4, 0x1);
                     ss5 = _mm256_adds_epu16(ss5, ss0);
                 }
@@ -298,15 +301,7 @@ static void sad_loop_kernel_generalized_avx2(
                     temp_ref += 4;
                 }
                 if (width_calc > 0) {
-                    DECLARE_ALIGNED(16, uint16_t, tsum[8]);
-                    memset(tsum, 0, 8 * sizeof(uint16_t));
-                    for (uint32_t search_area = 0; search_area < 8; search_area++) {
-                        for (l = 0; l < width_calc; l++) {
-                            tsum[search_area] += EB_ABS_DIFF(temp_src[l], temp_ref[l]);
-                        }
-                        temp_ref += 1;
-                    }
-                    s4   = _mm_loadu_si128((__m128i*)tsum);
+                    s4   = sad_loop_kernel_tail_8pos_sse4_1(temp_src, temp_ref, width_calc);
                     ss0  = _mm256_insertf128_si256(_mm256_setzero_si256(), s4, 0x1);
                     ss10 = _mm256_adds_epu16(ss10, ss0);
                 }

@@ -1586,6 +1586,16 @@ static INLINE __m128i complement_4_to_6(uint8_t* ref, uint32_t ref_stride, uint8
     return sum;
 }
 
+// SADs of the last width (< 4) columns of one row at 16 consecutive search positions.
+static INLINE __m256i sad_loop_kernel_tail_16pos_avx2(const uint8_t* src, const uint8_t* ref, uint32_t width) {
+    __m256i sum = _mm256_setzero_si256();
+    for (uint32_t l = 0; l < width; l++) {
+        const __m256i r = _mm256_cvtepu8_epi16(_mm_loadu_si128((const __m128i*)(ref + l)));
+        sum             = _mm256_add_epi16(sum, _mm256_abs_epi16(_mm256_sub_epi16(r, _mm256_set1_epi16(src[l]))));
+    }
+    return sum;
+}
+
 /*******************************************************************************
  * Requirement: block_height < 64
  * General version for SAD computing that support any block width and height
@@ -1600,7 +1610,7 @@ void sad_loop_kernel_generalized_avx512(uint8_t*  src, // input parameter, sourc
                                         uint32_t src_stride_raw, // input parameter, source stride (no line skipping)
                                         int16_t search_area_width, int16_t search_area_height) {
     int16_t  i, j;
-    uint32_t k, l;
+    uint32_t k;
     uint32_t low_sum = 0xffffff;
     int32_t  x_best = *x_search_center, y_best = *y_search_center;
     uint32_t leftover = search_area_width & 15;
@@ -1670,16 +1680,10 @@ void sad_loop_kernel_generalized_avx512(uint8_t*  src, // input parameter, sourc
                     temp_ref += 4;
                 }
                 if (width_calc > 0) {
-                    DECLARE_ALIGNED(16, uint16_t, tsum[16]);
-                    memset(tsum, 0, 16 * sizeof(uint16_t));
-                    for (uint32_t search_area = 0; search_area < 16; search_area++) {
-                        for (l = 0; l < width_calc; l++) {
-                            tsum[search_area] += EB_ABS_DIFF(temp_src[l], temp_ref[l]) +
-                                EB_ABS_DIFF(temp_src[src_stride + l], temp_ref[ref_stride + l]);
-                        }
-                        temp_ref += 1;
-                    }
-                    sum256 = _mm256_adds_epu16(sum256, _mm256_loadu_si256((__m256i*)tsum));
+                    const __m256i t0 = sad_loop_kernel_tail_16pos_avx2(temp_src, temp_ref, width_calc);
+                    const __m256i t1 = sad_loop_kernel_tail_16pos_avx2(
+                        temp_src + src_stride, temp_ref + ref_stride, width_calc);
+                    sum256 = _mm256_adds_epu16(sum256, _mm256_add_epi16(t0, t1));
                 }
                 p_src += 2 * src_stride;
                 p_ref += 2 * ref_stride;
@@ -1720,15 +1724,7 @@ void sad_loop_kernel_generalized_avx512(uint8_t*  src, // input parameter, sourc
                     temp_ref += 4;
                 }
                 if (width_calc > 0) {
-                    DECLARE_ALIGNED(16, uint16_t, tsum[16]);
-                    memset(tsum, 0, 16 * sizeof(uint16_t));
-                    for (uint32_t search_area = 0; search_area < 16; search_area++) {
-                        for (l = 0; l < width_calc; l++) {
-                            tsum[search_area] += EB_ABS_DIFF(temp_src[l], temp_ref[l]);
-                        }
-                        temp_ref += 1;
-                    }
-                    sum256 = _mm256_adds_epu16(sum256, _mm256_loadu_si256((__m256i*)tsum));
+                    sum256 = _mm256_adds_epu16(sum256, sad_loop_kernel_tail_16pos_avx2(temp_src, temp_ref, width_calc));
                 }
             }
 
