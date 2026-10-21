@@ -2022,7 +2022,12 @@ EbErrorType svt_aom_picture_analysis_kernel_iter(void* context) {
                 }
                 break;
             case 3:
-                svt_aom_is_screen_content_antialiasing_aware(pcs);
+                // Only I-frame classes are kept, so detect here only on guaranteed I-frames;
+                // Picture Decision handles the remaining I-frames.
+                pcs->sc_aa_detected = scs->allintra || pcs->idr_flag;
+                if (pcs->sc_aa_detected) {
+                    svt_aom_is_screen_content_antialiasing_aware(pcs);
+                }
                 break;
             }
             // Luma-dominant detection in MT mode

@@ -1000,6 +1000,8 @@ typedef struct PictureParentControlSet {
     uint8_t sc_class3;
     uint8_t sc_class4;
     uint8_t sc_class5;
+    // MT mode: AA-aware SC classes were already computed in Picture Analysis
+    bool sc_aa_detected;
     // True when chroma stays near-neutral for the vast majority of the frame,
     // indicating that most coding-relevant signal energy is carried by luma.
     bool         is_luma_dominant_input;

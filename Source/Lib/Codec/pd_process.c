@@ -4780,10 +4780,14 @@ static void set_mini_gop_structure(SequenceControlSet* scs, EncodeContext* enc_c
     get_pred_struct_for_all_frames(ctx, enc_ctx);
 }
 
-// Set whether the picture is to be considered as SC; for single-threaded mode we perform SC detection here
+// Detect AA-aware SC on I-frames; other frames inherit the last I-frame's classes.
 static void perform_sc_detection(SequenceControlSet* scs, PictureParentControlSet* pcs, PictureDecisionContext* ctx) {
     if (pcs->slice_type == I_SLICE) {
-        // If running multi-threaded mode, perform SC detection in svt_aom_picture_analysis_kernel, else in svt_aom_picture_decision_kernel
+        if (scs->static_config.level_of_parallelism != 1 && scs->static_config.screen_content_mode == 3 &&
+            !pcs->sc_aa_detected) {
+            svt_aom_is_screen_content_antialiasing_aware(pcs);
+        }
+        // Other detection modes remain in Picture Analysis for multi-threaded mode.
         if (scs->static_config.level_of_parallelism == 1) {
             switch (scs->static_config.screen_content_mode) {
             case 0:
