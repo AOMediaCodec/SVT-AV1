@@ -2632,6 +2632,7 @@ static void construct_me_candidate_array(PictureParentControlSet* pcs, MeContext
     }
 }
 
+#if CONFIG_ENABLE_GLOBAL_MOTION || !MOBILE_BUILD
 // Active and stationary detection for global motion
 static void perform_gm_detection(
     PictureParentControlSet* pcs, // input parameter, Picture Control Set Ptr
@@ -2733,6 +2734,7 @@ static void perform_gm_detection(
         }
     }
 }
+#endif // CONFIG_ENABLE_GLOBAL_MOTION || !MOBILE_BUILD
 
 // Compute the distortion per block size based on the ME results
 static void compute_distortion(
@@ -2956,9 +2958,11 @@ EbErrorType svt_aom_motion_estimation_b64(
         // Perform GM detection if GM is enabled
         pcs->rc_me_allow_gm[b64_index] = 0;
 
+#if CONFIG_ENABLE_GLOBAL_MOTION || !MOBILE_BUILD
         if (pcs->gm_ctrls.enabled) {
             perform_gm_detection(pcs, b64_index, me_ctx);
         }
+#endif
     }
     return return_error;
 }

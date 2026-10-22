@@ -590,7 +590,7 @@ static void av1_setup_motion_field(Av1Common* cm, PictureControlSet* pcs) {
 
 EbErrorType svt_av1_hash_table_create(HashTable* p_hash_table);
 int32_t     svt_aom_noise_log1p_fp16(int32_t noise_level_fp16);
-
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
 static void generate_ibc_data(PictureControlSet* pcs) {
     const int pic_width  = pcs->ppcs->aligned_width;
     const int pic_height = pcs->ppcs->aligned_height;
@@ -624,7 +624,7 @@ static void generate_ibc_data(PictureControlSet* pcs) {
         EB_FREE_ARRAY(block_hash_values[j]);
     }
 }
-
+#endif
 static void derive_intra_coeff_level(PictureControlSet* pcs) {
     uint64_t cmplx = pcs->ppcs->pic_avg_variance / MAX(1, pcs->scs->static_config.qp);
 
@@ -953,6 +953,7 @@ EbErrorType svt_aom_mode_decision_configuration_kernel_iter(void* context) {
     svt_av1_qm_init(pcs->ppcs);
     // Initialize the rate estimation tables for the frame
     init_frame_rate_tables(pcs);
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
     if (frm_hdr->allow_intrabc) {
         IntrabcCtrls* intraBC_ctrls = &(pcs->ppcs->intrabc_ctrls);
         // Generate hash table for intra-Bc if max block size is set
@@ -978,6 +979,7 @@ EbErrorType svt_aom_mode_decision_configuration_kernel_iter(void* context) {
             }
         }
     }
+#endif
     CdefSearchControls* cdef_ctrls = &pcs->ppcs->cdef_search_ctrls;
     const uint8_t       skip_perc  = pcs->ref_skip_percentage;
     // Adjust skip_th by QP: at low QP lower the threshold (skip CDEF more — picture already clean),

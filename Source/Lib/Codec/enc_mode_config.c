@@ -5080,6 +5080,10 @@ void svt_aom_set_nsq_geom_ctrls(ModeDecisionContext* ctx, uint8_t nsq_geom_level
         assert(0);
         break;
     }
+#if !CONFIG_ENABLE_HV4
+    // The vertical 1:4 transforms are compiled out in this build: catch any preset that allows HV4.
+    assert(!nsq_geom_ctrls->allow_HV4);
+#endif
 
     if (allow_HVA_HVB) {
         *allow_HVA_HVB = nsq_geom_ctrls->allow_HVA_HVB;
@@ -9167,6 +9171,15 @@ void svt_aom_sig_deriv_mode_decision_config_default(SequenceControlSet* scs, Pic
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, sq_qp, scs->seq_qp_mod);
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
+#if MOBILE_BUILD && !CONFIG_ENABLE_OBMC
+    // OBMC is compiled out (obmc_level is nonzero only at M6-M8): the switchable motion mode signals warped motion
+    // only; svt_aom_motion_mode_allowed() still writes the spec's use_obmc = 0 symbols.
+    ppcs->pic_obmc_level = 0;
+#if !CONFIG_ENABLE_WARP
+    frm_hdr->allow_warped_motion = 0; // compiled out too: no motion_mode symbols are written
+#endif
+    frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
+#endif
 
     if (enc_mode <= ENC_M9) {
         pcs->approx_inter_rate = 0;
@@ -9759,6 +9772,15 @@ void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, Picture
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, sq_qp, scs->seq_qp_mod);
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
+#if MOBILE_BUILD && !CONFIG_ENABLE_OBMC
+    // OBMC is compiled out (obmc_level is nonzero only at M6-M8): the switchable motion mode signals warped motion
+    // only; svt_aom_motion_mode_allowed() still writes the spec's use_obmc = 0 symbols.
+    ppcs->pic_obmc_level = 0;
+#if !CONFIG_ENABLE_WARP
+    frm_hdr->allow_warped_motion = 0; // compiled out too: no motion_mode symbols are written
+#endif
+    frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
+#endif
     if (enc_mode <= ENC_M8) {
         pcs->approx_inter_rate = 0;
     } else {

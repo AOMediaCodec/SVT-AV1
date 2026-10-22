@@ -4179,9 +4179,12 @@ static void mctf_frame_st(SequenceControlSet* scs, PictureParentControlSet* pcs)
     MotionEstimationContext_t* me_ctx_ptr = (MotionEstimationContext_t*)scs->enc_ctx->st_me_context;
     me_ctx_ptr->me_ctx->me_type           = ME_MCTF;
     svt_aom_sig_deriv_me_tf(pcs, me_ctx_ptr->me_ctx);
+#if CONFIG_ENABLE_GLOBAL_MOTION
+    // Same guard as the threaded TASK_TFME path (me_process.c): gm_ctrls are forced off without GM.
     if (pcs->gm_ctrls.pp_enabled && pcs->gm_pp_enabled) {
         svt_aom_gm_pre_processor(pcs, pcs->temp_filt_pcs_list);
     }
+#endif // CONFIG_ENABLE_GLOBAL_MOTION
     for (int16_t seg_idx = 0; seg_idx < pcs->tf_segments_total_count; ++seg_idx) {
         svt_av1_init_temporal_filtering(pcs->temp_filt_pcs_list, pcs, me_ctx_ptr, seg_idx);
     }

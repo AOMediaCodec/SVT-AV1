@@ -1768,6 +1768,7 @@ void svt_pme_sad_loop_kernel_c(const svt_mv_cost_param* mv_cost_params,
     return;
 }
 
+#if CONFIG_ENABLE_PSAD_SEARCH
 static void md_full_pel_search_large_lbd(svt_mv_cost_param* mv_cost_params, ModeDecisionContext* ctx,
                                          EbPictureBufferDesc* input_pic, EbPictureBufferDesc* ref_pic,
                                          uint32_t input_origin_index, int16_t mvx, int16_t mvy,
@@ -1838,6 +1839,7 @@ static void md_full_pel_search_large_lbd(svt_mv_cost_param* mv_cost_params, Mode
         }
     }
 }
+#endif // CONFIG_ENABLE_PSAD_SEARCH
 
 static void svt_init_mv_cost_params(svt_mv_cost_param* mv_cost_params, ModeDecisionContext* ctx, const Mv ref_mv,
                                     uint8_t base_q_idx, uint32_t rdmult, uint8_t hbd_md) {
@@ -1885,6 +1887,7 @@ static void md_full_pel_search(PictureControlSet* pcs, ModeDecisionContext* ctx,
         search_position_end_y = (ref_pic->border + ref_pic->max_height - 1) -
             (ctx->blk_org_y + ctx->blk_geom->bheight + (mvy >> 3));
     }
+#if CONFIG_ENABLE_PSAD_SEARCH
     if (dist_type == SAD && ctx->enable_psad) {
         if (!hbd_md && (search_position_end_x - search_position_start_x) >= 7) {
             md_full_pel_search_large_lbd(&mv_cost_params,
@@ -1905,6 +1908,11 @@ static void md_full_pel_search(PictureControlSet* pcs, ModeDecisionContext* ctx,
             return;
         }
     }
+#else
+    // CONFIG_ENABLE_PSAD_SEARCH: no MD search runs a SAD window of 8+ columns.
+    assert(
+        !(dist_type == SAD && ctx->enable_psad && !hbd_md && (search_position_end_x - search_position_start_x) >= 7));
+#endif
     for (int32_t refinement_pos_x = search_position_start_x; refinement_pos_x <= search_position_end_x;
          refinement_pos_x         = refinement_pos_x + sparse_search_step) {
         for (int32_t refinement_pos_y = search_position_start_y; refinement_pos_y <= search_position_end_y;
@@ -2210,6 +2218,7 @@ static void clip_mv_on_pic_boundary(int32_t blk_org_x, int32_t blk_org_y, int32_
     }
 }
 
+#if CONFIG_ENABLE_PSAD_SEARCH
 /*
  * Check the size of the spatial MVs and MVPs of the given block
  *
@@ -2454,6 +2463,7 @@ static void md_sq_motion_search(PictureControlSet* pcs, ModeDecisionContext* ctx
         }
     }
 }
+#endif // CONFIG_ENABLE_PSAD_SEARCH
 
 /*
  * Perform 1/2-Pel, 1/4-Pel, and 1/8-Pel search around the best Full-Pel position
@@ -2763,10 +2773,12 @@ static void read_refine_me_mvs(PictureControlSet* pcs, ModeDecisionContext* ctx,
     const MeSbResults* me_results         = pcs->ppcs->pa_me_data->me_results[ctx->me_sb_addr];
     const uint8_t      max_l0             = pcs->ppcs->pa_me_data->max_l0;
 
-    const bool          blk_avail_sqi      = pc_tree->tested_blk[PART_N][0];
-    const bool          b_w_ne_h           = blk_geom->bwidth != blk_geom->bheight;
-    const bool          md_nsq_me_enabled  = ctx->md_nsq_me_ctrls.enabled;
-    const bool          md_sq_me_enabled   = ctx->md_sq_me_ctrls.enabled;
+    const bool blk_avail_sqi     = pc_tree->tested_blk[PART_N][0];
+    const bool b_w_ne_h          = blk_geom->bwidth != blk_geom->bheight;
+    const bool md_nsq_me_enabled = ctx->md_nsq_me_ctrls.enabled;
+#if CONFIG_ENABLE_PSAD_SEARCH
+    const bool md_sq_me_enabled = ctx->md_sq_me_ctrls.enabled;
+#endif
     MdSubPelSearchCtrls md_subpel_me_ctrls = ctx->md_subpel_me_ctrls;
     const bool          do_subpel          = md_subpel_me_ctrls.enabled;
 
@@ -2818,8 +2830,10 @@ static void read_refine_me_mvs(PictureControlSet* pcs, ModeDecisionContext* ctx,
                         md_nsq_motion_search(
                             pcs, ctx, input_pic, input_origin_index, rf[0], me_results, &me_mv.x, &me_mv.y);
                     }
+#if CONFIG_ENABLE_PSAD_SEARCH
                 } else if (md_sq_me_enabled) {
                     md_sq_motion_search(pcs, ctx, input_pic, input_origin_index, rf[0], &me_mv.x, &me_mv.y);
+#endif
                 }
                 ctx->post_subpel_me_mv_cost[list][ref] = (int32_t)~0;
                 ctx->fp_me_mv[list][ref].as_int        = me_mv.as_int;
@@ -9326,9 +9340,10 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
         // Set MD stage to 0 to avoid using TX shortcuts in chroma transform path that are
         // meant to be based on luma TX data, which is not available
         ctx->md_stage = MD_STAGE_0;
-        // RTC chroma never uses CHROMA_MODE_0 with ind_uv_last_mds==0, so this pre-MDS0 independent
-        // chroma search is unreachable; the RTC_BUILD const guard lets the optimizer DCE it.
-        if (!RTC_BUILD) {
+        // RTC chroma never uses CHROMA_MODE_0 with ind_uv_last_mds==0 (neither does MOBILE: chroma_level 4/5
+        // at M6+), so this pre-MDS0 independent chroma search is unreachable; the const guard lets the
+        // optimizer DCE it.
+        if (!SVT_RTC_OR_MOBILE_BUILD) {
             search_best_independent_uv_mode(
                 pcs, input_pic, loc.input_cb_origin_in_index, loc.input_cb_origin_in_index, 0, ctx);
         }
@@ -9553,9 +9568,9 @@ static void md_encode_block(PictureControlSet* pcs, ModeDecisionContext* ctx, co
                                      ctx,
                                      ctx->md_stage_3_total_count);
         } else {
-            // ind_uv_last_mds==1 (search before the last MD stage) is never set in RTC; the RTC_BUILD
+            // ind_uv_last_mds==1 (search before the last MD stage) is never set in RTC or MOBILE (M6+); the
             // const guard lets the optimizer DCE search_best_independent_uv_mode.
-            if (!RTC_BUILD) {
+            if (!SVT_RTC_OR_MOBILE_BUILD) {
                 search_best_independent_uv_mode(
                     pcs, input_pic, loc.input_cb_origin_in_index, loc.input_cb_origin_in_index, 0, ctx);
             }

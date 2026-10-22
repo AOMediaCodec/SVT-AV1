@@ -4307,6 +4307,7 @@ static INLINE int get_unsigned_bits(unsigned int num_values) {
     return num_values > 0 ? get_msb(num_values) + 1 : 0;
 }
 
+#if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
 static INLINE void write_uniform(AomWriter* w, int n, int v) {
     const int l = get_unsigned_bits(n);
     const int m = (1 << l) - n;
@@ -4320,6 +4321,7 @@ static INLINE void write_uniform(AomWriter* w, int n, int v) {
         aom_write_literal(w, (v - m) & 1, 1);
     }
 }
+#endif // CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
 
 int svt_aom_write_uniform_cost(int n, int v) {
     const int l = get_unsigned_bits(n);
@@ -4356,6 +4358,7 @@ static AOM_INLINE void write_palette_colors_y(const MacroBlockD* const xd, const
     delta_encode_palette_colors(out_cache_colors, n_out_cache, bit_depth, 1, w);
 }
 
+#if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
 static inline void pack_map_tokens(AomWriter* w, const TOKENEXTRA** tp, int n, int num) {
     const TOKENEXTRA* p = *tp;
     write_uniform(w, n, p->token); // The first color index.
@@ -4367,6 +4370,7 @@ static inline void pack_map_tokens(AomWriter* w, const TOKENEXTRA** tp, int n, i
     }
     *tp = p;
 }
+#endif // CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
 
 static void write_palette_mode_info(PictureParentControlSet* ppcs, FRAME_CONTEXT* ec_ctx, MbModeInfo* mbmi,
                                     EcBlkStruct* blk_ptr, BlockSize bsize, int mi_row, int mi_col, AomWriter* w) {
@@ -4418,6 +4422,7 @@ int svt_aom_allow_intrabc(const FrameHeader* frm_hdr, SliceType slice_type) {
     return (slice_type == I_SLICE && frm_hdr->allow_screen_content_tools && frm_hdr->allow_intrabc);
 }
 
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
 static void write_intrabc_info(FRAME_CONTEXT* ec_ctx, MbModeInfo* mbmi, EcBlkStruct* blk_ptr, AomWriter* w) {
     int use_intrabc = mbmi->block_mi.use_intrabc;
     aom_write_symbol(w, use_intrabc, ec_ctx->intrabc_cdf, 2);
@@ -4430,6 +4435,7 @@ static void write_intrabc_info(FRAME_CONTEXT* ec_ctx, MbModeInfo* mbmi, EcBlkStr
         svt_av1_encode_dv(w, mv, dv_ref, &ec_ctx->ndvc);
     }
 }
+#endif
 
 static INLINE int block_signals_txsize(BlockSize bsize) {
     return bsize > BLOCK_4X4;
@@ -5035,9 +5041,11 @@ static EbErrorType write_modes_b(PictureControlSet* pcs, EntropyCodingContext* e
         {
             const uint32_t intra_luma_mode   = mbmi->block_mi.mode;
             uint32_t       intra_chroma_mode = mbmi->block_mi.uv_mode;
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
             if (svt_aom_allow_intrabc(&pcs->ppcs->frm_hdr, pcs->ppcs->slice_type)) {
                 write_intrabc_info(frame_context, mbmi, blk_ptr, ec_writer);
             }
+#endif
             if (mbmi->block_mi.use_intrabc == 0) {
                 encode_intra_luma_mode_kf_av1(frame_context, ec_writer, mbmi, blk_ptr, bsize, intra_luma_mode);
             }
@@ -5078,6 +5086,7 @@ static EbErrorType write_modes_b(PictureControlSet* pcs, EntropyCodingContext* e
                                      FILTER_INTRA_MODES);
                 }
             }
+#if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
             if (mbmi->block_mi.use_intrabc == 0) {
                 assert(blk_ptr->palette_size[1] == 0);
                 TOKENEXTRA* tok = ec_ctx->tok;
@@ -5104,6 +5113,7 @@ static EbErrorType write_modes_b(PictureControlSet* pcs, EntropyCodingContext* e
                     }
                 }
             }
+#endif
             if (frm_hdr->tx_mode == TX_MODE_SELECT) {
                 code_tx_size(pcs,
                              blk_org_x,
@@ -5359,6 +5369,7 @@ static EbErrorType write_modes_b(PictureControlSet* pcs, EntropyCodingContext* e
                 }
                 write_mb_interp_filter(bsize, rf[0], rf[1], pcs->ppcs, ec_writer, mbmi, blk_ptr, ec);
             }
+#if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
             {
                 assert(blk_ptr->palette_size[1] == 0);
                 TOKENEXTRA* tok = ec_ctx->tok;
@@ -5385,6 +5396,7 @@ static EbErrorType write_modes_b(PictureControlSet* pcs, EntropyCodingContext* e
                     }
                 }
             }
+#endif
 
             if (frm_hdr->tx_mode == TX_MODE_SELECT) {
                 code_tx_size(pcs,

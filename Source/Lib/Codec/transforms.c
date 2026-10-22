@@ -2796,7 +2796,7 @@ void svt_av1_fwd_txfm2d_4x8_c(int16_t* input, int32_t* output, uint32_t input_st
         input, input_stride, output, &cfg, intermediate_transform_buffer, bit_depth);
 }
 
-#if CONFIG_ENABLE_TX_PF_N2
+#if CONFIG_ENABLE_TX_PF_N2 && CONFIG_ENABLE_TX_PF_ALL
 static EbErrorType av1_estimate_transform_N2(int16_t* residual_buffer, uint32_t residual_stride, int32_t* coeff_buffer,
                                              uint32_t coeff_stride, TxSize transform_size, uint64_t* three_quad_energy,
                                              uint32_t bit_depth, TxType transform_type, PlaneType component_type)
@@ -2953,7 +2953,7 @@ static EbErrorType av1_estimate_transform_N2(int16_t* residual_buffer, uint32_t 
 
     return return_error;
 }
-#endif // CONFIG_ENABLE_TX_PF_N2
+#endif // CONFIG_ENABLE_TX_PF_N2 && CONFIG_ENABLE_TX_PF_ALL
 
 static EbErrorType av1_estimate_transform_N4(int16_t* residual_buffer, uint32_t residual_stride, int32_t* coeff_buffer,
                                              uint32_t coeff_stride, TxSize transform_size, uint64_t* three_quad_energy,
@@ -3146,6 +3146,7 @@ static EbErrorType av1_estimate_transform_N4(int16_t* residual_buffer, uint32_t 
     return return_error;
 }
 
+#if CONFIG_ENABLE_TX_PF_ALL
 static EbErrorType av1_estimate_transform_ONLY_DC(int16_t* residual_buffer, uint32_t residual_stride,
                                                   int32_t* coeff_buffer, uint32_t coeff_stride, TxSize transform_size,
                                                   uint64_t* three_quad_energy, uint32_t bit_depth,
@@ -3170,6 +3171,7 @@ static EbErrorType av1_estimate_transform_ONLY_DC(int16_t* residual_buffer, uint
     }
     return return_error;
 }
+#endif // CONFIG_ENABLE_TX_PF_ALL
 
 static EbErrorType av1_estimate_transform_default(int16_t* residual_buffer, uint32_t residual_stride,
                                                   int32_t* coeff_buffer, uint32_t coeff_stride, TxSize transform_size,
@@ -3461,7 +3463,7 @@ EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionConte
                                               bit_depth,
                                               transform_type,
                                               component_type);
-#if CONFIG_ENABLE_TX_PF_N2
+#if CONFIG_ENABLE_TX_PF_N2 && CONFIG_ENABLE_TX_PF_ALL
     case N2_SHAPE:
         return av1_estimate_transform_N2(residual_buffer,
                                          residual_stride,
@@ -3483,6 +3485,7 @@ EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionConte
                                          bit_depth,
                                          transform_type,
                                          component_type);
+#if CONFIG_ENABLE_TX_PF_ALL
     case ONLY_DC_SHAPE:
         return av1_estimate_transform_ONLY_DC(residual_buffer,
                                               residual_stride,
@@ -3493,6 +3496,7 @@ EbErrorType svt_aom_estimate_transform(PictureControlSet* pcs, ModeDecisionConte
                                               bit_depth,
                                               transform_type,
                                               component_type);
+#endif
     default:
         break;
     }
@@ -3613,6 +3617,8 @@ static void highbd_fwd_txfm_32x8_n4(int16_t* src_diff, TranLow* coeff, int diff_
 }
 
 //PF_N2
+// CONFIG_ENABLE_TX_PF_ALL: TPL (the only N2 user) codes 16x16, 16x4 and 32x8 only.
+#if CONFIG_ENABLE_TX_PF_ALL
 static void highbd_fwd_txfm_64x64_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     assert(txfm_param->tx_type == DCT_DCT);
     int32_t*  dst_coeff = (int32_t*)coeff;
@@ -3654,6 +3660,7 @@ static void highbd_fwd_txfm_32x32_n2(int16_t* src_diff, TranLow* coeff, int diff
     const int    bd        = txfm_param->bd;
     svt_av1_fwd_txfm2d_32x32_N2(src_diff, dst_coeff, diff_stride, tx_type, bd);
 }
+#endif // CONFIG_ENABLE_TX_PF_ALL
 
 static void highbd_fwd_txfm_16x16_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     int32_t*     dst_coeff = (int32_t*)coeff;
@@ -3662,6 +3669,7 @@ static void highbd_fwd_txfm_16x16_n2(int16_t* src_diff, TranLow* coeff, int diff
     svt_av1_fwd_txfm2d_16x16_N2(src_diff, dst_coeff, diff_stride, tx_type, bd);
 }
 
+#if CONFIG_ENABLE_TX_PF_ALL
 static void highbd_fwd_txfm_8x8_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     int32_t*     dst_coeff = (int32_t*)coeff;
     const TxType tx_type   = txfm_param->tx_type;
@@ -3707,16 +3715,19 @@ static void highbd_fwd_txfm_4x16_n2(int16_t* src_diff, TranLow* coeff, int diff_
     int32_t* dst_coeff = (int32_t*)coeff;
     svt_av1_fwd_txfm2d_4x16(src_diff, dst_coeff, diff_stride, txfm_param->tx_type, txfm_param->bd);
 }
+#endif // CONFIG_ENABLE_TX_PF_ALL
 
 static void highbd_fwd_txfm_16x4_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     int32_t* dst_coeff = (int32_t*)coeff;
     svt_av1_fwd_txfm2d_16x4_N2(src_diff, dst_coeff, diff_stride, txfm_param->tx_type, txfm_param->bd);
 }
 
+#if CONFIG_ENABLE_TX_PF_ALL
 static void highbd_fwd_txfm_8x32_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     int32_t* dst_coeff = (int32_t*)coeff;
     svt_av1_fwd_txfm2d_8x32_N2(src_diff, dst_coeff, diff_stride, txfm_param->tx_type, txfm_param->bd);
 }
+#endif // CONFIG_ENABLE_TX_PF_ALL
 
 static void highbd_fwd_txfm_32x8_n2(int16_t* src_diff, TranLow* coeff, int diff_stride, TxfmParam* txfm_param) {
     int32_t* dst_coeff = (int32_t*)coeff;
@@ -3904,6 +3915,7 @@ void svt_av1_highbd_fwd_txfm_n2(int16_t* src_diff, TranLow* coeff, int diff_stri
     assert(av1_ext_tx_used[txfm_param->tx_set_type][txfm_param->tx_type]);
     const TxSize tx_size = txfm_param->tx_size;
     switch (tx_size) {
+#if CONFIG_ENABLE_TX_PF_ALL
     case TX_64X64:
         highbd_fwd_txfm_64x64_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
@@ -3922,9 +3934,11 @@ void svt_av1_highbd_fwd_txfm_n2(int16_t* src_diff, TranLow* coeff, int diff_stri
     case TX_32X32:
         highbd_fwd_txfm_32x32_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
+#endif // CONFIG_ENABLE_TX_PF_ALL
     case TX_16X16:
         highbd_fwd_txfm_16x16_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
+#if CONFIG_ENABLE_TX_PF_ALL
     case TX_8X8:
         highbd_fwd_txfm_8x8_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
@@ -3952,12 +3966,15 @@ void svt_av1_highbd_fwd_txfm_n2(int16_t* src_diff, TranLow* coeff, int diff_stri
     case TX_4X16:
         highbd_fwd_txfm_4x16_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
+#endif // CONFIG_ENABLE_TX_PF_ALL
     case TX_16X4:
         highbd_fwd_txfm_16x4_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
+#if CONFIG_ENABLE_TX_PF_ALL
     case TX_8X32:
         highbd_fwd_txfm_8x32_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
+#endif // CONFIG_ENABLE_TX_PF_ALL
     case TX_32X8:
         highbd_fwd_txfm_32x8_n2(src_diff, coeff, diff_stride, txfm_param);
         break;
@@ -4052,7 +4069,12 @@ void svt_av1_wht_fwd_txfm(int16_t* src_diff, int bw, int32_t* coeff, TxSize tx_s
         svt_av1_highbd_fwd_txfm_n2(src_diff, coeff, bw, &txfm_param);
         break;
     default:
+#if CONFIG_ENABLE_TPL_HQ
         svt_av1_highbd_fwd_txfm(src_diff, coeff, bw, &txfm_param);
+#else
+        // CONFIG_ENABLE_TPL_HQ: TPL params levels 4/5 use the N2/N4 shapes only.
+        assert(0);
+#endif
     }
 }
 

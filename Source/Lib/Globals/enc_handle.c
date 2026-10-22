@@ -1356,7 +1356,7 @@ static ONCE_ROUTINE(init_global_tables) {
     init_fn_ptr();
     svt_aom_init_iscan();
     svt_aom_build_tx_org();
-#if CONFIG_ENABLE_INTER_COMPOUND
+#if CONFIG_ENABLE_INTER_COMPOUND && CONFIG_ENABLE_COMPOUND_TYPES
     svt_av1_init_wedge_masks();
 #endif
 #if CONFIG_ENABLE_INTER_INTRA

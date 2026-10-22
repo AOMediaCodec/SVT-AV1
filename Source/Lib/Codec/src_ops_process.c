@@ -268,6 +268,7 @@ static AOM_INLINE void get_quantize_error(MacroblockPlane* p, const TranLow* coe
     *sse = AOMMAX(*sse, 1);
 }
 
+#if CONFIG_ENABLE_TPL_HQ
 static int rate_estimator(TranLow* qcoeff, int eob, TxSize tx_size) {
     const ScanOrder* const scan_order = get_scan_order(tx_size, DCT_DCT);
 
@@ -282,6 +283,7 @@ static int rate_estimator(TranLow* qcoeff, int eob, TxSize tx_size) {
 
     return (rate_cost << AV1_PROB_COST_SHIFT);
 }
+#endif // CONFIG_ENABLE_TPL_HQ
 
 static void result_model_store(PictureParentControlSet* pcs, TplStats* tpl_stats_ptr, uint32_t mb_origin_x,
                                uint32_t mb_origin_y, uint32_t size) {
@@ -394,6 +396,7 @@ static TxSize   tx_size_array[MAX_TPL_MODE]      = {TX_16X16, TX_32X32, TX_64X64
 static TxSize   sub2_tx_size_array[MAX_TPL_MODE] = {TX_16X8, TX_32X16, TX_64X32};
 static TxSize   sub4_tx_size_array[MAX_TPL_MODE] = {TX_16X4, TX_32X8, TX_64X16};
 
+#if CONFIG_ENABLE_TPL_HQ
 static void svt_tpl_init_mv_cost_params(svt_mv_cost_param* mv_cost_params, const Mv ref_mv, uint8_t base_q_idx,
                                         uint32_t rdmult, uint8_t hbd_md) {
     mv_cost_params->ref_mv        = ref_mv;
@@ -412,6 +415,7 @@ static void svt_tpl_init_mv_cost_params(svt_mv_cost_param* mv_cost_params, const
     mv_cost_params->mvcost[0]    = NULL;
     mv_cost_params->mvcost[1]    = NULL;
 }
+#endif // CONFIG_ENABLE_TPL_HQ
 
 // Initialize xd fields required by TPL dispenser
 static void init_xd_tpl(MacroBlockD* xd, const Av1Common* const cm, const BlockSize block_size,
@@ -428,6 +432,7 @@ static void init_xd_tpl(MacroBlockD* xd, const Av1Common* const cm, const BlockS
     xd->mi_col            = -xd->mb_to_left_edge / (8 * MI_SIZE);
 }
 
+#if CONFIG_ENABLE_TPL_HQ
 // best_mv inputs the starting full-pel MV, around which subpel search is to be performed and outputs the new best subpel MV
 static void tpl_subpel_search(SequenceControlSet* scs, PictureParentControlSet* pcs, EbPictureBufferDesc* ref_pic,
                               EbPictureBufferDesc* input_pic, MacroBlockD* xd, const uint32_t mb_origin_x,
@@ -516,6 +521,7 @@ static void tpl_subpel_search(SequenceControlSet* scs, PictureParentControlSet* 
     // Update the MV to the new best
     best_mv->as_int = best_sp_mv.as_int;
 }
+#endif // CONFIG_ENABLE_TPL_HQ
 #endif // CONFIG_ENABLE_TPL
 
 #if CONFIG_ENABLE_TPL
@@ -653,8 +659,10 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                 } else {
                     DECLARE_ALIGNED(MAX_TPL_SIZE, uint8_t, left0_data[MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2]);
                     DECLARE_ALIGNED(MAX_TPL_SIZE, uint8_t, above0_data[MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2]);
+#if CONFIG_ENABLE_TPL_HQ
                     DECLARE_ALIGNED(MAX_TPL_SIZE, uint8_t, left_data[MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2]);
                     DECLARE_ALIGNED(MAX_TPL_SIZE, uint8_t, above_data[MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2]);
+#endif
 
                     uint8_t* above0_row;
                     uint8_t* left0_col;
@@ -682,6 +690,7 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                         uint8_t* above_row;
                         uint8_t* left_col;
                         // Edge filter
+#if CONFIG_ENABLE_TPL_HQ
                         if (av1_is_directional_mode((PredictionMode)ois_intra_mode)) {
                             memcpy(left_data, left0_data, sizeof(uint8_t) * (MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2));
                             memcpy(above_data, above0_data, sizeof(uint8_t) * (MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2));
@@ -699,6 +708,12 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                             above_row = above0_row;
                             left_col  = left0_col;
                         }
+#else
+                        // CONFIG_ENABLE_TPL_HQ: TPL intra is DC-only above params level 1.
+                        assert(!av1_is_directional_mode((PredictionMode)ois_intra_mode));
+                        above_row = above0_row;
+                        left_col  = left0_col;
+#endif
                         // PRED
                         svt_aom_intra_prediction_open_loop_mb(
                             p_angle,
@@ -795,9 +810,14 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
 
                 Mv best_mv = {{x_curr_mv, y_curr_mv}};
 
+#if CONFIG_ENABLE_TPL_HQ
                 if (pcs->tpl_ctrls.subpel_depth != FULL_PEL) {
                     tpl_subpel_search(scs, pcs, ref_pic_ptr, input_pic, &xd, mb_origin_x, mb_origin_y, bsize, &best_mv);
                 }
+#else
+                // CONFIG_ENABLE_TPL_HQ: TPL params levels 4/5 search full-pel only.
+                assert(pcs->tpl_ctrls.subpel_depth == FULL_PEL);
+#endif
                 int32_t ref_origin_index = ((int32_t)mb_origin_x + (best_mv.x / 8)) +
                     ((int32_t)mb_origin_y + (best_mv.y / 8)) * (int32_t)ref_pic_ptr->y_stride;
 
@@ -944,7 +964,13 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
 
                 get_quantize_error(&mb_plane, best_coeff, qcoeff, dqcoeff, tx_size, &eob, &recon_error, &sse);
 
-                int64_t rate_cost    = pcs->tpl_ctrls.compute_rate ? rate_estimator(qcoeff, eob, tx_size) : 0;
+#if CONFIG_ENABLE_TPL_HQ
+                int64_t rate_cost = pcs->tpl_ctrls.compute_rate ? rate_estimator(qcoeff, eob, tx_size) : 0;
+#else
+                // CONFIG_ENABLE_TPL_HQ: compute_rate is set only at TPL params level 1.
+                assert(!pcs->tpl_ctrls.compute_rate);
+                int64_t rate_cost = 0;
+#endif
                 tpl_stats.srcrf_rate = (rate_cost << TPL_DEP_COST_SCALE_LOG2) << tpl_ctrls->subsample_tx;
                 tpl_stats.srcrf_dist = (recon_error << (TPL_DEP_COST_SCALE_LOG2)) << tpl_ctrls->subsample_tx;
             }
@@ -1102,6 +1128,7 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                     ? mode_to_angle_map[(PredictionMode)ois_intra_mode]
                     : 0;
                 // Edge filter
+#if CONFIG_ENABLE_TPL_HQ
                 if (av1_is_directional_mode((PredictionMode)ois_intra_mode)) {
                     svt_aom_filter_intra_edge(ois_intra_mode,
                                               scs->max_input_luma_width,
@@ -1112,6 +1139,9 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                                               above_row,
                                               left_col);
                 }
+#else
+                assert(!av1_is_directional_mode((PredictionMode)ois_intra_mode));
+#endif
                 // PRED
                 svt_aom_intra_prediction_open_loop_mb(
                     p_angle,
@@ -1140,7 +1170,12 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
         uint16_t eob = 0;
 
         get_quantize_error(&mb_plane, coeff, qcoeff, dqcoeff, tx_size, &eob, &recon_error, &sse);
+#if CONFIG_ENABLE_TPL_HQ
         int64_t rate_cost = pcs->tpl_ctrls.compute_rate ? rate_estimator(qcoeff, eob, tx_size) : 0;
+#else
+        assert(!pcs->tpl_ctrls.compute_rate);
+        int64_t rate_cost = 0;
+#endif
 
         if (!disable_intra_pred || (pcs->tpl_data.is_ref)) {
             if (eob) {

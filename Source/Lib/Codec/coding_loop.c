@@ -1796,9 +1796,9 @@ static void encode_b(PictureControlSet* pcs, EncDecContext* ctx, BlkStruct* blk_
     ctx->blk_org_x = md_ctx->blk_org_x = mi_col << MI_SIZE_LOG2;
     ctx->blk_org_y = md_ctx->blk_org_y = mi_row << MI_SIZE_LOG2;
     md_ctx->has_uv                     = is_chroma_reference(mi_row, mi_col, md_ctx->blk_geom->bsize, 1, 1);
-    // bypass_encdec is structurally 1 (8-bit, enc_mode>=M7 > M2) -> the ED encode path below is
-    // dead and gets DCE'd via the RTC_BUILD compile constant.
-    if (RTC_BUILD || ctx->md_ctx->bypass_encdec) {
+    // bypass_encdec is 1 in RTC and MOBILE builds (enc_mode >= M6 > M3; verify rejects segmentation and 10-bit at
+    // M7) -> the ED encode path below is dead and gets DCE'd via the SVT_RTC_OR_MOBILE_BUILD compile constant.
+    if (SVT_RTC_OR_MOBILE_BUILD || ctx->md_ctx->bypass_encdec) {
         update_b(pcs, ctx, blk_ptr, output_blk_ptr);
         return;
     }

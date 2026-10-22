@@ -20,6 +20,10 @@ Usage:
   python3 Build/gen_devirt.py            # dry run: print counts + sample
   python3 Build/gen_devirt.py --write --outdir DIR   # write populated devirt headers into DIR (build tree)
   python3 Build/gen_devirt.py --empty    # write banner-only headers (devirt OFF)
+  python3 Build/gen_devirt.py --write --outdir DIR --skip-guard CONFIG_X   # CONFIG_X is also false
+      in the target build (repeatable; --skip-guard=CONFIG_X works too): no redirects for the SET_NEON
+      entries under an #if/#elif naming it (a redirect would keep their call sites linked to the _neon
+      symbols; unredirected they call the unset pointer, which is dead)
 """
 import os
 import re
@@ -137,6 +141,13 @@ def main():
     write = "--write" in sys.argv
     empty = "--empty" in sys.argv
     populated = not empty
+    for i, arg in enumerate(sys.argv):
+        if arg == "--skip-guard" or arg.startswith("--skip-guard="):
+            guard = arg.partition("=")[2] if "=" in arg else (sys.argv[i + 1] if i + 1 < len(sys.argv) else "")
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", guard):
+                print("ERROR: --skip-guard requires a macro name", file=sys.stderr)
+                sys.exit(1)
+            SKIP_GUARDS.add(guard)
     # Output directory for the generated headers. Defaults to the source dir, but the PGO build scripts
     # pass --outdir <build>/generated so the headers live only in the build tree (never committed).
     outdir = SRC

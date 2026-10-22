@@ -117,7 +117,7 @@ int svt_aom_filter_intra_allowed(uint8_t enable_filter_intra, BlockSize bsize, u
     return enable_filter_intra && mode == DC_PRED && palette_size == 0 && svt_aom_filter_intra_allowed_bsize(bsize);
 }
 
-#if CONFIG_ENABLE_INTER_COMPOUND
+#if CONFIG_ENABLE_INTER_COMPOUND && CONFIG_ENABLE_COMPOUND_TYPES
 // returns the max inter-inter compound type based on settings and block size
 static MD_COMP_TYPE get_tot_comp_types_bsize(MD_COMP_TYPE tot_comp_types, BlockSize bsize) {
     return (svt_aom_get_wedge_params_bits(bsize) == 0) ? MIN(tot_comp_types, MD_COMP_WEDGE) : tot_comp_types;
@@ -216,7 +216,7 @@ uint8_t svt_aom_is_me_data_present(uint32_t me_block_offset, uint32_t me_cand_of
 // 2 - Regular uni-pred + Wedge compound Inter Intra
 // 3 - Regular uni-pred + Wedge compound Inter Intra + Smooth compound Inter Intra
 
-#if CONFIG_ENABLE_OBMC
+#if CONFIG_ENABLE_OBMC || CONFIG_ENABLE_WARP
 static bool warped_motion_mode_allowed(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
     return frm_hdr->allow_warped_motion && has_overlappable_candidates(ctx->blk_ptr) && ctx->blk_geom->bwidth >= 8 &&
@@ -512,7 +512,7 @@ static COMPOUND_TYPE to_av1_compound_lut[] = {COMPOUND_AVERAGE, COMPOUND_DISTWTD
 
 static void determine_compound_mode(PictureControlSet* pcs, ModeDecisionContext* ctx, ModeDecisionCandidate* cand,
                                     MD_COMP_TYPE cur_type) {
-#if !CONFIG_ENABLE_INTER_COMPOUND
+#if !CONFIG_ENABLE_INTER_COMPOUND || !CONFIG_ENABLE_COMPOUND_TYPES
     (void)pcs;
     (void)ctx;
 #endif
@@ -531,14 +531,14 @@ static void determine_compound_mode(PictureControlSet* pcs, ModeDecisionContext*
         block_mi->comp_group_idx            = 1;
         block_mi->compound_idx              = 1;
         block_mi->interinter_comp.mask_type = 55;
-#if CONFIG_ENABLE_INTER_COMPOUND
+#if CONFIG_ENABLE_INTER_COMPOUND && CONFIG_ENABLE_COMPOUND_TYPES
         svt_aom_search_compound_diff_wedge(pcs, ctx, cand);
 #endif
         break;
     case MD_COMP_WEDGE:
         block_mi->comp_group_idx = 1;
         block_mi->compound_idx   = 1;
-#if CONFIG_ENABLE_INTER_COMPOUND
+#if CONFIG_ENABLE_INTER_COMPOUND && CONFIG_ENABLE_COMPOUND_TYPES
         svt_aom_search_compound_diff_wedge(pcs, ctx, cand);
 #endif
         break;
@@ -833,11 +833,13 @@ static bool is_valid_bipred_ref(ModeDecisionContext* ctx, uint8_t inter_cand_gro
     return true;
 }
 
+#if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD
 #define BIPRED_3x3_REFINMENT_POSITIONS 8
 
 static int8_t allow_refinement_flag[BIPRED_3x3_REFINMENT_POSITIONS] = {1, 0, 1, 0, 1, 0, 1, 0};
 static int8_t bipred_3x3_x_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {-1, -1, 0, 1, 1, 1, 0, -1};
 static int8_t bipred_3x3_y_pos[BIPRED_3x3_REFINMENT_POSITIONS]      = {0, 1, 1, 1, 0, -1, -1, -1};
+#endif
 
 static INLINE uint8_t is_dc_only_safe(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     // Early exit if pruning not enabled, SB-128, NSQ, or 4x4 (no variance available)
@@ -929,7 +931,7 @@ static void inj_non_simple_modes(PictureControlSet* pcs, ModeDecisionContext* ct
         }
     }
 
-#if CONFIG_ENABLE_OBMC
+#if CONFIG_ENABLE_OBMC || CONFIG_ENABLE_WARP
     // INJECT WARP
     const uint8_t is_warp_allowed = warped_motion_mode_allowed(pcs, ctx) &&
         svt_aom_is_valid_unipred_ref(ctx, WARP_GROUP, list_idx, ref_idx);
@@ -963,8 +965,8 @@ static void inj_non_simple_modes(PictureControlSet* pcs, ModeDecisionContext* ct
             INC_MD_CAND_CNT(cand_count, pcs->ppcs->max_can_count);
         }
     }
-
-    // INJECT OBMC
+#endif // CONFIG_ENABLE_OBMC || CONFIG_ENABLE_WARP
+#if CONFIG_ENABLE_OBMC // INJECT OBMC
     const uint8_t is_obmc_allowed = svt_aom_is_valid_unipred_ref(ctx, OBMC_GROUP, list_idx, ref_idx) &&
         (svt_aom_obmc_motion_mode_allowed(pcs,
                                           ctx,
@@ -998,7 +1000,7 @@ static void inj_non_simple_modes(PictureControlSet* pcs, ModeDecisionContext* ct
     *total_cand_count = cand_count;
 }
 
-#if CONFIG_ENABLE_INTER_COMPOUND
+#if CONFIG_ENABLE_INTER_COMPOUND && CONFIG_ENABLE_COMPOUND_TYPES
 // Determines if inter MVP compound modes should be skipped based on info from neighbouring blocks/ref frame types.
 static bool skip_compound_on_ref_types(ModeDecisionContext* ctx, MvReferenceFrame rf[2]) {
     if (!ctx->inter_comp_ctrls.skip_on_ref_info) {
@@ -1049,9 +1051,9 @@ static bool skip_compound_on_ref_types(ModeDecisionContext* ctx, MvReferenceFram
 // same as the number of candidates injected so far).  It is assumed the AVG candidate to base
 // the other candidtes on is the previously injected candidate (at index total_cand_count - 1).
 static void inj_comp_modes(PictureControlSet* pcs, ModeDecisionContext* ctx, uint32_t* total_cand_count) {
-#if !CONFIG_ENABLE_INTER_COMPOUND
-    // Inter compound disabled (RTC / MINIMAL): nothing to inject here. Compiling the body out lets LTO
-    // cascade-DCE svt_aom_calc_pred_masked_compound + the wedge/diff mask builders.
+#if !CONFIG_ENABLE_INTER_COMPOUND || !CONFIG_ENABLE_COMPOUND_TYPES
+    // Inter compound disabled (RTC / MINIMAL) or AVG-only (MOBILE: the body would return at once): nothing to
+    // inject here. Compiling the body out lets LTO cascade-DCE svt_aom_calc_pred_masked_compound + mask builders.
     (void)pcs;
     (void)ctx;
     (void)total_cand_count;
@@ -1112,7 +1114,7 @@ static void inj_comp_modes(PictureControlSet* pcs, ModeDecisionContext* ctx, uin
     *total_cand_count = cand_count;
 #endif // !CONFIG_ENABLE_INTER_COMPOUND
 }
-
+#if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD
 static void unipred_3x3_candidates_injection(PictureControlSet* pcs, ModeDecisionContext* ctx,
                                              uint32_t* candidate_total_cnt) {
     uint32_t               cand_total_cnt          = (*candidate_total_cnt);
@@ -1348,7 +1350,7 @@ static void bipred_3x3_candidates_injection(PictureControlSet* pcs, ModeDecision
 
     return;
 }
-
+#endif
 /*********************************************************************
 **********************************************************************
         Upto 12 inter Candidated injected
@@ -1686,7 +1688,7 @@ static void inject_mvp_candidates_ii(PictureControlSet* pcs, ModeDecisionContext
     //update tot Candidate count
     *cand_total_cnt = cand_idx;
 }
-
+#if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD
 static void inject_new_nearest_new_comb_candidates(PictureControlSet* pcs, ModeDecisionContext* ctx,
                                                    uint32_t* cand_tot_cnt) {
     uint32_t               cand_idx   = *cand_tot_cnt;
@@ -1901,7 +1903,7 @@ static void inject_new_nearest_new_comb_candidates(PictureControlSet* pcs, ModeD
     //update tot Candidate count
     *cand_tot_cnt = cand_idx;
 }
-
+#endif
 // Refine the WM MV (8 bit search).  Return true if search found a valid MV; false otherwise
 uint8_t svt_aom_wm_motion_refinement(PictureControlSet* pcs, ModeDecisionContext* ctx, ModeDecisionCandidate* cand,
                                      const bool shut_approx) {
@@ -2925,25 +2927,25 @@ static void svt_aom_inject_inter_candidates(PictureControlSet* pcs, ModeDecision
         !(ctx->is_intra_bordered && ctx->cand_reduction_ctrls.use_neighbouring_mode_ctrls.enabled)) {
         inject_mvp_candidates_ii(pcs, ctx, cand_total_cnt, allow_bipred);
     }
-    //----------------------
-    //    NEAREST_NEWMV, NEW_NEARESTMV, NEAR_NEWMV, NEW_NEARMV.
-    //----------------------
+#if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD // NEAREST_NEWMV, NEW_NEARESTMV, NEAR_NEWMV, NEW_NEARMV
     if (ctx->new_nearest_near_comb_injection && allow_bipred) {
         inject_new_nearest_new_comb_candidates(pcs, ctx, cand_total_cnt);
     }
+#endif
     if (ctx->inject_new_me) {
         inject_new_candidates(pcs, ctx, cand_total_cnt, allow_bipred);
     }
     if (ctx->global_mv_injection) {
         inject_global_candidates(pcs, ctx, cand_total_cnt, allow_bipred);
     }
+#if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD // bipred / unipred 3x3
     if (ctx->bipred3x3_ctrls.enabled && allow_bipred) {
         bipred_3x3_candidates_injection(pcs, ctx, cand_total_cnt);
     }
-
     if (ctx->unipred3x3_injection) {
         unipred_3x3_candidates_injection(pcs, ctx, cand_total_cnt);
     }
+#endif
 
     // determine when to inject pme candidates based on size and resolution of block
     if (ctx->inject_new_pme && ctx->updated_enable_pme) {
@@ -2991,6 +2993,7 @@ TxType svt_aom_get_intra_uv_tx_type(UvPredictionMode pred_mode_uv, TxSize tx_siz
     return !av1_ext_tx_used[tx_set_type][tx_type] ? DCT_DCT : tx_type;
 }
 
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
 // Values are now correlated to quantizer.
 static INLINE int mv_check_bounds(const MvLimits* mv_limits, const Mv mv) {
     return (mv.y >> 3) < mv_limits->row_min || (mv.y >> 3) > mv_limits->row_max || (mv.x >> 3) < mv_limits->col_min ||
@@ -3258,6 +3261,7 @@ static void inject_intra_bc_candidates(PictureControlSet* pcs, ModeDecisionConte
         INC_MD_CAND_CNT((*cand_cnt), pcs->ppcs->max_can_count);
     }
 }
+#endif
 
 static void inject_intra_candidates_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx,
                                         uint32_t* candidate_total_cnt) {
@@ -3726,6 +3730,7 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
             eval_intrabc = cand_total_cnt > palette_start_cnt;
         }
 
+#if CONFIG_ENABLE_INTRA_BC || !MOBILE_BUILD
         if (ctx->md_allow_intrabc) {
             if (!pcs->ppcs->intrabc_ctrls.palette_hint || eval_intrabc) {
                 bool do_intra_bc = true;
@@ -3750,6 +3755,11 @@ EbErrorType generate_md_stage_0_cand(PictureControlSet* pcs, ModeDecisionContext
                 }
             }
         }
+#else
+        (void)scs;
+        (void)pc_tree;
+        (void)eval_intrabc;
+#endif
     }
     if (slice_type != I_SLICE) {
         svt_aom_inject_inter_candidates(pcs, ctx, &cand_total_cnt);
