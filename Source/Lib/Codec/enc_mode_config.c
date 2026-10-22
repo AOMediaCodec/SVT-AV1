@@ -7290,7 +7290,8 @@ void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet* scs, PictureControlSet
         set_lpd1_ctrls(ctx, pcs->pic_lpd1_lvl);
     } else {
         int lpd1_lvl = pcs->pic_lpd1_lvl;
-        if (pcs->slice_type != I_SLICE) {
+        // Lossless frames keep light PD1 off (set in md_config_process): it does not code the 4x4 WHT.
+        if (pcs->slice_type != I_SLICE && !pcs->ppcs->frm_hdr.coded_lossless) {
             int me_8x8 = pcs->ppcs->me_8x8_cost_variance[ctx->sb_index];
             int th     = enc_mode <= ENC_M8 ? 3 * ctx->qp_index : 3000;
             if (lpd1_lvl == 0) {
