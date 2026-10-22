@@ -493,6 +493,18 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
         SVT_ERROR("Invalid adaptive quantization (AQ) mode. AQ mode must be [0-2]\n");
         return_error = EB_ErrorBadParameter;
     }
+#if RTC_BUILD
+    // The RTC build codes the MD decisions without the EncDec pass (encode_b()): reject what turns the bypass off,
+    // segmentation (AQ mode 1, ROI maps) and 10-bit input at M7 (svt_aom_get_bypass_encdec_rtc()).
+    if (config->aq_mode == 1 || config->enable_roi_map) {
+        SVT_ERROR("AQ mode 1 and ROI maps (segmentation) are not supported by this build\n");
+        return_error = EB_ErrorBadParameter;
+    }
+    if (SVT_EFFECTIVE_BIT_DEPTH(config->encoder_bit_depth) > 8 && config->enc_mode <= ENC_M7) {
+        SVT_ERROR("10-bit input at presets 7 and below is not supported by this build\n");
+        return_error = EB_ErrorBadParameter;
+    }
+#endif
 
     if ((SVT_EFFECTIVE_BIT_DEPTH(config->encoder_bit_depth) != 8) &&
         (SVT_EFFECTIVE_BIT_DEPTH(config->encoder_bit_depth) != 10)) {
