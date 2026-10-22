@@ -581,7 +581,9 @@ static void copy_input_buffer_overlay(SequenceControlSet* sequenceControlSet, Eb
     dst->qp           = src->qp;
     dst->pic_type     = src->pic_type;
 
-    // Copy the metadata array
+    // Copy the metadata array. Most overlay candidates are dropped without being coded, so this
+    // pooled buffer may still hold an earlier picture's metadata, which the copy would append to.
+    svt_metadata_array_free(&dst->metadata);
     if (svt_aom_copy_metadata_buffer(dst, src->metadata) != EB_ErrorNone) {
         dst->metadata = NULL;
     }
