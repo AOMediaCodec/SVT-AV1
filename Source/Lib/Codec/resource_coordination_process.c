@@ -1356,9 +1356,9 @@ EbErrorType svt_aom_resource_coordination_kernel_iter(void* context) {
                 pcs->qp_on_the_fly = false;
             }
             pcs->picture_qp = (uint8_t)pcs->input_ptr->qp;
-#if !CONFIG_ENABLE_LOSSLESS
-            pcs->picture_qp = AOMMAX(pcs->picture_qp, 1); // no qindex 0 (lossless), as in copy_api_from_app()
-#endif
+            if (!CONFIG_ENABLE_LOSSLESS || SVT_RTC_TUNE(scs)) {
+                pcs->picture_qp = AOMMAX(pcs->picture_qp, 1); // no qindex 0 (lossless), as in copy_api_from_app()
+            }
         } else {
             pcs->qp_on_the_fly = false;
             pcs->picture_qp    = (uint8_t)scs->static_config.qp;

@@ -4540,10 +4540,11 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     scs->static_config.min_qp_allowed = scs->static_config.lossless ? MIN_QP_VALUE
         : config_struct->min_qp_allowed == MIN_QP_AUTO ? scs->static_config.rate_control_mode ? 4 : MIN_QP_VALUE
                                                        : config_struct->min_qp_allowed;
-#if !CONFIG_ENABLE_LOSSLESS
-    // Lossless coding is compiled out, but the decoder codes a qindex-0 frame as lossless: keep qindex >= 4.
-    scs->static_config.min_qp_allowed = AOMMAX(scs->static_config.min_qp_allowed, 1);
-#endif
+    // The decoder codes a qindex-0 frame as lossless, which builds without lossless coding and RTC mode (no 8x8 blocks
+    // at M10+) cannot encode: keep qindex >= 4.
+    if (!CONFIG_ENABLE_LOSSLESS || SVT_RTC_TUNE(scs)) {
+        scs->static_config.min_qp_allowed = AOMMAX(scs->static_config.min_qp_allowed, 1);
+    }
     scs->static_config.vbr_min_section_pct = config_struct->vbr_min_section_pct;
     scs->static_config.vbr_max_section_pct = config_struct->vbr_max_section_pct;
     scs->static_config.under_shoot_pct     = config_struct->under_shoot_pct;

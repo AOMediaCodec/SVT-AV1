@@ -522,6 +522,12 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
         SVT_ERROR("Lossless coding is not supported by this build\n");
         return_error = EB_ErrorBadParameter;
     }
+#else
+    // RTC coding is not lossless at M9 and has no 8x8 blocks at M10+, which lossless frames need.
+    if (config->lossless && SVT_RTC_TUNE(scs)) {
+        SVT_ERROR("Lossless coding is not supported in RTC mode\n");
+        return_error = EB_ErrorBadParameter;
+    }
 #endif
     // Check if the EncoderBitDepth is conformant with the Profile constraint
     if ((config->profile == 0 || config->profile == 1) && SVT_EFFECTIVE_BIT_DEPTH(config->encoder_bit_depth) > 10) {
