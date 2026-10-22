@@ -74,12 +74,10 @@ bool svt_av1_is_lossless_segment(PictureControlSet* pcs, int8_t segment_id) {
     (void)segment_id;
     return false;
 #else
-    FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
-    if (frm_hdr->segmentation_params.segmentation_enabled) {
-        return pcs->lossless[segment_id];
-    } else {
-        return pcs->lossless[0];
-    }
+    // Lossless is frame-level: the MD configuration disables segmentation when lossless and lossy segments would mix,
+    // so a segment is lossless exactly when segment 0 is.
+    (void)segment_id;
+    return pcs->lossless[0];
 #endif
 }
 
