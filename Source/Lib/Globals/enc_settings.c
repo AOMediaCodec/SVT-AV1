@@ -186,6 +186,10 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
             (unsigned)config->sframe_posi.sframe_num);
         return_error = EB_ErrorBadParameter;
     }
+    if (scs->allintra && (config->sframe_dist > 0 || config->sframe_posi.sframe_posis)) {
+        SVT_ERROR("Switch frames are not supported with all-intra or AVIF coding\n");
+        return_error = EB_ErrorBadParameter;
+    }
     // Runtime MG-size change: ABI cap, restricted to where MG_SIZE_CHANGE_EVENT
     // is accepted, and never below the level count already configured.
     if (config->max_hierarchical_levels > 2) {
@@ -717,6 +721,10 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
 
     if (config->intra_refresh_type != 2 && pass > 0) {
         SVT_ERROR("Multi-pass encode only supports closed-gop configurations.\n");
+        return_error = EB_ErrorBadParameter;
+    }
+    if (config->intra_refresh_type == SVT_AV1_FWDKF_REFRESH && config->rate_control_mode == SVT_AV1_RC_MODE_CBR) {
+        SVT_ERROR("Forward key frames (intra refresh type 1) are not supported with CBR.\n");
         return_error = EB_ErrorBadParameter;
     }
     if (config->pass > 1 && config->rate_control_mode == SVT_AV1_RC_MODE_CQP_OR_CRF) {
