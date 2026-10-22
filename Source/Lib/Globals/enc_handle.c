@@ -569,7 +569,7 @@ static EbErrorType load_default_buffer_configuration_settings(SequenceControlSet
         scs->picture_control_set_pool_init_count       = 4;
         scs->pa_reference_picture_buffer_init_count    = 4;
         scs->tpl_reference_picture_buffer_init_count   = 0;
-        scs->output_recon_buffer_fifo_init_count       = 1;
+        scs->output_recon_buffer_fifo_init_count       = 2; // the picture's recon + the recon EOS
         scs->reference_picture_buffer_init_count       = 2;
         scs->picture_control_set_pool_init_count_child = 1;
         scs->enc_dec_pool_init_count                   = 1;
