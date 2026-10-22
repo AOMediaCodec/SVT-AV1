@@ -330,6 +330,13 @@ static void init_frame_rate_tables(PictureControlSet* pcs) {
 
 // Perform initializations needed for MD
 void mdc_init_qp_update(PictureControlSet* pcs) {
+    FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
+    // A lossless frame recoded at qindex > 0 is coded as a lossy frame, with the tools lossless turned off (set up once
+    // per frame in svt_aom_mode_decision_configuration_kernel_iter) still off.
+    if (frm_hdr->coded_lossless && frm_hdr->quantization_params.base_q_idx) {
+        memset(pcs->lossless, 0, sizeof(pcs->lossless));
+        frm_hdr->coded_lossless = frm_hdr->all_lossless = 0;
+    }
     pcs->intra_coded_area = 0;
     pcs->skip_coded_area  = 0;
     pcs->hp_coded_area    = 0;

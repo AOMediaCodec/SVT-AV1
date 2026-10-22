@@ -2037,8 +2037,9 @@ static void recode_loop_decision_maker(PictureControlSet* pcs, SequenceControlSe
     if (*do_recode) {
         ppcs->loop_count++;
 
+        // Qindex 0 is lossless, which only md_config_process sets up: a recode keeps a lossy frame at qindex >= 1.
         frm_hdr->quantization_params.base_q_idx = (uint8_t)CLIP3(
-            (int32_t)quantizer_to_qindex[scs->static_config.min_qp_allowed],
+            AOMMAX((int32_t)quantizer_to_qindex[scs->static_config.min_qp_allowed], 1),
             (int32_t)quantizer_to_qindex[scs->static_config.max_qp_allowed],
             q);
 
