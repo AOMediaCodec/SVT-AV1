@@ -6120,6 +6120,8 @@ void svt_input_buffer_header_destroyer(EbPtr p) {
         buf->u_buffer_bit_inc = NULL;
         buf->v_buffer_bit_inc = NULL;
     }
+    // overlay candidates that were never coded keep their copy of the metadata
+    svt_metadata_array_free(&obj->metadata);
 
     EB_DELETE(buf);
     EB_FREE(obj);
@@ -6167,6 +6169,8 @@ EbErrorType svt_output_buffer_header_creator(EbPtr* object_dbl_ptr, EbPtr object
 
 void svt_output_buffer_header_destroyer(EbPtr p) {
     EbBufferHeaderType* obj = (EbBufferHeaderType*)p;
+    // a hidden frame still waiting for its show_existing_frame holds that frame's metadata
+    svt_metadata_array_free(&obj->metadata);
     EB_FREE(obj);
 }
 
