@@ -511,6 +511,18 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
         SVT_ERROR("Encoder Bit Depth shall be only 8 or 10 \n");
         return_error = EB_ErrorBadParameter;
     }
+#if !CONFIG_ENABLE_HIGH_BIT_DEPTH
+    if (config->encoder_bit_depth != 8) {
+        SVT_ERROR("Encoder bit depth %u is not supported by this 8-bit build\n", config->encoder_bit_depth);
+        return_error = EB_ErrorBadParameter;
+    }
+#endif
+#if !CONFIG_ENABLE_LOSSLESS
+    if (config->lossless) {
+        SVT_ERROR("Lossless coding is not supported by this build\n");
+        return_error = EB_ErrorBadParameter;
+    }
+#endif
     // Check if the EncoderBitDepth is conformant with the Profile constraint
     if ((config->profile == 0 || config->profile == 1) && SVT_EFFECTIVE_BIT_DEPTH(config->encoder_bit_depth) > 10) {
         SVT_ERROR("The encoder bit depth shall be equal to 8 or 10 for Main/High Profile\n");

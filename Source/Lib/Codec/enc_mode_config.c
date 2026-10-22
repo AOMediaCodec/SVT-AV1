@@ -1675,6 +1675,11 @@ static void svt_aom_set_dlf_controls(PictureParentControlSet* pcs, uint8_t dlf_l
 
 static void set_intrabc_level(PictureParentControlSet* pcs, uint8_t ibc_level) {
     IntrabcCtrls* intrabc_ctrls = &pcs->intrabc_ctrls;
+#if !CONFIG_ENABLE_INTRA_BC
+    // IntraBC is compiled out (block_structures.h folds use_intrabc to 0): never signal allow_intrabc, which
+    // would also turn off deblocking, CDEF and restoration for the frame (RTC sets it on screen content).
+    ibc_level = 0;
+#endif
 
     // Defaults for the clean-room RTC knobs; only the dedicated RTC level overrides them.
     intrabc_ctrls->pred_first      = 0;
@@ -1901,6 +1906,11 @@ static void set_intrabc_level(PictureParentControlSet* pcs, uint8_t ibc_level) {
 */
 static void set_palette_level(PictureParentControlSet* pcs, uint8_t palette_level) {
     PaletteCtrls* palette_ctrls = &pcs->palette_ctrls;
+#if !CONFIG_ENABLE_PALETTE
+    // Palette is compiled out (svt_aom_allow_palette() folds to 0, so no palette syntax is written): a nonzero level
+    // would signal allow_screen_content_tools, and the decoder would read palette flags the stream lacks.
+    pcs->palette_level = palette_level = 0;
+#endif
 
     switch (palette_level) {
     case 0:

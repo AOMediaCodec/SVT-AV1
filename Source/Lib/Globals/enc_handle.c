@@ -4537,9 +4537,13 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
 
     scs->static_config.max_qp_allowed = scs->static_config.lossless ? MIN_QP_VALUE : config_struct->max_qp_allowed;
 
-    scs->static_config.min_qp_allowed      = scs->static_config.lossless ? MIN_QP_VALUE
+    scs->static_config.min_qp_allowed = scs->static_config.lossless ? MIN_QP_VALUE
         : config_struct->min_qp_allowed == MIN_QP_AUTO ? scs->static_config.rate_control_mode ? 4 : MIN_QP_VALUE
                                                        : config_struct->min_qp_allowed;
+#if !CONFIG_ENABLE_LOSSLESS
+    // Lossless coding is compiled out, but the decoder codes a qindex-0 frame as lossless: keep qindex >= 4.
+    scs->static_config.min_qp_allowed = AOMMAX(scs->static_config.min_qp_allowed, 1);
+#endif
     scs->static_config.vbr_min_section_pct = config_struct->vbr_min_section_pct;
     scs->static_config.vbr_max_section_pct = config_struct->vbr_max_section_pct;
     scs->static_config.under_shoot_pct     = config_struct->under_shoot_pct;
@@ -4853,6 +4857,10 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     } else if (scs->static_config.tune == TUNE_VMAF) {
         SVT_WARN("Tune VMAF: a pre-processing / unsharp masking is applied\n");
     }
+#if !CONFIG_ENABLE_QUANT_MATRIX
+    // Quantization matrices are compiled out (flat quantizers): never signal them (tunes IQ and MS-SSIM enable them).
+    scs->static_config.enable_qm = 0;
+#endif
     return;
 }
 
