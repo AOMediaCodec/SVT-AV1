@@ -4330,7 +4330,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     // SB Definitions
     scs->static_config.pred_structure = config_struct->pred_structure;
     scs->static_config.rtc            = config_struct->rtc;
-    if (scs->static_config.rtc && scs->static_config.pred_structure != LOW_DELAY) {
+    if (SVT_RTC_TUNE(scs) && scs->static_config.pred_structure != LOW_DELAY) {
         scs->static_config.pred_structure = LOW_DELAY;
         SVT_WARN("Forcing low delay pred structure for RTC.\n");
     }
@@ -4366,7 +4366,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
         }
     }
 
-    else if (scs->static_config.rtc) {
+    else if (SVT_RTC_TUNE(scs)) {
         if (scs->static_config.enc_mode > ENC_M13) {
             SVT_WARN("Preset M%d is mapped to M13.\n", scs->static_config.enc_mode);
             scs->static_config.enc_mode = ENC_M13;
@@ -4486,7 +4486,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     } else {
         scs->static_config.rate_control_mode = config_struct->rate_control_mode;
     }
-    if (scs->static_config.pass == ENC_SINGLE_PASS && scs->static_config.rtc) {
+    if (scs->static_config.pass == ENC_SINGLE_PASS && SVT_RTC_TUNE(scs)) {
         if (scs->static_config.enc_mode < ENC_M7) {
             scs->static_config.enc_mode = ENC_M7;
             SVT_WARN("rtc mode only supports presets [7-%d]. Forcing preset to 7.\n", ENC_M13);
@@ -4580,7 +4580,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     scs->subsampling_y     = (scs->chroma_format_idc >= EB_YUV422 ? 0 : 1);
     // Force screen-content detection OFF when allintra
     const bool allintra = scs->allintra;
-    const bool rtc      = scs->static_config.rtc;
+    const bool rtc      = SVT_RTC_TUNE(scs);
     if (allintra) {
         if (config_struct->screen_content_mode <= 1) {
             scs->static_config.screen_content_mode = config_struct->screen_content_mode;
@@ -4875,6 +4875,15 @@ EB_API EbErrorType svt_av1_enc_set_parameter(EbComponentType*          svt_enc_c
     if (return_error == EB_ErrorBadParameter) {
         return EB_ErrorBadParameter;
     }
+#if RTC_BUILD
+    // The RTC build is compiled for rtc mode only (SVT_RTC_TUNE, SVT_ALLINTRA): the settings above were derived as
+    // rtc and verified against the requested flags; encode in rtc mode.
+    if (scs->allintra) {
+        SVT_ERROR("All-intra and AVIF coding are not supported by the RTC build\n");
+        return EB_ErrorBadParameter;
+    }
+    scs->static_config.rtc = 1;
+#endif
 
     if (scs->static_config.avif) {
         scs->seq_header.still_picture                = 1;
