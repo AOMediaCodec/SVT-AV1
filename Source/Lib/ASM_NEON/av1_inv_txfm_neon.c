@@ -4591,10 +4591,24 @@ static inline void lowbd_inv_txfm2d_add_no_identity_neon(const int32_t* input, u
 void svt_dav1d_inv_txfm_add_neon(const TranLow* dqcoeff, uint8_t* dst_r, int32_t stride_r, uint8_t* dst_w,
                                  int32_t stride_w, const TxfmParam* txfm_param) {
 #if CONFIG_ENABLE_LOSSLESS
+#if MOBILE_BUILD
+    // MOBILE codes lossless blocks (8-bit 4x4 WHT) with dav1d's kernel in the TX_4X4 case below: the C fallback links
+    // every C inverse transform size. Unit-test builds keep it for the other sizes and bit depths the tests drive with
+    // lossless set.
+#ifdef SVT_AV1_UNIT_TEST_BUILD
+    if (txfm_param->lossless && (txfm_param->tx_size != TX_4X4 || txfm_param->bd != EB_EIGHT_BIT)) {
+        svt_av1_inv_txfm_add_c(dqcoeff, dst_r, stride_r, dst_w, stride_w, txfm_param);
+        return;
+    }
+#else
+    assert(!txfm_param->lossless || txfm_param->tx_size == TX_4X4);
+#endif
+#else
     if (txfm_param->lossless) {
         svt_av1_inv_txfm_add_c(dqcoeff, dst_r, stride_r, dst_w, stride_w, txfm_param);
         return;
     }
+#endif
 #endif
 
     const TxSize tx_size = txfm_param->tx_size;
@@ -4858,6 +4872,12 @@ void svt_dav1d_inv_txfm_add_neon(const TranLow* dqcoeff, uint8_t* dst_r, int32_t
         pack_and_load_buffer_4x4(dqcoeff, in);
         transpose_s16_4x4(in, out);
         store_buffer_s16_4x4(out, dqcoeff_16);
+#if CONFIG_ENABLE_LOSSLESS && MOBILE_BUILD
+        if (txfm_param->lossless) {
+            svt_dav1d_inv_txfm_add_wht_wht_4x4_8bpc_neon(dst_w, stride_w, dqcoeff_16, eob);
+            break;
+        }
+#endif
         inv_txf_add_4x4_dav1d(dqcoeff_16, dst_w, stride_w, tx_type, eob);
         break;
     case TX_16X4:

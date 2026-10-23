@@ -139,9 +139,11 @@
 #endif
 
 // Below features are off because no in-scope encode uses them (8-bit; RTC M9-M13, VOD M9-M11 and AVIF M6-M9, as
-// higher VOD/AVIF presets map to these; no film grain, superres, resize, lossless, QM or VMAF; natural content,
-// so no palette or IntraBC), or, where commented, because no preset >= M6 reaches them.
+// higher VOD/AVIF presets map to these; no film grain, superres, resize, QM or VMAF; natural content, so no
+// palette or IntraBC), or, where commented, because no preset >= M6 reaches them.
 // Local warp (CONFIG_ENABLE_WARP) stays on: VOD with the default hierarchy uses it at every in-scope preset.
+// Lossless coding (CONFIG_ENABLE_LOSSLESS) stays on for VOD and AVIF: its 4x4 inverse WHT runs on dav1d's kernel
+// (av1_inv_txfm_neon.c), and RTC mode rejects it (svt_av1_verify_settings()).
 
 #ifndef CONFIG_ENABLE_QUANT_MATRIX
 #define CONFIG_ENABLE_QUANT_MATRIX          0
@@ -172,9 +174,6 @@
 #endif
 #ifndef CONFIG_ENABLE_INTRA_BC
 #define CONFIG_ENABLE_INTRA_BC              0
-#endif
-#ifndef CONFIG_ENABLE_LOSSLESS
-#define CONFIG_ENABLE_LOSSLESS              0
 #endif
 #ifndef CONFIG_ENABLE_VMAF
 #define CONFIG_ENABLE_VMAF                  0
