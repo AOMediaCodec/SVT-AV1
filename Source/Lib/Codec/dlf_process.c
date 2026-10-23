@@ -111,12 +111,15 @@ EbErrorType svt_aom_dlf_kernel_iter(void* context) {
             }
         }
 
+        // The search did not measure the filtered SSE (e.g. levels taken from the references), so it is
+        // computed below from the filtered recon
+        const bool need_filt_sse = pcs->best_filt_sse == -1 &&
+            (frm_hdr->loop_filter_params.filter_level[0] || frm_hdr->loop_filter_params.filter_level[1]);
         // The levels are final; only filter the recon if something uses it
-        if (svt_av1_lf_recon_needed(pcs)) {
+        if (svt_av1_lf_recon_needed(pcs) || need_filt_sse) {
             svt_av1_loop_filter_frame(recon_buffer, pcs, 0, 3);
         }
-        if (pcs->best_filt_sse == -1 &&
-            (frm_hdr->loop_filter_params.filter_level[0] || frm_hdr->loop_filter_params.filter_level[1])) {
+        if (need_filt_sse) {
             pcs->best_filt_sse = picture_sse_calculations(pcs, recon_buffer, /*plane*/ 0);
         }
         pcs->dlf_dist_dev = pcs->zero_filt_sse == 0 ||
