@@ -1172,6 +1172,8 @@ typedef struct PictureParentControlSet {
     uint32_t         dpb_order_hint[REF_FRAMES]; // spec 6.8.2. ref_order_hint[]
     DGDetectorSeg*   dg_detector; // dg detector segments control struct
     SvtAv1RoiMapEvt* roi_map_evt;
+    AomFilmGrain     film_grain_event;
+    bool             has_film_grain_event;
     uint32_t         filt_to_unfilt_diff;
     // Absolute histogram deviation of the frame to the central TF frame (i.e. sum of absolute deviation of all bins)
     uint32_t tf_ahd_error_to_central;

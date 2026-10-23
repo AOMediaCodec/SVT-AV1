@@ -487,6 +487,8 @@ void SequenceHeaderParser::input_obu_data(const uint8_t *obu_data,
         stream_info->enable_warped_motion = seg_header.enable_warped_motion;
         stream_info->cdef_level = seg_header.cdef_level;
         stream_info->enable_restoration = seg_header.enable_restoration;
+        stream_info->film_grain_params_present =
+            seg_header.film_grain_params_present;
         stream_info->enable_superres = seg_header.enable_superres;
         stream_info->frame_id_numbers_present_flag =
             seg_header.frame_id_numbers_present_flag;

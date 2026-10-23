@@ -55,6 +55,7 @@
 #include "rc_results.h"
 #include "definitions.h"
 #include "metadata_handle.h"
+#include "grainSynthesis.h"
 
 #include "pack_unpack_c.h"
 #include "enc_mode_config.h"
@@ -4454,7 +4455,9 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     if (scs->static_config.film_grain_denoise_strength == 0 && scs->static_config.film_grain_denoise_apply == 1) {
         SVT_WARN("Film grain denoise apply signal is going to be ignored when film grain is off.\n");
     }
-    scs->seq_header.film_grain_params_present = (uint8_t)(scs->static_config.film_grain_denoise_strength > 0);
+    scs->seq_header.film_grain_params_present = (uint8_t)(CONFIG_ENABLE_FILM_GRAIN &&
+                                                       (scs->static_config.film_grain_denoise_strength > 0 ||
+                                                        config_struct->fgs_table != NULL));
     scs->static_config.fgs_table              = config_struct->fgs_table;
 
     // MD Parameters
@@ -5476,7 +5479,22 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType* input_ptr, S
         *has_protected_event |= node->node_type == REF_FRAME_SCALING_EVENT || node->node_type == REF_STORE_EVENT ||
             node->node_type == REF_CLEAR_EVENT || node->node_type == REF_USE_EVENT ||
             node->node_type == MG_SIZE_CHANGE_EVENT;
-        if (node->node_type == RES_CHANGE_EVENT) {
+        if (node->node_type == FILM_GRAIN_EVENT) {
+            if (node->size != sizeof(AomFilmGrain) || node->data == NULL) {
+                SVT_ERROR("FILM_GRAIN_EVENT requires an AomFilmGrain payload\n");
+                return EB_ErrorBadParameter;
+            }
+            const AomFilmGrain* grain = (const AomFilmGrain*)node->data;
+            if (!svt_aom_film_grain_params_valid(grain) ||
+                (grain->apply_grain && grain->bit_depth != SVT_EFFECTIVE_BIT_DEPTH(scs->static_config.encoder_bit_depth))) {
+                SVT_ERROR("FILM_GRAIN_EVENT contains invalid grain parameters\n");
+                return EB_ErrorBadParameter;
+            }
+            if (!scs->seq_header.film_grain_params_present) {
+                SVT_ERROR("FILM_GRAIN_EVENT requires film grain signaling enabled at initialization\n");
+                return EB_ErrorBadParameter;
+            }
+        } else if (node->node_type == RES_CHANGE_EVENT) {
             SvtAv1InputPicDef* node_data = (SvtAv1InputPicDef*)node->data;
             if (input_ptr->pic_type != EB_AV1_KEY_PICTURE) {
                 SVT_ERROR("Resolution change on the fly not supported for non key frames\n");

@@ -881,9 +881,10 @@ static void update_frame_event(PictureParentControlSet* pcs, uint64_t pic_num) {
     SequenceControlSet* scs  = pcs->scs;
     EbPrivDataNode*     node = (EbPrivDataNode*)pcs->input_ptr->p_app_private;
     // Ref-frame management: default to "no event" each frame (0 is reserved).
-    pcs->ref_mgmt.store_id = 0;
-    pcs->ref_mgmt.clear_id = 0;
-    pcs->ref_mgmt.use_id   = 0;
+    pcs->ref_mgmt.store_id    = 0;
+    pcs->ref_mgmt.clear_id    = 0;
+    pcs->ref_mgmt.use_id      = 0;
+    pcs->has_film_grain_event = false;
     while (node) {
         if (node->node_type == REF_FRAME_SCALING_EVENT) {
             // update resize denominator by input event
@@ -893,6 +894,13 @@ static void update_frame_event(PictureParentControlSet* pcs, uint64_t pic_num) {
             scs->enc_ctx->resize_evt = *(EbRefFrameScale*)node->data;
             // set reset flag of rate control
             pcs->rc_reset_flag = true;
+        } else if (node->node_type == FILM_GRAIN_EVENT) {
+            svt_aom_assert_err(node->size == sizeof(AomFilmGrain) && node->data,
+                               "invalid private data of type FILM_GRAIN_EVENT");
+            if (node->size == sizeof(AomFilmGrain) && node->data) {
+                pcs->film_grain_event     = *(AomFilmGrain*)node->data;
+                pcs->has_film_grain_event = true;
+            }
         } else if (node->node_type == COMPUTE_QUALITY_EVENT) {
             svt_aom_assert_err(node->size == sizeof(SvtAv1ComputeQualityInfo) && node->data,
                                "invalid private data of type COMPUTE_QUALITY_EVENT");

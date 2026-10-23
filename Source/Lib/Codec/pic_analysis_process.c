@@ -494,9 +494,8 @@ static EbErrorType apply_film_grain_table(SequenceControlSet* scs_ptr, PicturePa
 
     SVT_MEMCPY(dst_grain, src_grain, sizeof(*dst_grain));
 
-    frm_hdr->film_grain_params.apply_grain        = 1;
-    frm_hdr->film_grain_params.random_seed        = random_seed;
-    scs_ptr->seq_header.film_grain_params_present = 1;
+    frm_hdr->film_grain_params.apply_grain = 1;
+    frm_hdr->film_grain_params.random_seed = random_seed;
 
     return EB_ErrorNone;
 }
@@ -512,7 +511,9 @@ static EbErrorType apply_film_grain_table(SequenceControlSet* scs_ptr, PicturePa
  ************************************************/
 void svt_aom_picture_pre_processing_operations(PictureParentControlSet* pcs, SequenceControlSet* scs) {
 #if CONFIG_ENABLE_FILM_GRAIN
-    if (scs->static_config.fgs_table) {
+    if (pcs->has_film_grain_event && scs->seq_header.film_grain_params_present) {
+        pcs->frm_hdr.film_grain_params = pcs->film_grain_event;
+    } else if (scs->static_config.fgs_table) {
         apply_film_grain_table(scs, pcs);
     } else if (scs->static_config.film_grain_denoise_strength) {
         denoise_estimate_film_grain(scs, pcs);

@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include "EbSvtAv1Enc.h"
+#include "app_film_grain.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -200,7 +201,8 @@ typedef struct EbConfig {
     FILE*         roi_map_file;
     SvtAv1RoiMap* roi_map;
 
-    char* fgs_table_path;
+    char*          fgs_table_path;
+    FilmGrainTable fgs_table;
 } EbConfig;
 
 typedef struct EncChannel {

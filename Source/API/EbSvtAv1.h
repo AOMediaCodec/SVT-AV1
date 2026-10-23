@@ -238,7 +238,6 @@ typedef struct EbColorConfig {
 // svt_av1_enc_send_picture API call
 typedef enum {
     PRIVATE_DATA, // data to be passed through and written to the bitstream
-    //FILM_GRAIN_PARAM,        // passing film grain parameters per picture
     REF_FRAME_SCALING_EVENT, // reference frame scaling data per picture
     ROI_MAP_EVENT, // ROI map data per picture
     RES_CHANGE_EVENT, // resolution change data per picture (KF only)
@@ -250,6 +249,7 @@ typedef enum {
     REF_CLEAR_EVENT, // Ref-frame management: release a previously STOREd pic_id (payload: SvtAv1RefFrameCmd)
     REF_USE_EVENT, // Ref-frame management: predict current frame from a STOREd ref (payload: SvtAv1RefFrameCmd)
     MG_SIZE_CHANGE_EVENT, //MG size change data per picture
+    FILM_GRAIN_EVENT,
     PRIVATE_DATA_TYPES // end of private data types
 } PrivDataType;
 
