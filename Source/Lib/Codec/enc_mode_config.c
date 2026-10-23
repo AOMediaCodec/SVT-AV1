@@ -3922,9 +3922,14 @@ static void md_subpel_pme_controls(ModeDecisionContext* ctx, uint8_t md_subpel_p
 /*
  * Control RDOQ
  */
-static void set_rdoq_controls(ModeDecisionContext* ctx, uint8_t rdoq_level) {
+static void set_rdoq_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, uint8_t rdoq_level) {
     RdoqCtrls* rdoq_ctrls = &ctx->rdoq_ctrls;
 
+    // Lossless frames are not quantized: turn RDOQ off here, once per call, rather than per transform block in
+    // svt_aom_quantize_inv_quantize(), the only reader of rdoq_ctrls.enabled.
+    if (svt_av1_is_lossless_segment(pcs, 0)) {
+        rdoq_level = 0;
+    }
     switch (rdoq_level) {
     case 0:
         rdoq_ctrls->enabled = 0;
@@ -7616,7 +7621,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1_default(PictureControlSet* pcs, ModeDec
             rdoq_level = MAX(rdoq_level, pcs->rdoq_level);
         }
     }
-    set_rdoq_controls(ctx, rdoq_level);
+    set_rdoq_controls(pcs, ctx, rdoq_level);
 
     set_coeff_shaving_controls(ctx, pcs->coeff_shaving_level);
 
@@ -7804,7 +7809,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1_rtc(PictureControlSet* pcs, ModeDecisio
             rdoq_level = MAX(rdoq_level, pcs->rdoq_level);
         }
     }
-    set_rdoq_controls(ctx, rdoq_level);
+    set_rdoq_controls(pcs, ctx, rdoq_level);
 
     set_coeff_shaving_controls(ctx, pcs->coeff_shaving_level);
 
@@ -8018,7 +8023,7 @@ void svt_aom_sig_deriv_enc_dec_default(PictureControlSet* pcs, ModeDecisionConte
     }
 
     uint8_t rdoq_level = pcs->rdoq_level;
-    set_rdoq_controls(ctx, rdoq_level);
+    set_rdoq_controls(pcs, ctx, rdoq_level);
 
     uint8_t coeff_shaving_level = pcs->coeff_shaving_level;
     set_coeff_shaving_controls(ctx, coeff_shaving_level);
@@ -8135,7 +8140,7 @@ void svt_aom_sig_deriv_enc_dec_rtc(PictureControlSet* pcs, ModeDecisionContext* 
     }
 
     uint8_t rdoq_level = pcs->rdoq_level;
-    set_rdoq_controls(ctx, rdoq_level);
+    set_rdoq_controls(pcs, ctx, rdoq_level);
 
     uint8_t coeff_shaving_level = pcs->coeff_shaving_level;
     set_coeff_shaving_controls(ctx, coeff_shaving_level);
@@ -8246,7 +8251,7 @@ void svt_aom_sig_deriv_enc_dec_allintra(PictureControlSet* pcs, ModeDecisionCont
     }
 
     uint8_t rdoq_level = pcs->rdoq_level;
-    set_rdoq_controls(ctx, rdoq_level);
+    set_rdoq_controls(pcs, ctx, rdoq_level);
 
     uint8_t coeff_shaving_level = pcs->coeff_shaving_level;
     set_coeff_shaving_controls(ctx, coeff_shaving_level);

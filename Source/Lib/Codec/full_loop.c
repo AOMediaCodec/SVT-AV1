@@ -1644,9 +1644,9 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet* pcs, ModeDecisionContex
     bool is_inter = (pred_mode >= NEARESTMV);
     bool perform_rdoq;
 
-    // If rdoq_level is specified in the command line instruction, set perform_rdoq accordingly.
-    perform_rdoq = !svt_av1_is_lossless_segment(pcs, ctx->blk_ptr->segment_id) &&
-        ((ctx->mds_do_rdoq || is_encode_pass) && ctx->rdoq_ctrls.enabled);
+    // If rdoq_level is specified in the command line instruction, set perform_rdoq accordingly. RDOQ is off on lossless
+    // frames (set_rdoq_controls()).
+    perform_rdoq = (ctx->mds_do_rdoq || is_encode_pass) && ctx->rdoq_ctrls.enabled;
     if (!is_encode_pass) {
         if ((ctx->rdoq_ctrls.dct_dct_only && tx_type != DCT_DCT) ||
             (ctx->rdoq_ctrls.skip_uv && component_type != COMPONENT_LUMA)) {
