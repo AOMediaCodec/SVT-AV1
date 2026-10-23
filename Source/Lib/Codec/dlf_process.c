@@ -111,7 +111,10 @@ EbErrorType svt_aom_dlf_kernel_iter(void* context) {
             }
         }
 
-        svt_av1_loop_filter_frame(recon_buffer, pcs, 0, 3);
+        // The levels are final; only filter the recon if something uses it
+        if (svt_av1_lf_recon_needed(pcs)) {
+            svt_av1_loop_filter_frame(recon_buffer, pcs, 0, 3);
+        }
         if (pcs->best_filt_sse == -1 &&
             (frm_hdr->loop_filter_params.filter_level[0] || frm_hdr->loop_filter_params.filter_level[1])) {
             pcs->best_filt_sse = picture_sse_calculations(pcs, recon_buffer, /*plane*/ 0);
