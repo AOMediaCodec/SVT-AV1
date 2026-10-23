@@ -82,7 +82,7 @@ Win64 Unit Tests:
   extends: .windows-unit-test-base
   script:
     - cmake -B Build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-    - python gtest_parallel.py --print_test_times ./Bin/Release/SvtAv1UnitTests -- --gtest_output="xml:reports/unit-{#}.xml"
+    - python gtest_parallel.py --print_test_times ./Bin/Release/SvtAv1UnitTests ./Bin/Release/SvtAv1ApiTests -- --gtest_output="xml:reports/unit-{#}.xml"
 
 # Kept separate from the unit tests, and worker-capped, on purpose.
 # gtest-parallel orders tasks slowest-first from a timing cache that persists
