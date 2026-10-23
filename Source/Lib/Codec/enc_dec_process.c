@@ -3130,11 +3130,7 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                         // Apply the loop filter
                         //Jing: Don't work for tile_parallel since the SB of bottom tile comes early than the bottom SB of top tile
 
-                        if ((pcs->ppcs->cdef_search_ctrls.enabled &&
-                             pcs->ppcs->cdef_search_ctrls.qp_strength_level != CDEF_QP_STRENGTH_YUV &&
-                             !pcs->ppcs->cdef_search_ctrls.use_reference_cdef_fs) ||
-                            pcs->ppcs->enable_restoration || pcs->ppcs->is_ref || scs->static_config.recon_enabled ||
-                            scs->static_config.stat_report) {
+                        if (svt_av1_lf_recon_needed(pcs)) {
                             if (pcs->ppcs->frm_hdr.loop_filter_params.filter_level[0] ||
                                 pcs->ppcs->frm_hdr.loop_filter_params.filter_level[1]) {
                                 EbPictureBufferDesc* recon_buffer;

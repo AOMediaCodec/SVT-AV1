@@ -662,16 +662,18 @@ void svt_aom_loop_filter_sb(EbPictureBufferDesc* frame_buffer, //reconpicture,
 }
 
 /*************************************************************************************************
-* recon_used_in_loop
-* Whether the coding of this or later pictures reads the deblocked recon: as a reference, by the
-* CDEF search or by restoration. Recon output and the stat report are not part of this, as they
-* must not change the bitstream.
+* svt_av1_lf_recon_needed
+* Whether the deblocked recon of this picture is used: as a reference, by the CDEF search, by
+* restoration, as recon output or for the stat report. When it is not, applying the selected
+* filters to the recon can be skipped. This must only gate that final application, never the
+* filter level search, so that it cannot change the bitstream.
 *************************************************************************************************/
-static bool recon_used_in_loop(const PictureControlSet* pcs) {
+bool svt_av1_lf_recon_needed(const PictureControlSet* pcs) {
     const PictureParentControlSet* ppcs = pcs->ppcs;
+    const SequenceControlSet*      scs  = pcs->scs;
     return (ppcs->cdef_search_ctrls.enabled && ppcs->cdef_search_ctrls.qp_strength_level != CDEF_QP_STRENGTH_YUV &&
             !ppcs->cdef_search_ctrls.use_reference_cdef_fs) ||
-        ppcs->enable_restoration || ppcs->is_ref;
+        ppcs->enable_restoration || ppcs->is_ref || scs->static_config.recon_enabled || scs->static_config.stat_report;
 }
 
 /*************************************************************************************************
@@ -685,19 +687,17 @@ void svt_av1_loop_filter_frame(EbPictureBufferDesc* frame_buffer, PictureControl
     uint32_t            picture_height_in_sb = (pcs->ppcs->aligned_height + scs->sb_size - 1) / scs->sb_size;
 
     svt_av1_loop_filter_frame_init(&pcs->ppcs->frm_hdr, &pcs->ppcs->lf_info, plane_start, plane_end);
-    if (recon_used_in_loop(pcs) || scs->static_config.recon_enabled || scs->static_config.stat_report) {
-        uint8_t sb_size_log2 = (uint8_t)svt_log2f(scs->sb_size);
-        bool    end_of_row_flag;
-        for (uint32_t y_sb_index = 0; y_sb_index < picture_height_in_sb; ++y_sb_index) {
-            for (uint32_t x_sb_index = 0; x_sb_index < pic_width_in_sb; ++x_sb_index) {
-                uint32_t sb_origin_x = x_sb_index << sb_size_log2;
-                uint32_t sb_origin_y = y_sb_index << sb_size_log2;
+    uint8_t sb_size_log2 = (uint8_t)svt_log2f(scs->sb_size);
+    bool    end_of_row_flag;
+    for (uint32_t y_sb_index = 0; y_sb_index < picture_height_in_sb; ++y_sb_index) {
+        for (uint32_t x_sb_index = 0; x_sb_index < pic_width_in_sb; ++x_sb_index) {
+            uint32_t sb_origin_x = x_sb_index << sb_size_log2;
+            uint32_t sb_origin_y = y_sb_index << sb_size_log2;
 
-                end_of_row_flag = (x_sb_index == pic_width_in_sb - 1) ? true : false;
+            end_of_row_flag = (x_sb_index == pic_width_in_sb - 1) ? true : false;
 
-                svt_aom_loop_filter_sb(
-                    frame_buffer, pcs, sb_origin_y >> 2, sb_origin_x >> 2, plane_start, plane_end, end_of_row_flag);
-            }
+            svt_aom_loop_filter_sb(
+                frame_buffer, pcs, sb_origin_y >> 2, sb_origin_x >> 2, plane_start, plane_end, end_of_row_flag);
         }
     }
 }
@@ -1203,16 +1203,8 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc* srcBuffer, PictureCon
         EbPictureBufferDesc* temp_lf_recon_buffer = SVT_EFFECTIVE_IS_16BIT_PIPELINE(scs->is_16bit_pipeline)
             ? pcs->temp_lf_recon_pic_16bit
             : pcs->temp_lf_recon_pic;
-        // The search measures the deblocked recon. When nothing in the loop reads it, the filter is not
-        // applied (see svt_av1_loop_filter_frame()) and every level would measure the same, so signal no
-        // deblocking without searching. Outputting the recon must not change this.
-        const bool can_search = recon_used_in_loop(pcs);
 
         if (!do_y) {
-            lf->filter_level[0] = lf->filter_level[1] = 0;
-        } else if (!can_search &&
-                   (frame_is_boosted(pcs->ppcs) || !pcs->ppcs->dlf_ctrls.use_ref_avg_y ||
-                    pcs->ppcs->tot_ref_frame_types == 0)) {
             lf->filter_level[0] = lf->filter_level[1] = 0;
         } else if (frame_is_boosted(pcs->ppcs) || !pcs->ppcs->dlf_ctrls.use_ref_avg_y ||
                    pcs->ppcs->tot_ref_frame_types == 0) {
@@ -1262,9 +1254,6 @@ EbErrorType svt_av1_pick_filter_level(EbPictureBufferDesc* srcBuffer, PictureCon
             //use avg-ref for chroma
             lf->filter_level_u = last_frame_filter_level[2];
             lf->filter_level_v = last_frame_filter_level[3];
-        } else if (!can_search) {
-            lf->filter_level_u = 0;
-            lf->filter_level_v = 0;
         } else {
             lf->filter_level_u = search_filter_level(srcBuffer,
                                                      temp_lf_recon_buffer,
