@@ -111,6 +111,8 @@ For each enable-*, there is a disable-* option, and vice versa.
     minimal-build
     --rtc-build,        Do RTC build, ie reduced feature set
     rtc-build
+    --mobile-build,     Do mobile build (8-bit RTC, VOD and AVIF), ie reduced feature set
+    mobile-build
     --log-quiet,        Do not log anything from the core encoder
     log-quiet
 
@@ -353,6 +355,7 @@ parse_options() {
         verbose) CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_VERBOSE_MAKEFILE=1" && shift ;;
         minimal-build) CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DMINIMAL_BUILD=ON" && shift ;;
         rtc-build) CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DRTC_BUILD=ON" && shift ;;
+        mobile-build) CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DMOBILE_BUILD=ON" && shift ;;
         log-quiet) CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DLOG_QUIET=ON" && shift ;;
         *) print_message "Unknown option: $1" && shift ;;
         esac
@@ -398,6 +401,7 @@ else
             verbose) parse_options verbose && shift ;;
             minimal-build) parse_options minimal-build && shift ;;
             rtc-build) parse_options rtc-build && shift ;;
+            mobile-build) parse_options mobile-build && shift ;;
             log-quiet) parse_options log-quiet && shift ;;
             asm | bindir | cc | cxx | gen | jobs | pgo-dir | pgo-videos | prefix | sanitizer | target_system | android-ndk)
                 parse_equal_option "$1" "$2"
@@ -523,6 +527,7 @@ else
             verbose) parse_options verbose && shift ;;
             minimal-build) parse_options minimal-build && shift ;;
             rtc-build) parse_options rtc-build && shift ;;
+            mobile-build) parse_options mobile-build && shift ;;
             log-quiet) parse_options log-quiet && shift ;;
             end) ${IN_SCRIPT:-false} && exit ;;
             *) die "Error, unknown option: $1" ;;
