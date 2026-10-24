@@ -200,7 +200,7 @@ uint8_t svt_aom_get_gm_core_level(EncMode enc_mode, bool super_res_off) {
 
 uint8_t svt_aom_derive_gm_level(PictureParentControlSet* pcs, bool super_res_off) {
     uint8_t       gm_level  = 0;
-    const EncMode enc_mode  = pcs->enc_mode;
+    const EncMode enc_mode  = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t is_islice = pcs->slice_type == I_SLICE;
 
     // disable global motion when reference scaling enabled,
@@ -222,7 +222,7 @@ uint8_t svt_aom_derive_gm_level(PictureParentControlSet* pcs, bool super_res_off
  ************************************************/
 static void set_hme_search_params(PictureParentControlSet* pcs, MeContext* me_ctx, ResolutionRange input_resolution) {
     const bool    rtc_tune = pcs->scs->static_config.rtc;
-    const EncMode enc_mode = pcs->enc_mode;
+    const EncMode enc_mode = SVT_ENC_MODE(pcs->enc_mode);
     // Set number of HME level 0 search regions to use
     me_ctx->num_hme_sa_w = 2;
     me_ctx->num_hme_sa_h = 2;
@@ -287,7 +287,7 @@ static void set_hme_search_params(PictureParentControlSet* pcs, MeContext* me_ct
  ************************************************/
 static void set_me_search_params(SequenceControlSet* scs, PictureParentControlSet* pcs, MeContext* me_ctx,
                                  ResolutionRange input_resolution) {
-    const EncMode enc_mode = pcs->enc_mode;
+    const EncMode enc_mode = SVT_ENC_MODE(pcs->enc_mode);
     const bool    rtc_tune = scs->static_config.rtc;
 
     // Set the min and max ME search area
@@ -706,7 +706,7 @@ static void tf_set_me_hme_params_oq(MeContext* me_ctx, PictureParentControlSet* 
   Output  : ME Kernel signal(s)
 ******************************************************/
 void svt_aom_sig_deriv_me(SequenceControlSet* scs, PictureParentControlSet* pcs, MeContext* me_ctx) {
-    EncMode         enc_mode         = pcs->enc_mode;
+    EncMode         enc_mode         = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t   sc_class5        = pcs->sc_class5;
     ResolutionRange input_resolution = scs->input_resolution;
     const bool      rtc_tune         = scs->static_config.rtc;
@@ -2049,7 +2049,7 @@ Output  : Multi-Processes signal(s)
 ******************************************************/
 void svt_aom_sig_deriv_multi_processes_default(SequenceControlSet* scs, PictureParentControlSet* pcs) {
     FrameHeader*          frm_hdr           = &pcs->frm_hdr;
-    EncMode               enc_mode          = pcs->enc_mode;
+    EncMode               enc_mode          = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t         is_islice         = pcs->slice_type == I_SLICE;
     const uint8_t         is_base           = pcs->temporal_layer_index == 0;
     const ResolutionRange input_resolution  = pcs->input_resolution;
@@ -2251,7 +2251,7 @@ void svt_aom_sig_deriv_multi_processes_default(SequenceControlSet* scs, PictureP
 
 void svt_aom_sig_deriv_multi_processes_rtc(SequenceControlSet* scs, PictureParentControlSet* pcs) {
     FrameHeader*  frm_hdr      = &pcs->frm_hdr;
-    EncMode       enc_mode     = pcs->enc_mode;
+    EncMode       enc_mode     = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t is_islice    = pcs->slice_type == I_SLICE;
     const uint8_t fast_decode  = scs->static_config.fast_decode;
     const uint8_t sc_class5    = pcs->sc_class5;
@@ -2442,7 +2442,7 @@ void svt_aom_sig_deriv_multi_processes_rtc(SequenceControlSet* scs, PictureParen
 
 void svt_aom_sig_deriv_multi_processes_allintra(SequenceControlSet* scs, PictureParentControlSet* pcs) {
     FrameHeader*          frm_hdr          = &pcs->frm_hdr;
-    EncMode               enc_mode         = pcs->enc_mode;
+    EncMode               enc_mode         = SVT_ENC_MODE(pcs->enc_mode);
     const ResolutionRange input_resolution = pcs->input_resolution;
     const uint8_t         fast_decode      = scs->static_config.fast_decode;
     const uint8_t         sc_class5        = pcs->sc_class5;
@@ -7166,7 +7166,7 @@ static void get_max_block_size_rtc(PictureControlSet* pcs, ModeDecisionContext* 
         return;
     }
 
-    EncMode enc_mode = pcs->enc_mode;
+    EncMode enc_mode = SVT_ENC_MODE(pcs->enc_mode);
 
     uint32_t base_me_var_th;
     if (enc_mode <= ENC_M8) {
@@ -7206,7 +7206,7 @@ static void get_max_block_size_allintra(PictureControlSet* pcs, ModeDecisionCont
         ctx->max_block_size = pcs->scs->super_block_size;
         return;
     }
-    EncMode enc_mode = pcs->enc_mode;
+    EncMode enc_mode = SVT_ENC_MODE(pcs->enc_mode);
     // Base threshold
     uint16_t base_var_th_cap;
 
@@ -7243,7 +7243,7 @@ static void get_max_block_size_allintra(PictureControlSet* pcs, ModeDecisionCont
  * Generate per-SB MD settings (do not change per-PD)
  */
 void svt_aom_sig_deriv_enc_dec_common(SequenceControlSet* scs, PictureControlSet* pcs, ModeDecisionContext* ctx) {
-    EncMode    enc_mode          = pcs->enc_mode;
+    EncMode    enc_mode          = SVT_ENC_MODE(pcs->enc_mode);
     const bool rtc_tune          = scs->static_config.rtc;
     const bool allintra          = scs->allintra;
     const bool is_not_last_layer = !frame_is_leaf(pcs->ppcs);
@@ -7547,7 +7547,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1_default(PictureControlSet* pcs, ModeDec
     uint32_t       me_64x64_distortion  = (uint32_t)~0;
     uint8_t        l0_was_skip = 0, l1_was_skip = 0;
     uint8_t        l0_was_64x64_mvp = 0, l1_was_64x64_mvp = 0;
-    const EncMode  enc_mode = pcs->enc_mode;
+    const EncMode  enc_mode = SVT_ENC_MODE(pcs->enc_mode);
 
     // the frame size of reference pics are different if enable reference scaling.
     // sb info can not be reused because super blocks are mismatched, so we set
@@ -7739,7 +7739,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1_default(PictureControlSet* pcs, ModeDec
 void svt_aom_sig_deriv_enc_dec_light_pd1_rtc(PictureControlSet* pcs, ModeDecisionContext* ctx) {
     Pd1Level                 lpd1_level   = ctx->lpd1_ctrls.pd1_level;
     PictureParentControlSet* ppcs         = pcs->ppcs;
-    const EncMode            enc_mode     = pcs->enc_mode;
+    const EncMode            enc_mode     = SVT_ENC_MODE(pcs->enc_mode);
     uint8_t                  use_flat_ipp = pcs->ppcs->hierarchical_levels == 0;
     // Get ref info, used to set some feature levels
     const uint32_t picture_qp           = ppcs->picture_qp;
@@ -7973,7 +7973,7 @@ void svt_aom_sig_deriv_enc_dec_light_pd1_rtc(PictureControlSet* pcs, ModeDecisio
 }
 
 void svt_aom_sig_deriv_enc_dec_default(PictureControlSet* pcs, ModeDecisionContext* ctx) {
-    EncMode                  enc_mode             = pcs->enc_mode;
+    EncMode                  enc_mode             = SVT_ENC_MODE(pcs->enc_mode);
     PictureParentControlSet* ppcs                 = pcs->ppcs;
     const uint32_t           picture_qp           = ppcs->picture_qp;
     uint32_t                 me_8x8_cost_variance = (uint32_t)~0;
@@ -8091,7 +8091,7 @@ void svt_aom_sig_deriv_enc_dec_default(PictureControlSet* pcs, ModeDecisionConte
 }
 
 void svt_aom_sig_deriv_enc_dec_rtc(PictureControlSet* pcs, ModeDecisionContext* ctx) {
-    EncMode                  enc_mode             = pcs->enc_mode;
+    EncMode                  enc_mode             = SVT_ENC_MODE(pcs->enc_mode);
     PictureParentControlSet* ppcs                 = pcs->ppcs;
     const uint32_t           picture_qp           = ppcs->picture_qp;
     uint32_t                 me_8x8_cost_variance = (uint32_t)~0;
@@ -8203,7 +8203,7 @@ void svt_aom_sig_deriv_enc_dec_rtc(PictureControlSet* pcs, ModeDecisionContext* 
 }
 
 void svt_aom_sig_deriv_enc_dec_allintra(PictureControlSet* pcs, ModeDecisionContext* ctx) {
-    EncMode        enc_mode             = pcs->enc_mode;
+    EncMode        enc_mode             = SVT_ENC_MODE(pcs->enc_mode);
     const uint32_t picture_qp           = pcs->ppcs->picture_qp;
     uint32_t       me_8x8_cost_variance = (uint32_t)~0;
     uint32_t       me_64x64_distortion  = (uint32_t)~0;
@@ -9064,7 +9064,7 @@ static void mfmv_controls(PictureControlSet* pcs, uint8_t mfmv_level) {
 
 void svt_aom_sig_deriv_mode_decision_config_default(SequenceControlSet* scs, PictureControlSet* pcs) {
     PictureParentControlSet* ppcs                = pcs->ppcs;
-    EncMode                  enc_mode            = pcs->enc_mode;
+    EncMode                  enc_mode            = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t            is_ref              = ppcs->is_ref;
     const uint8_t            is_base             = ppcs->temporal_layer_index == 0;
     const uint8_t            is_layer1           = ppcs->temporal_layer_index == 1;
@@ -9670,7 +9670,7 @@ static INLINE bool should_disable_cdf_update(SequenceControlSet* scs, EncMode en
 
 void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, PictureControlSet* pcs) {
     PictureParentControlSet* ppcs               = pcs->ppcs;
-    EncMode                  enc_mode           = pcs->enc_mode;
+    EncMode                  enc_mode           = SVT_ENC_MODE(pcs->enc_mode);
     const uint8_t            is_base            = frame_is_boosted(ppcs);
     const ResolutionRange    input_resolution   = ppcs->input_resolution;
     const uint8_t            is_islice          = pcs->slice_type == I_SLICE;
@@ -10094,7 +10094,7 @@ void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, Picture
 
 void svt_aom_sig_deriv_mode_decision_config_allintra(SequenceControlSet* scs, PictureControlSet* pcs) {
     PictureParentControlSet* ppcs             = pcs->ppcs;
-    EncMode                  enc_mode         = pcs->enc_mode;
+    EncMode                  enc_mode         = SVT_ENC_MODE(pcs->enc_mode);
     const ResolutionRange    input_resolution = ppcs->input_resolution;
     const uint8_t            fast_decode      = scs->static_config.fast_decode;
     FrameHeader*             frm_hdr          = &ppcs->frm_hdr;

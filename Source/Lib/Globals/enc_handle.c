@@ -3358,7 +3358,7 @@ static void derive_tf_params(SequenceControlSet* scs) {
     const uint32_t hierarchical_levels = scs->static_config.hierarchical_levels;
     // Do not perform TF if LD or 1 Layer or 1st pass
     const bool    do_tf    = scs->static_config.enable_tf && hierarchical_levels >= 1 && !scs->static_config.lossless;
-    const EncMode enc_mode = scs->static_config.enc_mode;
+    const EncMode enc_mode = SVT_ENC_MODE(scs->static_config.enc_mode);
     uint8_t       tf_level = 0;
     if (scs->static_config.pred_structure == LOW_DELAY) {
         // TF disabled for all LD
@@ -3816,7 +3816,7 @@ static void validate_scaling_params(SequenceControlSet* scs) {
 
 void set_qp_based_th_scaling_ctrls_default(SequenceControlSet* scs) {
     QpBasedThScaling* qp_ctrls = &scs->qp_based_th_scaling_ctrls;
-    const EncMode     enc_mode = scs->static_config.enc_mode;
+    const EncMode     enc_mode = SVT_ENC_MODE(scs->static_config.enc_mode);
 
     if (enc_mode <= ENC_MR) {
         qp_ctrls->tf_me_qp_based_th_scaling        = 0;
@@ -3868,7 +3868,7 @@ void set_qp_based_th_scaling_ctrls_rtc(SequenceControlSet* scs) {
 
 void set_qp_based_th_scaling_ctrls_all_intra(SequenceControlSet* scs) {
     QpBasedThScaling* qp_ctrls = &scs->qp_based_th_scaling_ctrls;
-    const EncMode     enc_mode = scs->static_config.enc_mode;
+    const EncMode     enc_mode = SVT_ENC_MODE(scs->static_config.enc_mode);
 
     if (enc_mode <= ENC_MR) {
         qp_ctrls->tf_me_qp_based_th_scaling        = 0;
