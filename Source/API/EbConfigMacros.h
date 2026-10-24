@@ -228,6 +228,10 @@
 #ifndef CONFIG_ENABLE_TF_ZZ_FILTER
 #define CONFIG_ENABLE_TF_ZZ_FILTER          0
 #endif
+// 8x8 TF prediction (tf_ctrls.enable_8x8_pred) is selected only by TF levels 1-3, i.e. at <= M2.
+#ifndef CONFIG_ENABLE_TF_8X8_PRED
+#define CONFIG_ENABLE_TF_8X8_PRED           0
+#endif
 // Every preset >= M6 selects 64x64 superblocks (enc_handle.c), so the 128-wide kernels are never dispatched.
 #ifndef CONFIG_RTC_SB64
 #define CONFIG_RTC_SB64                     1
@@ -317,6 +321,9 @@
 
 #ifndef CONFIG_ENABLE_TF_ZZ_FILTER
 #define CONFIG_ENABLE_TF_ZZ_FILTER          1
+#endif
+#ifndef CONFIG_ENABLE_TF_8X8_PRED
+#define CONFIG_ENABLE_TF_8X8_PRED           1
 #endif
 
 #ifndef CONFIG_ENABLE_GLOBAL_MOTION
@@ -458,10 +465,20 @@
 #else
 #define SVT_EFFECTIVE_OBMC(v)              (0 ? (v) : 0)
 #endif
+#if CONFIG_ENABLE_TF_8X8_PRED || !MOBILE_BUILD
+#define SVT_EFFECTIVE_TF_8X8_PRED(v)       (v)
+#else
+#define SVT_EFFECTIVE_TF_8X8_PRED(v)       (0 ? (v) : 0)
+#endif
 #if CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD
 #define SVT_EFFECTIVE_RESTORATION(v)       (v)
 #else
 #define SVT_EFFECTIVE_RESTORATION(v)       (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
+#define SVT_EFFECTIVE_PALETTE(v)           (v)
+#else
+#define SVT_EFFECTIVE_PALETTE(v)           (0 ? (v) : 0)
 #endif
 #if CONFIG_ENABLE_COMPOUND_TYPES
 #define SVT_EFFECTIVE_COMPOUND_TYPES(v)    (v)

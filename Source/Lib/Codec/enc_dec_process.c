@@ -2917,7 +2917,7 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                     // signals set once per SB (i.e. not per PD)
                     svt_aom_sig_deriv_enc_dec_common(scs, pcs, ed_ctx->md_ctx);
 
-                    if (pcs->ppcs->palette_level) {
+                    if (SVT_EFFECTIVE_PALETTE(pcs->ppcs->palette_level)) {
                         rtime_alloc_palette_search_buffers(md_ctx);
                         // Status of palette info alloc
                         for (int i = 0; i < scs->max_block_cnt; ++i) {

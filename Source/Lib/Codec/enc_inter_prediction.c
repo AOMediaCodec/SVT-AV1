@@ -2459,7 +2459,7 @@ void tf_inter_predictor(SequenceControlSet* scs, uint8_t* src_ptr, uint8_t* dst_
                         uint8_t bit_depth, uint8_t subsamling_shift) {
     SubpelParams subpel_params;
     int32_t      pos_y, pos_x;
-    uint8_t      is_highbd = (uint8_t)(bit_depth > EB_EIGHT_BIT);
+    uint8_t      is_highbd = (uint8_t)(SVT_EFFECTIVE_BIT_DEPTH(bit_depth) > EB_EIGHT_BIT);
 
     compute_subpel_params(scs,
                           pre_y,

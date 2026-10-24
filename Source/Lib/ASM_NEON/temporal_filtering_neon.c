@@ -406,7 +406,7 @@ void svt_aom_get_final_filtered_pixels_neon(MeContext* me_ctx, EbByte* src_cente
     assert(blk_width_ch % 16 == 0);
     assert(TF_BW % 16 == 0);
 
-    if (!is_highbd) {
+    if (!SVT_EFFECTIVE_IS_16BIT_PIPELINE(is_highbd)) {
         //Process luma
         process_block_lbd_neon(TF_BH,
                                TF_BW,

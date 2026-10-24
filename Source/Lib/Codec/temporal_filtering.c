@@ -171,7 +171,7 @@ static void derive_tf_32x32_block_split_flag(MeContext* me_ctx) {
     for (int i = 0; i < 4; ++i) {
         subblock_errors[i] = (int)me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i];
 
-        if (me_ctx->tf_ctrls.enable_8x8_pred) {
+        if (SVT_EFFECTIVE_TF_8X8_PRED(me_ctx->tf_ctrls.enable_8x8_pred)) {
             // check 8x8
             int error_8x8 = 0;
             for (int idx_8x8 = 0; idx_8x8 < 4; ++idx_8x8) {
@@ -2256,7 +2256,7 @@ static void tf_32x32_inter_prediction(PictureParentControlSet* pcs, MeContext* m
     uint32_t idx_32x32 = me_ctx->idx_32x32;
     if (me_ctx->tf_32x32_block_split_flag[idx_32x32]) {
         for (uint32_t idx_16x16 = 0; idx_16x16 < 4; idx_16x16++) {
-            if (me_ctx->tf_16x16_block_split_flag[idx_32x32][idx_16x16]) {
+            if (SVT_EFFECTIVE_TF_8X8_PRED(me_ctx->tf_16x16_block_split_flag[idx_32x32][idx_16x16])) {
                 uint32_t bsize = 8;
 
                 for (uint32_t idx_8x8 = 0; idx_8x8 < 4; idx_8x8++) {
@@ -3078,7 +3078,7 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
                                                 ss_x,
                                                 (ctx->tf_ctrls.use_8bit_subpel) ? EB_EIGHT_BIT : encoder_bit_depth);
 
-                                            if (ctx->tf_ctrls.enable_8x8_pred) {
+                                            if (SVT_EFFECTIVE_TF_8X8_PRED(ctx->tf_ctrls.enable_8x8_pred)) {
                                                 tf_8x8_sub_pel_search(
                                                     centre_pcs,
                                                     ctx,
