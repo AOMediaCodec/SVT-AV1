@@ -702,31 +702,23 @@ INSTANTIATE_TEST_SUITE_P(
 #endif  // ARCH_AARCH64
 
 #ifdef ARCH_X86_64
-// svt_av1_down2_symeven_avx2 always calls down2_symeven_w16_init_part_avx2
-// unconditionally, which reads up to input+36 and writes a fixed 16-byte
-// output batch - unsafe below length 37, and the batched pipeline as a whole
-// further assumes an even length throughout (the fix in resize_avx2.c routes
-// length<38 or any odd length to the C reference instead). Separately,
-// down2_symeven_w16_mid_part_avx2's last processed chunk reads past its
-// nominal consumption; for even length that overreads specifically when
-// (length - 32 - mid) is 3 or 4, recurring at every length = 68 + 32*k for
-// k = 0, 1, 2, ... (not just short inputs) - and the same arithmetic gives
-// odd length = 67 + 32*k as the analogous failure point on the original
-// code. The length list covers every integer below 38 (so both the
-// short-input and initial/middle/end C-reference branches, and the parity
-// check, are exercised at each boundary), the 37/38 floor, both periodic
-// failure points (even 68/100/132/164, odd 67/99/131/163) with their
-// immediate neighbors, and realistic plane widths.
+// svt_av1_down2_symeven_avx2 requires an even length (it asserts this) of
+// at least 38, below which down2_symeven_w16_init_part_avx2's unconditional
+// input+36 read would be out of bounds; shorter inputs fall back to the C
+// reference. Separately, down2_symeven_w16_mid_part_avx2's last processed
+// chunk reads past its nominal consumption, which overreads when
+// (length - 32 - mid) is 3 or 4 - recurring at every even length = 68 +
+// 32*k for k = 0, 1, 2, .... The list below covers every even length under
+// 38 (exercising the short-input fallback and the SIMD branches at their
+// boundary), the 37/38 floor, the periodic failure point (68/100/132/164)
+// with its even neighbors, and some realistic plane widths.
 INSTANTIATE_TEST_SUITE_P(
     AVX2, Down2SymevenTest,
-    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                         13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
-                                         23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-                                         33, 34, 35, 36, 37, 38, 39, 40, 64, 65,
-                                         66, 67, 68, 69, 70, 98, 99, 100, 101,
-                                         102, 130, 131, 132, 133, 134, 162, 163,
-                                         164, 165, 166, 255, 256, 257, 511, 512,
-                                         640, 1024, 1920, 3840),
+    ::testing::Combine(::testing::Values(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,
+                                         24, 26, 28, 30, 32, 34, 36, 38, 40, 64,
+                                         66, 68, 70, 98, 100, 102, 130, 132,
+                                         134, 162, 164, 166, 256, 512, 640,
+                                         1024, 1920, 3840),
                        ::testing::Values(svt_av1_down2_symeven_avx2)));
 
 // The sentinel-based Down2SymevenTest above only checks output correctness,
@@ -860,13 +852,12 @@ TEST_P(Down2SymevenAvx2GuardPageTest, NoOverreadPastInputEnd) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    AVX2, Down2SymevenAvx2GuardPageTest,
-    ::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                      18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-                      32, 33, 34, 35, 36, 37, 38, 39, 40, 64, 65, 66, 67, 68,
-                      69, 70, 98, 99, 100, 101, 102, 130, 131, 132, 133, 134,
-                      162, 163, 164, 165, 166, 256, 1920));
+INSTANTIATE_TEST_SUITE_P(AVX2, Down2SymevenAvx2GuardPageTest,
+                         ::testing::Values(2, 4, 6, 8, 10, 12, 14, 16, 18, 20,
+                                           22, 24, 26, 28, 30, 32, 34, 36, 38,
+                                           40, 64, 66, 68, 70, 98, 100, 102,
+                                           130, 132, 134, 162, 164, 166, 256,
+                                           1920));
 #endif  // ARCH_X86_64
 
 typedef void (*InterpolateCoreFunc)(const uint8_t *const input, int in_length,

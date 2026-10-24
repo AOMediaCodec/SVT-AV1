@@ -821,22 +821,17 @@ void svt_av1_interpolate_core_avx2(const uint8_t* const input, int in_length, ui
 }
 
 void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t* output) {
+    // Every production caller passes an even length.
+    assert(!(length & 1));
+
     const int16_t* filter          = svt_aom_av1_down2_symeven_half_filter;
     const int      filter_len_half = sizeof(svt_aom_av1_down2_symeven_half_filter) / 2;
     const int      steps           = 32;
 
     // down2_symeven_w16_init_part_avx2 below unconditionally reads up to
-    // input+36 and writes a fixed 16-byte output batch regardless of length
-    // - in-bounds (both the read and the write) only once length>=37; below
-    // that it's unsafe at any length, odd or even. The downstream mid/end
-    // chunk sizing (`l2`/`mid`/`steps` below) also assumes an even length,
-    // and this kernel's only production caller (resize_multistep) dispatches
-    // odd lengths to down2_symodd instead, so there's no case where routing
-    // an odd length here to the plain C reference loses anything. Below
-    // length 38 (the smallest even length clearing the length>=37 floor) or
-    // for any odd length, just call the C reference directly rather than
-    // duplicate its short-input/initial/middle/end branches here.
-    if (length < 38 || (length & 1)) {
+    // input+36 and writes a fixed 16-byte output batch, in-bounds only
+    // once length>=37; the mid/end chunk sizing below needs that floor too.
+    if (length < 38) {
         svt_av1_down2_symeven_c(input, length, output);
         return;
     }
@@ -856,14 +851,8 @@ void svt_av1_down2_symeven_avx2(const uint8_t* const input, int length, uint8_t*
 
     // Middle part.
     int mid = (l2 - l1 + 1) & (~(steps - 1));
-    // down2_symeven_w16_mid_part_avx2's last processed chunk always reads 4
-    // bytes beyond its nominal `mid`-byte consumption (its lookahead margin).
-    // That's only in-bounds if there's real trailing data left afterward:
-    // when the leftover (length - l1 - mid) is exactly 3 or 4, the peek
-    // reads past `length`. Pull one chunk out of mid so the leftover grows
-    // past that window - the `length - i >= steps` check below then routes
-    // it to end_part_avx2 instead, whose blend-load safely absorbs any
-    // boundary within that guarded range.
+    // Leave enough trailing input for the mid part's 4-byte lookahead; the
+    // length - i >= steps check below then routes the remainder to end_part.
     if (mid > 0 && (length - l1 - mid) < 5) {
         mid -= steps;
     }
