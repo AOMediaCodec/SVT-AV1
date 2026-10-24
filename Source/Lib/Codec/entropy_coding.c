@@ -2995,7 +2995,7 @@ int32_t svt_aom_count_primitive_refsubexpfin(uint16_t n, uint16_t k, uint16_t re
 
 static void write_global_motion_params(const WarpedMotionParams* params, const WarpedMotionParams* ref_params,
                                        AomWriteBitBuffer* wb, int32_t allow_hp) {
-    const TransformationType type = params->wmtype;
+    const TransformationType type = SVT_EFFECTIVE_GM(params->wmtype);
     svt_aom_wb_write_bit(wb, type != IDENTITY);
     if (type != IDENTITY) {
         svt_aom_wb_write_bit(wb, type == ROTZOOM);
@@ -4038,6 +4038,7 @@ void svt_av1_reset_loop_restoration(EntropyCodingContext* ctx) {
     }
 }
 
+#if CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD // every frame is RESTORE_NONE when restoration is compiled out
 static void write_wiener_filter(int32_t wiener_win, const WienerInfo* wiener_info, WienerInfo* ref_wiener_info,
                                 AomWriter* wb) {
     if (wiener_win == WIENER_WIN) {
@@ -4172,6 +4173,7 @@ static void loop_restoration_write_sb_coeffs(PictureControlSet* pcs, FRAME_CONTE
         //    SVT_LOG("POC:%i plane:%i OFF\n", piCSetPtr->picture_number, plane);
     }
 }
+#endif // CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD
 
 static void ec_update_neighbors(PictureControlSet* pcs, EntropyCodingContext* ec_ctx, uint32_t blk_org_x,
                                 uint32_t blk_org_y, uint16_t tile_idx, BlockSize bsize) {
@@ -5470,6 +5472,7 @@ void svt_aom_write_modes_sb(EntropyCodingContext* ec_ctx, SuperBlock* sb_ptr, Pi
     Av1Common*          cm           = pcs->ppcs->av1_cm;
 
     if (bsize >= BLOCK_8X8) {
+#if CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD
         for (int32_t plane = 0; plane < 3; ++plane) {
             int32_t rcol0, rcol1, rrow0, rrow1, tile_tl_idx;
             if (svt_av1_loop_restoration_corners_in_sb(cm,
@@ -5493,6 +5496,7 @@ void svt_aom_write_modes_sb(EntropyCodingContext* ec_ctx, SuperBlock* sb_ptr, Pi
                 }
             }
         }
+#endif // CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD
 
         encode_partition_av1(pcs,
                              frame_context,

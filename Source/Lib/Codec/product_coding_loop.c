@@ -1285,7 +1285,7 @@ void fast_loop_core(ModeDecisionCandidateBuffer* cand_bf, PictureControlSet* pcs
     }
     cand_bf->valid_luma_pred = 1;
 
-    if (ctx->obmc_ctrls.enabled && ctx->obmc_ctrls.trans_face_off == 1) {
+    if (SVT_EFFECTIVE_OBMC(ctx->obmc_ctrls.enabled) && ctx->obmc_ctrls.trans_face_off == 1) {
         obmc_trans_face_off(cand_bf, pcs, ctx, input_pic, loc);
     }
     // Init full cost in case we bypass stage1/stage2

@@ -57,7 +57,7 @@ static void set_global_motion_field(PictureControlSet* pcs) {
     for (frame_index = INTRA_FRAME; frame_index <= ALTREF_FRAME; ++frame_index) {
         const uint8_t list_idx = get_list_idx(frame_index);
         const uint8_t ref_idx  = get_ref_frame_idx(frame_index);
-        if (!ppcs->is_global_motion[list_idx][ref_idx]) {
+        if (!SVT_EFFECTIVE_GM(ppcs->is_global_motion[list_idx][ref_idx])) {
             continue;
         }
         ppcs->global_motion[frame_index] = ppcs->global_motion_estimation[list_idx][ref_idx];

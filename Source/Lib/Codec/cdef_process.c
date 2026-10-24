@@ -729,7 +729,7 @@ EbErrorType svt_aom_cdef_kernel_iter(void* context) {
         }
 
         //restoration prep
-        bool is_lr = ppcs->enable_restoration && frm_hdr->allow_intrabc == 0;
+        bool is_lr = SVT_EFFECTIVE_RESTORATION(ppcs->enable_restoration) && frm_hdr->allow_intrabc == 0;
         if (is_lr) {
             svt_av1_loop_restoration_save_boundary_lines(cm->frame_to_show, cm, 1);
             if (is_16bit) {

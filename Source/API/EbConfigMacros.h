@@ -445,6 +445,30 @@
 #define SVT_FOLD_BIT_DEPTH(bit_depth)      ((bit_depth) = EB_EIGHT_BIT)
 #endif
 
+// The same folding for the run-time switches of features MOBILE compiles out, which its signal derivations keep 0:
+// reading a switch through SVT_EFFECTIVE_* lets the optimizer drop the code it guards. Other builds read the switch
+// itself, so their code and PGO profiles are unchanged.
+#if CONFIG_ENABLE_GLOBAL_MOTION || !MOBILE_BUILD
+#define SVT_EFFECTIVE_GM(v)                (v)
+#else
+#define SVT_EFFECTIVE_GM(v)                (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_OBMC || !MOBILE_BUILD
+#define SVT_EFFECTIVE_OBMC(v)              (v)
+#else
+#define SVT_EFFECTIVE_OBMC(v)              (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_RESTORATION || !MOBILE_BUILD
+#define SVT_EFFECTIVE_RESTORATION(v)       (v)
+#else
+#define SVT_EFFECTIVE_RESTORATION(v)       (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_COMPOUND_TYPES
+#define SVT_EFFECTIVE_COMPOUND_TYPES(v)    (v)
+#else
+#define SVT_EFFECTIVE_COMPOUND_TYPES(v)    (0 ? (v) : 0)
+#endif
+
 // clang-format on
 
 // RTC-minimal is always rtc-tuned and never all-intra; fold these to compile-time constants so the

@@ -134,7 +134,7 @@ EbErrorType svt_aom_dlf_kernel_iter(void* context) {
         svt_aom_get_recon_pic(pcs, &recon_pic, is_16bit);
 
         Av1Common* cm = pcs->ppcs->av1_cm;
-        if (ppcs->enable_restoration) {
+        if (SVT_EFFECTIVE_RESTORATION(ppcs->enable_restoration)) {
             svt_aom_link_eb_to_aom_buffer_desc(
                 recon_pic, cm->frame_to_show, scs->max_input_pad_right, scs->max_input_pad_bottom, is_16bit);
             svt_av1_loop_restoration_save_boundary_lines(cm->frame_to_show, cm, 0);

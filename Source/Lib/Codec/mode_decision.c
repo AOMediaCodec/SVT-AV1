@@ -2935,7 +2935,7 @@ static void svt_aom_inject_inter_candidates(PictureControlSet* pcs, ModeDecision
     if (ctx->inject_new_me) {
         inject_new_candidates(pcs, ctx, cand_total_cnt, allow_bipred);
     }
-    if (ctx->global_mv_injection) {
+    if (SVT_EFFECTIVE_GM(ctx->global_mv_injection)) {
         inject_global_candidates(pcs, ctx, cand_total_cnt, allow_bipred);
     }
 #if CONFIG_ENABLE_MD_MR_INJECTION || !MOBILE_BUILD // bipred / unipred 3x3

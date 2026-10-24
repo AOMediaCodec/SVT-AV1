@@ -69,7 +69,7 @@ typedef void (*EbAv1GenerateReconFuncPtr)(EncDecContext* ed_ctx, uint32_t org_x,
 void svt_aom_residual_kernel(uint8_t* input, uint32_t input_offset, uint32_t input_stride, uint8_t* pred,
                              uint32_t pred_offset, uint32_t pred_stride, int16_t* residual, uint32_t residual_offset,
                              uint32_t residual_stride, bool hbd, uint32_t area_width, uint32_t area_height) {
-    if (hbd) {
+    if (SVT_EFFECTIVE_IS_16BIT_PIPELINE(hbd)) {
         svt_residual_kernel16bit(((uint16_t*)input) + input_offset,
                                  input_stride,
                                  ((uint16_t*)pred) + pred_offset,
