@@ -1077,7 +1077,7 @@ typedef struct EbSvtAv1EncConfiguration {
     uint8_t max_allowed_consecutive_frames_skips;
 
     /**
-     * ROI QP offset map block size. The supported value is 64 pixels.
+     * ROI QP offset map block size. Supported values are 16 and 64 pixels.
      * Zero is treated as 64 for compatibility with applications built against
      * older headers that zero-initialize the reserved configuration padding.
      */
