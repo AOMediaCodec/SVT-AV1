@@ -4840,10 +4840,6 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
         SVT_WARN("Quantization matrices will be forced off since all min/max quant matrix levels are set to 15\n");
         scs->static_config.enable_qm = 0;
     }
-    if (scs->static_config.enable_qm && scs->static_config.lossless) {
-        SVT_WARN("Quantization matrices will be forced off since lossless coding is applied\n");
-        scs->static_config.enable_qm = 0;
-    }
     scs->static_config.startup_mg_size   = config_struct->startup_mg_size;
     scs->static_config.startup_qp_offset = config_struct->startup_qp_offset;
     scs->static_config.enable_roi_map    = config_struct->enable_roi_map;
