@@ -335,11 +335,12 @@ static void init_frame_rate_tables(PictureControlSet* pcs) {
 // Perform initializations needed for MD
 void mdc_init_qp_update(PictureControlSet* pcs) {
     FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
-    // A lossless frame recoded at qindex > 0 is coded as a lossy frame, with the tools lossless turned off (set up once
-    // per frame in svt_aom_mode_decision_configuration_kernel_iter) still off.
+    // A lossless frame recoded at qindex > 0 is coded as a lossy frame.
+    // Restore QM use; the other tools disabled during lossless frame setup stay off.
     if (frm_hdr->coded_lossless && frm_hdr->quantization_params.base_q_idx) {
         memset(pcs->lossless, 0, sizeof(pcs->lossless));
         frm_hdr->coded_lossless = frm_hdr->all_lossless = 0;
+        frm_hdr->quantization_params.using_qmatrix      = pcs->scs->static_config.enable_qm;
     }
     pcs->intra_coded_area = 0;
     pcs->skip_coded_area  = 0;
@@ -1045,6 +1046,8 @@ EbErrorType svt_aom_mode_decision_configuration_kernel_iter(void* context) {
 #endif
 
     if (frm_hdr->coded_lossless) {
+        // Lossless segments use a flat matrix regardless of the configured QM levels.
+        frm_hdr->quantization_params.using_qmatrix        = 0;
         pcs->ppcs->frm_hdr.delta_q_params.delta_q_present = 0;
         frm_hdr->quantization_params.delta_q_dc[PLANE_Y]  = 0;
         frm_hdr->quantization_params.delta_q_ac[PLANE_U]  = 0;
