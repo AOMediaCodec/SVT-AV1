@@ -896,12 +896,12 @@ EbErrorType svt_aom_packetization_kernel_iter(void* context) {
         svt_release_mutex(enc_ctx->sc_buffer_mutex);
     }
 
+    // Post Rate Control Task before PM, so RC accounts for this picture's size before PM can start the next picture
+    svt_post_full_object(rate_control_tasks_wrapper_ptr);
     if (scs->enable_dec_order || (pcs->ppcs->is_ref == true && pcs->ppcs->ref_pic_wrapper)) {
         // Post the Full Results Object
         svt_post_full_object(picture_manager_results_wrapper_ptr);
     }
-    // Post Rate Control Task. Be done after postig to PM as RC might release ppcs
-    svt_post_full_object(rate_control_tasks_wrapper_ptr);
     if (pcs->ppcs->frm_hdr.allow_intrabc) {
         svt_av1_hash_table_destroy(&pcs->hash_table);
     }

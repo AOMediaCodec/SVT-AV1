@@ -36,7 +36,7 @@ SRC = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "Source", "Lib", "Codec"))
 # SET_NEON entries inside them (dead in the RTC build, zero benefit, added risk).
 SKIP_GUARDS = {
     "CONFIG_ENABLE_HIGH_BIT_DEPTH", "CONFIG_ENABLE_OBMC", "CONFIG_ENABLE_FILM_GRAIN",
-    "CONFIG_ENABLE_QUANT_MATRIX", "OPT_TUNE_VMAF", "ARCH_X86_64", "EN_AVX512_SUPPORT",
+    "CONFIG_ENABLE_QUANT_MATRIX", "CONFIG_ENABLE_VMAF", "ARCH_X86_64", "EN_AVX512_SUPPORT",
 }
 
 # (output header basename, source .c, RTCD setup-TU guard symbol)

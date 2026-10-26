@@ -442,8 +442,8 @@ static void cdef_seg_search(CdefContext* ctx, PictureControlSet* pcs, SequenceCo
                    but it would add special cases for any future vectorization.
                    Avoid memset'ting when dirty rect is inside the new one.
                    TODO: this could be further optimized - fill out only borders, separate buffers for Y & UV */
-                    bool need_to_reset = toff_prev > toff || loff_prev > loff || ysize < ysize_prev ||
-                        xsize < xsize_prev;
+                    bool need_to_reset = toff_prev > toff || loff_prev > loff ||
+                        ysize - toff < ysize_prev - toff_prev || xsize - loff < xsize_prev - loff_prev;
                     if (need_to_reset) {
                         uint16_t* p = &in[(-toff_prev * CDEF_BSTRIDE - loff_prev)];
                         for (int r = 0; r < ysize_prev; r++) {
