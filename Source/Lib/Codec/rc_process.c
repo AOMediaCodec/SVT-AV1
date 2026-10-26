@@ -857,13 +857,19 @@ EbErrorType svt_aom_rate_control_kernel_iter(void* context) {
             if (scs->enc_ctx->rc_cfg.mode == AOM_Q) {
                 svt_av1_rc_calc_qindex_crf_cqp(pcs, scs);
                 svt_aom_setup_segmentation(pcs, scs);
-            } else if (use_rtc_cbr_path(scs)) {
-                svt_av1_rc_calc_qindex_rtc_cbr(pcs);
             } else {
-                if (!is_superres_recode_task) {
-                    svt_av1_rc_process_rate_allocation(pcs, scs);
+                if (use_rtc_cbr_path(scs)) {
+                    svt_av1_rc_calc_qindex_rtc_cbr(pcs);
+                } else {
+                    if (!is_superres_recode_task) {
+                        svt_av1_rc_process_rate_allocation(pcs, scs);
+                    }
+                    svt_av1_rc_calc_qindex_rate_control(pcs, scs);
                 }
-                svt_av1_rc_calc_qindex_rate_control(pcs, scs);
+                // A ROI map applies under every rate control mode, once base_q_idx is known.
+                if (ppcs->roi_map_evt) {
+                    svt_aom_setup_segmentation(pcs, scs);
+                }
             }
             ppcs->picture_qp = clamp_qp(scs, (ppcs->frm_hdr.quantization_params.base_q_idx + 2) >> 2);
         }
