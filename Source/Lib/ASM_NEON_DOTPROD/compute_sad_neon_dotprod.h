@@ -152,7 +152,7 @@ static inline unsigned int sad16xh_neon_dotprod(const uint8_t* src_ptr, int src_
                                                 int ref_stride, int h) {
     uint32x4_t sum[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
 
-    do {
+    while (h >= 2) {
         uint8x16_t s0, r0, diff0;
 
         s0     = vld1q_u8(src_ptr);
@@ -174,7 +174,7 @@ static inline unsigned int sad16xh_neon_dotprod(const uint8_t* src_ptr, int src_
         ref_ptr += ref_stride;
 
         h -= 2;
-    } while (h > 1);
+    }
 
     if (h) {
         uint8x16_t s0, r0, diff0;

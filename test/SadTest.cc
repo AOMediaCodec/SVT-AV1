@@ -706,6 +706,57 @@ INSTANTIATE_TEST_SUITE_P(
 #endif  // HAVE_SVE
 #endif  // ARCH_AARCH64
 
+#if defined(ARCH_AARCH64) && HAVE_NEON_DOTPROD
+TEST(NEON_DOTPROD_SadLoop16Test, SingleRowSearchTail) {
+    // Put the exact match in the scalar tail of the four-candidate search.
+    // Extra rows have nonzero differences and must not contribute to SAD.
+    std::array<uint8_t, 3 * 128 + 1> src;
+    std::array<uint8_t, 3 * 128 + 1> ref;
+    const int search_widths[] = {1, 3, 7, 9, 15};
+    src.fill(0);
+    for (int width : search_widths) {
+        SCOPED_TRACE(width);
+        ref.fill(1);
+        for (int c = 0; c < 16; ++c) {
+            ref[width + c] = 0;
+        }
+        uint64_t sad_c = UINT64_MAX, sad_simd = UINT64_MAX;
+        int16_t x_c = -1, y_c = -1, x_simd = -1, y_simd = -1;
+        svt_sad_loop_kernel_c(src.data() + 1,
+                              128,
+                              ref.data() + 1,
+                              128,
+                              1,
+                              16,
+                              &sad_c,
+                              &x_c,
+                              &y_c,
+                              128,
+                              0,
+                              width,
+                              1);
+        svt_sad_loop_kernel_neon_dotprod(src.data() + 1,
+                                         128,
+                                         ref.data() + 1,
+                                         128,
+                                         1,
+                                         16,
+                                         &sad_simd,
+                                         &x_simd,
+                                         &y_simd,
+                                         128,
+                                         0,
+                                         width,
+                                         1);
+        EXPECT_EQ(0u, sad_c);
+        EXPECT_EQ(sad_c, sad_simd);
+        EXPECT_EQ(width - 1, x_simd);
+        EXPECT_EQ(x_c, x_simd);
+        EXPECT_EQ(y_c, y_simd);
+    }
+}
+#endif  // ARCH_AARCH64 && HAVE_NEON_DOTPROD
+
 /**
  * best_sadmxn in GetEightsad_Test,Allsad_CalculationTest and
  * Extsad_CalculationTest must be less than 0x7FFFFFFF because signed comparison
