@@ -15,9 +15,11 @@
  * Includes
  **************************************/
 #include <stdbool.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "EbVersion.h"
 #include "definitions.h"
 #include "EbSvtAv1Enc.h"
@@ -182,6 +184,23 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
         SVT_ERROR("Target Bitrate only supported when --rc is  1/2 (VBR/CBR). Current --rc: %d\n",
                   config->rate_control_mode);
         return_error = EB_ErrorBadParameter;
+    }
+    if (config->quality_zones && config->num_zones > 0) {
+        bool zones_unsupported = false;
+        if (scs->allintra) {
+            SVT_WARN("Zones are not supported for all-intra coding and will be ignored\n");
+            zones_unsupported = true;
+        }
+        if (config->rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF) {
+            SVT_WARN("Zones are only supported in CRF/CQP mode and will be ignored with rate control mode %d\n",
+                     config->rate_control_mode);
+            zones_unsupported = true;
+        }
+        if (zones_unsupported) {
+            EB_FREE(config->quality_zones);
+            config->quality_zones = NULL;
+            config->num_zones     = 0;
+        }
     }
 
     if (scs->max_input_luma_width > 16384) {
@@ -1096,6 +1115,8 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr) {
     // and no extra ref-buffer memory allocated.
     config_ptr->max_managed_refs = 0;
 
+    config_ptr->quality_zones = NULL;
+    config_ptr->num_zones     = 0;
     return return_error;
 }
 
@@ -2157,6 +2178,92 @@ static EbErrorType str_to_sframe_qp_offset(const char* nptr, SvtAv1SFramePositio
             return svt_aom_parse_##opt(&config_struct->opt, value) ? EB_ErrorNone : EB_ErrorBadParameter; \
     } while (0)
 
+static EbErrorType parse_zones_string(const char* zones_str, SvtAv1QualityZone** zones_out, uint16_t* num_zones_out) {
+    if (!zones_str || strlen(zones_str) == 0) {
+        *zones_out     = NULL;
+        *num_zones_out = 0;
+        return EB_ErrorNone;
+    }
+
+    // Count semicolons to determine number of zones
+    uint32_t zone_count = 1;
+    for (const char* p = zones_str; *p; p++) {
+        if (*p == ';') {
+            zone_count++;
+        }
+    }
+
+    if (zone_count > UINT16_MAX) {
+        SVT_ERROR("Too many zones specified (%u), maximum is %u\n", zone_count, (unsigned)UINT16_MAX);
+        return EB_ErrorBadParameter;
+    }
+
+    // Allocate memory for zones
+    SvtAv1QualityZone* zones = NULL;
+    EB_MALLOC(zones, zone_count * sizeof(*zones));
+
+    // Parse zones
+    const char* p            = zones_str;
+    uint16_t    parsed_zones = 0;
+    while (*p) {
+        char*              endptr;
+        unsigned long long start = strtoull(p, &endptr, 0);
+        if (endptr == p || *endptr != ',') {
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+        p = endptr + 1;
+
+        unsigned long long end = strtoull(p, &endptr, 0);
+        if (endptr == p || *endptr != ',') {
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+        p = endptr + 1;
+
+        double quality = strtod(p, &endptr);
+        if (endptr == p || (*endptr != ';' && *endptr != '\0')) {
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+
+        // Validate zone parameters
+        if (start > end) {
+            SVT_ERROR("Invalid zone: start frame (%llu) > end frame (%llu)\n", start, end);
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+
+        if (start > UINT32_MAX || end > UINT32_MAX) {
+            SVT_ERROR("Invalid zone: frame range must fit in 32 bits\n");
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+
+        if (quality < 0.0 || quality > 70.0) {
+            SVT_ERROR("Invalid quality value (%.2f) in zone, must be 0-70\n", quality);
+            EB_FREE(zones);
+            return EB_ErrorBadParameter;
+        }
+
+        int rounded_quality             = (int)round(quality * 4.0);
+        zones[parsed_zones].start_frame = (uint32_t)start;
+        zones[parsed_zones].end_frame   = (uint32_t)end;
+        zones[parsed_zones].zone_baseq  = rounded_quality / 4;
+        zones[parsed_zones].zone_qsidx  = rounded_quality % 4;
+        parsed_zones++;
+
+        p = endptr;
+        if (*p == ';') {
+            p++;
+        }
+    }
+
+    *zones_out     = zones;
+    *num_zones_out = parsed_zones;
+    return EB_ErrorNone;
+}
+
 EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration* config_struct, const char* name,
                                                const char* value) {
     if (config_struct == NULL || name == NULL || value == NULL) {
@@ -2268,6 +2375,49 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration* config_
 
     if (!strcmp(name, "sframe-qp-offset")) {
         return str_to_sframe_qp_offset(value, &config_struct->sframe_posi, &config_struct->sframe_qp_offset);
+    }
+
+    if (!strcmp(name, "zones")) {
+        if (config_struct->quality_zones) {
+            EB_FREE(config_struct->quality_zones);
+            config_struct->quality_zones = NULL;
+        }
+        config_struct->num_zones = 0;
+
+        // Parse zones immediately
+        EbErrorType err = parse_zones_string(value, &config_struct->quality_zones, &config_struct->num_zones);
+        if (err != EB_ErrorNone) {
+            SVT_ERROR("Failed to parse zones parameter: %s\n", value);
+            return err;
+        }
+
+        // Print parsed zones for verification
+        if (config_struct->num_zones > 0) {
+            if (config_struct->num_zones == 1) {
+                SVT_INFO("Parsed %d zone:\n", config_struct->num_zones);
+            } else if (config_struct->num_zones > 1) {
+                SVT_INFO("Parsed %d zones:\n", config_struct->num_zones);
+            }
+            for (uint16_t i = 0; i < config_struct->num_zones; i++) {
+                double quality = config_struct->quality_zones[i].zone_baseq +
+                    config_struct->quality_zones[i].zone_qsidx / 4.0;
+                if (config_struct->aq_mode == 0 && config_struct->enable_variance_boost == 0) {
+                    SVT_INFO("  Zone %d: frames %u-%u, CQP %.2f\n",
+                             i + 1,
+                             config_struct->quality_zones[i].start_frame,
+                             config_struct->quality_zones[i].end_frame,
+                             quality);
+                } else {
+                    SVT_INFO("  Zone %d: frames %u-%u, CRF %.2f\n",
+                             i + 1,
+                             config_struct->quality_zones[i].start_frame,
+                             config_struct->quality_zones[i].end_frame,
+                             quality);
+                }
+            }
+        }
+
+        return EB_ErrorNone;
     }
 
     // uint32_t fields

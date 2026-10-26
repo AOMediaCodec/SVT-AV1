@@ -34,6 +34,8 @@ static void svt_sequence_control_set_dctor(EbPtr p) {
     obj->static_config.sframe_posi.sframe_qp_num = 0;
     EB_FREE_ARRAY(obj->static_config.sframe_posi.sframe_posis);
     obj->static_config.sframe_posi.sframe_num = 0;
+    EB_FREE_ARRAY(obj->static_config.quality_zones);
+    obj->static_config.num_zones = 0;
 }
 
 /**************************************************************************************************
@@ -220,6 +222,12 @@ EbErrorType copy_sequence_control_set(SequenceControlSet* dst, SequenceControlSe
             dst->static_config.sframe_posi.sframe_qp_offsets,
             src->static_config.sframe_posi.sframe_qp_offsets,
             sizeof(src->static_config.sframe_posi.sframe_qp_offsets[0]) * src->static_config.sframe_posi.sframe_qp_num);
+    }
+    if (src->static_config.quality_zones) {
+        EB_MALLOC(dst->static_config.quality_zones, sizeof(SvtAv1QualityZone) * src->static_config.num_zones);
+        memcpy(dst->static_config.quality_zones,
+               src->static_config.quality_zones,
+               sizeof(SvtAv1QualityZone) * src->static_config.num_zones);
     }
 
     // Continue this process for all other pointers within the struct...

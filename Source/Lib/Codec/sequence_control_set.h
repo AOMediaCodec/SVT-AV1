@@ -313,6 +313,56 @@ typedef struct SequenceControlSet {
     bool fast_aa_aware_screen_detection_mode;
 } SequenceControlSet;
 
+typedef struct SvtAv1EffectiveQp {
+    uint8_t  qp;
+    uint32_t qindex_offset;
+    uint32_t extended_crf_qindex_offset;
+    bool     qp_is_max;
+    bool     from_zone;
+} SvtAv1EffectiveQp;
+
+static INLINE SvtAv1EffectiveQp svt_av1_get_effective_qp(const SequenceControlSet* scs, uint64_t picture_number) {
+    SvtAv1EffectiveQp qp = {
+        (uint8_t)scs->static_config.qp,
+        scs->static_config.extended_crf_qindex_offset,
+        scs->static_config.extended_crf_qindex_offset,
+        scs->static_config.qp == MAX_QP_VALUE,
+        false,
+    };
+
+    if (scs->static_config.rate_control_mode != SVT_AV1_RC_MODE_CQP_OR_CRF || !scs->enable_qp_scaling_flag ||
+        !scs->static_config.quality_zones || scs->static_config.num_zones == 0) {
+        return qp;
+    }
+
+    for (uint16_t i = 0; i < scs->static_config.num_zones; i++) {
+        const SvtAv1QualityZone* zone = &scs->static_config.quality_zones[i];
+        if (picture_number < zone->start_frame || picture_number > zone->end_frame) {
+            continue;
+        }
+
+        const int zone_qp    = zone->zone_baseq;
+        const int zone_qsidx = zone->zone_qsidx;
+        if (zone_qp < 0 || zone_qsidx < 0 || zone_qsidx > 3) {
+            continue;
+        }
+
+        qp.qp        = (uint8_t)(zone_qp > MAX_QP_VALUE ? MAX_QP_VALUE : zone_qp);
+        qp.qp_is_max = zone_qp >= MAX_QP_VALUE;
+        qp.from_zone = true;
+
+        if (zone_qp >= MAX_QP_VALUE) {
+            qp.qindex_offset              = (uint32_t)((zone_qp - MAX_QP_VALUE) * 4 + zone_qsidx);
+            qp.extended_crf_qindex_offset = qp.qindex_offset;
+        } else {
+            qp.qindex_offset              = (uint32_t)zone_qsidx;
+            qp.extended_crf_qindex_offset = 0;
+        }
+    }
+
+    return qp;
+}
+
 typedef struct EbSequenceControlSetInstance {
     EbDctor             dctor;
     EncodeContext*      enc_ctx;

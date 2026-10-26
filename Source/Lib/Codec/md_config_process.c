@@ -15,6 +15,7 @@
 #include "enc_handle.h"
 #include "utility.h"
 #include "pcs.h"
+#include "sequence_control_set.h"
 #include "md_config_process.h"
 #include "rc_results.h"
 #include "enc_dec_tasks.h"
@@ -620,7 +621,8 @@ static void generate_ibc_data(PictureControlSet* pcs) {
 }
 
 static void derive_intra_coeff_level(PictureControlSet* pcs) {
-    uint64_t cmplx = pcs->ppcs->pic_avg_variance / MAX(1, pcs->scs->static_config.qp);
+    const uint8_t effective_qp = svt_av1_get_effective_qp(pcs->scs, pcs->ppcs->picture_number).qp;
+    uint64_t      cmplx        = pcs->ppcs->pic_avg_variance / MAX(1, effective_qp);
 
     uint64_t coeff_vlow_level_th = COEFF_LVL_INTRA_TH_0;
     uint64_t coeff_low_level_th  = COEFF_LVL_INTRA_TH_1;
@@ -664,10 +666,11 @@ static void derive_inter_coeff_level(PictureControlSet* pcs) {
 
     noise_level_fp16 = svt_aom_noise_log1p_fp16(noise_level_fp16);
 #endif
-    uint64_t cmplx               = pcs->ppcs->norm_me_dist / MAX(1, pcs->scs->static_config.qp);
-    uint64_t coeff_vlow_level_th = COEFF_LVL_INTER_TH_0;
-    uint64_t coeff_low_level_th  = COEFF_LVL_INTER_TH_1;
-    uint64_t coeff_high_level_th = COEFF_LVL_INTER_TH_2;
+    const uint8_t effective_qp        = svt_av1_get_effective_qp(pcs->scs, pcs->ppcs->picture_number).qp;
+    uint64_t      cmplx               = pcs->ppcs->norm_me_dist / MAX(1, effective_qp);
+    uint64_t      coeff_vlow_level_th = COEFF_LVL_INTER_TH_0;
+    uint64_t      coeff_low_level_th  = COEFF_LVL_INTER_TH_1;
+    uint64_t      coeff_high_level_th = COEFF_LVL_INTER_TH_2;
     if (pcs->ppcs->input_resolution == INPUT_SIZE_240p_RANGE) {
         coeff_vlow_level_th = (uint64_t)((double)coeff_vlow_level_th * 1.7);
         coeff_low_level_th  = (uint64_t)((double)coeff_low_level_th * 1.7);

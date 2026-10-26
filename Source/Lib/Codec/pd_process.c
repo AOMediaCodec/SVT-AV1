@@ -3892,7 +3892,7 @@ static int ref_pics_modulation(PictureParentControlSet* pcs, int32_t noise_level
         svt_aom_get_qp_based_th_scaling_factors(pcs->scs->qp_based_th_scaling_ctrls.tf_ref_qp_based_th_scaling,
                                                 &q_weight,
                                                 &q_weight_denom,
-                                                pcs->scs->static_config.qp);
+                                                svt_av1_get_effective_qp(pcs->scs, pcs->picture_number).qp);
         offset = DIVIDE_AND_ROUND(offset * q_weight, q_weight_denom);
     }
     return offset;

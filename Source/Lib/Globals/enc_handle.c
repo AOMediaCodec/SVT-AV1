@@ -1366,6 +1366,8 @@ EB_API EbErrorType svt_av1_enc_init(EbComponentType* svt_enc_component) {
         input_data.variance_octile     = scs->static_config.variance_octile;
         input_data.adaptive_film_grain = scs->static_config.adaptive_film_grain;
         input_data.hbd_mds             = scs->static_config.hbd_mds;
+        input_data.quality_zones       = scs->static_config.quality_zones;
+        input_data.num_zones           = scs->static_config.num_zones;
         input_data.static_config       = scs->static_config;
         input_data.allintra            = scs->allintra;
         input_data.use_flat_ipp        = scs->use_flat_ipp;
@@ -5074,6 +5076,17 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     // Ref-frame management: propagate caller's max-anchors hint (0 = disabled).
     scs->static_config.max_managed_refs = config_struct->max_managed_refs;
 
+    // Zones
+    if (config_struct->quality_zones && config_struct->num_zones > 0) {
+        EB_NO_THROW_MALLOC(scs->static_config.quality_zones, sizeof(SvtAv1QualityZone) * config_struct->num_zones);
+        memcpy(scs->static_config.quality_zones,
+               config_struct->quality_zones,
+               sizeof(SvtAv1QualityZone) * config_struct->num_zones);
+    } else {
+        scs->static_config.quality_zones = NULL;
+    }
+    scs->static_config.num_zones = config_struct->num_zones;
+
     // Override settings for Still IQ tune
     if (scs->static_config.tune == TUNE_IQ) {
         SVT_WARN(
@@ -5195,6 +5208,12 @@ EB_API EbErrorType svt_av1_enc_set_parameter(EbComponentType*          svt_enc_c
         EB_FREE(config_struct->sframe_posi.sframe_posis);
     }
     memset(&config_struct->sframe_posi, 0, sizeof(SvtAv1SFramePositions));
+
+    if (config_struct->quality_zones) {
+        EB_FREE(config_struct->quality_zones);
+    }
+    config_struct->quality_zones = NULL;
+    config_struct->num_zones     = 0;
 
     return return_error;
 }

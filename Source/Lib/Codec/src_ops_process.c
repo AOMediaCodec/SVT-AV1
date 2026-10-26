@@ -381,6 +381,12 @@ static TxSize   tx_size_array[MAX_TPL_MODE]      = {TX_16X16, TX_32X32, TX_64X64
 static TxSize   sub2_tx_size_array[MAX_TPL_MODE] = {TX_16X8, TX_32X16, TX_64X32};
 static TxSize   sub4_tx_size_array[MAX_TPL_MODE] = {TX_16X4, TX_32X8, TX_64X16};
 
+static int32_t get_effective_tpl_qindex(const SequenceControlSet* scs, uint64_t picture_number) {
+    const SvtAv1EffectiveQp effective_qp = svt_av1_get_effective_qp(scs, picture_number);
+    const int32_t           qindex       = quantizer_to_qindex[effective_qp.qp] + effective_qp.qindex_offset;
+    return AOMMIN(MAXQ, qindex);
+}
+
 static void svt_tpl_init_mv_cost_params(svt_mv_cost_param* mv_cost_params, const Mv* ref_mv, uint8_t base_q_idx,
                                         uint32_t rdmult, uint8_t hbd_md) {
     mv_cost_params->ref_mv        = ref_mv;
@@ -1348,9 +1354,7 @@ static void tpl_mc_flow_dispenser(EncodeContext* enc_ctx, SequenceControlSet* sc
                                   PictureParentControlSet* pcs, int32_t frame_idx,
                                   SourceBasedOperationsContext* context_ptr) {
     EbPictureBufferDesc* recon_pic = enc_ctx->mc_flow_rec_picture_buffer[frame_idx];
-    int32_t              qIndex    = quantizer_to_qindex[(uint8_t)scs->static_config.qp] +
-        scs->static_config.extended_crf_qindex_offset;
-    qIndex = AOMMIN(MAXQ, qIndex);
+    int32_t              qIndex    = get_effective_tpl_qindex(scs, pcs->picture_number);
 
     if (pcs->tpl_ctrls.enable_tpl_qps) {
         static const double delta_rate_new[7][6] = {

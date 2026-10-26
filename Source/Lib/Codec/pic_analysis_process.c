@@ -1602,7 +1602,7 @@ static float vmaf_get_spatial_amount(uint32_t avg_mad) {
 }
 
 static float vmaf_compute_combined_amount_with_mad(PictureParentControlSet* pcs, uint32_t avg_mad) {
-    const uint32_t base_qp = pcs->scs->static_config.qp;
+    const uint32_t base_qp = svt_av1_get_effective_qp(pcs->scs, pcs->picture_number).qp;
 
     float per_qp;
     if (base_qp < 18) {
@@ -1799,7 +1799,7 @@ static void vmaf_preprocess_frame(PictureParentControlSet* pcs) {
     const int32_t qp_hi      = 50;
     const int32_t dmin       = 8;
     const int32_t dmax       = 12;
-    const int32_t cur_qp     = (int32_t)pcs->scs->static_config.qp;
+    const int32_t cur_qp     = (int32_t)svt_av1_get_effective_qp(pcs->scs, pcs->picture_number).qp;
     pcs->vmaf_max_delta      = cur_qp <= qp_lo ? dmin
              : cur_qp >= qp_hi                 ? dmax
                                                : dmin + (cur_qp - qp_lo) * (dmax - dmin) / (qp_hi - qp_lo);
