@@ -188,11 +188,111 @@ static inline unsigned int sad16xh_neon_dotprod(const uint8_t* src_ptr, int src_
     return vaddvq_u32(vaddq_u32(sum[0], sum[1]));
 }
 
+// Direct overlapping loads avoid the extract instructions in the four-window SAD.
+static inline void sad16x4d_accumulate_neon_dotprod(uint8x16_t src, const uint8_t* ref, uint32x4_t sum[4]) {
+    sad16_neon_dotprod(src, vld1q_u8(ref), &sum[0]);
+    sad16_neon_dotprod(src, vld1q_u8(ref + 1), &sum[1]);
+    sad16_neon_dotprod(src, vld1q_u8(ref + 2), &sum[2]);
+    sad16_neon_dotprod(src, vld1q_u8(ref + 3), &sum[3]);
+}
+
+// Keep the source cache out of the dispatcher stack frame used by other widths.
+static inline NOINLINE void svt_sad_loop_kernel16x8_neon_dotprod(uint8_t* src, uint32_t src_stride, uint8_t* ref,
+                                                                 uint32_t ref_stride, uint64_t* best_sad,
+                                                                 int16_t* x_search_center, int16_t* y_search_center,
+                                                                 uint32_t src_stride_raw, uint8_t skip_search_line,
+                                                                 int16_t search_area_width,
+                                                                 int16_t search_area_height) {
+    if (search_area_width <= 0 || search_area_height <= 0) {
+        return;
+    }
+    int y_search_start = 0;
+    int y_search_step  = 1;
+    if (skip_search_line) {
+        y_search_start = 1;
+        y_search_step  = 2;
+    }
+    if (y_search_start >= search_area_height) {
+        return;
+    }
+    ref += y_search_start * src_stride_raw;
+    src_stride_raw *= y_search_step;
+
+    // Source rows are invariant across every search position.
+    uint8x16_t src_rows[8];
+    for (uint32_t r = 0; r < 8; ++r) {
+        src_rows[r] = vld1q_u8(src);
+        src += src_stride;
+    }
+
+    const uint32x4_t indices = {0, 1, 2, 3};
+    uint32x4_t       min_sad = vdupq_n_u32(UINT32_MAX);
+    uint32x4_t       min_pos = vdupq_n_u32(0);
+
+    const uint8x16_t s0 = src_rows[0], s1 = src_rows[1], s2 = src_rows[2], s3 = src_rows[3];
+    const uint8x16_t s4 = src_rows[4], s5 = src_rows[5], s6 = src_rows[6], s7 = src_rows[7];
+    for (int y = y_search_start; y < search_area_height; y += y_search_step) {
+        const uint32_t ybase = y * search_area_width;
+        for (int x = 0; x < search_area_width; x += 4) {
+            uint32x4_t     sum[4]  = {vdupq_n_u32(0), vdupq_n_u32(0), vdupq_n_u32(0), vdupq_n_u32(0)};
+            const uint8_t* ref_ptr = ref + x;
+            sad16x4d_accumulate_neon_dotprod(s0, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s1, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s2, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s3, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s4, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s5, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s6, ref_ptr, sum);
+            ref_ptr += ref_stride;
+            sad16x4d_accumulate_neon_dotprod(s7, ref_ptr, sum);
+
+            const uint32x4_t sad  = horizontal_add_4d_u32x4(sum);
+            const uint32x4_t pos  = vaddq_u32(vdupq_n_u32(ybase + x), indices);
+            const uint32x4_t mask = vcltq_u32(sad, min_sad);
+            min_sad               = vbslq_u32(mask, sad, min_sad);
+            min_pos               = vbslq_u32(mask, pos, min_pos);
+        }
+        ref += src_stride_raw;
+    }
+
+    // Each lane keeps its first minimum. Resolve equal minima across lanes by
+    // the flattened (y, x) position, preserving the scalar search order.
+    const uint32_t sad = vminvq_u32(min_sad);
+    if (sad < *best_sad) {
+        const uint32x4_t mask = vceqq_u32(min_sad, vdupq_n_u32(sad));
+        const uint32_t   pos  = vminvq_u32(vbslq_u32(mask, min_pos, vdupq_n_u32(UINT32_MAX)));
+        *best_sad             = sad;
+        *x_search_center      = pos % search_area_width;
+        *y_search_center      = pos / search_area_width;
+    }
+}
+
 static inline void svt_sad_loop_kernel16xh_neon_dotprod(uint8_t* src, uint32_t src_stride, uint8_t* ref,
                                                         uint32_t ref_stride, uint32_t block_height, uint64_t* best_sad,
                                                         int16_t* x_search_center, int16_t* y_search_center,
                                                         uint32_t src_stride_raw, uint8_t skip_search_line,
                                                         int16_t search_area_width, int16_t search_area_height) {
+    if (block_height == 8) {
+        svt_sad_loop_kernel16x8_neon_dotprod(src,
+                                             src_stride,
+                                             ref,
+                                             ref_stride,
+                                             best_sad,
+                                             x_search_center,
+                                             y_search_center,
+                                             src_stride_raw,
+                                             skip_search_line,
+                                             search_area_width,
+                                             search_area_height);
+        return;
+    }
+
     int16_t y_search_start = 0;
     int16_t y_search_step  = 1;
 
