@@ -3090,26 +3090,7 @@ static uint8_t inter_chroma_4xn_pred(PictureControlSet* pcs, MacroBlockD* xd, Bl
     const int32_t b8_h = block_size_high[plane_bsize] >> ss_y;
 
     ScaleFactors scale_factors[REF_FRAMES];
-    if (!block_mi->use_intrabc && !pcs->ppcs->is_not_scaled) {
-        // Generate all possible scale factors since we will loop over the neighbours, which could use any of the ref pics
-        // TODO: generate scale factors in the loop only for needed refs, and save results to avoid redoing
-        for (uint32_t ref_it = 0; ref_it < pcs->ppcs->tot_ref_frame_types; ++ref_it) {
-            MvReferenceFrame ref_pair = pcs->ppcs->ref_frame_type_arr[ref_it];
-            MvReferenceFrame rf[2];
-            av1_set_ref_frame(rf, ref_pair);
-            //single ref/list
-            if (rf[1] != NONE_FRAME) {
-                continue;
-            }
-            EbPictureBufferDesc* ref_pic_ptr = svt_aom_get_ref_pic_buffer(pcs, rf[0]);
-
-            svt_av1_setup_scale_factors_for_frame(&(scale_factors[rf[0]]),
-                                                  ref_pic_ptr->width,
-                                                  ref_pic_ptr->height,
-                                                  pcs->ppcs->enhanced_pic->width,
-                                                  pcs->ppcs->enhanced_pic->height);
-        }
-    }
+    bool         scale_factors_valid[REF_FRAMES] = {false};
 
     int32_t row = row_start;
     for (int32_t y = 0; y < b8_h; y += b4_h) {
@@ -3117,11 +3098,22 @@ static uint8_t inter_chroma_4xn_pred(PictureControlSet* pcs, MacroBlockD* xd, Bl
         for (int32_t x = 0; x < b8_w; x += b4_w) {
             const MbModeInfo* this_mbmi = xd->mi[row * xd->mi_stride + col];
             // bipred disallowed when a block dimension is <8, so rf[1] is NONE_FRAME
-            EbPictureBufferDesc* ref_pic = svt_aom_get_ref_pic_buffer(pcs, this_mbmi->block_mi.ref_frame[0]);
+            const MvReferenceFrame ref_frame = this_mbmi->block_mi.ref_frame[0];
+            EbPictureBufferDesc*   ref_pic   = svt_aom_get_ref_pic_buffer(pcs, ref_frame);
 
-            const struct ScaleFactors* const sf = (block_mi->use_intrabc || pcs->ppcs->is_not_scaled)
-                ? sf_identity
-                : &(scale_factors[this_mbmi->block_mi.ref_frame[0]]);
+            const ScaleFactors* sf = sf_identity;
+            if (!pcs->ppcs->is_not_scaled) {
+                // Neighbouring luma blocks can share a reference. Set up each used reference only once.
+                if (!scale_factors_valid[ref_frame]) {
+                    svt_av1_setup_scale_factors_for_frame(&scale_factors[ref_frame],
+                                                          ref_pic->width,
+                                                          ref_pic->height,
+                                                          pcs->ppcs->enhanced_pic->width,
+                                                          pcs->ppcs->enhanced_pic->height);
+                    scale_factors_valid[ref_frame] = true;
+                }
+                sf = &scale_factors[ref_frame];
+            }
 
             // Cb
             uint8_t* src_ptr = ref_pic->u_buffer;
