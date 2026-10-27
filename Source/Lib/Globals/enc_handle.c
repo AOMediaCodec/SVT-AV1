@@ -4770,9 +4770,10 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
         SVT_WARN("Quantization matrices will be forced off since lossless coding is applied\n");
         scs->static_config.enable_qm = 0;
     }
-    scs->static_config.startup_mg_size   = config_struct->startup_mg_size;
-    scs->static_config.startup_qp_offset = config_struct->startup_qp_offset;
-    scs->static_config.enable_roi_map    = config_struct->enable_roi_map;
+    scs->static_config.startup_mg_size    = config_struct->startup_mg_size;
+    scs->static_config.startup_qp_offset  = config_struct->startup_qp_offset;
+    scs->static_config.enable_roi_map     = config_struct->enable_roi_map;
+    scs->static_config.roi_map_block_size = config_struct->roi_map_block_size;
 
     // Variance Boost
     scs->static_config.enable_variance_boost   = config_struct->enable_variance_boost;
