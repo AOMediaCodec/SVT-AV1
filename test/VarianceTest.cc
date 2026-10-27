@@ -181,42 +181,50 @@ class MseTestHighbd : public ::testing::TestWithParam<TestMseParamHighbd> {
     }
 
     void run_match_test() {
-        const int32_t mask = (1 << 10) - 1;
-        SVTRandom rnd(0, mask);
-        for (int i = 0; i < 10; ++i) {
-            for (int j = 0; j < MAX_BLOCK_SIZE; ++j) {
-                src_data_[j] = rnd.random();
-                ref_data_[j] = rnd.random();
-            }
+        for (const int bit_depth : {8, 10, 12}) {
+            SVTRandom rnd(0, (1 << bit_depth) - 1);
+            for (const int src_stride : {16, 17, 23}) {
+                for (const int ref_stride : {16, 19, 29}) {
+                    for (int i = 0; i < 100; ++i) {
+                        for (int j = 0; j < MAX_BLOCK_SIZE; ++j) {
+                            src_data_[j] = rnd.random();
+                            ref_data_[j] = rnd.random();
+                        }
 
-            uint32_t sse_ref = mse_ref_(CONVERT_TO_BYTEPTR(src_data_),
-                                        width_,
-                                        CONVERT_TO_BYTEPTR(ref_data_),
-                                        height_);
-            uint32_t sse_tst = mse_tst_(CONVERT_TO_BYTEPTR(src_data_),
-                                        width_,
-                                        CONVERT_TO_BYTEPTR(ref_data_),
-                                        height_);
-            ASSERT_EQ(sse_tst, sse_ref) << "SSE Error at index: " << i;
+                        // Offset both inputs to exercise unaligned loads.
+                        const uint8_t *src = CONVERT_TO_BYTEPTR(src_data_ + 1);
+                        const uint8_t *ref = CONVERT_TO_BYTEPTR(ref_data_ + 3);
+                        const uint32_t expected =
+                            mse_ref_(src, src_stride, ref, ref_stride);
+                        const uint32_t actual =
+                            mse_tst_(src, src_stride, ref, ref_stride);
+                        ASSERT_EQ(actual, expected)
+                            << "bit depth: " << bit_depth
+                            << ", source stride: " << src_stride
+                            << ", reference stride: " << ref_stride
+                            << ", iteration: " << i;
+                    }
+                }
+            }
         }
     }
 
     void run_max_test() {
-        const int32_t mask = (1 << 10) - 1;
-        for (int j = 0; j < MAX_BLOCK_SIZE; ++j) {
-            src_data_[j] = mask;
-            ref_data_[j] = 0;
+        for (const int bit_depth : {8, 10, 12}) {
+            const uint32_t mask = (1 << bit_depth) - 1;
+            for (const bool reverse : {false, true}) {
+                for (int j = 0; j < MAX_BLOCK_SIZE; ++j) {
+                    src_data_[j] = reverse ? 0 : mask;
+                    ref_data_[j] = reverse ? mask : 0;
+                }
+                const uint32_t actual = mse_tst_(CONVERT_TO_BYTEPTR(src_data_),
+                                                 width_,
+                                                 CONVERT_TO_BYTEPTR(ref_data_),
+                                                 width_);
+                ASSERT_EQ(actual, width_ * height_ * mask * mask)
+                    << "bit depth: " << bit_depth << ", reverse: " << reverse;
+            }
         }
-        uint32_t sse_ref = mse_ref_(CONVERT_TO_BYTEPTR(src_data_),
-                                    width_,
-                                    CONVERT_TO_BYTEPTR(ref_data_),
-                                    height_);
-        uint32_t sse_tst = mse_tst_(CONVERT_TO_BYTEPTR(src_data_),
-                                    width_,
-                                    CONVERT_TO_BYTEPTR(ref_data_),
-                                    height_);
-
-        ASSERT_EQ(sse_tst, sse_ref) << "Error at MSE maximum test ";
     }
 
   private:
