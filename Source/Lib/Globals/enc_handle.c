@@ -4456,8 +4456,8 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
         SVT_WARN("Film grain denoise apply signal is going to be ignored when film grain is off.\n");
     }
     scs->seq_header.film_grain_params_present = (uint8_t)(CONFIG_ENABLE_FILM_GRAIN &&
-                                                       (scs->static_config.film_grain_denoise_strength > 0 ||
-                                                        config_struct->fgs_table != NULL));
+                                                          (scs->static_config.film_grain_denoise_strength > 0 ||
+                                                           config_struct->fgs_table != NULL));
     scs->static_config.fgs_table              = config_struct->fgs_table;
 
     // MD Parameters
@@ -5486,7 +5486,8 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType* input_ptr, S
             }
             const AomFilmGrain* grain = (const AomFilmGrain*)node->data;
             if (!svt_aom_film_grain_params_valid(grain) ||
-                (grain->apply_grain && grain->bit_depth != SVT_EFFECTIVE_BIT_DEPTH(scs->static_config.encoder_bit_depth))) {
+                (grain->apply_grain &&
+                 grain->bit_depth != SVT_EFFECTIVE_BIT_DEPTH(scs->static_config.encoder_bit_depth))) {
                 SVT_ERROR("FILM_GRAIN_EVENT contains invalid grain parameters\n");
                 return EB_ErrorBadParameter;
             }

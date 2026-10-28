@@ -404,4 +404,4 @@ INSTANTIATE_TEST_SUITE_P(TemporalGrain, FilmGrainBitstreamTest,
                                            GrainParam{10, true, false},
                                            GrainParam{10, true, true}));
 #endif
-}
+}  // namespace

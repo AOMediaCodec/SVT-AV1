@@ -129,5 +129,5 @@ TEST_P(FilmGrainApiTest, RejectsBadEventsAndCanContinueEncoding) {
 }
 
 INSTANTIATE_TEST_SUITE_P(Signaling, FilmGrainApiTest, ::testing::Bool());
-}
+}  // namespace
 #endif

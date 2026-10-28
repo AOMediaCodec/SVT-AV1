@@ -755,7 +755,7 @@ void process_input_buffer(EncChannel* channel) {
             test_update_mg_size_info(header_ptr->pts, header_ptr);
 #endif
             retrieve_roi_map_event(app_cfg->roi_map, header_ptr->pts, header_ptr);
-            AomFilmGrain grain;
+            AomFilmGrain   grain;
             EbPrivDataNode grain_node = {FILM_GRAIN_EVENT, &grain, sizeof(grain), header_ptr->p_app_private};
             if (app_cfg->fgs_table.head) {
                 lookup_film_grain_table(&app_cfg->fgs_table, header_ptr->pts, &app_cfg->config, &grain);
