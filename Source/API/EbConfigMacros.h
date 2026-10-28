@@ -452,6 +452,12 @@
 #define SVT_FOLD_BIT_DEPTH(bit_depth)      ((bit_depth) = EB_EIGHT_BIT)
 #endif
 
+// Experimental: decoder-complexity RD terms and fast-decode 3 (decode-speed level for still images). Off unless
+// built with -DENABLE_FAST_DECODE_3=ON.
+#ifndef CONFIG_ENABLE_FAST_DECODE_3
+#define CONFIG_ENABLE_FAST_DECODE_3         0
+#endif
+
 // The same folding for the run-time switches of features MOBILE compiles out, which its signal derivations keep 0:
 // reading a switch through SVT_EFFECTIVE_* lets the optimizer drop the code it guards. Other builds read the switch
 // itself, so their code and PGO profiles are unchanged.

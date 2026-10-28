@@ -179,7 +179,12 @@ extern void svt_aom_estimate_syntax_rate(MdRateEstimationContext* md_rate_est_ct
     * Estimate the rate of the quantized coefficient
     * based on the frame CDF
     ***************************************************************************/
+#if CONFIG_ENABLE_FAST_DECODE_3
+extern void svt_aom_estimate_coefficients_rate(MdRateEstimationContext* md_rate_est_ctx, FRAME_CONTEXT* fc,
+                                               int32_t dec_pos_rate);
+#else
 extern void svt_aom_estimate_coefficients_rate(MdRateEstimationContext* md_rate_est_ctx, FRAME_CONTEXT* fc);
+#endif
 /**************************************************************************
     * svt_aom_estimate_mv_rate()
     * Estimate the rate of motion vectors

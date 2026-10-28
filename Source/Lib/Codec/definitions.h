@@ -2210,6 +2210,17 @@ typedef enum {
 // Both SFRAME_FLEXIBLE_BASE and SFRAME_DEC_POSI_BASE use flexible insertion
 #define IS_SFRAME_FLEXIBLE_INSERT(mode) (mode == SFRAME_FLEXIBLE_BASE || mode == SFRAME_DEC_POSI_BASE)
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+// Decoder-complexity rate terms added to RD costs, in rate units (1 bit = 1 << AV1_PROB_COST_SHIFT).
+// All zero when disabled.
+typedef struct DecCostCtrls {
+    bool     enabled;
+    int32_t  pos_rate;     // per coded coefficient scan position (all positions before eob)
+    uint64_t blk_rate;     // per coded block
+    uint64_t txsplit_rate; // per additional luma transform block of a transform split
+} DecCostCtrls;
+#endif
+
 #ifdef __cplusplus
 }
 #endif

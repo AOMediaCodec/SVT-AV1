@@ -1146,6 +1146,9 @@ typedef struct ModeDecisionContext {
     NsqSearchCtrls       nsq_search_ctrls;
     DepthEarlyExitCtrls  depth_early_exit_ctrls;
     RdoqCtrls            rdoq_ctrls;
+#if CONFIG_ENABLE_FAST_DECODE_3
+    DecCostCtrls dec_cost_ctrls;
+#endif
     CoeffShavingCtrls    coeff_shaving_ctrls;
     uint8_t              disallow_8x8;
     uint8_t              disallow_4x4;
@@ -1303,6 +1306,14 @@ typedef struct ModeDecisionContext {
     uint8_t md_levels_buf[TX_PAD_2D];
     DECLARE_ALIGNED(16, int8_t, md_coeff_contexts[MAX_TX_SQUARE]);
 } ModeDecisionContext;
+
+#if CONFIG_ENABLE_FAST_DECODE_3
+// Decoder-complexity rate of the coarse luma coefficient-rate estimates that only use the eob.
+// Only call when ctx->dec_cost_ctrls.enabled.
+static INLINE uint64_t svt_aom_dec_cost_eob_rate(const ModeDecisionContext* ctx, uint32_t eob) {
+    return (uint64_t)ctx->dec_cost_ctrls.pos_rate * eob;
+}
+#endif
 
 /**************************************
  * Extern Function Declarations

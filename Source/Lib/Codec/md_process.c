@@ -234,6 +234,10 @@ EbErrorType svt_aom_mode_decision_context_ctor(ModeDecisionContext* ctx, Sequenc
     ctx->dctor  = mode_decision_context_dctor;
     ctx->hbd_md = enable_hbd_mode_decision;
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+    ctx->dec_cost_ctrls = scs->dec_cost_ctrls;
+#endif
+
     // Zero the tail of md_levels_buf once; it serves as permanent bottom-padding
     // for set_levels() and is never overwritten by svt_av1_txb_init_levels().
     memset(ctx->md_levels_buf + LEVELS_TAIL_OFFSET, 0, TX_PAD_2D - LEVELS_TAIL_OFFSET);

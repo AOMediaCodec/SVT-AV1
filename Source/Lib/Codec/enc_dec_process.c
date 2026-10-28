@@ -2804,7 +2804,12 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                                              &pcs->md_frame_context);
             }
             if (!pcs->cdf_ctrl.update_coef) {
+#if CONFIG_ENABLE_FAST_DECODE_3
+                svt_aom_estimate_coefficients_rate(
+                    ed_ctx->md_ctx->rate_est_table, &pcs->md_frame_context, scs->dec_cost_ctrls.pos_rate);
+#else
                 svt_aom_estimate_coefficients_rate(ed_ctx->md_ctx->rate_est_table, &pcs->md_frame_context);
+#endif
             }
         }
         // Segment-loop
@@ -2902,8 +2907,14 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                         }
 
                         if (pcs->cdf_ctrl.update_coef) {
+#if CONFIG_ENABLE_FAST_DECODE_3
+                            svt_aom_estimate_coefficients_rate(ed_ctx->md_ctx->rate_est_table,
+                                                               &pcs->ec_ctx_array[sb_index],
+                                                               scs->dec_cost_ctrls.pos_rate);
+#else
                             svt_aom_estimate_coefficients_rate(ed_ctx->md_ctx->rate_est_table,
                                                                &pcs->ec_ctx_array[sb_index]);
+#endif
                         }
                         ed_ctx->md_ctx->md_rate_est_ctx = ed_ctx->md_ctx->rate_est_table;
                     }

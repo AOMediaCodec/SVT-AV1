@@ -314,6 +314,12 @@ static AOM_FORCE_INLINE int32_t av1_cost_coeffs_txb_loop_cost_eob(
     // Estimate the rate of the first(eob / fast_coeff_est_level) coeff(s), DC and last coeff only
     int32_t  c_start = MIN(eob - 2, eob / MAX(1, (int)(md_ctx->mds_fast_coeff_est_level - md_ctx->mds_subres_step)));
     uint32_t cost_literal_cnt = 0;
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // Decoder-complexity rate of the positions this estimate skips (c_start + 1 .. eob - 2)
+    if (md_ctx->dec_cost_ctrls.enabled && c_start < eob - 2) {
+        cost += md_ctx->dec_cost_ctrls.pos_rate * (eob - 2 - c_start);
+    }
+#endif
     for (c = c_start; c >= 1; --c) {
         const int32_t pos = scan[c];
         cost_literal_cnt += !!(qcoeff[pos]);
@@ -1458,6 +1464,19 @@ void svt_aom_full_cost(PictureControlSet* pcs, ModeDecisionContext* ctx, ModeDec
         assert(ctx->md_stage == MD_STAGE_3);
         *(cand_bf->full_cost_ssim) = RDCOST(lambda, mode_rate, mode_ssim_distortion);
     }
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // Decoder-complexity cost of the additional luma transform blocks; affects decisions only, not total_rate
+    if (ctx->dec_cost_ctrls.enabled) {
+        const uint32_t txb_count = tx_blocks_per_depth[ctx->blk_geom->bsize][cand_bf->cand->block_mi.tx_depth];
+        if (txb_count > 1) {
+            const uint64_t dec_cost = RDCOST(lambda, ctx->dec_cost_ctrls.txsplit_rate * (txb_count - 1), 0);
+            *(cand_bf->full_cost) += dec_cost;
+            if (update_full_cost_ssim) {
+                *(cand_bf->full_cost_ssim) += dec_cost;
+            }
+        }
+    }
+#endif
     return;
 }
 

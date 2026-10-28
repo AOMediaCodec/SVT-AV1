@@ -520,7 +520,12 @@ void svt_aom_estimate_mv_rate(PictureControlSet* pcs, MdRateEstimationContext* m
  * Estimate the rate of the quantized coefficient
  * based on the frame CDF
  ***************************************************************************/
+#if CONFIG_ENABLE_FAST_DECODE_3
+void svt_aom_estimate_coefficients_rate(MdRateEstimationContext* md_rate_est_ctx, FRAME_CONTEXT* fc,
+                                        int32_t dec_pos_rate) {
+#else
 void svt_aom_estimate_coefficients_rate(MdRateEstimationContext* md_rate_est_ctx, FRAME_CONTEXT* fc) {
+#endif
     const int32_t num_planes = 3; // NM - Hardcoded to 3
     const int32_t nplanes    = AOMMIN(num_planes, PLANE_TYPES);
 
@@ -572,6 +577,22 @@ void svt_aom_estimate_coefficients_rate(MdRateEstimationContext* md_rate_est_ctx
             for (int ctx = 0; ctx < SIG_COEF_CONTEXTS; ++ctx) {
                 svt_aom_get_syntax_rate_from_cdf(pcost->base_cost[ctx], fc->coeff_base_cdf[tx_size][plane][ctx], NULL);
             }
+#if CONFIG_ENABLE_FAST_DECODE_3
+            // Each scan position before eob codes exactly one coeff_base_eob or coeff_base symbol, so the
+            // per-position decoder-complexity rate is folded into those costs (used by MD and RDOQ).
+            if (dec_pos_rate) {
+                for (int ctx = 0; ctx < SIG_COEF_CONTEXTS_EOB; ++ctx) {
+                    for (int l = 0; l < 3; ++l) {
+                        pcost->base_eob_cost[ctx][l] += dec_pos_rate;
+                    }
+                }
+                for (int ctx = 0; ctx < SIG_COEF_CONTEXTS; ++ctx) {
+                    for (int l = 0; l <= NUM_BASE_LEVELS + 1; ++l) {
+                        pcost->base_cost[ctx][l] += dec_pos_rate;
+                    }
+                }
+            }
+#endif
             for (int ctx = 0; ctx < SIG_COEF_CONTEXTS; ++ctx) {
                 pcost->base_cost[ctx][4] = 0;
                 pcost->base_cost[ctx][5] = pcost->base_cost[ctx][1] + av1_cost_literal(1) - pcost->base_cost[ctx][0];

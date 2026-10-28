@@ -4024,6 +4024,15 @@ uint32_t svt_aom_product_full_mode_decision(PictureControlSet* pcs, ModeDecision
                                                                     : ctx->full_sb_lambda_md[EB_8_BIT_MD];
         ctx->blk_ptr->cost      = RDCOST(full_lambda, cand_bf->total_rate, cand_bf->full_dist);
         ctx->blk_ptr->full_dist = cand_bf->full_dist;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        // Decoder-complexity cost per coded block and per additional luma transform block, for the depth decision
+        if (ctx->dec_cost_ctrls.enabled) {
+            const uint32_t txb_count = tx_blocks_per_depth[ctx->blk_geom->bsize][cand->block_mi.tx_depth];
+            const uint64_t rate      = ctx->dec_cost_ctrls.blk_rate +
+                (txb_count > 1 ? ctx->dec_cost_ctrls.txsplit_rate * (txb_count - 1) : 0);
+            ctx->blk_ptr->cost += RDCOST(full_lambda, rate, 0);
+        }
+#endif
     }
 
     // Set common signals (INTER/INTRA)

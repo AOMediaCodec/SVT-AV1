@@ -4379,8 +4379,18 @@ static void perform_tx_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx, Mod
                 const uint8_t input_resolution_factor[INPUT_SIZE_COUNT] = {0, 1, 2, 3, 4, 4, 4};
                 txb_coeff_bits = 5000 + (input_resolution_factor[pcs->ppcs->input_resolution] * 1600) +
                     (cand_bf->eob.y[txb_itr] * 100);
+#if CONFIG_ENABLE_FAST_DECODE_3
+                if (ctx->dec_cost_ctrls.enabled) {
+                    txb_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[txb_itr]);
+                }
+#endif
             } else if (ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 && (cand_bf->eob.y[txb_itr] < th)) {
                 txb_coeff_bits = 6000 + cand_bf->eob.y[txb_itr] * 500;
+#if CONFIG_ENABLE_FAST_DECODE_3
+                if (ctx->dec_cost_ctrls.enabled) {
+                    txb_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[txb_itr]);
+                }
+#endif
             } else {
                 svt_aom_txb_estimate_coeff_bits_pd0(
                     ctx, cand_bf, txb_1d_offset, cand_bf->quant, cand_bf->eob.y[txb_itr], &txb_coeff_bits, tx_size);
@@ -4460,8 +4470,18 @@ static void perform_tx_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx, Mod
         const uint8_t input_resolution_factor[INPUT_SIZE_COUNT] = {0, 1, 2, 3, 4, 4, 4};
         *y_coeff_bits = 5000 + (input_resolution_factor[pcs->ppcs->input_resolution] * 1600) +
             (cand_bf->eob.y[0] * 100);
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[0]);
+        }
+#endif
     } else if (ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 && (cand_bf->eob.y[0] < th)) {
         *y_coeff_bits = 6000 + cand_bf->eob.y[0] * 500;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[0]);
+        }
+#endif
     } else {
         svt_aom_txb_estimate_coeff_bits_pd0(
             ctx, cand_bf, ctx->txb_1d_offset, cand_bf->quant, cand_bf->eob.y[0], y_coeff_bits, tx_size);
@@ -4857,8 +4877,18 @@ static void tx_type_search(PictureControlSet* pcs, ModeDecisionContext* ctx, Mod
             if ((ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 || ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) &&
                 (eob_txt[tx_type] < (th))) {
                 y_txb_coeff_bits_txt[tx_type] = 6000 + eob_txt[tx_type] * 1000;
+#if CONFIG_ENABLE_FAST_DECODE_3
+                if (ctx->dec_cost_ctrls.enabled) {
+                    y_txb_coeff_bits_txt[tx_type] += svt_aom_dec_cost_eob_rate(ctx, eob_txt[tx_type]);
+                }
+#endif
             } else if (ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) {
                 y_txb_coeff_bits_txt[tx_type] = 3000 + eob_txt[tx_type] * 100;
+#if CONFIG_ENABLE_FAST_DECODE_3
+                if (ctx->dec_cost_ctrls.enabled) {
+                    y_txb_coeff_bits_txt[tx_type] += svt_aom_dec_cost_eob_rate(ctx, eob_txt[tx_type]);
+                }
+#endif
             } else {
                 svt_aom_txb_estimate_coeff_bits(ctx,
                                                 0, //allow_update_cdf,
@@ -5341,8 +5371,24 @@ static void perform_tx_partitioning(ModeDecisionCandidateBuffer* cand_bf, ModeDe
                 ? svt_aom_get_tx_size_bits(tx_cand_bf, ctx, pcs, ctx->tx_depth, block_has_coeff)
                 : 0;
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+            uint64_t cost = RDCOST(
+                full_lambda, tx_y_coeff_bits + tx_size_bit, tx_y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]);
+            // Decoder-complexity rate of the additional transform blocks. MAX_MODE_COST marks a depth dropped by
+            // the quadrant early exit; keep it as is, since RDCOST() of it overflows.
+            if (ctx->dec_cost_ctrls.enabled) {
+                if (tx_y_coeff_bits == MAX_MODE_COST) {
+                    cost = MAX_MODE_COST;
+                } else if (txb_count > 1) {
+                    cost = RDCOST(full_lambda,
+                                  tx_y_coeff_bits + tx_size_bit + ctx->dec_cost_ctrls.txsplit_rate * (txb_count - 1),
+                                  tx_y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]);
+                }
+            }
+#else
             const uint64_t cost = RDCOST(
                 full_lambda, tx_y_coeff_bits + tx_size_bit, tx_y_full_distortion[DIST_SSD][DIST_CALC_RESIDUAL]);
+#endif
             if (cost < best_cost_search) {
                 best_cost_search                                 = cost;
                 best_tx_depth                                    = ctx->tx_depth;
@@ -5482,8 +5528,18 @@ static void perform_dct_dct_tx_light_pd1(PictureControlSet* pcs, ModeDecisionCon
     if ((ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 || ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) &&
         cand_bf->eob.y[0] < th) {
         *y_coeff_bits = 6000 + cand_bf->eob.y[0] * 1000;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[0]);
+        }
+#endif
     } else if (ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) {
         *y_coeff_bits = 6000 + cand_bf->eob.y[0] * 400;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[0]);
+        }
+#endif
     } else {
         svt_aom_txb_estimate_coeff_bits(ctx,
                                         0,
@@ -5815,8 +5871,18 @@ static void perform_dct_dct_tx(PictureControlSet* pcs, ModeDecisionContext* ctx,
     if ((ctx->rate_est_ctrls.coeff_rate_est_lvl >= 2 || ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) &&
         (cand_bf->eob.y[txb_itr] < th)) {
         *y_coeff_bits = 6000 + cand_bf->eob.y[txb_itr] * 1000;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[txb_itr]);
+        }
+#endif
     } else if (ctx->rate_est_ctrls.coeff_rate_est_lvl == 0) {
         *y_coeff_bits = 6000 + cand_bf->eob.y[txb_itr] * 400;
+#if CONFIG_ENABLE_FAST_DECODE_3
+        if (ctx->dec_cost_ctrls.enabled) {
+            *y_coeff_bits += svt_aom_dec_cost_eob_rate(ctx, cand_bf->eob.y[txb_itr]);
+        }
+#endif
     } else {
         svt_aom_txb_estimate_coeff_bits(ctx,
                                         0, //allow_update_cdf,
@@ -8270,15 +8336,30 @@ static void compute_lpd0_cost_inter(PictureControlSet* pcs, ModeDecisionContext*
     ctx->pd0_mds0_best_cost[ctx->blk_ptr->mds_idx] = (uint32_t)best_cost;
 }
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+// Decoder-complexity cost per coded block (PD0 blocks use transform depth 0)
+static INLINE void add_pd0_dec_cost(ModeDecisionContext* ctx) {
+    if (ctx->dec_cost_ctrls.enabled) {
+        ctx->blk_ptr->cost += RDCOST(ctx->full_sb_lambda_md[EB_8_BIT_MD], ctx->dec_cost_ctrls.blk_rate, 0);
+    }
+}
+#endif
+
 static void md_encode_block_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx, EbPictureBufferDesc* input_pic) {
     const BlockGeom* blk_geom = ctx->blk_geom;
     BlkStruct*       blk_ptr  = ctx->blk_ptr;
     if (pcs->scs->allintra && ctx->pd0_ctrls.pd0_level == PD0_LVL_6) {
         blk_ptr->cost = compute_lpd0_cost_allintra(pcs, ctx);
+#if CONFIG_ENABLE_FAST_DECODE_3
+        add_pd0_dec_cost(ctx);
+#endif
         return;
     }
     if (ctx->pd0_ctrls.pd0_level == PD0_LVL_6) {
         compute_lpd0_cost_inter(pcs, ctx, input_pic);
+#if CONFIG_ENABLE_FAST_DECODE_3
+        add_pd0_dec_cost(ctx);
+#endif
         return;
     }
     uint32_t       fast_candidate_total_count;
@@ -8331,6 +8412,9 @@ static void md_encode_block_pd0(PictureControlSet* pcs, ModeDecisionContext* ctx
     md_stage_3_pd0(pcs, ctx, input_pic, input_origin_index, blk_origin_index);
     // Update the cost
     ctx->blk_ptr->cost = *(ctx->cand_bf_ptr_array[ctx->mds0_best_idx]->full_cost);
+#if CONFIG_ENABLE_FAST_DECODE_3
+    add_pd0_dec_cost(ctx);
+#endif
     assert(ctx->lpd1_ctrls.pd1_level < LPD1_LEVELS);
 
     // Save info needed for depth refinement and/or LPD1

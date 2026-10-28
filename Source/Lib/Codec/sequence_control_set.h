@@ -304,6 +304,10 @@ typedef struct SequenceControlSet {
     bool allintra;
     // If true, enables fast anti-alias aware screen detection
     bool fast_aa_aware_screen_detection_mode;
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // Decoder-complexity RD terms, see DecCostCtrls
+    DecCostCtrls dec_cost_ctrls;
+#endif
 } SequenceControlSet;
 
 typedef struct EbSequenceControlSetInstance {
