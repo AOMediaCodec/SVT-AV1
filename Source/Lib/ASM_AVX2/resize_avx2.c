@@ -1655,10 +1655,28 @@ static EbErrorType svt_av1_interpolate_core_col_avx2(const uint8_t* const input,
 }
 
 void svt_av1_highbd_down2_symeven_avx2(const uint16_t* const input, int length, uint16_t* output, int bd) {
+    // Every production caller passes an even length.
+    assert(!(length & 1));
+
     const int16_t* filter          = svt_aom_av1_down2_symeven_half_filter;
     const int      filter_len_half = sizeof(svt_aom_av1_down2_symeven_half_filter) / 2;
     const int      steps           = 16;
-    __m256i        max;
+
+    // highbd_down2_symeven_w8_init_part_avx2 below unconditionally reads up
+    // to input+20, in-bounds only once length>=21; the mid/end chunk sizing
+    // below needs that floor too. svt_av1_highbd_down2_symeven_c isn't
+    // declared at all when highbd support is compiled out, but this whole
+    // function is unreachable then too (the rtcd dispatch that would call it
+    // is behind the same guard), so the fallback itself only needs to exist
+    // when the reference it calls does.
+    if (length < 22) {
+#if CONFIG_ENABLE_HIGH_BIT_DEPTH
+        svt_av1_highbd_down2_symeven_c(input, length, output, bd);
+#endif
+        return;
+    }
+
+    __m256i max;
     if (bd == 10) {
         max = _mm256_set1_epi32(1023);
     } else {
@@ -1680,6 +1698,11 @@ void svt_av1_highbd_down2_symeven_avx2(const uint16_t* const input, int length, 
 
     // Middle part.
     int mid = (l2 - l1 + 1) & (~(steps - 1));
+    // Leave enough trailing input for the mid part's lookahead; the
+    // length - i >= steps check below then routes the remainder to end_part.
+    if (mid > 0 && (length - l1 - mid) < 5) {
+        mid -= steps;
+    }
     if (mid > 0) {
         highbd_down2_symeven_w8_mid_part_avx2(input + i, mid, &optr, filter_2x, max);
         i += mid;

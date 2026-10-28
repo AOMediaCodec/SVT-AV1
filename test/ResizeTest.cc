@@ -858,6 +858,79 @@ INSTANTIATE_TEST_SUITE_P(AVX2, Down2SymevenAvx2GuardPageTest,
                                            40, 64, 66, 68, 70, 98, 100, 102,
                                            130, 132, 134, 162, 164, 166, 256,
                                            1920));
+
+#if CONFIG_ENABLE_HIGH_BIT_DEPTH
+class HighbdDown2SymevenAvx2GuardPageTest
+    : public ::testing::TestWithParam<std::tuple<int, int>> {
+  public:
+    HighbdDown2SymevenAvx2GuardPageTest()
+        : length_(std::get<0>(GetParam())),
+          bd_(std::get<1>(GetParam())),
+          out_len_((length_ + 1) / 2),
+          rnd_(0, (1 << bd_) - 1) {
+    }
+
+    void SetUp() override {
+        ref_output_ =
+            (uint16_t *)svt_aom_memalign(32, out_len_ * sizeof(uint16_t));
+        ASSERT_NE(ref_output_, nullptr);
+        tst_output_ =
+            (uint16_t *)svt_aom_memalign(32, out_len_ * sizeof(uint16_t));
+        ASSERT_NE(tst_output_, nullptr);
+    }
+
+    void TearDown() override {
+        svt_aom_free(ref_output_);
+        svt_aom_free(tst_output_);
+    }
+
+  protected:
+    int length_;
+    int bd_;
+    int out_len_;
+    SVTRandom rnd_;
+    uint16_t *ref_output_ = nullptr;
+    uint16_t *tst_output_ = nullptr;
+};
+
+TEST_P(HighbdDown2SymevenAvx2GuardPageTest, NoOverreadPastInputEnd) {
+    GuardedInputBuffer guarded(length_ * sizeof(uint16_t));
+    uint16_t *input = (uint16_t *)guarded.data();
+    ASSERT_NE(input, nullptr);
+    for (int i = 0; i < length_; i++) {
+        input[i] = (uint16_t)rnd_.random();
+    }
+
+    svt_av1_highbd_down2_symeven_c(input, length_, ref_output_, bd_);
+    // Faults here (not at ASSERT_EQ below) if the kernel reads past the
+    // guard page.
+    svt_av1_highbd_down2_symeven_avx2(input, length_, tst_output_, bd_);
+
+    for (int i = 0; i < out_len_; i++) {
+        ASSERT_EQ(ref_output_[i], tst_output_[i])
+            << "mismatch at output index " << i << " for length " << length_
+            << " bd " << bd_;
+    }
+}
+
+// svt_av1_highbd_down2_symeven_avx2 asserts an even length and uses SIMD
+// only for lengths >=22. highbd_down2_symeven_w8_init_part_avx2's
+// unconditional input+20 read overreads shorter even inputs, which fall
+// back to the C reference. Separately, highbd_down2_symeven_w8_mid_part_avx2's
+// last processed chunk reads past its nominal consumption, overreading at
+// every even length = 36 + 16*k for k = 0, 1, 2, .... The list below covers
+// every even length under 22 (short-input fallback), the 20/22 floor, the
+// periodic failure point (36/52/68/84/100/116/132) with its even neighbors,
+// and some realistic plane widths, at both supported bit depths.
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, HighbdDown2SymevenAvx2GuardPageTest,
+    ::testing::Combine(::testing::Values(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,
+                                         24, 26, 28, 30, 32, 34, 36, 38, 40, 42,
+                                         50, 52, 54, 64, 66, 68, 70, 82, 84, 86,
+                                         98, 100, 102, 114, 116, 118, 130, 132,
+                                         134, 256, 1920),
+                       ::testing::Values(10, 12)));
+#endif  // CONFIG_ENABLE_HIGH_BIT_DEPTH
 #endif  // ARCH_X86_64
 
 typedef void (*InterpolateCoreFunc)(const uint8_t *const input, int in_length,
