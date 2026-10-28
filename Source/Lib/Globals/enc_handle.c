@@ -5487,7 +5487,7 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType* input_ptr, S
             const AomFilmGrain* grain = (const AomFilmGrain*)node->data;
             if (!svt_aom_film_grain_params_valid(grain) ||
                 (grain->apply_grain &&
-                 grain->bit_depth != SVT_EFFECTIVE_BIT_DEPTH(scs->static_config.encoder_bit_depth))) {
+                 (uint32_t)grain->bit_depth != SVT_EFFECTIVE_BIT_DEPTH(scs->static_config.encoder_bit_depth))) {
                 SVT_ERROR("FILM_GRAIN_EVENT contains invalid grain parameters\n");
                 return EB_ErrorBadParameter;
             }
