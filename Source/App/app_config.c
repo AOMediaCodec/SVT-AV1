@@ -651,6 +651,12 @@ static EbErrorType set_cdef_enable(EbConfig* cfg, const char* token, const char*
     int32_t     cdef_enable = DEFAULT;
     EbErrorType err         = str_to_int(token, value, &cdef_enable);
     cfg->config.cdef_level  = (cdef_enable == 0) ? 0 : DEFAULT;
+#if CONFIG_ENABLE_FAST_DECODE_3
+    if (err == EB_ErrorNone) {
+        // Lets fast-decode 3 see that CDEF was set explicitly
+        err = svt_av1_enc_parse_parameter(&cfg->config, "enable-cdef", cdef_enable == 0 ? "0" : "-1");
+    }
+#endif
     return err;
 };
 
@@ -937,7 +943,11 @@ ConfigDescription config_entry_specific[] = {
     {ENABLE_RESTORATION_TOKEN, "Enable loop restoration filter, default is 1 [0-1]"},
     {MFMV_ENABLE_NEW_TOKEN, "Motion Field Motion Vector control, default is -1 [-1: auto, 0-1]"},
     {DG_ENABLE_NEW_TOKEN, "Dynamic GoP control, default is 1 [0-1]"},
+#if CONFIG_ENABLE_FAST_DECODE_3
+    {FAST_DECODE_TOKEN, "Fast Decoder levels, default is 0 [0-3, 3: 2 plus still-image (avif) decode-speed settings]"},
+#else
     {FAST_DECODE_TOKEN, "Fast Decoder levels, default is 0 [0-2]"},
+#endif
     // --- start: ALTREF_FILTERING_SUPPORT
     {ENABLE_TF_TOKEN, "Enable ALT-REF (temporally filtered) frames, default is 1 [0-2]"},
     {ENABLE_TF_KEY_TOKEN, "Enable MCTF for key frames, default is 1 [0-1]"},

@@ -206,6 +206,16 @@ typedef struct SvtAv1SFramePositions {
 
 // Will contain the EbEncApi which will live in the EncHandle class
 // Only modifiable during config-time.
+/* EbSvtAv1EncConfiguration.fast_decode_user_opts bits (used only when built with ENABLE_FAST_DECODE_3) */
+#define SVT_AV1_FD_USER_CDEF (1 << 0) // enable_cdef / cdef_level
+#define SVT_AV1_FD_USER_RESTORATION (1 << 1) // enable_restoration_filtering
+#define SVT_AV1_FD_USER_QM (1 << 2) // enable_qm
+#define SVT_AV1_FD_USER_LAMBDA (1 << 3) // lambda_scale_factors
+#define SVT_AV1_FD_USER_QM_MIN (1 << 4) // min_qm_level
+#define SVT_AV1_FD_USER_QM_MAX (1 << 5) // max_qm_level
+#define SVT_AV1_FD_USER_CHROMA_QM_MIN (1 << 6) // min_chroma_qm_level
+#define SVT_AV1_FD_USER_CHROMA_QM_MAX (1 << 7) // max_chroma_qm_level
+
 typedef struct EbSvtAv1EncConfiguration {
     /**
      * @brief Encoder preset used.
@@ -667,6 +677,11 @@ typedef struct EbSvtAv1EncConfiguration {
     * 0: No decoder-targeted speed optimization
     * 1: Level 1 of decoder-targeted speed optimizations (faster decoder-speed than level 0)
     * 2: Level 2 of decoder-targeted speed optimizations (faster decoder-speed than level 1)
+    * 3: Experimental, only in builds with the ENABLE_FAST_DECODE_3 CMake option (rejected otherwise).
+    *    Level 2 plus, for still images (avif), CDEF and loop restoration off, quantization matrices on
+    *    (luma 5, chroma 4), key-frame lambda scale 192, filter intra off and decoder-complexity RD terms.
+    *    Options set through svt_av1_enc_parse_parameter() win; for options assigned directly, see
+    *    fast_decode_user_opts. Other encodes behave as level 2.
     */
     uint8_t fast_decode;
     /* S-Frame interval (frames)
@@ -1076,6 +1091,18 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     uint8_t max_allowed_consecutive_frames_skips;
 
+    /**
+     * @brief Options that fast_decode 3 must leave unchanged (SVT_AV1_FD_USER_* bits).
+     * Only used when the library is built with ENABLE_FAST_DECODE_3.
+     *
+     * fast_decode 3 changes an option only while it holds its library default. Options set through
+     * svt_av1_enc_parse_parameter() (and so the app) are marked here automatically. A caller that assigns
+     * the struct fields directly cannot be told apart from an unset option when it assigns the default
+     * value (e.g. enable_qm = 0, lambda_scale_factors = 128); to keep such a value, set the matching bit
+     * after svt_av1_enc_init_handle(), which clears this field.
+     */
+    uint8_t fast_decode_user_opts;
+
     // clang-format off
     /* Add 128 Byte Padding to Struct to avoid changing the size of the public configuration struct */
     uint8_t padding[128
@@ -1087,6 +1114,7 @@ typedef struct EbSvtAv1EncConfiguration {
         - sizeof(uint8_t) // max_managed_refs (ref-frame mgmt)
         - sizeof(uint8_t) // max_hierarchical_levels (runtime MG size change)
         - sizeof(uint8_t) // max_allowed_consecutive_frames_skips
+        - sizeof(uint8_t) // fast_decode_user_opts
     ];
     // clang-format on
 } EbSvtAv1EncConfiguration;

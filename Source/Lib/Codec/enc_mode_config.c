@@ -2918,7 +2918,12 @@ void svt_aom_sig_deriv_pre_analysis_scs(SequenceControlSet* scs, int8_t enc_mode
         : rtc_tune                          ? get_filter_intra_level_rtc()
                                             : get_filter_intra_level_default(enc_mode);
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // Filter intra is slow to reconstruct; off when decoder-complexity RD terms are on
+    scs->seq_header.filter_intra_level = is_filter_intra_used && !scs->dec_cost_ctrls.enabled ? 1 : 0;
+#else
     scs->seq_header.filter_intra_level = is_filter_intra_used ? 1 : 0;
+#endif
 #else
     scs->seq_header.filter_intra_level = 0;
 #endif
@@ -10132,7 +10137,11 @@ void svt_aom_sig_deriv_mode_decision_config_allintra(SequenceControlSet* scs, Pi
         rtime_alloc_ec_ctx_array(pcs, all_sb);
     }
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+    pcs->pic_filter_intra_level = scs->dec_cost_ctrls.enabled ? 0 : get_filter_intra_level_allintra(enc_mode);
+#else
     pcs->pic_filter_intra_level = get_filter_intra_level_allintra(enc_mode);
+#endif
     if (pcs->enc_mode <= ENC_M8) {
         pcs->ppcs->use_accurate_part_ctx = true;
     } else {

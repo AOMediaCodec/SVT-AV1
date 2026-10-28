@@ -4325,6 +4325,69 @@ static void set_param_based_on_input(SequenceControlSet* scs) {
     scs->fast_aa_aware_screen_detection_mode = (scs->static_config.enc_mode >= ENC_M3) ? 1 : 0;
 }
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+#if CONFIG_ENABLE_QUANT_MATRIX
+// Sets the QM levels the caller did not set to level, keeping min <= max.
+static void set_fast_decode_qm_levels(uint8_t* min, uint8_t* max, uint8_t level, bool min_set, bool max_set) {
+    if (!min_set) {
+        *min = max_set ? MIN(level, *max) : level;
+    }
+    if (!max_set) {
+        *max = MAX(level, *min);
+    }
+}
+#endif
+
+// fast_decode 3: still-image settings on top of fast_decode 2. An option is left alone if the caller set it through
+// svt_av1_enc_parse_parameter() or it does not hold its default value.
+static void set_still_image_fast_decode(SequenceControlSet* scs, const EbSvtAv1EncConfiguration* config_struct) {
+    EbSvtAv1EncConfiguration* cfg  = &scs->static_config;
+    const uint8_t             user = config_struct->fast_decode_user_opts;
+    memset(&scs->dec_cost_ctrls, 0, sizeof(scs->dec_cost_ctrls));
+    if (config_struct->fast_decode != 3) {
+        return;
+    }
+    if (!cfg->avif) {
+        SVT_INFO("fast-decode 3 only changes still-image (avif) encodes; using fast-decode 2\n");
+        return;
+    }
+    if (!(user & SVT_AV1_FD_USER_CDEF) && config_struct->cdef_level == DEFAULT) {
+        cfg->cdef_level = 0;
+    }
+    if (!(user & SVT_AV1_FD_USER_RESTORATION) && config_struct->enable_restoration_filtering == DEFAULT) {
+        cfg->enable_restoration_filtering = 0;
+    }
+#if CONFIG_ENABLE_QUANT_MATRIX
+    if (!(user & SVT_AV1_FD_USER_QM) && !config_struct->enable_qm) {
+        cfg->enable_qm = 1;
+    }
+    if (cfg->enable_qm) {
+        set_fast_decode_qm_levels(&cfg->min_qm_level,
+                                  &cfg->max_qm_level,
+                                  5,
+                                  (user & SVT_AV1_FD_USER_QM_MIN) || config_struct->min_qm_level != 8,
+                                  (user & SVT_AV1_FD_USER_QM_MAX) || config_struct->max_qm_level != 15);
+        set_fast_decode_qm_levels(&cfg->min_chroma_qm_level,
+                                  &cfg->max_chroma_qm_level,
+                                  4,
+                                  (user & SVT_AV1_FD_USER_CHROMA_QM_MIN) || config_struct->min_chroma_qm_level != 8,
+                                  (user & SVT_AV1_FD_USER_CHROMA_QM_MAX) || config_struct->max_chroma_qm_level != 15);
+    }
+#endif
+    bool lambda_default = !(user & SVT_AV1_FD_USER_LAMBDA);
+    for (int i = 0; i < SVT_AV1_FRAME_UPDATE_TYPES; i++) {
+        lambda_default = lambda_default && config_struct->lambda_scale_factors[i] == 128;
+    }
+    if (lambda_default) {
+        cfg->lambda_scale_factors[SVT_AV1_KF_UPDATE] = 192;
+    }
+    scs->dec_cost_ctrls.enabled      = true;
+    scs->dec_cost_ctrls.pos_rate     = (1 << AV1_PROB_COST_SHIFT) / 2; // 0.5 bit
+    scs->dec_cost_ctrls.blk_rate     = 8 << AV1_PROB_COST_SHIFT;
+    scs->dec_cost_ctrls.txsplit_rate = 2 << AV1_PROB_COST_SHIFT;
+}
+#endif // CONFIG_ENABLE_FAST_DECODE_3
+
 static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration* config_struct) {
     scs->max_input_luma_width  = config_struct->source_width;
     scs->max_input_luma_height = config_struct->source_height;
@@ -4447,7 +4510,12 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     scs->static_config.enable_dg = config_struct->enable_dg;
 
     // Decoder Optimization Flag
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // Library code sees fast_decode 3 as 2; set_still_image_fast_decode() adds the still-image settings
+    scs->static_config.fast_decode = config_struct->fast_decode == 3 ? 2 : config_struct->fast_decode;
+#else
     scs->static_config.fast_decode = config_struct->fast_decode;
+#endif
 
     //Film Grain
     scs->static_config.film_grain_denoise_strength = config_struct->film_grain_denoise_strength;
@@ -4763,6 +4831,9 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     scs->static_config.max_qm_level        = config_struct->max_qm_level;
     scs->static_config.min_chroma_qm_level = config_struct->min_chroma_qm_level;
     scs->static_config.max_chroma_qm_level = config_struct->max_chroma_qm_level;
+#if CONFIG_ENABLE_FAST_DECODE_3
+    set_still_image_fast_decode(scs, config_struct);
+#endif
     if (scs->static_config.enable_qm && scs->static_config.min_qm_level == 15 &&
         scs->static_config.max_qm_level == 15 && scs->static_config.min_chroma_qm_level == 15 &&
         scs->static_config.max_chroma_qm_level == 15) {

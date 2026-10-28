@@ -925,6 +925,16 @@ static const vector<bool> default_enable_overlays = {false};
 static const vector<bool> valid_enable_overlays = {false, true};
 static const vector<bool> invalid_enable_overlays = {/*none*/};
 
+/* Decoder-speed-targeted optimization level */
+static const vector<uint8_t> default_fast_decode = {0};
+#if CONFIG_ENABLE_FAST_DECODE_3
+static const vector<uint8_t> valid_fast_decode = {0, 1, 2, 3};
+static const vector<uint8_t> invalid_fast_decode = {4, 255};
+#else
+static const vector<uint8_t> valid_fast_decode = {0, 1, 2};
+static const vector<uint8_t> invalid_fast_decode = {3, 4, 255};
+#endif
+
 /* Variables to control the super-resolution tool
  */
 static const vector<uint8_t> default_superres_mode = {0};

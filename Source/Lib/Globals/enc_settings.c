@@ -597,13 +597,27 @@ EbErrorType svt_av1_verify_settings(SequenceControlSet* scs) {
             config->enable_mfmv);
         return_error = EB_ErrorBadParameter;
     }
+#if CONFIG_ENABLE_FAST_DECODE_3
+    // fast_decode 3 is mapped to 2 in copy_api_from_app()
     if (config->fast_decode > 2) {
+        SVT_ERROR(
+            "Invalid fast decode flag [0 - 3, 0 for no decoder-targeted optimization], your "
+            "input: %d\n",
+            config->fast_decode);
+        return_error = EB_ErrorBadParameter;
+    }
+#else
+    if (config->fast_decode == 3) {
+        SVT_ERROR("fast decode 3 is experimental and requires building with -DENABLE_FAST_DECODE_3=ON\n");
+        return_error = EB_ErrorBadParameter;
+    } else if (config->fast_decode > 2) {
         SVT_ERROR(
             "Invalid fast decode flag [0 - 2, 0 for no decoder-targeted optimization], your "
             "input: %d\n",
             config->fast_decode);
         return_error = EB_ErrorBadParameter;
     }
+#endif
     if (config->tune > TUNE_VMAF) {
         SVT_ERROR(
             "Invalid tune flag [0 - 5, 0 for VQ, 1 for PSNR, 2 for SSIM, 3 for IQ, 4 for MS_SSIM, and 5 for VMAF], "
@@ -1043,6 +1057,7 @@ EbErrorType svt_av1_set_default_params(EbSvtAv1EncConfiguration* config_ptr) {
     config_ptr->enable_mfmv                  = DEFAULT;
     config_ptr->enable_dg                    = 1;
     config_ptr->fast_decode                  = 0;
+    config_ptr->fast_decode_user_opts        = 0;
     config_ptr->encoder_color_format         = EB_YUV420;
     config_ptr->rtc                          = 0;
     // Rate control options
@@ -2211,8 +2226,12 @@ static EbErrorType str_to_sframe_qp_offset(const char* nptr, SvtAv1SFramePositio
             return svt_aom_parse_##opt(&config_struct->opt, value) ? EB_ErrorNone : EB_ErrorBadParameter; \
     } while (0)
 
+#if CONFIG_ENABLE_FAST_DECODE_3
+static EbErrorType enc_parse_parameter(EbSvtAv1EncConfiguration* config_struct, const char* name, const char* value) {
+#else
 EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration* config_struct, const char* name,
                                                const char* value) {
+#endif
     if (config_struct == NULL || name == NULL || value == NULL) {
         return EB_ErrorBadParameter;
     }
@@ -2543,3 +2562,34 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration* config_
 
     return return_error;
 }
+
+#if CONFIG_ENABLE_FAST_DECODE_3
+EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration* config_struct, const char* name,
+                                               const char* value) {
+    // Options that fast_decode 3 must leave as set by the caller
+    static const struct {
+        const char* name;
+        uint8_t     bit;
+    } fd_user_opts[] = {
+        {"enable-cdef", SVT_AV1_FD_USER_CDEF},
+        {"enable-restoration", SVT_AV1_FD_USER_RESTORATION},
+        {"enable-qm", SVT_AV1_FD_USER_QM},
+        {"qm-min", SVT_AV1_FD_USER_QM_MIN},
+        {"qm-max", SVT_AV1_FD_USER_QM_MAX},
+        {"chroma-qm-min", SVT_AV1_FD_USER_CHROMA_QM_MIN},
+        {"chroma-qm-max", SVT_AV1_FD_USER_CHROMA_QM_MAX},
+        {"lambda-scale-factors", SVT_AV1_FD_USER_LAMBDA},
+    };
+
+    const EbErrorType err = enc_parse_parameter(config_struct, name, value);
+    if (err != EB_ErrorNone) {
+        return err;
+    }
+    for (size_t i = 0; i < sizeof(fd_user_opts) / sizeof(fd_user_opts[0]); i++) {
+        if (!strcmp(name, fd_user_opts[i].name)) {
+            config_struct->fast_decode_user_opts |= fd_user_opts[i].bit;
+        }
+    }
+    return err;
+}
+#endif
