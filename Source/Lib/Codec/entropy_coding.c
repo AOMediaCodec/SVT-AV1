@@ -4131,7 +4131,7 @@ static void loop_restoration_write_sb_coeffs(PictureControlSet* pcs, FRAME_CONTE
 
     assert(unit_rtype < CDF_SIZE(RESTORE_SWITCHABLE_TYPES));
 
-    if (frame_rtype == RESTORE_SWITCHABLE) {
+    if (SVT_EFFECTIVE_SGRPROJ(frame_rtype == RESTORE_SWITCHABLE)) {
         aom_write_symbol(w,
                          unit_rtype,
                          /*xd->tile_ctx->*/ frame_context->switchable_restore_cdf,
@@ -4160,7 +4160,7 @@ static void loop_restoration_write_sb_coeffs(PictureControlSet* pcs, FRAME_CONTE
         }
         //else
         //SVT_LOG("POC:%i plane:%i OFF\n", piCSetPtr->picture_number, plane);
-    } else if (frame_rtype == RESTORE_SGRPROJ) {
+    } else if (SVT_EFFECTIVE_SGRPROJ(frame_rtype == RESTORE_SGRPROJ)) {
         aom_write_symbol(w,
                          unit_rtype != RESTORE_NONE,
                          /*xd->tile_ctx->*/ frame_context->sgrproj_restore_cdf,

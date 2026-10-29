@@ -260,13 +260,15 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_SSE41_AVX2_AVX512(svt_av1_compute_stats_highbd, svt_av1_compute_stats_highbd_c, svt_av1_compute_stats_highbd_sse4_1, svt_av1_compute_stats_highbd_avx2, svt_av1_compute_stats_highbd_avx512);
 #endif
+#if CONFIG_ENABLE_SGRPROJ
     SET_SSE41_AVX2_AVX512(svt_av1_lowbd_pixel_proj_error, svt_av1_lowbd_pixel_proj_error_c, svt_av1_lowbd_pixel_proj_error_sse4_1, svt_av1_lowbd_pixel_proj_error_avx2, svt_av1_lowbd_pixel_proj_error_avx512);
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_SSE41_AVX2(svt_av1_highbd_pixel_proj_error, svt_av1_highbd_pixel_proj_error_c, svt_av1_highbd_pixel_proj_error_sse4_1, svt_av1_highbd_pixel_proj_error_avx2);
 #endif
+#endif
 #endif // CONFIG_ENABLE_RESTORATION
     SET_AVX2(svt_subtract_average, svt_subtract_average_c, svt_subtract_average_avx2);
-#if CONFIG_ENABLE_RESTORATION
+#if CONFIG_ENABLE_SGRPROJ
     SET_AVX2(svt_get_proj_subspace, svt_get_proj_subspace_c, svt_get_proj_subspace_avx2);
 #endif
     SET_SSE41_AVX2(svt_aom_quantize_b, svt_aom_quantize_b_c, svt_aom_quantize_b_sse4_1, svt_aom_quantize_b_avx2);
@@ -664,13 +666,15 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_NEON_SVE(svt_av1_compute_stats_highbd, svt_av1_compute_stats_highbd_c, svt_av1_compute_stats_highbd_neon, svt_av1_compute_stats_highbd_sve);
 #endif
+#if CONFIG_ENABLE_SGRPROJ
     SET_NEON_SVE(svt_av1_lowbd_pixel_proj_error, svt_av1_lowbd_pixel_proj_error_c, svt_av1_lowbd_pixel_proj_error_neon, svt_av1_lowbd_pixel_proj_error_sve);
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_NEON_SVE(svt_av1_highbd_pixel_proj_error, svt_av1_highbd_pixel_proj_error_c, svt_av1_highbd_pixel_proj_error_neon, svt_av1_highbd_pixel_proj_error_sve);
 #endif
+#endif
 #endif // CONFIG_ENABLE_RESTORATION
     SET_NEON(svt_subtract_average, svt_subtract_average_c, svt_subtract_average_neon);
-#if CONFIG_ENABLE_RESTORATION
+#if CONFIG_ENABLE_SGRPROJ
     SET_NEON(svt_get_proj_subspace, svt_get_proj_subspace_c, svt_get_proj_subspace_neon);
 #endif
     SET_NEON(svt_aom_quantize_b, svt_aom_quantize_b_c, svt_aom_quantize_b_neon);
@@ -1118,13 +1122,15 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_ONLY_C(svt_av1_compute_stats_highbd, svt_av1_compute_stats_highbd_c);
 #endif
+#if CONFIG_ENABLE_SGRPROJ
     SET_ONLY_C(svt_av1_lowbd_pixel_proj_error, svt_av1_lowbd_pixel_proj_error_c);
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_ONLY_C(svt_av1_highbd_pixel_proj_error, svt_av1_highbd_pixel_proj_error_c);
 #endif
+#endif
 #endif // CONFIG_ENABLE_RESTORATION
     SET_ONLY_C(svt_subtract_average, svt_subtract_average_c);
-#if CONFIG_ENABLE_RESTORATION
+#if CONFIG_ENABLE_SGRPROJ
     SET_ONLY_C(svt_get_proj_subspace, svt_get_proj_subspace_c);
 #endif
     SET_ONLY_C(svt_aom_quantize_b, svt_aom_quantize_b_c);

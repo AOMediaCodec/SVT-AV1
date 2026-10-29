@@ -142,9 +142,11 @@
 // higher VOD/AVIF presets map to these; no film grain, superres, resize, QM or VMAF; natural content, so no
 // palette or IntraBC), or, where commented, because no preset >= M6 reaches them.
 // Local warp (CONFIG_ENABLE_WARP) stays on: VOD with the default hierarchy uses it at every in-scope preset.
-// Lossless coding (CONFIG_ENABLE_LOSSLESS) stays on for VOD and AVIF: its 4x4 inverse WHT runs on dav1d's kernel
-// (av1_inv_txfm_neon.c), and RTC mode rejects it (svt_av1_verify_settings()).
+// Lossless coding is not needed on mobile: svt_av1_verify_settings() rejects it.
 
+#ifndef CONFIG_ENABLE_LOSSLESS
+#define CONFIG_ENABLE_LOSSLESS              0
+#endif
 #ifndef CONFIG_ENABLE_QUANT_MATRIX
 #define CONFIG_ENABLE_QUANT_MATRIX          0
 #endif
@@ -184,9 +186,18 @@
 #ifndef CONFIG_ENABLE_DLF_SEARCH
 #define CONFIG_ENABLE_DLF_SEARCH            0
 #endif
-// Loop restoration serves only AVIF M6 in scope: turning it off costs some BD-rate there but saves binary size.
+// Loop restoration (Wiener only, see below) serves VOD M6-M8 and AVIF M6 in scope.
 #ifndef CONFIG_ENABLE_RESTORATION
-#define CONFIG_ENABLE_RESTORATION           0
+#define CONFIG_ENABLE_RESTORATION           1
+#endif
+// Self-guided restoration (sg_filter_lvl > 0) is set only at <= M3, and the 7-tap luma Wiener filter and its
+// coefficient refinement (wn_filter_lvl 1-3) only at <= M3 default and <= M5 all-intra: with restoration on, the
+// in-scope presets use only the 5-tap Wiener search without refinement.
+#ifndef CONFIG_ENABLE_SGRPROJ
+#define CONFIG_ENABLE_SGRPROJ               0
+#endif
+#ifndef CONFIG_ENABLE_WIENER_HQ
+#define CONFIG_ENABLE_WIENER_HQ             0
 #endif
 // The ext-tx sets allow no non-DCT type at 64-point sizes and only IDTX at 32-point sizes: the C forward
 // fallbacks for the other types are dead, and the inverse codes IDTX with dav1d kernels (av1_inv_txfm_neon.c).
@@ -293,6 +304,14 @@
 
 #ifndef CONFIG_ENABLE_RESTORATION
 #define CONFIG_ENABLE_RESTORATION           1
+#endif
+
+#ifndef CONFIG_ENABLE_SGRPROJ
+#define CONFIG_ENABLE_SGRPROJ               CONFIG_ENABLE_RESTORATION
+#endif
+
+#ifndef CONFIG_ENABLE_WIENER_HQ
+#define CONFIG_ENABLE_WIENER_HQ             CONFIG_ENABLE_RESTORATION
 #endif
 
 #ifndef CONFIG_ENABLE_PSAD_SEARCH
@@ -480,6 +499,16 @@
 #define SVT_EFFECTIVE_RESTORATION(v)       (v)
 #else
 #define SVT_EFFECTIVE_RESTORATION(v)       (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_SGRPROJ || !MOBILE_BUILD
+#define SVT_EFFECTIVE_SGRPROJ(v)           (v)
+#else
+#define SVT_EFFECTIVE_SGRPROJ(v)           (0 ? (v) : 0)
+#endif
+#if CONFIG_ENABLE_WIENER_HQ || !MOBILE_BUILD
+#define SVT_EFFECTIVE_WIENER_HQ(v)         (v)
+#else
+#define SVT_EFFECTIVE_WIENER_HQ(v)         (0 ? (v) : 0)
 #endif
 #if CONFIG_ENABLE_PALETTE || !MOBILE_BUILD
 #define SVT_EFFECTIVE_PALETTE(v)           (v)
