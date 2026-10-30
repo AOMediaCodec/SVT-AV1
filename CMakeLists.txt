@@ -16,10 +16,10 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
                     "Please use the Build folder or create your own.")
 endif()
 
-project(svt-av1 VERSION 4.2.0
+project(svt-av1 VERSION 4.3.0
     LANGUAGES C CXX)
 
-set(VERSION_TAG "")
+set(VERSION_TAG "rc")
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 # Default build type to release if the generator does not has its own set of build types
