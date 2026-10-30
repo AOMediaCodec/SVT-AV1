@@ -30,14 +30,12 @@
 #include "random.h"
 #include "util.h"
 
-#ifdef ARCH_X86_64
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/mman.h>
 #include <unistd.h>
 #endif
-#endif  // ARCH_X86_64
 
 extern "C" void calculate_scaled_size_helper(uint16_t *dim, uint8_t denom);
 
@@ -644,98 +642,13 @@ TEST_P(Down2SymevenTest, MatchTestWithAlternatingValue) {
     run_case();
 }
 
-#ifdef ARCH_AARCH64
-// The 8-wide Neon batch computes each output as two int16 partial sums
-// (filter[0]*p0 + filter[2]*p2, and filter[1]*p1 + filter[3]*p3) that are
-// combined with a saturating int16 add. Each partial sum's true worst case,
-// reachable because the 8 input bytes behind p0..p3 are independently
-// controllable, is designed to fit int16, but grouping the taps
-// differently would not: the MatchTestWithRandomValue/MaxValue/
-// AlternatingValue cases above don't happen to hit that worst case (their
-// per-tap pair values are correlated - e.g. all-max gives every pJ=510,
-// not the independent extremes below), so this test targets it directly.
-TEST(Down2SymevenAdversarialTest, MatchTestWithAdversarialTapPattern) {
-    const int length = 128;
-    uint8_t *input = (uint8_t *)svt_aom_memalign(32, length);
-    ASSERT_NE(input, nullptr);
-    uint8_t *ref_output = (uint8_t *)svt_aom_memalign(32, length);
-    ASSERT_NE(ref_output, nullptr);
-    uint8_t *tst_output = (uint8_t *)svt_aom_memalign(32, length);
-    ASSERT_NE(tst_output, nullptr);
-
-    // For center c, p0=input[c]+input[c+1], p1=input[c-1]+input[c+2],
-    // p2=input[c-2]+input[c+3], p3=input[c-3]+input[c+4]. Setting
-    // input[c-3..c+4] = {0,0,255,255,255,255,0,0} makes p0=p1=510, p2=p3=0
-    // - filter[0]*p0+filter[1]*p1 = 56*510+12*510 = 34680, which overflows
-    // int16 if taps 0 and 1 (rather than 0 and 2) were grouped together.
-    // The inverse pattern similarly maximizes the negative-coefficient
-    // taps (p2, p3) while zeroing p0, p1. Only even centers are ever
-    // evaluated, so the window must start at an odd offset (c-3, with c
-    // even) - starting at offset 21 lands on center 24, and 61 on 64.
-    memset(input, 128, length);
-    const uint8_t max_window[8] = {0, 0, 255, 255, 255, 255, 0, 0};
-    const uint8_t min_window[8] = {255, 255, 0, 0, 0, 0, 255, 255};
-    memcpy(input + 21, max_window, sizeof(max_window));
-    memcpy(input + 61, min_window, sizeof(min_window));
-
-    svt_av1_down2_symeven_c(input, length, ref_output);
-    svt_av1_down2_symeven_neon(input, length, tst_output);
-
-    const int out_len = (length + 1) / 2;
-    for (int i = 0; i < out_len; i++) {
-        ASSERT_EQ(ref_output[i], tst_output[i])
-            << "mismatch at output index " << i;
-    }
-
-    svt_aom_free(input);
-    svt_aom_free(ref_output);
-    svt_aom_free(tst_output);
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    NEON, Down2SymevenTest,
-    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
-                                         18, 20, 22, 23, 24, 25, 30, 40, 64,
-                                         128, 255, 256, 257, 511, 512, 640,
-                                         1024, 1920, 3840),
-                       ::testing::Values(svt_av1_down2_symeven_neon)));
-#endif  // ARCH_AARCH64
-
-#ifdef ARCH_X86_64
-// svt_av1_down2_symeven_avx2 requires an even length (it asserts this) of
-// at least 38, below which down2_symeven_w16_init_part_avx2's unconditional
-// input+36 read would be out of bounds; shorter inputs fall back to the C
-// reference. Separately, down2_symeven_w16_mid_part_avx2's last processed
-// chunk reads past its nominal consumption, which overreads when
-// (length - 32 - mid) is 3 or 4 - recurring at every even length = 68 +
-// 32*k for k = 0, 1, 2, .... The list below covers every even length under
-// 38 (exercising the short-input fallback and the SIMD branches at their
-// boundary), the 37/38 floor, the periodic failure point (68/100/132/164)
-// with its even neighbors, and some realistic plane widths.
-INSTANTIATE_TEST_SUITE_P(
-    AVX2, Down2SymevenTest,
-    ::testing::Combine(::testing::Values(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,
-                                         24, 26, 28, 30, 32, 34, 36, 38, 40, 64,
-                                         66, 68, 70, 98, 100, 102, 130, 132,
-                                         134, 162, 164, 166, 256, 512, 640,
-                                         1024, 1920, 3840),
-                       ::testing::Values(svt_av1_down2_symeven_avx2)));
-
-// The sentinel-based Down2SymevenTest above only checks output correctness,
-// so it can't catch the periodic bug fixed above on its own: the last 2 of
-// the bytes down2_symeven_w16_mid_part_avx2's last chunk reads past its
-// nominal window are genuinely unused (the rest feed real filter taps), but
-// whether the overread is caught depends on whether AddressSanitizer's
-// redzone happens to sit there - which is heap-layout dependent for an
-// overread this small. Make the detection deterministic instead: place the
-// input right against a guard page with its access removed, so any byte
-// read past it is a hard fault no matter how the allocator laid things out.
 // Owns a buffer placed directly against a page whose access is removed, so
 // any read or write past `usable_size` bytes past `data()` is a hard fault.
 // Construction never fails loudly: if the platform calls themselves fail,
 // `data()` returns nullptr rather than a usable-looking but unprotected
 // pointer, so callers that ASSERT_NE(data(), nullptr) catch it instead of
-// silently losing the guarantee.
+// silently losing the guarantee. Shared by both the NEON and AVX2 guard-page
+// tests below.
 class GuardedInputBuffer {
   public:
     explicit GuardedInputBuffer(size_t usable_size) {
@@ -807,6 +720,276 @@ class GuardedInputBuffer {
     uint8_t *ptr_ = nullptr;
 };
 
+#ifdef ARCH_AARCH64
+// The 8-wide Neon batch computes each output as two int16 partial sums
+// (filter[0]*p0 + filter[2]*p2, and filter[1]*p1 + filter[3]*p3) that are
+// combined with a saturating int16 add. Each partial sum's true worst case,
+// reachable because the 8 input bytes behind p0..p3 are independently
+// controllable, is designed to fit int16, but grouping the taps
+// differently would not: the MatchTestWithRandomValue/MaxValue/
+// AlternatingValue cases above don't happen to hit that worst case (their
+// per-tap pair values are correlated - e.g. all-max gives every pJ=510,
+// not the independent extremes below), so this test targets it directly.
+TEST(Down2SymevenAdversarialTest, MatchTestWithAdversarialTapPattern) {
+    const int length = 128;
+    uint8_t *input = (uint8_t *)svt_aom_memalign(32, length);
+    ASSERT_NE(input, nullptr);
+    uint8_t *ref_output = (uint8_t *)svt_aom_memalign(32, length);
+    ASSERT_NE(ref_output, nullptr);
+    uint8_t *tst_output = (uint8_t *)svt_aom_memalign(32, length);
+    ASSERT_NE(tst_output, nullptr);
+
+    // For center c, p0=input[c]+input[c+1], p1=input[c-1]+input[c+2],
+    // p2=input[c-2]+input[c+3], p3=input[c-3]+input[c+4]. Setting
+    // input[c-3..c+4] = {0,0,255,255,255,255,0,0} makes p0=p1=510, p2=p3=0
+    // - filter[0]*p0+filter[1]*p1 = 56*510+12*510 = 34680, which overflows
+    // int16 if taps 0 and 1 (rather than 0 and 2) were grouped together.
+    // The inverse pattern similarly maximizes the negative-coefficient
+    // taps (p2, p3) while zeroing p0, p1. Only even centers are ever
+    // evaluated, so the window must start at an odd offset (c-3, with c
+    // even) - starting at offset 21 lands on center 24, and 61 on 64.
+    memset(input, 128, length);
+    const uint8_t max_window[8] = {0, 0, 255, 255, 255, 255, 0, 0};
+    const uint8_t min_window[8] = {255, 255, 0, 0, 0, 0, 255, 255};
+    memcpy(input + 21, max_window, sizeof(max_window));
+    memcpy(input + 61, min_window, sizeof(min_window));
+
+    svt_av1_down2_symeven_c(input, length, ref_output);
+    svt_av1_down2_symeven_neon(input, length, tst_output);
+
+    const int out_len = (length + 1) / 2;
+    for (int i = 0; i < out_len; i++) {
+        ASSERT_EQ(ref_output[i], tst_output[i])
+            << "mismatch at output index " << i;
+    }
+
+    svt_aom_free(input);
+    svt_aom_free(ref_output);
+    svt_aom_free(tst_output);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    NEON, Down2SymevenTest,
+    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
+                                         18, 20, 22, 23, 24, 25, 30, 40, 64,
+                                         128, 255, 256, 257, 511, 512, 640,
+                                         1024, 1920, 3840),
+                       ::testing::Values(svt_av1_down2_symeven_neon)));
+
+#if CONFIG_ENABLE_HIGH_BIT_DEPTH
+typedef void (*HighbdDown2SymevenFunc)(const uint16_t *const input, int length,
+                                       uint16_t *output, int bd);
+
+// Highbd counterpart of Down2SymevenTest above: same rationale (bypasses the
+// RTCD toggle, compares the requested SIMD variant directly against the C
+// reference) with a bit depth parameter added.
+class HighbdDown2SymevenTest
+    : public ::testing::TestWithParam<
+          std::tuple<int, int, HighbdDown2SymevenFunc>> {
+  public:
+    HighbdDown2SymevenTest()
+        : length_(std::get<0>(GetParam())),
+          bd_(std::get<1>(GetParam())),
+          test_func_(std::get<2>(GetParam())),
+          rnd_(0, (1 << bd_) - 1) {
+    }
+
+    void SetUp() override {
+        input_ = (uint16_t *)svt_aom_memalign(32, length_ * sizeof(uint16_t));
+        ASSERT_NE(input_, nullptr);
+        // output has (length_+1)/2 valid samples; allocate length_ and verify
+        // the untouched tail keeps its sentinel value in run_case() below, to
+        // catch a kernel writing past the true output size.
+        ref_output_ =
+            (uint16_t *)svt_aom_memalign(32, length_ * sizeof(uint16_t));
+        ASSERT_NE(ref_output_, nullptr);
+        tst_output_ =
+            (uint16_t *)svt_aom_memalign(32, length_ * sizeof(uint16_t));
+        ASSERT_NE(tst_output_, nullptr);
+    }
+
+    void TearDown() override {
+        svt_aom_free(input_);
+        svt_aom_free(ref_output_);
+        svt_aom_free(tst_output_);
+    }
+
+  protected:
+    void run_case() {
+        const int out_len = (length_ + 1) / 2;
+        const uint16_t sentinel_ref = 0xAAAA;
+        const uint16_t sentinel_tst = 0xBBBB;
+        for (int i = 0; i < length_; i++) {
+            ref_output_[i] = sentinel_ref;
+            tst_output_[i] = sentinel_tst;
+        }
+
+        svt_av1_highbd_down2_symeven_c(input_, length_, ref_output_, bd_);
+        test_func_(input_, length_, tst_output_, bd_);
+
+        for (int i = 0; i < out_len; i++) {
+            ASSERT_EQ(ref_output_[i], tst_output_[i])
+                << "mismatch at output index " << i << " for length "
+                << length_ << " bd " << bd_;
+        }
+        for (int i = out_len; i < length_; i++) {
+            ASSERT_EQ(ref_output_[i], sentinel_ref)
+                << "overrun past output index " << out_len << " for length "
+                << length_ << " bd " << bd_;
+            ASSERT_EQ(tst_output_[i], sentinel_tst)
+                << "overrun past output index " << out_len << " for length "
+                << length_ << " bd " << bd_;
+        }
+    }
+
+    int length_;
+    int bd_;
+    HighbdDown2SymevenFunc test_func_;
+    SVTRandom rnd_;
+    uint16_t *input_;
+    uint16_t *ref_output_;
+    uint16_t *tst_output_;
+};
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(HighbdDown2SymevenTest);
+
+TEST_P(HighbdDown2SymevenTest, MatchTestWithRandomValue) {
+    for (int t = 0; t < min_test_times; t++) {
+        for (int i = 0; i < length_; i++) {
+            input_[i] = (uint16_t)rnd_.random();
+        }
+        run_case();
+    }
+}
+
+TEST_P(HighbdDown2SymevenTest, MatchTestWithZeroValue) {
+    for (int i = 0; i < length_; i++) {
+        input_[i] = 0;
+    }
+    run_case();
+}
+
+TEST_P(HighbdDown2SymevenTest, MatchTestWithMaxValue) {
+    const uint16_t max_val = (uint16_t)((1 << bd_) - 1);
+    for (int i = 0; i < length_; i++) {
+        input_[i] = max_val;
+    }
+    run_case();
+}
+
+TEST_P(HighbdDown2SymevenTest, MatchTestWithAlternatingValue) {
+    const uint16_t max_val = (uint16_t)((1 << bd_) - 1);
+    for (int i = 0; i < length_; i++) {
+        input_[i] = (i & 1) ? max_val : 0;
+    }
+    run_case();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    NEON, HighbdDown2SymevenTest,
+    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
+                                         18, 20, 22, 23, 24, 25, 30, 40, 64,
+                                         128, 255, 256, 257, 511, 512, 640,
+                                         1024, 1920, 3840),
+                       ::testing::Values(10, 12),
+                       ::testing::Values(svt_av1_highbd_down2_symeven_neon)));
+
+// Highbd counterpart of Down2SymevenAvx2GuardPageTest: places the input
+// right against a guard page so an overread is a deterministic SEGV
+// regardless of heap layout, catching the same class of bug (periodic or
+// short-input OOB reads) that hit the x86 AVX2 kernels in this family.
+class HighbdDown2SymevenNeonGuardPageTest
+    : public ::testing::TestWithParam<std::tuple<int, int>> {
+  public:
+    HighbdDown2SymevenNeonGuardPageTest()
+        : length_(std::get<0>(GetParam())),
+          bd_(std::get<1>(GetParam())),
+          out_len_((length_ + 1) / 2),
+          rnd_(0, (1 << bd_) - 1) {
+    }
+
+    void SetUp() override {
+        ref_output_ =
+            (uint16_t *)svt_aom_memalign(32, out_len_ * sizeof(uint16_t));
+        ASSERT_NE(ref_output_, nullptr);
+        tst_output_ =
+            (uint16_t *)svt_aom_memalign(32, out_len_ * sizeof(uint16_t));
+        ASSERT_NE(tst_output_, nullptr);
+    }
+
+    void TearDown() override {
+        svt_aom_free(ref_output_);
+        svt_aom_free(tst_output_);
+    }
+
+  protected:
+    int length_;
+    int bd_;
+    int out_len_;
+    SVTRandom rnd_;
+    uint16_t *ref_output_ = nullptr;
+    uint16_t *tst_output_ = nullptr;
+};
+
+TEST_P(HighbdDown2SymevenNeonGuardPageTest, NoOverreadPastInputEnd) {
+    GuardedInputBuffer guarded(length_ * sizeof(uint16_t));
+    uint16_t *input = (uint16_t *)guarded.data();
+    ASSERT_NE(input, nullptr);
+    for (int i = 0; i < length_; i++) {
+        input[i] = (uint16_t)rnd_.random();
+    }
+
+    svt_av1_highbd_down2_symeven_c(input, length_, ref_output_, bd_);
+    // Faults here (not at ASSERT_EQ below) if the kernel reads past the
+    // guard page.
+    svt_av1_highbd_down2_symeven_neon(input, length_, tst_output_, bd_);
+
+    for (int i = 0; i < out_len_; i++) {
+        ASSERT_EQ(ref_output_[i], tst_output_[i])
+            << "mismatch at output index " << i << " for length " << length_
+            << " bd " << bd_;
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    NEON, HighbdDown2SymevenNeonGuardPageTest,
+    ::testing::Combine(::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16,
+                                         18, 20, 22, 23, 24, 25, 30, 40, 64,
+                                         128, 255, 256, 257, 511, 512, 640,
+                                         1024, 1920, 3840),
+                       ::testing::Values(10, 12)));
+#endif  // CONFIG_ENABLE_HIGH_BIT_DEPTH
+#endif  // ARCH_AARCH64
+
+#ifdef ARCH_X86_64
+// svt_av1_down2_symeven_avx2 requires an even length (it asserts this) of
+// at least 38, below which down2_symeven_w16_init_part_avx2's unconditional
+// input+36 read would be out of bounds; shorter inputs fall back to the C
+// reference. Separately, down2_symeven_w16_mid_part_avx2's last processed
+// chunk reads past its nominal consumption, which overreads when
+// (length - 32 - mid) is 3 or 4 - recurring at every even length = 68 +
+// 32*k for k = 0, 1, 2, .... The list below covers every even length under
+// 38 (exercising the short-input fallback and the SIMD branches at their
+// boundary), the 37/38 floor, the periodic failure point (68/100/132/164)
+// with its even neighbors, and some realistic plane widths.
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, Down2SymevenTest,
+    ::testing::Combine(::testing::Values(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,
+                                         24, 26, 28, 30, 32, 34, 36, 38, 40, 64,
+                                         66, 68, 70, 98, 100, 102, 130, 132,
+                                         134, 162, 164, 166, 256, 512, 640,
+                                         1024, 1920, 3840),
+                       ::testing::Values(svt_av1_down2_symeven_avx2)));
+
+// The sentinel-based Down2SymevenTest above only checks output correctness,
+// so it can't catch the periodic bug fixed above on its own: the last 2 of
+// the bytes down2_symeven_w16_mid_part_avx2's last chunk reads past its
+// nominal window are genuinely unused (the rest feed real filter taps), but
+// whether the overread is caught depends on whether AddressSanitizer's
+// redzone happens to sit there - which is heap-layout dependent for an
+// overread this small. Make the detection deterministic instead: place the
+// input right against a guard page with its access removed, so any byte
+// read past it is a hard fault no matter how the allocator laid things out
+// (GuardedInputBuffer, defined above since the NEON tests use it too).
 class Down2SymevenAvx2GuardPageTest : public ::testing::TestWithParam<int> {
   public:
     Down2SymevenAvx2GuardPageTest()

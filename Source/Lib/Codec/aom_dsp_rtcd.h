@@ -1484,6 +1484,9 @@ void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_neon(
     uint16_t *u_count, uint32_t *v_accum, uint16_t *v_count, uint32_t encoder_bit_depth);
 
 void svt_av1_down2_symeven_neon(const uint8_t *const input, int length, uint8_t *output);
+#if CONFIG_ENABLE_HIGH_BIT_DEPTH
+void svt_av1_highbd_down2_symeven_neon(const uint16_t *const input, int length, uint16_t *output, int bd);
+#endif
 
 void svt_av1_interpolate_core_neon(const uint8_t *const input, int in_length, uint8_t *output, int out_length,
                                    const int16_t *interp_filters);

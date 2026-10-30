@@ -148,6 +148,117 @@ void svt_av1_down2_symeven_neon(const uint8_t* const input, int length, uint8_t*
     }
 }
 
+#if CONFIG_ENABLE_HIGH_BIT_DEPTH
+void svt_av1_highbd_down2_symeven_neon(const uint16_t* const input, int length, uint16_t* output, int bd) {
+    const int16_t* filter          = svt_aom_av1_down2_symeven_half_filter;
+    const int      filter_len_half = sizeof(svt_aom_av1_down2_symeven_half_filter) /
+        sizeof(svt_aom_av1_down2_symeven_half_filter[0]);
+    // Same fixed-tap assumption as svt_av1_down2_symeven_neon above - the
+    // 8-wide batch below hardcodes these as compile-time constants.
+    assert(filter_len_half == 4 && filter[0] == 56 && filter[1] == 12 && filter[2] == -3 && filter[3] == -1);
+    int       i, j;
+    uint16_t* optr = output;
+    int       l1   = filter_len_half;
+    int       l2   = (length - filter_len_half);
+    l1 += (l1 & 1);
+    l2 += (l2 & 1);
+    const int32_t limit = (1 << bd) - 1;
+
+    if (l1 > l2) {
+        // Short input length: no room for an unclamped middle part.
+        for (i = 0; i < length; i += 2) {
+            int sum = (1 << (FILTER_BITS - 1));
+            for (j = 0; j < filter_len_half; ++j) {
+                sum += (input[AOMMAX(i - j, 0)] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
+            }
+            sum >>= FILTER_BITS;
+            *optr++ = clip_pixel_highbd(sum, bd);
+        }
+        return;
+    }
+
+    // Initial part: left edge clamped, right side always in-bounds here.
+    for (i = 0; i < l1; i += 2) {
+        int sum = (1 << (FILTER_BITS - 1));
+        for (j = 0; j < filter_len_half; ++j) {
+            sum += (input[AOMMAX(i - j, 0)] + input[i + 1 + j]) * filter[j];
+        }
+        sum >>= FILTER_BITS;
+        *optr++ = clip_pixel_highbd(sum, bd);
+    }
+
+    // Middle part: unclamped region, 8-wide batch. Same deinterleaved-load
+    // geometry as the lowbd 8-wide batch above (p0..p3 are the same tap
+    // pair sums at the same input offsets - see the comments there for the
+    // derivation), but pixels are already 16-bit here, so each pair sum
+    // (max 2*((1<<bd)-1) = 8190 for bd=12) fits in int16 with no widening
+    // add needed. What does need to change is the tap multiply-accumulate:
+    // the largest single product (56 * 8190 = 458640) overflows int16
+    // immediately, well before any cross-tap grouping is considered, so
+    // every tap here widens straight to a 32-bit accumulator instead of
+    // the lowbd version's int16-safe tap pairing.
+    //
+    // Guarded the same way as lowbd: i+16<=l2 keeps all 8 output centers
+    // inside the unclamped region, i+19<=length keeps the furthest vld2q_u16
+    // read (v_d below, touching input[i+3..i+18]) from reading past input.
+    const int32x4_t round_vec = vdupq_n_s32(1 << (FILTER_BITS - 1));
+    const int32x4_t limit_vec = vdupq_n_s32(limit);
+    while (i + 16 <= l2 && i + 19 <= length) {
+        const uint16x8x2_t v_a = vld2q_u16(input + i - 3);
+        const uint16x8x2_t v_b = vld2q_u16(input + i - 1);
+        const uint16x8x2_t v_c = vld2q_u16(input + i + 1);
+        const uint16x8x2_t v_d = vld2q_u16(input + i + 3);
+
+        const int16x8_t p0 = vreinterpretq_s16_u16(vaddq_u16(v_b.val[1], v_c.val[0])); // la0+ra0
+        const int16x8_t p1 = vreinterpretq_s16_u16(vaddq_u16(v_b.val[0], v_c.val[1])); // la1+ra1
+        const int16x8_t p2 = vreinterpretq_s16_u16(vaddq_u16(v_a.val[1], v_d.val[0])); // la2+ra2
+        const int16x8_t p3 = vreinterpretq_s16_u16(vaddq_u16(v_a.val[0], v_d.val[1])); // la3+ra3
+
+        int32x4_t acc_lo = vmull_n_s16(vget_low_s16(p0), 56);
+        acc_lo           = vmlal_n_s16(acc_lo, vget_low_s16(p1), 12);
+        acc_lo           = vmlal_n_s16(acc_lo, vget_low_s16(p2), -3);
+        acc_lo           = vmlal_n_s16(acc_lo, vget_low_s16(p3), -1);
+        int32x4_t acc_hi = vmull_high_n_s16(p0, 56);
+        acc_hi           = vmlal_high_n_s16(acc_hi, p1, 12);
+        acc_hi           = vmlal_high_n_s16(acc_hi, p2, -3);
+        acc_hi           = vmlal_high_n_s16(acc_hi, p3, -1);
+
+        acc_lo = vshrq_n_s32(vaddq_s32(acc_lo, round_vec), FILTER_BITS);
+        acc_hi = vshrq_n_s32(vaddq_s32(acc_hi, round_vec), FILTER_BITS);
+        // vqmovun_s32 saturates the lower bound to 0 as part of the signed-
+        // to-unsigned narrow; vminq_s32 against limit_vec clamps the upper
+        // bound first, matching clip_pixel_highbd_vec's pattern in
+        // highbd_warp_plane_neon.h.
+        const uint16x4_t out_lo = vqmovun_s32(vminq_s32(acc_lo, limit_vec));
+        const uint16x4_t out_hi = vqmovun_s32(vminq_s32(acc_hi, limit_vec));
+        vst1q_u16(optr, vcombine_u16(out_lo, out_hi));
+        optr += 8;
+        i += 16;
+    }
+
+    // Leftover between the 8-wide batch above and l2 (at most 7 outputs),
+    // still in the unclamped region.
+    for (; i < l2; i += 2) {
+        int sum = (1 << (FILTER_BITS - 1));
+        for (j = 0; j < filter_len_half; ++j) {
+            sum += (input[i - j] + input[i + 1 + j]) * filter[j];
+        }
+        sum >>= FILTER_BITS;
+        *optr++ = clip_pixel_highbd(sum, bd);
+    }
+
+    // End part: right edge clamped, left side always in-bounds here.
+    for (; i < length; i += 2) {
+        int sum = (1 << (FILTER_BITS - 1));
+        for (j = 0; j < filter_len_half; ++j) {
+            sum += (input[i - j] + input[AOMMIN(i + 1 + j, length - 1)]) * filter[j];
+        }
+        sum >>= FILTER_BITS;
+        *optr++ = clip_pixel_highbd(sum, bd);
+    }
+}
+#endif // CONFIG_ENABLE_HIGH_BIT_DEPTH
+
 void svt_av1_interpolate_core_neon(const uint8_t* const input, int in_length, uint8_t* output, int out_length,
                                    const int16_t* interp_filters) {
     const int32_t delta  = (((uint32_t)in_length << RS_SCALE_SUBPEL_BITS) + out_length / 2) / out_length;
