@@ -2429,7 +2429,7 @@ EB_API EbErrorType svt_av1_enc_init_handle(
     EbSvtAv1EncConfiguration* config_ptr) // pointer passed back to the client during callbacks
 
 {
-    if (p_handle == NULL) {
+    if (p_handle == NULL || config_ptr == NULL) {
         return EB_ErrorBadParameter;
     }
 
@@ -4958,7 +4958,7 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
 **********************************/
 EB_API EbErrorType svt_av1_enc_set_parameter(EbComponentType*          svt_enc_component,
                                              EbSvtAv1EncConfiguration* config_struct) {
-    if (svt_enc_component == NULL) {
+    if (svt_enc_component == NULL || config_struct == NULL) {
         return EB_ErrorBadParameter;
     }
 
@@ -5075,7 +5075,7 @@ EB_API EbErrorType svt_av1_enc_stream_header(EbComponentType*     svt_enc_compon
                                              EbBufferHeaderType** output_stream_ptr) {
     EbErrorType return_error = EB_ErrorNone;
 
-    if (!svt_enc_component) {
+    if (!svt_enc_component || !output_stream_ptr) {
         return EB_ErrorBadParameter;
     }
 
@@ -5758,6 +5758,10 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType* input_ptr, S
 * Empty This Buffer
 **********************************/
 EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType* svt_enc_component, EbBufferHeaderType* p_buffer) {
+    if (!svt_enc_component || !p_buffer) {
+        return EB_ErrorBadParameter;
+    }
+
     EbErrorType         return_val     = EB_ErrorNone;
     EbEncHandle*        enc_handle_ptr = (EbEncHandle*)svt_enc_component->p_component_private;
     EbObjectWrapper*    eb_wrapper_ptr;
@@ -5920,6 +5924,10 @@ static void copy_output_recon_buffer(EbBufferHeaderType* dst, EbBufferHeaderType
 **********************************/
 EB_API EbErrorType svt_av1_enc_get_packet(EbComponentType* svt_enc_component, EbBufferHeaderType** p_buffer,
                                           unsigned char pic_send_done) {
+    if (!svt_enc_component || !p_buffer) {
+        return EB_ErrorBadParameter;
+    }
+
     EbErrorType                     return_error   = EB_ErrorNone;
     EbEncHandle*                    enc_handle     = (EbEncHandle*)svt_enc_component->p_component_private;
     EbObjectWrapper*                eb_wrapper_ptr = NULL;
@@ -5963,7 +5971,7 @@ EB_API EbErrorType svt_av1_enc_get_packet(EbComponentType* svt_enc_component, Eb
 }
 
 EB_API void svt_av1_enc_release_out_buffer(EbBufferHeaderType** p_buffer) {
-    if (p_buffer && (*p_buffer)->wrapper_ptr) {
+    if (p_buffer && *p_buffer && (*p_buffer)->wrapper_ptr) {
         if ((*p_buffer)->p_buffer) {
             EB_FREE((*p_buffer)->p_buffer);
         }
@@ -5977,6 +5985,10 @@ EB_API void svt_av1_enc_release_out_buffer(EbBufferHeaderType** p_buffer) {
 * Fill This Buffer
 **********************************/
 EB_API EbErrorType svt_av1_get_recon(EbComponentType* svt_enc_component, EbBufferHeaderType* p_buffer) {
+    if (!svt_enc_component || !p_buffer) {
+        return EB_ErrorBadParameter;
+    }
+
     EbErrorType      return_error   = EB_ErrorNone;
     EbEncHandle*     enc_handle     = (EbEncHandle*)svt_enc_component->p_component_private;
     EbObjectWrapper* eb_wrapper_ptr = NULL;
@@ -6341,7 +6353,8 @@ void svt_output_recon_buffer_header_destroyer(EbPtr p) {
 **********************************/
 EB_API EbErrorType svt_av1_enc_get_stream_info(EbComponentType* svt_enc_component, uint32_t stream_info_id,
                                                void* info) {
-    if (stream_info_id >= SVT_AV1_STREAM_INFO_END || stream_info_id < SVT_AV1_STREAM_INFO_START) {
+    if (!svt_enc_component || !info || stream_info_id >= SVT_AV1_STREAM_INFO_END ||
+        stream_info_id < SVT_AV1_STREAM_INFO_START) {
         return EB_ErrorBadParameter;
     }
     EbEncHandle*    enc_handle       = svt_enc_component->p_component_private;
