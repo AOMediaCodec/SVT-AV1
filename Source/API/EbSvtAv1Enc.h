@@ -1103,6 +1103,13 @@ typedef struct EbSvtAv1EncConfiguration {
      */
     uint8_t fast_decode_user_opts;
 
+    /**
+     * ROI QP offset map block size. Supported values are 16 and 64 pixels.
+     * Zero is treated as 64 for compatibility with applications built against
+     * older headers that zero-initialize the reserved configuration padding.
+     */
+    uint8_t roi_map_block_size;
+
     // clang-format off
     /* Add 128 Byte Padding to Struct to avoid changing the size of the public configuration struct */
     uint8_t padding[128
@@ -1115,6 +1122,7 @@ typedef struct EbSvtAv1EncConfiguration {
         - sizeof(uint8_t) // max_hierarchical_levels (runtime MG size change)
         - sizeof(uint8_t) // max_allowed_consecutive_frames_skips
         - sizeof(uint8_t) // fast_decode_user_opts
+        - sizeof(uint8_t) // roi_map_block_size
     ];
     // clang-format on
 } EbSvtAv1EncConfiguration;
