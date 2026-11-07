@@ -450,11 +450,11 @@ static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_
 
     if (me_ctx->tf_32x32_block_split_flag[idx_32x32]) {
         for (i = 0; i < 4; ++i) {
-            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
+            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i]);
         }
     } else {
         block_error_fp8[0] = block_error_fp8[1] = block_error_fp8[2] = block_error_fp8[3] =
-            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 6);
+            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 2);
     }
 
     __m128i adjusted_weight_int16[4];
@@ -565,9 +565,9 @@ static void svt_av1_apply_temporal_filter_planewise_medium_hbd_partial_sse4_1(
             //const float  distance = sqrtf((float)col*col + row*row);
             uint32_t distance_fp4 = sqrt_fast(((uint32_t)(col * col + row * row)) << 8);
             d_factor_fp8[i]       = AOMMAX((distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
-            FP_ASSERT(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] < ((uint64_t)1 << 35));
+            FP_ASSERT(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] < ((uint64_t)1 << 31));
             //block_error[i] = (double)me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] / 256;
-            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
+            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i]);
         }
     } else {
         tf_decay_factor <<= 1;
@@ -578,10 +578,10 @@ static void svt_av1_apply_temporal_filter_planewise_medium_hbd_partial_sse4_1(
         //d_factor[0] = d_factor[1] = d_factor[2] = d_factor[3] = AOMMAX(distance / distance_threshold, 1);
         d_factor_fp8[0] = d_factor_fp8[1] = d_factor_fp8[2] = d_factor_fp8[3] = AOMMAX(
             (distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
-        FP_ASSERT(me_ctx->tf_32x32_block_error[idx_32x32] < ((uint64_t)1 << 35));
+        FP_ASSERT(me_ctx->tf_32x32_block_error[idx_32x32] < ((uint64_t)1 << 30));
         //block_error[0] = block_error[1] = block_error[2] = block_error[3] = (double)me_ctx->tf_32x32_block_error[idx_32x32] / 1024;
         block_error_fp8[0] = block_error_fp8[1] = block_error_fp8[2] = block_error_fp8[3] =
-            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 6);
+            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 2);
     }
 
     if (block_width == 32) {

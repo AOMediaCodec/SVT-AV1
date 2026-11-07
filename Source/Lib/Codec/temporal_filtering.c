@@ -853,11 +853,11 @@ static void svt_av1_apply_zz_based_temporal_filter_planewise_medium_hbd_partial_
     uint32_t block_error_fp8[4];
     if (me_ctx->tf_32x32_block_split_flag[idx_32x32]) {
         for (i = 0; i < 4; ++i) {
-            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
+            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i]);
         }
     } else {
         block_error_fp8[0] = block_error_fp8[1] = block_error_fp8[2] = block_error_fp8[3] =
-            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 6);
+            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 2);
     }
 
     //Calculation for every quarter
@@ -1139,9 +1139,9 @@ static void svt_av1_apply_temporal_filter_planewise_medium_hbd_partial_c(
             uint32_t distance_fp4 = sqrt_fast(((uint32_t)(col * col + row * row)) << 8);
             //d_factor[i] = AOMMAX(distance / distance_threshold, 1);
             d_factor_fp8[i] = AOMMAX((distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
-            FP_ASSERT(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] < ((uint64_t)1 << 35));
-            //block_error[i] = (double)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] >>4) / 256;
-            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] >> 4);
+            FP_ASSERT(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] < ((uint64_t)1 << 31));
+            //block_error[i] = (double)me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i] / 256;
+            block_error_fp8[i] = (uint32_t)(me_ctx->tf_16x16_block_error[idx_32x32 * 4 + i]);
         }
     } else {
         tf_decay_factor_fp16 <<= 1;
@@ -1152,10 +1152,10 @@ static void svt_av1_apply_temporal_filter_planewise_medium_hbd_partial_c(
         //d_factor[i] = AOMMAX(distance / distance_threshold, 1);
         d_factor_fp8[0] = d_factor_fp8[1] = d_factor_fp8[2] = d_factor_fp8[3] = AOMMAX(
             (distance_fp4 << 12) / (distance_threshold_fp16 >> 8), 1 << 8);
-        FP_ASSERT(me_ctx->tf_32x32_block_error[idx_32x32] < ((uint64_t)1 << 35));
-        //= (double)(me_ctx->tf_32x32_block_error[idx_32x32]>> 4) / 1024;
+        FP_ASSERT(me_ctx->tf_32x32_block_error[idx_32x32] < ((uint64_t)1 << 30));
+        //= (double)me_ctx->tf_32x32_block_error[idx_32x32] / 1024;
         block_error_fp8[0] = block_error_fp8[1] = block_error_fp8[2] = block_error_fp8[3] =
-            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 6);
+            (uint32_t)(me_ctx->tf_32x32_block_error[idx_32x32] >> 2);
     }
     const uint32_t bw_half = (block_width >> 1);
     const uint32_t bh_half = (block_height >> 1);
