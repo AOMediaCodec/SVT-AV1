@@ -3657,7 +3657,9 @@ static int ref_pics_modulation(PictureParentControlSet* pcs, int32_t noise_level
             offset = 2;
         }
     } else if (pcs->temporal_layer_index == 0) {
-        int ratio = noise_levels_log1p_fp16 ? (pcs->filt_to_unfilt_diff * 100) / noise_levels_log1p_fp16 : 0;
+        int ratio = noise_levels_log1p_fp16 && pcs->filt_to_unfilt_diff != (uint32_t)~0
+            ? (pcs->filt_to_unfilt_diff * 100) / noise_levels_log1p_fp16
+            : 0;
         switch (pcs->tf_ctrls.modulate_pics) {
         case 0:
             offset = 0;
@@ -3700,7 +3702,9 @@ static int ref_pics_modulation(PictureParentControlSet* pcs, int32_t noise_level
             break;
         }
     } else {
-        int ratio = noise_levels_log1p_fp16 ? (pcs->filt_to_unfilt_diff * 100) / noise_levels_log1p_fp16 : 0;
+        int ratio = noise_levels_log1p_fp16 && pcs->filt_to_unfilt_diff != (uint32_t)~0
+            ? (pcs->filt_to_unfilt_diff * 100) / noise_levels_log1p_fp16
+            : 0;
         switch (pcs->tf_ctrls.modulate_pics) {
         case 0:
             offset = 0;
@@ -4245,6 +4249,12 @@ static void mctf_frame(SequenceControlSet* scs, PictureParentControlSet* pcs, Pi
         }
     } else {
         pcs->do_tf = false; // set temporal filtering flag OFF for current picture
+        // Unfiltered key frame (--enable-kf-tf 0): its noise level is still reused by the frames of the GOP
+        if (pcs->frm_hdr.frame_type == KEY_FRAME && scs->static_config.enable_tf) {
+            const EbPictureBufferDesc* pic              = pcs->enhanced_pic;
+            pd_ctx->last_i_noise_levels_log1p_fp16[0] = svt_aom_noise_log1p_fp16(
+                svt_estimate_noise_fp16(pic->y_buffer, pic->width, pic->height, pic->y_stride));
+        }
     }
 #else
     (void)scs;

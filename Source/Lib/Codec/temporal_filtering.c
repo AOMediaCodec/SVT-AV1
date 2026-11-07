@@ -2705,7 +2705,7 @@ static EbErrorType produce_temporally_filtered_pic(PictureParentControlSet** pcs
         decay_control[PLANE_V] = 6;
 
         if (centre_pcs->slice_type != I_SLICE) {
-            int ratio = noise_levels_log1p_fp16[0]
+            int ratio = noise_levels_log1p_fp16[0] && centre_pcs->filt_to_unfilt_diff != (uint32_t)~0
                 ? (centre_pcs->filt_to_unfilt_diff * 100) / noise_levels_log1p_fp16[0]
                 : 0;
 
