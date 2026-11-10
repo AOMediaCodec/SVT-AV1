@@ -1166,7 +1166,6 @@ static void set_cdef_search_controls(PictureParentControlSet* pcs, uint8_t cdef_
         // Primary-only: no secondary strength candidates
         cdef_ctrls->enabled                      = 1;
         cdef_ctrls->first_pass_fs_num            = 2;
-        second_pass_fs_num                       = 0;
         cdef_ctrls->default_second_pass_fs_num   = 0;
         cdef_ctrls->default_first_pass_fs[0]     = pf_gi[0];
         cdef_ctrls->default_first_pass_fs[1]     = pf_gi[15];
@@ -9773,17 +9772,10 @@ void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, Picture
             scs->input_resolution <= INPUT_SIZE_480p_RANGE
         ? 1
         : 0;
-    // Set Warped Motion level and enabled flag
-    pcs->wm_level  = 0;
-    bool enable_wm = pcs->wm_level ? 1 : 0;
-    // Note: local warp should be disabled when super-res or resize is ON
-    // according to the AV1 spec 5.11.27
-    frm_hdr->allow_warped_motion = enable_wm &&
-        !(frm_hdr->frame_type == KEY_FRAME || frm_hdr->frame_type == INTRA_ONLY_FRAME) &&
-        !frm_hdr->error_resilient_mode && !pcs->ppcs->frame_superres_enabled &&
-        scs->static_config.resize_mode == RESIZE_NONE;
-
-    frm_hdr->is_motion_mode_switchable = frm_hdr->allow_warped_motion;
+    // RTC does not use warped motion
+    pcs->wm_level                      = 0;
+    frm_hdr->allow_warped_motion       = 0;
+    frm_hdr->is_motion_mode_switchable = 0;
     ppcs->pic_obmc_level               = svt_aom_get_obmc_level(enc_mode, sq_qp, scs->seq_qp_mod);
     // Switchable Motion Mode
     frm_hdr->is_motion_mode_switchable = frm_hdr->is_motion_mode_switchable || ppcs->pic_obmc_level;
