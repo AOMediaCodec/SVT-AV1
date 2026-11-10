@@ -9740,6 +9740,13 @@ void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, Picture
     } else {
         pcs->rate_est_level = 0;
     }
+    // The RTC CBR recode decision enforces the intra frame-size cap with the
+    // mode-decision rate estimate; without it the projection is several times
+    // too low and oversized key frames pass. Key frames are rare, so keep the
+    // estimate on for them at every preset.
+    if (is_islice) {
+        pcs->rate_est_level = 1;
+    }
     uint8_t update_cdf_level = svt_aom_get_update_cdf_level_rtc(enc_mode, is_islice);
     set_cdf_controls(pcs, update_cdf_level);
     if (pcs->cdf_ctrl.enabled) {
