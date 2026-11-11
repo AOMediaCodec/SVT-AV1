@@ -4674,7 +4674,7 @@ static INLINE void check_dct_dct_reuse(PictureControlSet* pcs, ModeDecisionConte
                                        const ModeDecisionCandidateBuffer* cand_bf, int16_t* residual,
                                        uint32_t residual_stride, TxSize tx_size, TxCoeffShape pf_shape) {
 #ifndef NDEBUG
-    DECLARE_ALIGNED(32, int32_t, coeff[MAX_TX_SQUARE]);
+    DECLARE_ALIGNED(64, int32_t, coeff[MAX_TX_SQUARE]);
     uint64_t energy = 0;
     memcpy(coeff, cand_bf->dct_dct_coeff, sizeof(coeff));
     svt_aom_estimate_transform(pcs,
