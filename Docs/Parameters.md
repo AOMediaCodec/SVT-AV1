@@ -128,6 +128,7 @@ For more information on valid values for specific keys, refer to the [EbEncSetti
 | **MaxChromaQmLevel**             | --chroma-qm-max                  | [0-15]     | 15          | Max chroma quant matrix flatness                                                                                                                     |
 | **LambdaScaleFactors**           | --lambda-scale-factors           | [0- ]      | '128,.,128' | list of scale factors for lambda values used for different SvtAv1FrameUpdateType, separated by `,` divide by 128 is the actual scale factor in float |
 | **RoiMapFile**                   | --roi-map-file                   | any string | Null        | Path to a file containing picture based QP offset map                                                                                                |
+| **RoiMapBlockSize**               | --roi-map-block-size              | 16 or 64   | 64          | Width and height in pixels of each ROI map entry                                                                                                    |
 | **TemporalFilteringStrength**    | --tf-strength                    | [0-4]      | 3           | Manually adjust temporal filtering strength. Higher values = stronger temporal filtering                                                             |
 | **LuminanceQpBias**              | --luminance-qp-bias              | [0-100]    | 0           | Adjusts a frame's QP based on its average luma value                                                                                                 |
 | **Sharpness**                    | --sharpness                      | [-7-7]     | 0           | Bias towards decreased/increased sharpness                                                                                                           |
@@ -218,12 +219,15 @@ In some applications such as AR / VR, identifying the ROI (Region Of Interest) h
 usage where it's needed. This is realized by allowing applications to pass a picture based ROI map to the encoder.
 
 The QP Offset Map file contains one or more picture based QP offset maps. Every line consists of a frame number and
-the QP offsets for each 64x64 block set in a row-by-row order. Below is an example ROI map file for a 352x288 content:
+the QP offsets for each ROI block set in a row-by-row order. Each offset must be in [-255, 255], and each line
+contains `ceil(width / block-size) * ceil(height / block-size)` offsets after the frame number. The default block
+size is 64x64; set `--roi-map-block-size 16` to provide finer 16x16 maps. Below is an example ROI map file for a
+352x288 content using the default block size:
 ```bash
 0 12 -32 -32 -32 -32 -32 12 -32 -32 -32 -32 -32 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16
 ```
 
-The encoder uses alternate quantizer segment feature to set block level qindex and uses alternate loop filter segment feature to set loop filter strength level.
+The encoder uses alternate quantizer segment feature to set block level qindex and uses alternate loop filter segment feature to set loop filter strength level. AV1 supports at most eight segment QP offsets per frame. If the map contains more than eight distinct offsets, SVT-AV1 groups map entries by population and uses each group's weighted median offset as its segment value.
 When both AQ mode 1 (variance base adaptive QP) and ROI are enabled, segment QP is decided by ROI map instead of by variance.
 
 An example command line is:
@@ -231,6 +235,37 @@ An example command line is:
 ```bash
 SvtAv1EncApp -i in.y4m -b out.ivf --roi-map-file roi_map.txt
 ```
+
+For a small 16x16 map example, first generate a one-frame 64x64 input with FFmpeg:
+
+```bash
+ffmpeg -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -pix_fmt yuv420p roi-input.y4m
+```
+
+The 4x4 map below assigns offset -24 to the cell at column 1, row 1 (zero-based),
+covering pixels x=16..31 and y=16..31. The other 15 cells have offset 0.
+The leading 0 is the frame number; all 16 offsets must remain on the same line.
+
+```bash
+cat > roi-16x16.txt <<'EOF'
+0 0 0 0 0 0 -24 0 0 0 0 0 0 0 0 0 0
+EOF
+SvtAv1EncApp -i roi-input.y4m -b roi-16x16.ivf --roi-map-file roi-16x16.txt --roi-map-block-size 16 --preset 8 --lp 1
+```
+
+A second example uses the same input with 16 distinct offsets, from -8 to 7:
+
+```bash
+cat > roi-continuous.txt <<'EOF'
+0 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7
+EOF
+SvtAv1EncApp -i roi-input.y4m -b roi-continuous.ivf --roi-map-file roi-continuous.txt --roi-map-block-size 16 --preset 8 --lp 1
+```
+
+Each offset occurs once, so the sorted offsets form eight groups of two entries.
+Each group's representative is its lower median, giving segment offsets
+`-8, -6, -4, -2, 0, 2, 4, 6`. For example, both -8 and -7 map to -8, while
+both 6 and 7 map to 6. Maps with at most eight distinct offsets keep their exact values.
 
 ### Multi-pass Options
 
