@@ -236,6 +236,8 @@ static AOM_FORCE_INLINE void svt_second_level_check_v2(MacroBlockD* xd, const st
     svt_check_better(xd, cm, col_bias_mv, best_mv, mv_limits, var_params, mv_cost_params, besterr);
 
     // Do an additional search if the second iteration gives a better mv
+    // cppcheck misses that svt_check_better() writes *besterr through the pointer
+    // cppcheck-suppress knownConditionTrueFalse
     if (*besterr < besterr_before) {
         svt_check_better(xd, cm, diag_bias_mv, best_mv, mv_limits, var_params, mv_cost_params, besterr);
     }

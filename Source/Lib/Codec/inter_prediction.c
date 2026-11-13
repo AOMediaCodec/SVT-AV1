@@ -2034,6 +2034,8 @@ int32_t svt_aom_get_wedge_bits_lookup(BlockSize bsize) {
 }
 
 const uint8_t* svt_aom_get_contiguous_soft_mask(int wedge_index, int wedge_sign, BlockSize bsize) {
+    // masks is a WedgeMasksType* (array of uint8_t*), so this is a pointer; cppcheck misreads the typedef
+    // cppcheck-suppress CastIntegerToAddressAtReturn
     return wedge_params_lookup[bsize].masks[wedge_sign][wedge_index];
 }
 
@@ -2203,11 +2205,14 @@ static void init_wedge_masks() {
             const uint8_t* mask;
             mask = get_wedge_mask_inplace(w, 0, bsize);
             aom_convolve_copy_c(mask, MASK_PRIMARY_STRIDE, dst, bw, NULL, 0, NULL, 0, bw, bh);
+            // masks[k][w] is a uint8_t* (WedgeMasksType); cppcheck misreads the typedef
+            // cppcheck-suppress AssignmentAddressToInteger
             wedge_params->masks[0][w] = dst;
             dst += bw * bh;
 
             mask = get_wedge_mask_inplace(w, 1, bsize);
             aom_convolve_copy_c(mask, MASK_PRIMARY_STRIDE, dst, bw, NULL, 0, NULL, 0, bw, bh);
+            // cppcheck-suppress AssignmentAddressToInteger
             wedge_params->masks[1][w] = dst;
             dst += bw * bh;
         }

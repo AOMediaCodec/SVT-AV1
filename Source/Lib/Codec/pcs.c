@@ -588,8 +588,9 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
         sb_origin_x = (sb_origin_x == picture_sb_w - 1) ? 0 : sb_origin_x + 1;
     }
     // MD Rate Estimation Array
-    EB_MALLOC_ARRAY(object_ptr->md_rate_est_ctx, 1);
-    memset(object_ptr->md_rate_est_ctx, 0, sizeof(MdRateEstimationContext));
+    EB_CALLOC_ARRAY(object_ptr->md_rate_est_ctx, 1);
+    // calloc already zeroed the MV costs, so the approximated MV rate never needs to write (and page in) them
+    object_ptr->md_rate_est_ctx->nmv_costs_zero = true;
     if (SVT_EFFECTIVE_HBD_MD(init_data_ptr->hbd_md) == DEFAULT) {
         object_ptr->hbd_md = init_data_ptr->hbd_md = 2;
     } else {
@@ -999,6 +1000,7 @@ static EbErrorType picture_control_set_ctor(PictureControlSet* object_ptr, EbPtr
            init_data_ptr->picture_height);
     // Segments
     object_ptr->enc_dec_coded_sb_count = 0;
+    object_ptr->sb_final_blk_arr_used  = 0;
 
     EB_MALLOC_ARRAY(object_ptr->enc_dec_segment_ctrl, total_tile_cnt);
 

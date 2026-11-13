@@ -34,16 +34,20 @@
 #include "deblocking_filter.h"
 
 static void copy_mv_rate(PictureControlSet* pcs, MdRateEstimationContext* dst_rate) {
-    FrameHeader* frm_hdr = &pcs->ppcs->frm_hdr;
+    FrameHeader*                   frm_hdr  = &pcs->ppcs->frm_hdr;
+    const MdRateEstimationContext* src_rate = pcs->md_rate_est_ctx;
 
-    memcpy(dst_rate->nmv_vec_cost, pcs->md_rate_est_ctx->nmv_vec_cost, MV_JOINTS * sizeof(int32_t));
-    memcpy(dst_rate->mv_costs, pcs->md_rate_est_ctx->mv_costs, 2 * MV_VALS * sizeof(int32_t));
-    dst_rate->nmv_costs_zero  = false;
+    // zeros (approximated MV rate) need no copy onto zeros
+    if (!src_rate->nmv_costs_zero || !dst_rate->nmv_costs_zero) {
+        memcpy(dst_rate->nmv_vec_cost, src_rate->nmv_vec_cost, MV_JOINTS * sizeof(int32_t));
+        memcpy(dst_rate->mv_costs, src_rate->mv_costs, 2 * MV_VALS * sizeof(int32_t));
+        dst_rate->nmv_costs_zero = src_rate->nmv_costs_zero;
+    }
     dst_rate->nmvcoststack[0] = &dst_rate->mv_costs[0][MV_MAX];
     dst_rate->nmvcoststack[1] = &dst_rate->mv_costs[1][MV_MAX];
 
     if (frm_hdr->allow_intrabc) {
-        memcpy(dst_rate->dv_joint_cost, pcs->md_rate_est_ctx->dv_joint_cost, MV_JOINTS * sizeof(int32_t));
+        memcpy(dst_rate->dv_joint_cost, src_rate->dv_joint_cost, MV_JOINTS * sizeof(int32_t));
     }
 }
 
@@ -2758,6 +2762,7 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
         if (enc_dec_tasks->input_type == ENCDEC_TASKS_SUPERRES_INPUT) {
             // do as dorecode do
             pcs->enc_dec_coded_sb_count = 0;
+            pcs->sb_final_blk_arr_used  = 0;
             // re-init mode decision configuration for qp update for re-encode frame
             mdc_init_qp_update(pcs);
             // init segment for re-encode frame
@@ -3091,14 +3096,22 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                         pcs->sb_max_sq_size[sb_index] = 0;
                     }
                     sb_ptr->final_blk_cnt = 0;
+                    // A single EncDec thread codes the SBs one at a time, so it packs their blocks back to back in
+                    // the pool (paging in only the blocks coded) instead of using each SB's worst-case slice
+                    const bool pack_blks = scs->enc_dec_process_init_count == 1;
+                    if (pack_blks) {
+                        sb_ptr->final_blk_arr = pcs->sb_final_blk_arr_pool + pcs->sb_final_blk_arr_used;
+                    }
                     svt_aom_encode_sb(scs,
                                       pcs,
                                       ed_ctx,
-                                      sb_ptr,
                                       md_ctx->pc_tree,
                                       sb_ptr->ptree,
                                       md_ctx->sb_origin_y >> 2,
                                       md_ctx->sb_origin_x >> 2);
+                    if (pack_blks) {
+                        pcs->sb_final_blk_arr_used += sb_ptr->final_blk_cnt;
+                    }
                     // free MD palette info buffer
                     if (pcs->ppcs->palette_level) {
                         const uint16_t max_block_cnt = scs->max_block_cnt;
@@ -3183,6 +3196,7 @@ EbErrorType svt_aom_mode_decision_kernel_iter(void* context) {
                     }
                 }
                 pcs->enc_dec_coded_sb_count = 0;
+                pcs->sb_final_blk_arr_used  = 0;
                 // re-init mode decision configuration for qp update for re-encode frame
                 mdc_init_qp_update(pcs);
                 // init segment for re-encode frame
