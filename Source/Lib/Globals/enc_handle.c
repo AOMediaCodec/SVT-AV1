@@ -3798,8 +3798,11 @@ void set_multi_pass_params(SequenceControlSet* scs) {
         // Only allow re-encoding for VBR, RTC CBR or capped CRF, otherwise force recode_loop to DISALLOW_RECODE
         scs->static_config.recode_loop = DISALLOW_RECODE;
     } else if (scs->static_config.recode_loop == ALLOW_RECODE_DEFAULT) {
-        // capped CRF has reencde enabled for base layer frames for all presets
-        if (!scs->static_config.rate_control_mode && scs->static_config.max_bit_rate) {
+        if (scs->static_config.rtc) {
+            // RTC defaults to no re-encoding; an explicit recode_loop level still applies
+            scs->static_config.recode_loop = DISALLOW_RECODE;
+        } else if (!scs->static_config.rate_control_mode && scs->static_config.max_bit_rate) {
+            // capped CRF has reencde enabled for base layer frames for all presets
             scs->static_config.recode_loop = ALLOW_RECODE_KFARFGF;
         } else {
             scs->static_config.recode_loop = scs->static_config.enc_mode <= ENC_M3 ? ALLOW_RECODE_KFARFGF

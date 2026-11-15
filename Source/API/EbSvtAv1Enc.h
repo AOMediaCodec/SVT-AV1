@@ -632,7 +632,8 @@ typedef struct EbSvtAv1EncConfiguration {
      * ALLOW_RECODE_KFARFGF = 2, Allow recode only for KF/ARF/GF frames.
      * ALLOW_RECODE = 3, Allow recode for all frames based on bitrate constraints.
      * ALLOW_RECODE_DEFAULT = 4, Default setting, ALLOW_RECODE_KFARFGF for M0~5 and
-     *                                            ALLOW_RECODE_KFMAXBW for M6~8.
+     *                                            ALLOW_RECODE_KFMAXBW for M6~8,
+     *                                            DISALLOW_RECODE when rtc is set.
      * default is 4
      */
     uint32_t recode_loop;

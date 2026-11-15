@@ -117,7 +117,7 @@ For more information on valid values for specific keys, refer to the [EbEncSetti
 | **BufSz**                        | --buf-sz                         | [20-10000] | 1000        | Client maximum buffer size (ms), only applicable for CBR                                                                                             |
 | **BufInitialSz**                 | --buf-initial-sz                 | [20-10000] | 600         | Client initial buffer size (ms), only applicable for CBR                                                                                             |
 | **BufOptimalSz**                 | --buf-optimal-sz                 | [20-10000] | 600         | Client optimal buffer size (ms), only applicable for CBR                                                                                             |
-| **RecodeLoop**                   | --recode-loop                    | [0-4]      | 4           | Recode loop level, look at the "Recode loop level table" in the user's guide for more info [0: off, 4: preset based]                                 |
+| **RecodeLoop**                   | --recode-loop                    | [0-4]      | 4           | Recode loop level, look at the "Recode loop level table" in the user's guide for more info [0: off, 4: preset based, off with `--rtc 1`]             |
 | **MinSectionPct**                | --minsection-pct                 | [0-100]    | 0           | GOP min bitrate (expressed as a percentage of the target rate)                                                                                       |
 | **MaxSectionPct**                | --maxsection-pct                 | [0-10000]  | 2000        | GOP max bitrate (expressed as a percentage of the target rate)                                                                                       |
 | **GopConstraintRc**              | --gop-constraint-rc              | [0-1]      | 0           | Constrains the rate control to match the target rate for each GoP [0 = OFF, 1 = ON]                                                                  |
@@ -211,7 +211,7 @@ SvtAv1EncApp -i in.y4m -b out.ivf --keyint -1 --enable-qm 1 --qm-min 0 --qm-max 
 | 1     | Allow recode for KF and exceeding maximum frame bandwidth                       |
 | 2     | Allow recode only for key frames, alternate reference frames, and Golden frames |
 | 3     | Allow recode for all frame types based on bitrate constraints                   |
-| 4     | Preset based decision                                                           |
+| 4     | Preset based decision (off with `--rtc 1`)                                      |
 
 ### **RoiMapFile** and QP Offset Map file format
 In some applications such as AR / VR, identifying the ROI (Region Of Interest) helps the encoder focus the bit
