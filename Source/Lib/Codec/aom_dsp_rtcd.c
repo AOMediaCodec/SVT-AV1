@@ -1110,7 +1110,7 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
     SET_NEON(svt_av1_down2_symeven, svt_av1_down2_symeven_c, svt_av1_down2_symeven_neon);
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_ONLY_C(svt_av1_highbd_interpolate_core, svt_av1_highbd_interpolate_core_c);
-    SET_ONLY_C(svt_av1_highbd_down2_symeven, svt_av1_highbd_down2_symeven_c);
+    SET_NEON(svt_av1_highbd_down2_symeven, svt_av1_highbd_down2_symeven_c, svt_av1_highbd_down2_symeven_neon);
     SET_ONLY_C(svt_av1_highbd_resize_plane, svt_av1_highbd_resize_plane_c);
 #endif
     SET_ONLY_C(svt_av1_resize_plane, svt_av1_resize_plane_c);
