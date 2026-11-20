@@ -18,6 +18,57 @@
 #include "compute_sad.h"
 #include "compute_sad_c.h"
 #include "mcomp.h"
+
+uint32_t svt_aom_dc_sad_avx2(const uint8_t* src, uint32_t src_stride, const uint8_t* above, const uint8_t* left,
+                             uint32_t size, bool have_top, bool have_left) {
+    assert(size == 16 || size == 32 || size == 64);
+    const __m128i zero     = _mm_setzero_si128();
+    __m128i       edge_sum = zero;
+    for (uint32_t x = 0; x < size; x += 16) {
+        if (have_top) {
+            edge_sum = _mm_add_epi64(edge_sum, _mm_sad_epu8(_mm_loadu_si128((const __m128i*)(above + x)), zero));
+        }
+        if (have_left) {
+            edge_sum = _mm_add_epi64(edge_sum, _mm_sad_epu8(_mm_loadu_si128((const __m128i*)(left + x)), zero));
+        }
+    }
+    edge_sum                  = _mm_add_epi64(edge_sum, _mm_srli_si128(edge_sum, 8));
+    const uint32_t sum        = _mm_cvtsi128_si32(edge_sum);
+    const uint32_t count      = size * (have_top + have_left);
+    const uint32_t dc         = count ? (sum + count / 2) / count : 128;
+    const __m256i  prediction = _mm256_set1_epi8((char)dc);
+    __m256i        sad        = _mm256_setzero_si256();
+    if (size == 16) {
+        for (uint32_t y = 0; y < size; y += 2) {
+            const __m256i pixels = _mm256_setr_m128i(_mm_loadu_si128((const __m128i*)src),
+                                                     _mm_loadu_si128((const __m128i*)(src + src_stride)));
+            sad                  = _mm256_add_epi64(sad, _mm256_sad_epu8(pixels, prediction));
+            src += 2 * src_stride;
+        }
+    } else {
+        __m256i sad1 = _mm256_setzero_si256();
+        __m256i sad2 = _mm256_setzero_si256();
+        __m256i sad3 = _mm256_setzero_si256();
+        for (uint32_t y = 0; y < size; y += 4) {
+            for (uint32_t x = 0; x < size; x += 32) {
+                const __m256i row0 = _mm256_loadu_si256((const __m256i*)(src + x));
+                const __m256i row1 = _mm256_loadu_si256((const __m256i*)(src + src_stride + x));
+                const __m256i row2 = _mm256_loadu_si256((const __m256i*)(src + 2 * src_stride + x));
+                const __m256i row3 = _mm256_loadu_si256((const __m256i*)(src + 3 * src_stride + x));
+                sad                = _mm256_add_epi64(sad, _mm256_sad_epu8(row0, prediction));
+                sad1               = _mm256_add_epi64(sad1, _mm256_sad_epu8(row1, prediction));
+                sad2               = _mm256_add_epi64(sad2, _mm256_sad_epu8(row2, prediction));
+                sad3               = _mm256_add_epi64(sad3, _mm256_sad_epu8(row3, prediction));
+            }
+            src += 4 * src_stride;
+        }
+        sad = _mm256_add_epi64(_mm256_add_epi64(sad, sad1), _mm256_add_epi64(sad2, sad3));
+    }
+    __m128i total = _mm_add_epi64(_mm256_castsi256_si128(sad), _mm256_extracti128_si256(sad, 1));
+    total         = _mm_add_epi64(total, _mm_srli_si128(total, 8));
+    return _mm_cvtsi128_si32(total);
+}
+
 #define UPDATE_BEST(s, k, offset)        \
     tem_sum_1 = _mm_extract_epi32(s, k); \
     if (tem_sum_1 < low_sum) {           \
