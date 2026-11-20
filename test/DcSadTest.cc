@@ -138,4 +138,11 @@ INSTANTIATE_TEST_SUITE_P(C, DcSadTest,
                                             ::testing::Values(16u, 32u, 64u),
                                             ::testing::Bool(),
                                             ::testing::Bool()));
+#ifdef ARCH_X86_64
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, DcSadTest,
+    ::testing::Combine(::testing::Values(svt_aom_dc_sad_avx2),
+                       ::testing::Values(16u, 32u, 64u), ::testing::Bool(),
+                       ::testing::Bool()));
+#endif
 }  // namespace
