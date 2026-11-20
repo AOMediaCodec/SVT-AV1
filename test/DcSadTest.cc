@@ -145,4 +145,11 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Values(16u, 32u, 64u), ::testing::Bool(),
                        ::testing::Bool()));
 #endif
+#ifdef ARCH_AARCH64
+INSTANTIATE_TEST_SUITE_P(
+    NEON, DcSadTest,
+    ::testing::Combine(::testing::Values(svt_aom_dc_sad_neon),
+                       ::testing::Values(16u, 32u, 64u), ::testing::Bool(),
+                       ::testing::Bool()));
+#endif
 }  // namespace
