@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <cstdio>
 #include <tuple>
 #include <vector>
 
@@ -131,6 +133,100 @@ TEST_P(DcSadTest, RoundingMatch) {
                 return;
         }
     }
+}
+
+TEST_P(DcSadTest, DISABLED_Speed) {
+    EbCpuFlags flags =
+        func_ == svt_aom_dc_sad_c ? 0 : svt_aom_get_cpu_flags_to_use();
+#ifdef ARCH_X86_64
+    flags &= (EB_CPU_FLAGS_AVX2 << 1) - 1;
+#elif defined(ARCH_AARCH64)
+    flags &= EB_CPU_FLAGS_NEON;
+#endif
+    svt_aom_setup_common_rtcd_internal(flags);
+    svt_aom_setup_rtcd_internal(flags);
+    const DcPredFunc optimized_predictors[3][2][2] = {
+        {{svt_aom_dc_128_predictor_16x16, svt_aom_dc_top_predictor_16x16},
+         {svt_aom_dc_left_predictor_16x16, svt_aom_dc_predictor_16x16}},
+        {{svt_aom_dc_128_predictor_32x32, svt_aom_dc_top_predictor_32x32},
+         {svt_aom_dc_left_predictor_32x32, svt_aom_dc_predictor_32x32}},
+        {{svt_aom_dc_128_predictor_64x64, svt_aom_dc_top_predictor_64x64},
+         {svt_aom_dc_left_predictor_64x64, svt_aom_dc_predictor_64x64}}};
+    const int index = size_ == 16 ? 0 : size_ == 32 ? 1 : 2;
+    const DcPredFunc predict =
+        optimized_predictors[index][have_left_][have_top_];
+    ASSERT_EQ(func_, svt_aom_dc_sad);
+    if (func_ != svt_aom_dc_sad_c) {
+        ASSERT_NE(predictors[index][have_left_][have_top_], predict);
+        ASSERT_NE(&svt_nxm_sad_kernel_helper_c, svt_nxm_sad_kernel);
+    }
+    std::vector<uint8_t> src(size_ * size_);
+    std::vector<uint8_t> above(size_);
+    std::vector<uint8_t> left(size_);
+    std::vector<uint8_t> pred(size_ * size_);
+    svt_av1_test_tool::SVTRandom rnd(0, 255);
+    for (auto *data : {&src, &above, &left}) {
+        std::generate(data->begin(), data->end(), [&rnd]() {
+            return static_cast<uint8_t>(rnd.random());
+        });
+    }
+    auto separate = [&]() {
+        predict(pred.data(), size_, above.data(), left.data());
+        return svt_nxm_sad_kernel(
+            src.data(), size_, pred.data(), size_, size_, size_);
+    };
+    auto fused = [&]() {
+        return func_(src.data(),
+                     size_,
+                     above.data(),
+                     left.data(),
+                     size_,
+                     have_top_,
+                     have_left_);
+    };
+    ASSERT_EQ(separate(), fused());
+    constexpr int iterations = 200000;
+    auto measure = [&](bool use_fused) {
+        uint64_t sum = 0;
+        const auto start = std::chrono::steady_clock::now();
+        if (use_fused) {
+            for (int i = 0; i < iterations; ++i) {
+                sum += fused();
+            }
+        } else {
+            for (int i = 0; i < iterations; ++i) {
+                sum += separate();
+            }
+        }
+        const auto end = std::chrono::steady_clock::now();
+        EXPECT_NE(0u, sum);
+        return std::chrono::duration<double, std::nano>(end - start).count() /
+               iterations;
+    };
+    for (int i = 0; i < 1000; ++i) {
+        ASSERT_EQ(separate(), fused());
+    }
+    std::array<double, 7> separate_ns;
+    std::array<double, 7> fused_ns;
+    for (size_t i = 0; i < separate_ns.size(); ++i) {
+        if (i & 1) {
+            fused_ns[i] = measure(true);
+            separate_ns[i] = measure(false);
+        } else {
+            separate_ns[i] = measure(false);
+            fused_ns[i] = measure(true);
+        }
+    }
+    std::sort(separate_ns.begin(), separate_ns.end());
+    std::sort(fused_ns.begin(), fused_ns.end());
+    std::printf(
+        "size=%u top=%d left=%d separate=%.2f ns fused=%.2f ns speedup=%.2fx\n",
+        size_,
+        have_top_,
+        have_left_,
+        separate_ns[3],
+        fused_ns[3],
+        separate_ns[3] / fused_ns[3]);
 }
 
 INSTANTIATE_TEST_SUITE_P(C, DcSadTest,

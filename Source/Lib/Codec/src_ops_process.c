@@ -672,19 +672,8 @@ static void tpl_mc_flow_dispenser_sb_generic(EncodeContext* enc_ctx, SequenceCon
                                                                            bsize);
                     }
 
-                    //TODO: combine dc prediction+sad into one kernel
-                    svt_aom_intra_prediction_open_loop_mb(
-                        0,
-                        DC_PRED,
-                        mb_origin_x,
-                        mb_origin_y,
-                        tx_size_array[dispenser_search_level], // use full block for prediction
-                        above0_row,
-                        left0_col,
-                        predictor,
-                        size);
-
-                    best_intra_cost = svt_nxm_sad_kernel(src_mb, src_stride, predictor, size, size, size);
+                    best_intra_cost = svt_aom_dc_sad(
+                        src_mb, src_stride, above0_row, left0_col, size, mb_origin_y > 0, mb_origin_x > 0);
 
                 } else {
                     DECLARE_ALIGNED(MAX_TPL_SIZE, uint8_t, left0_data[MAX_TX_SIZE * 2 + MAX_TPL_SIZE * 2]);
