@@ -1066,7 +1066,7 @@ void svt_aom_setup_rtcd_internal(EbCpuFlags flags) {
     SET_NEON(svt_ext_eight_sad_calculation_32x32_64x64, svt_ext_eight_sad_calculation_32x32_64x64_c, svt_ext_eight_sad_calculation_32x32_64x64_neon);
     SET_ONLY_C(svt_initialize_buffer_32bits, svt_initialize_buffer_32bits_c);
     SET_NEON(svt_nxm_sad_kernel, svt_nxm_sad_kernel_helper_c, svt_nxm_sad_kernel_helper_neon);
-    SET_ONLY_C(svt_aom_dc_sad, svt_aom_dc_sad_c);
+    SET_NEON(svt_aom_dc_sad, svt_aom_dc_sad_c, svt_aom_dc_sad_neon);
     SET_ONLY_C(svt_compute_mean_8x8, svt_compute_mean_c);
     SET_ONLY_C(svt_compute_mean_square_values_8x8, svt_compute_mean_squared_values_c);
     SET_NEON_NEON_DOTPROD(svt_compute_interm_var_four8x8, svt_compute_interm_var_four8x8_c, svt_compute_interm_var_four8x8_neon, svt_compute_interm_var_four8x8_neon_dotprod);
