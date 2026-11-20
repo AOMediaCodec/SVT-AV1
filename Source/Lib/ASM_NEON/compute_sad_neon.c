@@ -21,6 +21,42 @@
 #include "sum_neon.h"
 #include "utility.h"
 
+uint32_t svt_aom_dc_sad_neon(const uint8_t* src, uint32_t src_stride, const uint8_t* above, const uint8_t* left,
+                             uint32_t size, bool have_top, bool have_left) {
+    assert(size == 16 || size == 32 || size == 64);
+    uint16x8_t edge_sum = vdupq_n_u16(0);
+    for (uint32_t x = 0; x < size; x += 16) {
+        if (have_top) {
+            edge_sum = vpadalq_u8(edge_sum, vld1q_u8(above + x));
+        }
+        if (have_left) {
+            edge_sum = vpadalq_u8(edge_sum, vld1q_u8(left + x));
+        }
+    }
+    const uint32_t   sum        = vaddlvq_u16(edge_sum);
+    const uint32_t   count      = size * (have_top + have_left);
+    const uint32_t   dc         = count ? (sum + count / 2) / count : 128;
+    const uint8x16_t prediction = vdupq_n_u8(dc);
+    uint16x8_t       sad0       = vdupq_n_u16(0);
+    uint16x8_t       sad1       = vdupq_n_u16(0);
+    if (size == 16) {
+        for (uint32_t y = 0; y < size; ++y) {
+            sad0 = vpadalq_u8(sad0, vabdq_u8(vld1q_u8(src), prediction));
+            src += src_stride;
+        }
+    } else {
+        // Max lane sum: 64 * 2 * 2 * 255 = 65280.
+        for (uint32_t y = 0; y < size; ++y) {
+            for (uint32_t x = 0; x < size; x += 32) {
+                sad0 = vpadalq_u8(sad0, vabdq_u8(vld1q_u8(src + x), prediction));
+                sad1 = vpadalq_u8(sad1, vabdq_u8(vld1q_u8(src + x + 16), prediction));
+            }
+            src += src_stride;
+        }
+    }
+    return vaddlvq_u16(sad0) + vaddlvq_u16(sad1);
+}
+
 static inline uint32_t sad40xh_neon(const uint8_t* src_ptr, int src_stride, const uint8_t* ref_ptr, int ref_stride,
                                     int h) {
     uint32_t res1, res2;

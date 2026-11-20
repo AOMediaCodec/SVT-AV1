@@ -916,6 +916,10 @@ RTCD_EXTERN void(*svt_ext_all_sad_calculation_8x8_16x16)(uint8_t* src, uint32_t 
 RTCD_EXTERN void(*svt_ext_eight_sad_calculation_32x32_64x64)(const uint32_t p_sad16x16[16][8], uint32_t *p_best_sad_32x32, uint32_t *p_best_sad_64x64, uint32_t *p_best_mv32x32, uint32_t *p_best_mv64x64, uint32_t mv, uint32_t p_sad32x32[4][8]);
 RTCD_EXTERN void(*svt_initialize_buffer_32bits)(uint32_t* pointer, uint32_t count128, uint32_t count32, uint32_t value);
 RTCD_EXTERN uint32_t(*svt_nxm_sad_kernel)(const uint8_t *src, uint32_t src_stride, const uint8_t *ref, uint32_t ref_stride, uint32_t height, uint32_t width);
+uint32_t svt_aom_dc_sad_c(const uint8_t *src, uint32_t src_stride, const uint8_t *above, const uint8_t *left, uint32_t size, bool have_top, bool have_left);
+uint32_t svt_aom_dc_sad_avx2(const uint8_t *src, uint32_t src_stride, const uint8_t *above, const uint8_t *left, uint32_t size, bool have_top, bool have_left);
+uint32_t svt_aom_dc_sad_neon(const uint8_t *src, uint32_t src_stride, const uint8_t *above, const uint8_t *left, uint32_t size, bool have_top, bool have_left);
+RTCD_EXTERN uint32_t(*svt_aom_dc_sad)(const uint8_t *src, uint32_t src_stride, const uint8_t *above, const uint8_t *left, uint32_t size, bool have_top, bool have_left);
 RTCD_EXTERN uint32_t(*nxm_sad_avg_kernel)(uint8_t *src, uint32_t src_stride, uint8_t *ref1, uint32_t ref1_stride, uint8_t *ref2, uint32_t ref2_stride, uint32_t height, uint32_t width);
 RTCD_EXTERN uint64_t(*svt_compute_mean_8x8)(uint8_t *input_samples, uint32_t input_stride, uint32_t input_area_width, uint32_t input_area_height);
 RTCD_EXTERN uint64_t(*svt_compute_mean_square_values_8x8)(uint8_t *input_samples, uint32_t input_stride, uint32_t input_area_width, uint32_t input_area_height);
