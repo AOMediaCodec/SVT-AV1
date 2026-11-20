@@ -91,6 +91,7 @@ set(multi_arch_files
     Convolve8Test.cc
     Convolve2dSrPerfTest.cc
     DeblockTest.cc
+    DcSadTest.cc
     EncodeTxbAsmTest.cc
     FilterIntraPredTest.cc
     FullDistortionPerfTest.cc

@@ -12,6 +12,32 @@
 #include "compute_sad_c.h"
 #include "utility.h"
 
+uint32_t svt_aom_dc_sad_c(const uint8_t* src, uint32_t src_stride, const uint8_t* above, const uint8_t* left,
+                          uint32_t size, bool have_top, bool have_left) {
+    assert(size == 16 || size == 32 || size == 64);
+    uint32_t sum = 0;
+    if (have_top) {
+        for (uint32_t x = 0; x < size; ++x) {
+            sum += above[x];
+        }
+    }
+    if (have_left) {
+        for (uint32_t y = 0; y < size; ++y) {
+            sum += left[y];
+        }
+    }
+    const uint32_t count = size * (have_top + have_left);
+    const uint32_t dc    = count ? (sum + count / 2) / count : 128;
+    uint32_t       sad   = 0;
+    for (uint32_t y = 0; y < size; ++y) {
+        for (uint32_t x = 0; x < size; ++x) {
+            sad += EB_ABS_DIFF(src[x], dc);
+        }
+        src += src_stride;
+    }
+    return sad;
+}
+
 /*******************************************
 *   returns NxM Sum of Absolute Differences
 Note: moved from picture operators.
