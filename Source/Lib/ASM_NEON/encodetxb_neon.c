@@ -597,6 +597,25 @@ void svt_av1_get_nz_map_contexts_neon(const uint8_t* const levels, const int16_t
     }
 }
 
+// TX_CLASS_2D contexts of at least the first rows rows.
+void svt_av1_get_nz_map_contexts_2d_rows_neon(const uint8_t* const levels, const TxSize tx_size, const int32_t rows,
+                                              int8_t* const coeff_contexts) {
+    const int32_t   real_width  = tx_size_wide[tx_size];
+    const int32_t   real_height = tx_size_high[tx_size];
+    const int32_t   width       = get_txb_wide(tx_size);
+    const int32_t   height      = get_txb_high(tx_size);
+    const int32_t   stride      = width + TX_PAD_HOR;
+    const ptrdiff_t offsets[3]  = {0 * stride + 2, 1 * stride + 1, 2 * stride + 0};
+    uint8_t* const  contexts    = (uint8_t*)coeff_contexts;
+    if (width == 4) {
+        get_4_nz_map_contexts_2d(levels, height, (rows + 3) & ~3, offsets, contexts);
+    } else if (width == 8) {
+        get_8_coeff_contexts_2d(levels, height, (rows + 1) & ~1, offsets, contexts);
+    } else {
+        get_16n_coeff_contexts_2d(levels, real_width, real_height, width, rows, offsets, contexts);
+    }
+}
+
 static inline uint8x8_t compute_sum(uint8x16_t in, uint8x16_t prev_in) {
     uint16x8_t sum = vpaddlq_u8(in);
     sum            = vpadalq_u8(sum, prev_in);

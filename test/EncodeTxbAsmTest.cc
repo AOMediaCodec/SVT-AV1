@@ -179,6 +179,77 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Range(0, static_cast<int>(TX_SIZES_ALL), 1)));
 #endif  // ARCH_AARCH64
 
+// test assembly code of svt_av1_get_nz_map_contexts_2d_rows
+using GetNzMapContexts2dRowsFunc = void (*)(const uint8_t *const levels,
+                                            const TxSize tx_size,
+                                            const int32_t rows,
+                                            int8_t *const coeff_contexts);
+using GetNzMapContexts2dRowsParam = std::tuple<GetNzMapContexts2dRowsFunc, int>;
+
+class EncodeTxb2dRowsTest
+    : public ::testing::TestWithParam<GetNzMapContexts2dRowsParam> {
+  public:
+    EncodeTxb2dRowsTest() : level_rnd_(0, INT8_MAX) {
+    }
+
+    void check(GetNzMapContexts2dRowsFunc test_func, const int tx_size) {
+        const TxSize tx = static_cast<TxSize>(tx_size);
+        const int bwl = get_txb_bwl(tx);
+        const int width = get_txb_wide(tx);
+        const int height = get_txb_high(tx);
+        uint8_t *const levels = set_levels(levels_buf_, width, height);
+        for (int i = 0; i < 10; ++i) {
+            // dense levels on even iterations, every fourth position on odd
+            memset(levels_buf_, 0, sizeof(levels_buf_));
+            for (int pos = 0; pos < width * height; ++pos) {
+                if (!(i & 1) || !(pos & 3)) {
+                    levels[get_padded_idx(pos, bwl)] =
+                        static_cast<uint8_t>(level_rnd_.random());
+                }
+            }
+            // the RDOQ caller passes an even row count
+            for (int rows = 2; rows <= height; rows += 2) {
+                memset(contexts_ref_, 0, sizeof(contexts_ref_));
+                memset(contexts_test_, 0, sizeof(contexts_test_));
+                svt_av1_get_nz_map_contexts_2d_rows_c(
+                    levels, tx, rows, contexts_ref_);
+                test_func(levels, tx, rows, contexts_test_);
+                for (int ci = 0; ci < (rows << bwl); ++ci) {
+                    ASSERT_EQ(contexts_ref_[ci], contexts_test_[ci])
+                        << " tx_size " << tx_size << " rows " << rows << " ci "
+                        << ci;
+                }
+            }
+        }
+    }
+
+  private:
+    SVTRandom level_rnd_;
+    uint8_t levels_buf_[TX_PAD_2D];
+    DECLARE_ALIGNED(16, int8_t, contexts_ref_[MAX_TX_SQUARE]);
+    DECLARE_ALIGNED(16, int8_t, contexts_test_[MAX_TX_SQUARE]);
+};
+
+TEST_P(EncodeTxb2dRowsTest, Match) {
+    check(TEST_GET_PARAM(0), TEST_GET_PARAM(1));
+}
+
+#ifdef ARCH_X86_64
+INSTANTIATE_TEST_SUITE_P(
+    AVX2, EncodeTxb2dRowsTest,
+    ::testing::Combine(
+        ::testing::Values(&svt_av1_get_nz_map_contexts_2d_rows_avx2),
+        ::testing::Range(0, static_cast<int>(TX_SIZES_ALL), 1)));
+#endif  // ARCH_X86_64
+
+#ifdef ARCH_AARCH64
+INSTANTIATE_TEST_SUITE_P(
+    NEON, EncodeTxb2dRowsTest,
+    ::testing::Combine(
+        ::testing::Values(&svt_av1_get_nz_map_contexts_2d_rows_neon),
+        ::testing::Range(0, static_cast<int>(TX_SIZES_ALL), 1)));
+#endif  // ARCH_AARCH64
+
 // test assembly code of svt_av1_txb_init_levels
 using TxbInitLevelsFunc = void (*)(const TranLow *const coeff, const int width,
                                    const int height, uint8_t *const levels);
