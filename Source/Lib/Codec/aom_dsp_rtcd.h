@@ -1404,6 +1404,7 @@ void svt_aom_downsample_2d_neon(uint8_t *input_samples, uint32_t input_stride, u
 void svt_av1_txb_init_levels_neon(const TranLow *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
 
 void svt_av1_get_nz_map_contexts_neon(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, TxSize tx_size, const TxClass tx_class, int8_t *const coeff_contexts);
+void svt_av1_get_nz_map_contexts_2d_rows_neon(const uint8_t *const levels, const TxSize tx_size, const int32_t rows, int8_t *const coeff_contexts);
 
 uint64_t svt_search_one_dual_neon(int *lev0, int *lev1, int nb_strengths, uint64_t** mse[2], int sb_count, int start_gi, int end_gi);
 
