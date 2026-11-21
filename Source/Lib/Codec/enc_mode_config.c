@@ -3934,6 +3934,9 @@ static void set_rdoq_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, 
     if (svt_av1_is_lossless_segment(pcs, 0)) {
         rdoq_level = 0;
     }
+    rdoq_ctrls->skip_uv_bypass  = 0;
+    rdoq_ctrls->inter_quant_b   = 0;
+    rdoq_ctrls->inter_y_rd_mult = 0;
     switch (rdoq_level) {
     case 0:
         rdoq_ctrls->enabled = 0;
@@ -3981,6 +3984,18 @@ static void set_rdoq_controls(PictureControlSet* pcs, ModeDecisionContext* ctx, 
         rdoq_ctrls->dct_dct_only  = 1;
         rdoq_ctrls->eob_th        = 85;
         rdoq_ctrls->eob_fast_th   = 0;
+        break;
+    case 6:
+        // Low-cost inter RDOQ: on deadzone-quantized levels, luma only in regular PD1, higher luma rate weight
+        rdoq_ctrls->enabled         = 1;
+        rdoq_ctrls->cut_off_num     = 0;
+        rdoq_ctrls->skip_uv         = 0;
+        rdoq_ctrls->dct_dct_only    = 0;
+        rdoq_ctrls->eob_th          = (uint8_t)~0;
+        rdoq_ctrls->eob_fast_th     = (uint8_t)~0;
+        rdoq_ctrls->skip_uv_bypass  = 1;
+        rdoq_ctrls->inter_quant_b   = 1;
+        rdoq_ctrls->inter_y_rd_mult = 20;
         break;
     default:
         assert(0);
@@ -8143,6 +8158,10 @@ void svt_aom_sig_deriv_enc_dec_rtc(PictureControlSet* pcs, ModeDecisionContext* 
 
     uint8_t rdoq_level = pcs->rdoq_level;
     set_rdoq_controls(pcs, ctx, rdoq_level);
+    // Apply the bypass chroma rule here so the independent UV search, which runs before md_stage_3, uses it too
+    if (ctx->bypass_encdec && ctx->pd_pass == PD_PASS_1) {
+        ctx->rdoq_ctrls.skip_uv = ctx->rdoq_ctrls.skip_uv_bypass;
+    }
 
     uint8_t coeff_shaving_level = pcs->coeff_shaving_level;
     set_coeff_shaving_controls(ctx, coeff_shaving_level);
@@ -9710,10 +9729,12 @@ void svt_aom_sig_deriv_mode_decision_config_rtc(SequenceControlSet* scs, Picture
         }
     }
     mfmv_controls(pcs, mfmv_level);
-    // Set RDOQ level
-    if (use_flat_ipp) {
+    // Set RDOQ level; the M8-M9 inter level is tuned for 1 and 2 temporal layers
+    if (ppcs->hierarchical_levels <= 1) {
         if (enc_mode <= ENC_M7) {
             pcs->rdoq_level = 1;
+        } else if (enc_mode <= ENC_M9) {
+            pcs->rdoq_level = is_islice ? 1 : 6;
         } else if (enc_mode <= ENC_M10) {
             pcs->rdoq_level = is_islice ? 1 : 0;
         } else {

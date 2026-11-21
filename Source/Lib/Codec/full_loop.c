@@ -1201,7 +1201,10 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
             rweight   = 0;
         }
     }
-    const int64_t  rdmult = (((((int64_t)lambda * plane_rd_mult[is_inter][plane_type]) * rweight) / 100) + 2) >> rshift;
+    const int      prm    = (is_inter && plane_type == PLANE_TYPE_Y && ctx->rdoq_ctrls.inter_y_rd_mult)
+        ? ctx->rdoq_ctrls.inter_y_rd_mult
+        : plane_rd_mult[is_inter][plane_type];
+    const int64_t  rdmult = (((((int64_t)lambda * prm) * rweight) / 100) + 2) >> rshift;
     uint8_t* const levels = set_levels(ctx->md_levels_buf, width, height);
 
     if (*eob > 1) {
@@ -1814,7 +1817,10 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet* pcs, ModeDecisionContex
             perform_rdoq = 0;
         }
     }
-    if (perform_rdoq) {
+    // RDOQ normally starts from fp levels; with inter_quant_b, inter blocks start from deadzone (quantize_b) levels
+    // and RDOQ still runs on them, so perform_rdoq stays set
+    const bool rdoq_on_b_levels = perform_rdoq && ctx->rdoq_ctrls.inter_quant_b && is_inter;
+    if (perform_rdoq && !rdoq_on_b_levels) {
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
         if ((bit_depth > EB_EIGHT_BIT) || (is_encode_pass && SVT_EFFECTIVE_IS_16BIT_PIPELINE(scs->is_16bit_pipeline))) {
             svt_av1_highbd_quantize_fp_facade((TranLow*)coeff,
@@ -1874,7 +1880,8 @@ uint8_t svt_aom_quantize_inv_quantize(PictureControlSet* pcs, ModeDecisionContex
             svt_fast_optimize_b(
                 (TranLow*)coeff, &candidate_plane, quant_coeff, (TranLow*)recon_coeff, eob, txsize, tx_type);
         }
-        if (perform_rdoq == 0) {
+        // RDOQ dropped: replace fp levels with quantize_b levels (already in place when rdoq_on_b_levels)
+        if (perform_rdoq == 0 && !rdoq_on_b_levels) {
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
             if ((bit_depth > EB_EIGHT_BIT) ||
                 (is_encode_pass && SVT_EFFECTIVE_IS_16BIT_PIPELINE(scs->is_16bit_pipeline))) {

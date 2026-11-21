@@ -438,6 +438,13 @@ typedef struct RdoqCtrls {
     // eob_th beyond which RDOQ is shut
     uint8_t eob_th;
     uint8_t eob_fast_th;
+    // [MD Only] skip_uv for regular PD1 when EncDec is bypassed: chroma RDOQ there uses the computed txb contexts
+    // and loses chroma; light PD1 keeps chroma RDOQ
+    uint8_t skip_uv_bypass;
+    // 1: inter blocks feed RDOQ with the deadzone quantizer (quantize_b) instead of quantize_fp
+    uint8_t inter_quant_b;
+    // RDOQ rd multiplier for inter luma; 0: default (plane_rd_mult)
+    uint8_t inter_y_rd_mult;
 } RdoqCtrls;
 
 typedef struct CoeffShavingCtrls {
