@@ -563,6 +563,13 @@
 #define SVT_X86_ONLY_KERNEL_PATHS 0
 #endif
 
+// RDOQ's precomputed TX_CLASS_2D contexts use svt_av1_get_nz_map_contexts_2d_rows, which has x86 and Arm SIMD.
+#if defined(ARCH_X86_64) || defined(ARCH_AARCH64)
+#define SVT_RDOQ_2D_CONTEXTS 1
+#else
+#define SVT_RDOQ_2D_CONTEXTS 0
+#endif
+
 // MOBILE and the minimal RTC build reject presets below MIN_ENC_PRESET (svt_av1_verify_settings()): clamping the
 // preset where the signal derivations read it lets the compiler drop their branches for the lower presets.
 #if MOBILE_BUILD || (RTC_BUILD && MINIMAL_BUILD)

@@ -1209,7 +1209,7 @@ static void svt_av1_optimize_b(PictureControlSet* pcs, ModeDecisionContext* ctx,
     }
     DECLARE_ALIGNED(32, int8_t, nz_ctx_buf[32 * 32]);
     int8_t* nz_ctx = NULL;
-    if (SVT_X86_ONLY_KERNEL_PATHS && tx_class == TX_CLASS_2D && *eob > 8) {
+    if (SVT_RDOQ_2D_CONTEXTS && tx_class == TX_CLASS_2D && *eob > 8) {
         // the visited positions lie on the anti-diagonals up to that of the last one
         const int last = scan[*eob - 1];
         const int rows = AOMMIN(height, ((last >> bwl) + (last & (width - 1)) + 2) & ~1);
