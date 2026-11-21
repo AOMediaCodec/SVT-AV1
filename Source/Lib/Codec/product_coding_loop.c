@@ -7369,7 +7369,7 @@ static void md_stage_3(PictureControlSet* pcs, ModeDecisionContext* ctx, EbPictu
     // If EncDec is bypassed, disable features affecting the TX that are usually disabled in EncDec
     if (ctx->bypass_encdec && ctx->pd_pass == PD_PASS_1) {
         ctx->pf_ctrls.pf_shape       = DEFAULT_SHAPE;
-        ctx->rdoq_ctrls.skip_uv      = 0;
+        ctx->rdoq_ctrls.skip_uv      = ctx->rdoq_ctrls.skip_uv_bypass;
         ctx->rdoq_ctrls.dct_dct_only = 0;
     }
 
