@@ -460,6 +460,13 @@ EbCpuFlags svt_aom_get_cpu_flags_to_use() { return 0; }
 #define SET_NEON_NEON_I8MM_SVE(ptr, c, neon, neon_i8mm, sve)    SET_FUNCTIONS_NEON(ptr, c, neon, 0, neon_i8mm, sve, 0)
 #define SET_NEON_SVE(ptr, c, neon, sve)                         SET_FUNCTIONS_NEON(ptr, c, neon, 0, 0, sve, 0)
 #define SET_NEON_SVE2(ptr, c, neon, sve2)                       SET_FUNCTIONS_NEON(ptr, c, neon, 0, 0, 0, sve2)
+// MOBILE size lever: warp and filter intra keep their NEON kernels in the i8mm tier (~9 KB smaller); RTC runs neither
+// tool. Other builds keep the full registration.
+#if MOBILE_BUILD
+#define MOBILE_NO_I8MM(neon_i8mm) 0
+#else
+#define MOBILE_NO_I8MM(neon_i8mm) neon_i8mm
+#endif
 // MOBILE size lever: the compound jnt_convolve kernels serve only VOD (RTC and AVIF never run them); NEON-only
 // drops their dotprod tier to save binary size at a small VOD speed cost. Other builds keep the full registration.
 #if MOBILE_BUILD
@@ -1134,7 +1141,7 @@ void svt_aom_setup_common_rtcd_internal(EbCpuFlags flags) {
     SET_NEON(svt_cfl_predict_lbd, svt_cfl_predict_lbd_c, svt_aom_cfl_predict_lbd_neon);
     SET_NEON(svt_cfl_predict_hbd, svt_cfl_predict_hbd_c, svt_cfl_predict_hbd_neon);
 #if CONFIG_ENABLE_FILTER_INTRA
-    SET_NEON_NEON_I8MM(svt_av1_filter_intra_predictor, svt_av1_filter_intra_predictor_c, svt_av1_filter_intra_predictor_neon, svt_av1_filter_intra_predictor_neon_i8mm);
+    SET_NEON_NEON_I8MM(svt_av1_filter_intra_predictor, svt_av1_filter_intra_predictor_c, svt_av1_filter_intra_predictor_neon, MOBILE_NO_I8MM(svt_av1_filter_intra_predictor_neon_i8mm));
 #endif
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
     SET_NEON(svt_av1_filter_intra_edge_high, svt_av1_filter_intra_edge_high_c, svt_av1_filter_intra_edge_high_neon);
@@ -1493,7 +1500,7 @@ void svt_aom_setup_common_rtcd_internal(EbCpuFlags flags) {
     SET_NEON_SVE(svt_av1_highbd_warp_affine, svt_av1_highbd_warp_affine_c, svt_av1_highbd_warp_affine_neon, svt_av1_highbd_warp_affine_sve);
 #endif
 #if CONFIG_ENABLE_WARP
-    SET_NEON_NEON_I8MM_SVE(svt_av1_warp_affine, svt_av1_warp_affine_c, svt_av1_warp_affine_neon, svt_av1_warp_affine_neon_i8mm, svt_av1_warp_affine_sve);
+    SET_NEON_NEON_I8MM_SVE(svt_av1_warp_affine, svt_av1_warp_affine_c, svt_av1_warp_affine_neon, MOBILE_NO_I8MM(svt_av1_warp_affine_neon_i8mm), svt_av1_warp_affine_sve);
 #endif
 
 #if CONFIG_ENABLE_HIGH_BIT_DEPTH
