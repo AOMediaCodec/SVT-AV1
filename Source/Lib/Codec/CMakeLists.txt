@@ -232,6 +232,8 @@ set(all_files
         pred_structure.c
         pred_structure.h
         product_coding_loop.c
+        pq_eotf_table.c
+        pq_eotf_table.h
         ac_bias.c
         ac_bias.h
         q_matrices.h
