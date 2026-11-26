@@ -25,6 +25,7 @@ test/docs/
 !Build/windows/build.bat
 !Build/obj1fastdownloader.cmake
 !Build/gen_devirt.py
+!Build/gen_pq_eotf_table.py
 .DS_Store
 third_party/aom/lib/*/aom.lib
 third_party/aom/lib/*/*/aom.lib

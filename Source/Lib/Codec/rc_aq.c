@@ -17,6 +17,7 @@
 
 #include "rc_process.h"
 #include "resize.h"
+#include "pq_eotf_table.h"
 
 // These functions use formulaic calculations to make playing with the
 // quantizer tables easier. If necessary they can be replaced by lookup
@@ -73,8 +74,20 @@ int variance_comp_int(const void* a, const void* b) {
 #define SUBBLOCKS_IN_SB (SUBBLOCKS_IN_SB_DIM * SUBBLOCKS_IN_SB_DIM)
 #define SUBBLOCKS_IN_OCTILE (SUBBLOCKS_IN_SB / 8)
 
-static int av1_get_deltaq_sb_variance_boost(uint8_t base_q_idx, uint16_t* variances, uint8_t strength,
-                                            EbBitDepth bit_depth, uint8_t octile, uint8_t curve) {
+/* compute_b64_variance() computes block mean using VARIANCE_PRECISION = 16 (mean_prec = 8,
+ * i.e. 8-bit MSB << 8 in [0..65280]); >> 6 rounds it to 10-bit PQ codewords [0..1023]. */
+static inline uint32_t pq_mean_to_canonical_code(uint16_t mean, bool is_studio_range) {
+    uint32_t code = AOMMIN(1023u, (uint32_t)((mean + 32) >> 6));
+    if (is_studio_range) {
+        code = (code <= 64) ? 0 : (code >= 940) ? 1023 : ((code - 64) * 1023 + 438) / 876;
+    }
+    return code;
+}
+
+static int av1_get_deltaq_sb_variance_boost(uint8_t base_q_idx, uint16_t mean, uint16_t* variances, uint8_t strength,
+                                            EbBitDepth bit_depth, uint8_t octile, uint8_t curve, bool enable_barten_aq,
+                                            bool is_studio_range, const double* pq_weight_table,
+                                            uint32_t pq_lut_limit) {
     // boost q_index based on empirical visual testing, strength 2
     // variance     qstep_ratio boost (@ base_q_idx 255)
     // 256          1
@@ -145,8 +158,23 @@ static int av1_get_deltaq_sb_variance_boost(uint8_t base_q_idx, uint16_t* varian
         qstep_ratio = 0.15 * strength * (-log2((double)variance) + 10) + 1;
         break;
     default: /* 0: default q step ratio curve */
-        qstep_ratio = pow(1.018, strengths[strength] * (-10 * log2((double)variance) + 80));
+    {
+        double exponent = strengths[strength] * (-10.0 * log2((double)variance) + 80.0);
+        // Perceptual Barten CSF modulation in Log-QP space with Jensen upper envelope
+        if (enable_barten_aq && pq_weight_table && exponent > 0.0) {
+            uint32_t code = pq_mean_to_canonical_code(mean, is_studio_range);
+            if (code < pq_lut_limit) {
+                /* variances[ME_TIER_ZERO_PU_64x64] is 8-bit MSB variance; 4.0 * sqrt(var) maps 8-bit sigma to 10-bit. */
+                double   sigma_64_10b = 4.0 * sqrt((double)variances[ME_TIER_ZERO_PU_64x64]);
+                uint32_t code_eff     = AOMMIN(1023u, (uint32_t)(code + sigma_64_10b + 0.5));
+                if (code_eff < pq_lut_limit) {
+                    exponent *= pq_weight_table[code_eff];
+                }
+            }
+        }
+        qstep_ratio = pow(1.018, exponent);
         break;
+    }
     }
     qstep_ratio = CLIP3(1, VAR_BOOST_MAX_QSTEP_RATIO_BOOST, qstep_ratio);
 
@@ -206,16 +234,71 @@ void svt_av1_variance_adjust_qp(PictureControlSet* pcs) {
     }
     SVT_DEBUG("VAQ qindex boost, frame %llu, temp. level %i\n", pcs->picture_number, pcs->temporal_layer_index);
 #endif
+    const bool is_studio_range  = (scs->static_config.color_range == EB_CR_STUDIO_RANGE);
+    const bool enable_barten_aq = (scs->static_config.variance_boost_curve == 0 &&
+                                   scs->static_config.transfer_characteristics == EB_CICP_TC_SMPTE_2084 &&
+                                   scs->static_config.tune == TUNE_VQ);
+
+    const uint32_t pq_ref_code = 520u; // ~100 nits diffuse white reference in canonical 10-bit PQ
+    double         frame_pq_weight_table[520];
+    uint32_t       pq_lut_limit = 0;
+    if (enable_barten_aq && sb_cnt > 0 && ppcs->mean) {
+        const double l_0         = 0.005; // Dark-room display / ocular glare floor (cd/m^2)
+        const double alpha_glare = 0.015; // Linear intraocular veiling glare (~1.5% Stiles-Holladay)
+        const double l_frame_cap = 300.0; // Safety cap for bright daytime HDR scenes
+        const double k0          = 0.008; // De Vries-Rose mesopic constant
+        const double k1          = 0.010; // Weber photopic constant
+
+        // Linear intraocular veiling glare (Stiles-Holladay scattering)
+        double l_frame_sum = 0.0;
+        for (uint32_t s = 0; s < sb_cnt; ++s) {
+            uint32_t c = pq_mean_to_canonical_code(ppcs->mean[s], is_studio_range);
+            l_frame_sum += svt_pq_eotf_table[c];
+        }
+        double l_frame = l_frame_sum / (double)sb_cnt;
+        double l_amb   = l_0 + alpha_glare * AOMMIN(l_frame, l_frame_cap);
+
+        // Reference codeword visibility threshold at 100 nits
+        double l_ref_eff = svt_pq_eotf_table[pq_ref_code] + l_amb;
+        double dv_ref    = (l_ref_eff * (k0 / sqrt(l_ref_eff) + k1)) / svt_pq_dldv_table[pq_ref_code];
+
+        frame_pq_weight_table[0] = 0.0;
+        pq_lut_limit             = pq_ref_code;
+        for (uint32_t c = 1; c < pq_ref_code; ++c) {
+            double dldv = svt_pq_dldv_table[c];
+            if (dldv <= 0.0) {
+                frame_pq_weight_table[c] = 0.0;
+                continue;
+            }
+            double l_eff = svt_pq_eotf_table[c] + l_amb;
+            double dv    = (l_eff * (k0 / sqrt(l_eff) + k1)) / dldv;
+            double w     = dv_ref / dv;
+            if (w >= 1.0) {
+                pq_lut_limit = c;
+                break;
+            }
+            frame_pq_weight_table[c] = (w <= 0.0) ? 0.0 : w;
+        }
+        for (uint32_t c = pq_lut_limit; c < pq_ref_code; ++c) {
+            frame_pq_weight_table[c] = 1.0;
+        }
+    }
+
     for (uint32_t sb_addr = 0; sb_addr < sb_cnt; ++sb_addr) {
         SuperBlock* sb_ptr = pcs->sb_ptr_array[sb_addr];
 
         // adjust deltaq based on sb variance, with lower variance resulting in a lower qindex
         int boost = av1_get_deltaq_sb_variance_boost(ppcs->frm_hdr.quantization_params.base_q_idx,
+                                                     ppcs->mean ? ppcs->mean[sb_addr] : 0,
                                                      ppcs->variance[sb_addr],
                                                      scs->static_config.variance_boost_strength,
                                                      scs->static_config.encoder_bit_depth,
                                                      scs->static_config.variance_octile,
-                                                     scs->static_config.variance_boost_curve);
+                                                     scs->static_config.variance_boost_curve,
+                                                     enable_barten_aq,
+                                                     is_studio_range,
+                                                     enable_barten_aq ? frame_pq_weight_table : NULL,
+                                                     pq_lut_limit);
 #if DEBUG_VAR_BOOST_STATS
         SVT_DEBUG("%4d ", boost);
 

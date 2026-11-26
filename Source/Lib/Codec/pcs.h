@@ -872,6 +872,7 @@ typedef struct PictureParentControlSet {
     EbObjectWrapper* ref_pa_pic_ptr_array[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint64_t         ref_pic_poc_array[MAX_NUM_OF_REF_PIC_LIST][REF_LIST_MAX_DEPTH];
     uint16_t**       variance;
+    uint16_t*        mean;
     uint32_t         pre_assignment_buffer_count;
     uint16_t         pic_avg_variance;
 

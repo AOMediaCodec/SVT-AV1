@@ -402,6 +402,9 @@ static void compute_b64_variance(SequenceControlSet* scs, PictureParentControlSe
     mean_of_64x64_blocks = (mean_of_32x32_blocks[0] + mean_of_32x32_blocks[1] + mean_of_32x32_blocks[2] +
                             mean_of_32x32_blocks[3]) >>
         2;
+    if (pcs->mean) {
+        pcs->mean[b64_idx] = (uint16_t)mean_of_64x64_blocks;
+    }
     mean_of64x64_squared_values_blocks = (mean_of32x32_squared_values_blocks[0] +
                                           mean_of32x32_squared_values_blocks[1] +
                                           mean_of32x32_squared_values_blocks[2] +

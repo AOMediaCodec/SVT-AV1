@@ -1125,6 +1125,10 @@ static void picture_parent_control_set_dctor(EbPtr ptr) {
         EB_FREE_2D(obj->variance);
     }
 
+    if (obj->mean) {
+        EB_FREE_ARRAY(obj->mean);
+    }
+
     if (obj->picture_histogram) {
         for (int region_in_picture_width_index = 0; region_in_picture_width_index < MAX_NUMBER_OF_REGIONS_IN_WIDTH;
              region_in_picture_width_index++) {
@@ -1231,6 +1235,7 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet* obje
     object_ptr->enhanced_pic            = NULL;
     object_ptr->enhanced_downscaled_pic = NULL;
     object_ptr->enhanced_unscaled_pic   = NULL;
+    object_ptr->mean                    = NULL;
 
     if (init_data_ptr->color_format >= EB_YUV422) {
         EbPictureBufferDescInitData input_pic_buf_desc_init_data;
@@ -1268,6 +1273,12 @@ static EbErrorType picture_parent_control_set_ctor(PictureParentControlSet* obje
             block_count = 85;
         } else {
             block_count = 1;
+        }
+        if (init_data_ptr->static_config.enable_variance_boost &&
+            init_data_ptr->static_config.variance_boost_curve == 0 &&
+            init_data_ptr->static_config.transfer_characteristics == EB_CICP_TC_SMPTE_2084 &&
+            init_data_ptr->static_config.tune == TUNE_VQ) {
+            EB_CALLOC_ARRAY(object_ptr->mean, object_ptr->b64_total_count);
         }
         EB_MALLOC_2D(object_ptr->variance, object_ptr->b64_total_count, block_count);
     }
